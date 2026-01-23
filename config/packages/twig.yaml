@@ -1,0 +1,14 @@
+twig:
+    file_name_pattern: '*.twig'
+    default_path: '%kernel.project_dir%/templates'
+
+    # Enable strict variables in dev/test for catching errors
+    strict_variables: true
+
+when@test:
+    twig:
+        strict_variables: true
+
+when@prod:
+    twig:
+        strict_variables: false

@@ -1,0 +1,8 @@
+when@dev:
+    debug:
+        # Forwards VarDumper Data Collectors to a specific server
+        # dump_destination: "tcp://%env(VAR_DUMPER_SERVER)%"
+
+when@test:
+    debug:
+        # dump_destination: "tcp://%env(VAR_DUMPER_SERVER)%"
