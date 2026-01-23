@@ -1,0 +1,11 @@
+framework:
+    asset_mapper:
+        # The paths to make available to the asset mapper.
+        paths:
+            - assets/
+
+when@prod:
+    framework:
+        asset_mapper:
+            # Set to false to disable the built-in compression during precompile
+            precompress: true

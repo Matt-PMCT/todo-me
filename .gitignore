@@ -1,48 +1,22 @@
-# Cache and logs (Symfony2)
-/app/cache/*
-/app/logs/*
-!app/cache/.gitkeep
-!app/logs/.gitkeep
-
-# Email spool folder
-/app/spool/*
-
-# Cache, session files and logs (Symfony3)
+# Cache and logs
 /var/cache/*
-/var/logs/*
-/var/sessions/*
-!var/cache/.gitkeep
-!var/logs/.gitkeep
-!var/sessions/.gitkeep
-
-# Logs (Symfony4)
 /var/log/*
+!var/cache/.gitkeep
 !var/log/.gitkeep
 
-# Parameters
-/app/config/parameters.yml
-/app/config/parameters.ini
-
 # Managed by Composer
-/app/bootstrap.php.cache
-/var/bootstrap.php.cache
+/vendor/
 /bin/*
 !bin/console
-!bin/symfony_requirements
-/vendor/
-
-# Assets and user uploads
-/web/bundles/
-/web/uploads/
 
 # PHPUnit
-/app/phpunit.xml
 /phpunit.xml
+/.phpunit.result.cache
 
 # Build data
 /build/
 
-# Composer PHAR
+# Composer
 /composer.phar
 
 # Backup entities generated with doctrine:generate:entities command
@@ -50,3 +24,50 @@
 
 # Embedded web-server pid file
 /.web-server-pid
+
+# Environment files with secrets
+.env.local
+.env.local.php
+.env.*.local
+
+# IDE
+/.idea/
+/.vscode/
+*.swp
+*.swo
+
+# Docker
+docker-compose.override.yml
+
+# Asset Mapper
+/public/assets/
+
+# Symfony
+/public/bundles/
+/config/secrets/prod/prod.decrypt.private.php
+
+# Var
+/var/*
+!var/.gitkeep
+!var/cache/
+!var/log/
+
+###> symfony/framework-bundle ###
+/.env.local
+/.env.local.php
+/.env.*.local
+/config/secrets/prod/prod.decrypt.private.php
+/public/bundles/
+/var/
+/vendor/
+###< symfony/framework-bundle ###
+
+###> phpunit/phpunit ###
+/phpunit.xml
+/.phpunit.cache/
+###< phpunit/phpunit ###
+
+###> symfony/asset-mapper ###
+/public/assets/
+/assets/vendor/
+###< symfony/asset-mapper ###
