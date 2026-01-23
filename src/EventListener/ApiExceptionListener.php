@@ -7,6 +7,7 @@ namespace App\EventListener;
 use App\Exception\EntityNotFoundException;
 use App\Exception\ForbiddenException;
 use App\Exception\InvalidPriorityException;
+use App\Exception\InvalidRecurrenceException;
 use App\Exception\InvalidStatusException;
 use App\Exception\UnauthorizedException;
 use App\Exception\ValidationException;
@@ -24,6 +25,8 @@ use Symfony\Component\HttpKernel\Exception\TooManyRequestsHttpException;
 use Symfony\Component\HttpKernel\Exception\UnauthorizedHttpException as SymfonyUnauthorizedHttpException;
 use Symfony\Component\HttpKernel\Exception\UnprocessableEntityHttpException;
 use Symfony\Component\HttpKernel\KernelEvents;
+use Symfony\Component\Security\Core\Exception\AccessDeniedException;
+use Symfony\Component\Security\Core\Exception\AuthenticationException;
 use Symfony\Component\Validator\Exception\ValidationFailedException;
 
 /**
@@ -128,6 +131,22 @@ final class ApiExceptionListener
             ];
         }
 
+        if ($exception instanceof InvalidRecurrenceException) {
+            $details = ['reason' => $exception->reason];
+            if ($exception->invalidValue !== null) {
+                $details['invalidValue'] = $exception->invalidValue;
+            }
+            if ($exception->validValues !== null) {
+                $details['validValues'] = $exception->validValues;
+            }
+            return [
+                $exception->errorCode,
+                $exception->getMessage(),
+                $exception->getStatusCode(),
+                $details,
+            ];
+        }
+
         if ($exception instanceof ValidationException) {
             return [
                 $exception->errorCode,
@@ -164,6 +183,25 @@ final class ApiExceptionListener
                 $exception->getMessage(),
                 $exception->getStatusCode(),
                 ['reason' => $exception->reason],
+            ];
+        }
+
+        // Handle Symfony Security exceptions (for unauthenticated/unauthorized requests)
+        if ($exception instanceof AuthenticationException) {
+            return [
+                'UNAUTHORIZED',
+                'Authentication required',
+                Response::HTTP_UNAUTHORIZED,
+                [],
+            ];
+        }
+
+        if ($exception instanceof AccessDeniedException) {
+            return [
+                'UNAUTHORIZED',
+                'Authentication required',
+                Response::HTTP_UNAUTHORIZED,
+                [],
             ];
         }
 
@@ -218,7 +256,7 @@ final class ApiExceptionListener
             $exception instanceof NotFoundHttpException => 'NOT_FOUND',
             $exception instanceof SymfonyUnauthorizedHttpException => 'UNAUTHORIZED',
             $exception instanceof AccessDeniedHttpException => 'FORBIDDEN',
-            $exception instanceof TooManyRequestsHttpException => 'RATE_LIMITED',
+            $exception instanceof TooManyRequestsHttpException => 'RATE_LIMIT_EXCEEDED',
             $exception instanceof BadRequestHttpException => 'BAD_REQUEST',
             $exception instanceof UnprocessableEntityHttpException => 'VALIDATION_ERROR',
             $exception instanceof ConflictHttpException => 'CONFLICT',
@@ -278,7 +316,7 @@ final class ApiExceptionListener
             405 => 'METHOD_NOT_ALLOWED',
             409 => 'CONFLICT',
             422 => 'VALIDATION_ERROR',
-            429 => 'RATE_LIMITED',
+            429 => 'RATE_LIMIT_EXCEEDED',
             500 => 'SERVER_ERROR',
             501 => 'NOT_IMPLEMENTED',
             503 => 'SERVICE_UNAVAILABLE',

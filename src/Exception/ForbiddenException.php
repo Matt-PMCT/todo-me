@@ -20,7 +20,7 @@ final class ForbiddenException extends HttpException
         public readonly string $reason = 'Access denied',
         ?\Throwable $previous = null,
     ) {
-        $this->errorCode = 'FORBIDDEN';
+        $this->errorCode = 'PERMISSION_DENIED';
 
         parent::__construct(
             statusCode: 403,

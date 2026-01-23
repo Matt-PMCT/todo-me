@@ -53,6 +53,7 @@ class UndoService
             entityType: $entityType,
             entityId: $entityId,
             previousState: $previousState,
+            userId: $userId,
             ttl: $ttl
         );
 

@@ -10,12 +10,12 @@ framework:
             limit: 5
             interval: '1 minute'
 
-        # API rate limiter: 100 requests per minute
+        # API rate limiter: 1000 requests per hour
         # General rate limiting for API endpoints
         api:
             policy: 'sliding_window'
-            limit: 100
-            interval: '1 minute'
+            limit: 1000
+            interval: '1 hour'
 
 when@test:
     framework:
@@ -26,5 +26,5 @@ when@test:
                 interval: '1 minute'
             api:
                 policy: 'sliding_window'
-                limit: 10000
-                interval: '1 minute'
+                limit: 100000
+                interval: '1 hour'

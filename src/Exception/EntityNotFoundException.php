@@ -22,7 +22,7 @@ final class EntityNotFoundException extends HttpException
         public readonly string $entityId,
         ?\Throwable $previous = null,
     ) {
-        $this->errorCode = 'NOT_FOUND';
+        $this->errorCode = 'RESOURCE_NOT_FOUND';
 
         parent::__construct(
             statusCode: 404,

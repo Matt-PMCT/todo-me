@@ -393,13 +393,13 @@ class TaskApiTest extends ApiTestCase
             ]
         );
 
-        $this->assertResponseStatusCode(Response::HTTP_BAD_REQUEST, $response);
-        $this->assertErrorCode($response, 'INVALID_STATUS');
+        $this->assertResponseStatusCode(Response::HTTP_UNPROCESSABLE_ENTITY, $response);
+        $this->assertErrorCode($response, 'VALIDATION_ERROR');
 
         $error = $this->getResponseError($response);
         $this->assertArrayHasKey('details', $error);
-        $this->assertEquals('invalid_status', $error['details']['invalidStatus']);
-        $this->assertEquals(Task::STATUSES, $error['details']['validStatuses']);
+        $this->assertArrayHasKey('errors', $error['details']);
+        $this->assertArrayHasKey('status', $error['details']['errors']);
     }
 
     public function testCreateTaskInvalidPriority(): void
@@ -416,14 +416,13 @@ class TaskApiTest extends ApiTestCase
             ]
         );
 
-        $this->assertResponseStatusCode(Response::HTTP_BAD_REQUEST, $response);
-        $this->assertErrorCode($response, 'INVALID_PRIORITY');
+        $this->assertResponseStatusCode(Response::HTTP_UNPROCESSABLE_ENTITY, $response);
+        $this->assertErrorCode($response, 'VALIDATION_ERROR');
 
         $error = $this->getResponseError($response);
         $this->assertArrayHasKey('details', $error);
-        $this->assertEquals(10, $error['details']['invalidPriority']);
-        $this->assertEquals(Task::PRIORITY_MIN, $error['details']['minPriority']);
-        $this->assertEquals(Task::PRIORITY_MAX, $error['details']['maxPriority']);
+        $this->assertArrayHasKey('errors', $error['details']);
+        $this->assertArrayHasKey('priority', $error['details']['errors']);
     }
 
     public function testCreateTaskInvalidProjectOwnership(): void
@@ -491,7 +490,7 @@ class TaskApiTest extends ApiTestCase
         );
 
         $this->assertResponseStatusCode(Response::HTTP_NOT_FOUND, $response);
-        $this->assertErrorCode($response, 'NOT_FOUND');
+        $this->assertErrorCode($response, 'RESOURCE_NOT_FOUND');
     }
 
     public function testGetTaskNotOwned(): void
@@ -613,8 +612,8 @@ class TaskApiTest extends ApiTestCase
             ['status' => 'not_a_real_status']
         );
 
-        $this->assertResponseStatusCode(Response::HTTP_BAD_REQUEST, $response);
-        $this->assertErrorCode($response, 'INVALID_STATUS');
+        $this->assertResponseStatusCode(Response::HTTP_UNPROCESSABLE_ENTITY, $response);
+        $this->assertErrorCode($response, 'VALIDATION_ERROR');
     }
 
     public function testUpdateTaskInvalidPriority(): void
@@ -626,11 +625,11 @@ class TaskApiTest extends ApiTestCase
             $user,
             'PUT',
             '/api/v1/tasks/' . $task->getId(),
-            ['priority' => 0]
+            ['priority' => 5]  // 5 is invalid since range is now 0-4
         );
 
-        $this->assertResponseStatusCode(Response::HTTP_BAD_REQUEST, $response);
-        $this->assertErrorCode($response, 'INVALID_PRIORITY');
+        $this->assertResponseStatusCode(Response::HTTP_UNPROCESSABLE_ENTITY, $response);
+        $this->assertErrorCode($response, 'VALIDATION_ERROR');
     }
 
     // ========================================

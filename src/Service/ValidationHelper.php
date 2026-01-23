@@ -4,10 +4,15 @@ declare(strict_types=1);
 
 namespace App\Service;
 
+use App\Entity\Project;
 use App\Entity\Task;
+use App\Entity\User;
+use App\Exception\ForbiddenException;
 use App\Exception\InvalidPriorityException;
+use App\Exception\InvalidRecurrenceException;
 use App\Exception\InvalidStatusException;
 use App\Exception\ValidationException;
+use App\Interface\UserOwnedInterface;
 use Symfony\Component\Validator\ConstraintViolationListInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
@@ -18,6 +23,8 @@ use Symfony\Component\Validator\Validator\ValidatorInterface;
  */
 class ValidationHelper
 {
+    public const VALID_RECURRENCE_TYPES = ['absolute', 'relative'];
+
     public function __construct(
         private ValidatorInterface $validator,
     ) {
@@ -190,5 +197,59 @@ class ValidationHelper
         }
 
         return $errors;
+    }
+
+    /**
+     * Validates that a recurrence type is one of the allowed values.
+     *
+     * @param string|null $type The recurrence type to validate
+     *
+     * @throws InvalidRecurrenceException If the recurrence type is invalid
+     */
+    public function validateRecurrenceType(?string $type): void
+    {
+        if ($type === null) {
+            return;
+        }
+
+        if (!in_array($type, self::VALID_RECURRENCE_TYPES, true)) {
+            throw InvalidRecurrenceException::forRecurrenceType($type);
+        }
+    }
+
+    /**
+     * Validates that a user owns the given project.
+     *
+     * @param User $user The user to check
+     * @param Project|null $project The project to validate
+     *
+     * @throws ForbiddenException If the user does not own the project
+     */
+    public function validateTaskProjectOwnership(User $user, ?Project $project): void
+    {
+        if ($project === null) {
+            return;
+        }
+
+        if ($project->getOwner()?->getId() !== $user->getId()) {
+            throw ForbiddenException::notOwner('project');
+        }
+    }
+
+    /**
+     * Validates that a user owns the given resource.
+     *
+     * @param User $user The user to check
+     * @param UserOwnedInterface $resource The resource to validate
+     *
+     * @throws ForbiddenException If the user does not own the resource
+     */
+    public function validateOwnership(User $user, UserOwnedInterface $resource): void
+    {
+        $owner = $resource->getOwner();
+
+        if ($owner === null || $owner->getId() !== $user->getId()) {
+            throw ForbiddenException::resourceAccessDenied();
+        }
     }
 }

@@ -4,8 +4,12 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Service;
 
+use App\Entity\Project;
 use App\Entity\Task;
+use App\Entity\User;
+use App\Exception\ForbiddenException;
 use App\Exception\InvalidPriorityException;
+use App\Exception\InvalidRecurrenceException;
 use App\Exception\InvalidStatusException;
 use App\Exception\ValidationException;
 use App\Service\ValidationHelper;
@@ -127,7 +131,7 @@ class ValidationHelperTest extends UnitTestCase
         return [
             'min' => [Task::PRIORITY_MIN],
             'max' => [Task::PRIORITY_MAX],
-            'middle' => [3],
+            'middle' => [2],
         ];
     }
 
@@ -141,9 +145,8 @@ class ValidationHelperTest extends UnitTestCase
     public static function invalidPriorityProvider(): array
     {
         return [
-            'zero' => [0],
             'negative' => [-1],
-            'too_high' => [6],
+            'too_high' => [5],
             'much_too_high' => [100],
         ];
     }
@@ -400,5 +403,117 @@ class ValidationHelperTest extends UnitTestCase
 
         $this->assertArrayHasKey('tags[0].name', $result);
         $this->assertEquals('Invalid tag', $result['tags[0].name']);
+    }
+
+    // ========================================
+    // Validate Recurrence Type Tests
+    // ========================================
+
+    #[DataProvider('validRecurrenceTypeProvider')]
+    public function testValidateRecurrenceTypeWithValidTypes(string $type): void
+    {
+        // Should not throw
+        $this->validationHelper->validateRecurrenceType($type);
+        $this->assertTrue(true);
+    }
+
+    public static function validRecurrenceTypeProvider(): array
+    {
+        return [
+            'absolute' => ['absolute'],
+            'relative' => ['relative'],
+        ];
+    }
+
+    public function testValidateRecurrenceTypeAcceptsNull(): void
+    {
+        // Should not throw for null
+        $this->validationHelper->validateRecurrenceType(null);
+        $this->assertTrue(true);
+    }
+
+    #[DataProvider('invalidRecurrenceTypeProvider')]
+    public function testValidateRecurrenceTypeWithInvalidTypesThrowsException(string $type): void
+    {
+        $this->expectException(InvalidRecurrenceException::class);
+        $this->validationHelper->validateRecurrenceType($type);
+    }
+
+    public static function invalidRecurrenceTypeProvider(): array
+    {
+        return [
+            'invalid' => ['invalid'],
+            'empty' => [''],
+            'uppercase' => ['ABSOLUTE'],
+            'mixed_case' => ['Relative'],
+            'typo' => ['absolutee'],
+        ];
+    }
+
+    // ========================================
+    // Validate Task Project Ownership Tests
+    // ========================================
+
+    public function testValidateTaskProjectOwnershipAcceptsNullProject(): void
+    {
+        $user = $this->createUserWithId();
+
+        // Should not throw for null project
+        $this->validationHelper->validateTaskProjectOwnership($user, null);
+        $this->assertTrue(true);
+    }
+
+    public function testValidateTaskProjectOwnershipPassesForMatchingOwner(): void
+    {
+        $user = $this->createUserWithId('user-123');
+        $project = $this->createProjectWithId('project-123', $user);
+
+        // Should not throw
+        $this->validationHelper->validateTaskProjectOwnership($user, $project);
+        $this->assertTrue(true);
+    }
+
+    public function testValidateTaskProjectOwnershipThrowsForDifferentOwner(): void
+    {
+        $user1 = $this->createUserWithId('user-1');
+        $user2 = $this->createUserWithId('user-2', 'other@example.com');
+        $project = $this->createProjectWithId('project-123', $user2);
+
+        $this->expectException(ForbiddenException::class);
+        $this->validationHelper->validateTaskProjectOwnership($user1, $project);
+    }
+
+    // ========================================
+    // Validate Ownership Tests
+    // ========================================
+
+    public function testValidateOwnershipPassesForMatchingOwner(): void
+    {
+        $user = $this->createUserWithId('user-123');
+        $project = $this->createProjectWithId('project-123', $user);
+
+        // Should not throw
+        $this->validationHelper->validateOwnership($user, $project);
+        $this->assertTrue(true);
+    }
+
+    public function testValidateOwnershipThrowsForDifferentOwner(): void
+    {
+        $user1 = $this->createUserWithId('user-1');
+        $user2 = $this->createUserWithId('user-2', 'other@example.com');
+        $project = $this->createProjectWithId('project-123', $user2);
+
+        $this->expectException(ForbiddenException::class);
+        $this->validationHelper->validateOwnership($user1, $project);
+    }
+
+    public function testValidateOwnershipThrowsForNullOwner(): void
+    {
+        $user = $this->createUserWithId('user-123');
+        $project = new Project();
+        $project->setName('Orphan Project');
+
+        $this->expectException(ForbiddenException::class);
+        $this->validationHelper->validateOwnership($user, $project);
     }
 }

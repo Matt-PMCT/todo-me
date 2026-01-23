@@ -125,6 +125,7 @@ class ProjectServiceTest extends UnitTestCase
             entityType: 'project',
             entityId: 'project-123',
             previousState: [],
+            userId: 'user-123',
         );
 
         $this->validationHelper->expects($this->once())
@@ -217,6 +218,7 @@ class ProjectServiceTest extends UnitTestCase
             entityType: 'project',
             entityId: 'project-123',
             previousState: [],
+            userId: 'user-123',
         );
 
         $this->undoService->expects($this->once())
@@ -269,7 +271,7 @@ class ProjectServiceTest extends UnitTestCase
             ->method('createUndoToken')
             ->willReturnCallback(function ($userId, $action, $entityType, $entityId, $previousState) use (&$capturedPreviousState) {
                 $capturedPreviousState = $previousState;
-                return UndoToken::create($action, $entityType, $entityId, $previousState);
+                return UndoToken::create($action, $entityType, $entityId, $previousState, $userId);
             });
 
         $this->projectRepository->method('remove');
@@ -295,7 +297,8 @@ class ProjectServiceTest extends UnitTestCase
             action: UndoAction::ARCHIVE->value,
             entityType: 'project',
             entityId: 'project-123',
-            previousState: ['isArchived' => false],
+            previousState: ['isArchived' => false, 'archivedAt' => null],
+            userId: 'user-123',
         );
 
         $this->undoService->expects($this->once())
@@ -305,7 +308,7 @@ class ProjectServiceTest extends UnitTestCase
                 UndoAction::ARCHIVE->value,
                 'project',
                 'project-123',
-                ['isArchived' => false]
+                ['isArchived' => false, 'archivedAt' => null]
             )
             ->willReturn($undoToken);
 
@@ -348,7 +351,8 @@ class ProjectServiceTest extends UnitTestCase
             action: UndoAction::ARCHIVE->value,
             entityType: 'project',
             entityId: 'project-123',
-            previousState: ['isArchived' => true],
+            previousState: ['isArchived' => true, 'archivedAt' => null],
+            userId: 'user-123',
         );
 
         $this->undoService->expects($this->once())
@@ -358,7 +362,7 @@ class ProjectServiceTest extends UnitTestCase
                 UndoAction::ARCHIVE->value,
                 'project',
                 'project-123',
-                ['isArchived' => true]
+                ['isArchived' => true, 'archivedAt' => null]
             )
             ->willReturn($undoToken);
 
@@ -403,6 +407,7 @@ class ProjectServiceTest extends UnitTestCase
             entityType: 'project',
             entityId: 'project-123',
             previousState: ['isArchived' => false],
+            userId: 'user-123',
         );
 
         $this->undoService->expects($this->once())
@@ -445,6 +450,7 @@ class ProjectServiceTest extends UnitTestCase
             entityType: 'project',
             entityId: 'project-123',
             previousState: [],
+            userId: 'user-123',
         );
 
         $this->undoService->expects($this->once())
@@ -473,6 +479,7 @@ class ProjectServiceTest extends UnitTestCase
                 'description' => 'Project description',
                 'isArchived' => false,
             ],
+            userId: 'user-123',
         );
 
         $this->undoService->expects($this->once())
@@ -514,6 +521,7 @@ class ProjectServiceTest extends UnitTestCase
             entityType: 'project',
             entityId: 'project-123',
             previousState: [],
+            userId: 'user-123',
         );
 
         $this->undoService->expects($this->once())
@@ -542,6 +550,7 @@ class ProjectServiceTest extends UnitTestCase
                 'name' => 'Previous Name',
                 'description' => 'Previous Description',
             ],
+            userId: 'user-123',
         );
 
         $this->undoService->expects($this->once())
@@ -572,6 +581,7 @@ class ProjectServiceTest extends UnitTestCase
             entityType: 'project',
             entityId: 'non-existent',
             previousState: [],
+            userId: 'user-123',
         );
 
         $this->undoService->expects($this->once())
@@ -602,6 +612,7 @@ class ProjectServiceTest extends UnitTestCase
             entityType: 'project',
             entityId: 'project-123',
             previousState: ['name' => 'Previous Name'],
+            userId: 'user-123',
         );
 
         $this->undoService->expects($this->once())
@@ -640,6 +651,7 @@ class ProjectServiceTest extends UnitTestCase
             entityType: 'project',
             entityId: 'project-123',
             previousState: ['isArchived' => false],
+            userId: 'user-123',
         );
 
         $this->undoService->expects($this->once())
@@ -678,6 +690,7 @@ class ProjectServiceTest extends UnitTestCase
                 'description' => null,
                 'isArchived' => false,
             ],
+            userId: 'user-123',
         );
 
         $this->undoService->expects($this->once())
@@ -723,6 +736,7 @@ class ProjectServiceTest extends UnitTestCase
             entityType: 'task',
             entityId: 'task-123',
             previousState: [],
+            userId: 'user-123',
         );
 
         $this->undoService->expects($this->once())

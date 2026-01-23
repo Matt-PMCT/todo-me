@@ -34,6 +34,10 @@ final class UserService
         $user = new User();
         $user->setEmail($email);
 
+        // Generate username from email prefix with random suffix for uniqueness
+        $emailPrefix = explode('@', $email)[0];
+        $user->setUsername($emailPrefix . '_' . substr(bin2hex(random_bytes(4)), 0, 8));
+
         $hashedPassword = $this->passwordHasher->hashPassword($user, $plainPassword);
         $user->setPasswordHash($hashedPassword);
 

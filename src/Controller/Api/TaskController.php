@@ -142,7 +142,7 @@ final class TaskController extends AbstractController
     /**
      * Update a task.
      */
-    #[Route('/{id}', name: 'update', methods: ['PUT'])]
+    #[Route('/{id}', name: 'update', methods: ['PUT', 'PATCH'])]
     public function update(Request $request, string $id): JsonResponse
     {
         /** @var User $user */

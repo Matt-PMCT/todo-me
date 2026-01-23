@@ -184,8 +184,8 @@ class AuthApiTest extends ApiTestCase
 
         $response = $this->authenticatedApiRequest(
             $user,
-            'DELETE',
-            '/api/v1/auth/token'
+            'POST',
+            '/api/v1/auth/revoke'
         );
 
         $this->assertResponseStatusCode(Response::HTTP_NO_CONTENT, $response);
@@ -197,7 +197,7 @@ class AuthApiTest extends ApiTestCase
 
     public function testRevokeTokenUnauthenticated(): void
     {
-        $response = $this->apiRequest('DELETE', '/api/v1/auth/token');
+        $response = $this->apiRequest('POST', '/api/v1/auth/revoke');
 
         $this->assertResponseStatusCode(Response::HTTP_UNAUTHORIZED, $response);
     }
@@ -205,8 +205,8 @@ class AuthApiTest extends ApiTestCase
     public function testRevokeTokenInvalidToken(): void
     {
         $response = $this->apiRequest(
-            'DELETE',
-            '/api/v1/auth/token',
+            'POST',
+            '/api/v1/auth/revoke',
             null,
             ['Authorization' => 'Bearer invalid-token-12345']
         );

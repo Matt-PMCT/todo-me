@@ -113,7 +113,7 @@ class TaskServiceTest extends UnitTestCase
             title: 'Full Task',
             description: 'A complete task with all fields',
             status: Task::STATUS_IN_PROGRESS,
-            priority: 5,
+            priority: 4,
             dueDate: '2024-12-31',
             projectId: 'project-123',
         );
@@ -128,7 +128,7 @@ class TaskServiceTest extends UnitTestCase
 
         $this->validationHelper->expects($this->once())
             ->method('validateTaskPriority')
-            ->with(5);
+            ->with(4);
 
         $this->projectRepository->expects($this->once())
             ->method('find')
@@ -156,7 +156,7 @@ class TaskServiceTest extends UnitTestCase
         $this->assertEquals('Full Task', $task->getTitle());
         $this->assertEquals('A complete task with all fields', $task->getDescription());
         $this->assertEquals(Task::STATUS_IN_PROGRESS, $task->getStatus());
-        $this->assertEquals(5, $task->getPriority());
+        $this->assertEquals(4, $task->getPriority());
         $this->assertEquals(6, $task->getPosition());
         $this->assertSame($project, $task->getProject());
     }
@@ -249,6 +249,7 @@ class TaskServiceTest extends UnitTestCase
             entityType: 'task',
             entityId: 'task-123',
             previousState: [],
+            userId: 'user-123',
         );
 
         $this->validationHelper->expects($this->once())
@@ -352,7 +353,7 @@ class TaskServiceTest extends UnitTestCase
         $user = $this->createUserWithId();
         $task = $this->createTaskWithId('task-123', $user);
 
-        $dto = new UpdateTaskRequest(priority: 5);
+        $dto = new UpdateTaskRequest(priority: 4);
 
         $this->validationHelper->expects($this->once())
             ->method('validate')
@@ -360,7 +361,7 @@ class TaskServiceTest extends UnitTestCase
 
         $this->validationHelper->expects($this->once())
             ->method('validateTaskPriority')
-            ->with(5);
+            ->with(4);
 
         $this->undoService->method('createUndoToken');
         $this->entityManager->method('flush');
@@ -382,6 +383,7 @@ class TaskServiceTest extends UnitTestCase
             entityType: 'task',
             entityId: 'task-123',
             previousState: [],
+            userId: 'user-123',
         );
 
         $this->undoService->expects($this->once())
@@ -453,6 +455,7 @@ class TaskServiceTest extends UnitTestCase
             entityType: 'task',
             entityId: 'task-123',
             previousState: [],
+            userId: 'user-123',
         );
 
         $this->validationHelper->method('validateTaskStatus');
@@ -515,6 +518,7 @@ class TaskServiceTest extends UnitTestCase
                 'createdAt' => '2024-01-01T00:00:00+00:00',
                 'completedAt' => null,
             ],
+            userId: 'user-123',
         );
 
         $this->undoService->expects($this->once())
@@ -557,6 +561,7 @@ class TaskServiceTest extends UnitTestCase
             entityType: 'task',
             entityId: 'task-123',
             previousState: [],
+            userId: 'user-123',
         );
 
         $this->undoService->expects($this->once())
@@ -577,6 +582,7 @@ class TaskServiceTest extends UnitTestCase
             entityType: 'project',
             entityId: 'project-123',
             previousState: [],
+            userId: 'user-123',
         );
 
         $this->undoService->expects($this->once())
@@ -607,6 +613,7 @@ class TaskServiceTest extends UnitTestCase
                 'status' => Task::STATUS_PENDING,
                 'priority' => 2,
             ],
+            userId: 'user-123',
         );
 
         $this->undoService->expects($this->once())
@@ -642,6 +649,7 @@ class TaskServiceTest extends UnitTestCase
             entityType: 'task',
             entityId: 'non-existent-task',
             previousState: [],
+            userId: 'user-123',
         );
 
         $this->undoService->expects($this->once())
@@ -735,6 +743,7 @@ class TaskServiceTest extends UnitTestCase
                 'position' => 1,
                 'createdAt' => '2024-01-01T00:00:00+00:00',
             ],
+            userId: 'user-123',
         );
 
         $this->undoService->expects($this->once())
@@ -762,6 +771,7 @@ class TaskServiceTest extends UnitTestCase
             previousState: [
                 'title' => 'Previous Title',
             ],
+            userId: 'user-123',
         );
 
         $this->undoService->expects($this->once())
@@ -804,6 +814,7 @@ class TaskServiceTest extends UnitTestCase
             entityType: 'project',
             entityId: 'project-123',
             previousState: [],
+            userId: 'user-123',
         );
 
         $this->undoService->expects($this->once())

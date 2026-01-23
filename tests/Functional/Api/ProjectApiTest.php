@@ -348,7 +348,7 @@ class ProjectApiTest extends ApiTestCase
         );
 
         $this->assertResponseStatusCode(Response::HTTP_NOT_FOUND, $response);
-        $this->assertErrorCode($response, 'NOT_FOUND');
+        $this->assertErrorCode($response, 'RESOURCE_NOT_FOUND');
     }
 
     public function testGetProjectNotOwned(): void
@@ -468,48 +468,39 @@ class ProjectApiTest extends ApiTestCase
     // Delete Project Tests
     // ========================================
 
-    public function testDeleteProjectSuccess(): void
+    public function testDeleteProjectArchivesByDefault(): void
     {
-        $user = $this->createUser('delete-project@example.com', 'Password123');
-        $project = $this->createProject($user, 'Project to Delete');
+        $user = $this->createUser('delete-archives@example.com', 'Password123');
+        $project = $this->createProject($user, 'Project to Archive');
+        $projectId = $project->getId();
 
+        // DELETE should archive the project, not hard delete it
         $response = $this->authenticatedApiRequest(
             $user,
             'DELETE',
-            '/api/v1/projects/' . $project->getId()
+            '/api/v1/projects/' . $projectId
         );
 
         $this->assertResponseStatusCode(Response::HTTP_OK, $response);
 
         $data = $this->getResponseData($response);
 
-        $this->assertArrayHasKey('message', $data);
-        $this->assertArrayHasKey('warning', $data);
-        $this->assertStringContainsString('deleted', strtolower($data['message']));
-    }
+        // Response should be the archived project (not a deletion message)
+        $this->assertArrayHasKey('id', $data);
+        $this->assertEquals($projectId, $data['id']);
+        $this->assertTrue($data['isArchived']);
 
-    public function testDeleteProjectReturnsCascadeWarning(): void
-    {
-        $user = $this->createUser('delete-cascade@example.com', 'Password123');
-        $project = $this->createProject($user, 'Project with Tasks');
-
-        // Create tasks in project
-        $this->createTask($user, 'Task 1', null, Task::STATUS_PENDING, 3, $project);
-        $this->createTask($user, 'Task 2', null, Task::STATUS_PENDING, 3, $project);
-
-        $response = $this->authenticatedApiRequest(
+        // Project should still be accessible when including archived
+        $listResponse = $this->authenticatedApiRequest(
             $user,
-            'DELETE',
-            '/api/v1/projects/' . $project->getId()
+            'GET',
+            '/api/v1/projects?includeArchived=true'
         );
 
-        $this->assertResponseStatusCode(Response::HTTP_OK, $response);
-
-        $data = $this->getResponseData($response);
-
-        // Should warn about cascade delete
-        $this->assertArrayHasKey('warning', $data);
-        $this->assertStringContainsString('task', strtolower($data['warning']));
+        $listData = $this->getResponseData($listResponse);
+        $this->assertCount(1, $listData['items']);
+        $this->assertEquals('Project to Archive', $listData['items'][0]['name']);
+        $this->assertTrue($listData['items'][0]['isArchived']);
     }
 
     public function testDeleteProjectReturnsUndoToken(): void
@@ -570,7 +561,7 @@ class ProjectApiTest extends ApiTestCase
 
         $response = $this->authenticatedApiRequest(
             $user,
-            'POST',
+            'PATCH',
             '/api/v1/projects/' . $project->getId() . '/archive'
         );
 
@@ -588,7 +579,7 @@ class ProjectApiTest extends ApiTestCase
 
         $response = $this->authenticatedApiRequest(
             $user,
-            'POST',
+            'PATCH',
             '/api/v1/projects/' . $project->getId() . '/archive'
         );
 
@@ -606,7 +597,7 @@ class ProjectApiTest extends ApiTestCase
 
         $response = $this->authenticatedApiRequest(
             $user,
-            'POST',
+            'PATCH',
             '/api/v1/projects/' . $project->getId() . '/unarchive'
         );
 
@@ -624,7 +615,7 @@ class ProjectApiTest extends ApiTestCase
 
         $response = $this->authenticatedApiRequest(
             $user,
-            'POST',
+            'PATCH',
             '/api/v1/projects/' . $project->getId() . '/unarchive'
         );
 
@@ -641,7 +632,7 @@ class ProjectApiTest extends ApiTestCase
 
         $response = $this->authenticatedApiRequest(
             $user,
-            'POST',
+            'PATCH',
             '/api/v1/projects/00000000-0000-0000-0000-000000000000/archive'
         );
 
@@ -691,7 +682,7 @@ class ProjectApiTest extends ApiTestCase
         // Archive the project
         $archiveResponse = $this->authenticatedApiRequest(
             $user,
-            'POST',
+            'PATCH',
             '/api/v1/projects/' . $project->getId() . '/archive'
         );
 
@@ -877,12 +868,12 @@ class ProjectApiTest extends ApiTestCase
         $user = $this->createUser('archived-tasks@example.com', 'Password123');
         $project = $this->createProject($user, 'Project to Archive');
 
-        $task = $this->createTask($user, 'Task in Project', null, Task::STATUS_PENDING, 3, $project);
+        $task = $this->createTask($user, 'Task in Project', null, Task::STATUS_PENDING, 2, $project);
 
         // Archive the project
         $this->authenticatedApiRequest(
             $user,
-            'POST',
+            'PATCH',
             '/api/v1/projects/' . $project->getId() . '/archive'
         );
 

@@ -139,7 +139,7 @@ final class ProjectController extends AbstractController
      *
      * Returns the updated project with an undoToken for reverting changes.
      */
-    #[Route('/{id}', name: 'update', methods: ['PUT'])]
+    #[Route('/{id}', name: 'update', methods: ['PUT', 'PATCH'])]
     public function update(Request $request, string $id): JsonResponse
     {
         /** @var User $user */
@@ -169,12 +169,12 @@ final class ProjectController extends AbstractController
     }
 
     /**
-     * Delete a project.
+     * Delete (archive) a project.
      *
-     * WARNING: This will CASCADE DELETE all tasks associated with this project.
-     * The undo operation will only restore the project, NOT its tasks.
+     * By default, DELETE archives the project instead of hard deleting.
+     * Tasks in the project remain intact but are hidden with the archived project.
      *
-     * Returns an undoToken for restoring the project (tasks cannot be recovered).
+     * Returns the archived project with an undoToken.
      */
     #[Route('/{id}', name: 'delete', methods: ['DELETE'])]
     public function delete(string $id): JsonResponse
@@ -183,21 +183,22 @@ final class ProjectController extends AbstractController
         $user = $this->getUser();
 
         $project = $this->projectService->findByIdOrFail($id, $user);
-        $undoToken = $this->projectService->delete($project);
+        $result = $this->projectService->archive($project);
+        $taskCounts = $this->projectService->getTaskCounts($result['project']);
 
-        $data = [
-            'message' => 'Project deleted successfully',
-            'warning' => 'All tasks in this project have been permanently deleted and cannot be recovered',
-        ];
+        $response = ProjectResponse::fromEntity(
+            $result['project'],
+            $taskCounts['total'],
+            $taskCounts['completed'],
+        );
 
         $meta = [];
-        if ($undoToken !== null) {
-            $meta['undoToken'] = $undoToken->token;
-            $meta['undoExpiresIn'] = $undoToken->getRemainingSeconds();
-            $data['undoNote'] = 'The undo operation will restore the project only, not its tasks';
+        if ($result['undoToken'] !== null) {
+            $meta['undoToken'] = $result['undoToken']->token;
+            $meta['undoExpiresIn'] = $result['undoToken']->getRemainingSeconds();
         }
 
-        return $this->responseFormatter->success($data, 200, $meta);
+        return $this->responseFormatter->success($response->toArray(), 200, $meta);
     }
 
     /**
@@ -208,7 +209,7 @@ final class ProjectController extends AbstractController
      *
      * Returns the archived project with an undoToken.
      */
-    #[Route('/{id}/archive', name: 'archive', methods: ['POST'])]
+    #[Route('/{id}/archive', name: 'archive', methods: ['PATCH'])]
     public function archive(string $id): JsonResponse
     {
         /** @var User $user */
@@ -238,7 +239,7 @@ final class ProjectController extends AbstractController
      *
      * Returns the unarchived project with an undoToken.
      */
-    #[Route('/{id}/unarchive', name: 'unarchive', methods: ['POST'])]
+    #[Route('/{id}/unarchive', name: 'unarchive', methods: ['PATCH'])]
     public function unarchive(string $id): JsonResponse
     {
         /** @var User $user */

@@ -21,6 +21,7 @@ class UndoTokenTest extends UnitTestCase
             entityType: 'task',
             entityId: 'task-123',
             previousState: ['title' => 'Test'],
+            userId: 'user-123',
         );
 
         $this->assertInstanceOf(UndoToken::class, $token);
@@ -38,6 +39,7 @@ class UndoTokenTest extends UnitTestCase
             entityType: $entityType,
             entityId: $entityId,
             previousState: $previousState,
+            userId: 'user-123',
         );
 
         $this->assertEquals($action, $token->action);
@@ -54,6 +56,7 @@ class UndoTokenTest extends UnitTestCase
             entityType: 'task',
             entityId: 'task-123',
             previousState: [],
+            userId: 'user-123',
         );
         $after = new \DateTimeImmutable();
 
@@ -70,6 +73,7 @@ class UndoTokenTest extends UnitTestCase
             entityType: 'task',
             entityId: 'task-123',
             previousState: [],
+            userId: 'user-123',
         );
 
         // Default TTL is 60 seconds
@@ -86,6 +90,7 @@ class UndoTokenTest extends UnitTestCase
             entityType: 'task',
             entityId: 'task-123',
             previousState: [],
+            userId: 'user-123',
             ttl: $customTtl,
         );
 
@@ -104,6 +109,7 @@ class UndoTokenTest extends UnitTestCase
             entityType: 'task',
             entityId: 'task-123',
             previousState: [],
+            userId: 'user-123',
         );
 
         $this->assertEquals(32, strlen($token->token));
@@ -116,6 +122,7 @@ class UndoTokenTest extends UnitTestCase
             entityType: 'task',
             entityId: 'task-123',
             previousState: [],
+            userId: 'user-123',
         );
 
         $this->assertMatchesRegularExpression('/^[0-9a-f]{32}$/', $token->token);
@@ -130,6 +137,7 @@ class UndoTokenTest extends UnitTestCase
                 entityType: 'task',
                 entityId: 'task-123',
                 previousState: [],
+                userId: 'user-123',
             );
             $tokens[] = $token->token;
         }
@@ -150,6 +158,7 @@ class UndoTokenTest extends UnitTestCase
             entityType: 'task',
             entityId: 'task-123',
             previousState: ['title' => 'Test'],
+            userId: 'user-123',
         );
 
         $array = $token->toArray();
@@ -159,6 +168,7 @@ class UndoTokenTest extends UnitTestCase
         $this->assertArrayHasKey('entityType', $array);
         $this->assertArrayHasKey('entityId', $array);
         $this->assertArrayHasKey('previousState', $array);
+        $this->assertArrayHasKey('userId', $array);
         $this->assertArrayHasKey('createdAt', $array);
         $this->assertArrayHasKey('expiresAt', $array);
     }
@@ -171,6 +181,7 @@ class UndoTokenTest extends UnitTestCase
             entityType: 'project',
             entityId: 'project-456',
             previousState: $previousState,
+            userId: 'user-123',
         );
 
         $array = $token->toArray();
@@ -189,6 +200,7 @@ class UndoTokenTest extends UnitTestCase
             entityType: 'task',
             entityId: 'task-123',
             previousState: [],
+            userId: 'user-123',
         );
 
         $array = $token->toArray();
@@ -212,6 +224,7 @@ class UndoTokenTest extends UnitTestCase
             'entityType' => 'task',
             'entityId' => 'task-123',
             'previousState' => ['title' => 'Test'],
+            'userId' => 'user-123',
             'createdAt' => '2024-01-15T10:00:00+00:00',
             'expiresAt' => '2024-01-15T10:01:00+00:00',
         ];
@@ -223,6 +236,7 @@ class UndoTokenTest extends UnitTestCase
         $this->assertEquals($data['entityType'], $token->entityType);
         $this->assertEquals($data['entityId'], $token->entityId);
         $this->assertEquals($data['previousState'], $token->previousState);
+        $this->assertEquals($data['userId'], $token->userId);
         $this->assertEquals(
             new \DateTimeImmutable($data['createdAt']),
             $token->createdAt
@@ -240,6 +254,7 @@ class UndoTokenTest extends UnitTestCase
             entityType: 'task',
             entityId: 'task-789',
             previousState: ['status' => 'pending', 'completedAt' => null],
+            userId: 'user-123',
             ttl: 120,
         );
 
@@ -272,6 +287,7 @@ class UndoTokenTest extends UnitTestCase
             entityType: 'task',
             entityId: 'task-123',
             previousState: [],
+            userId: 'user-123',
             ttl: 60,
         );
 
@@ -286,6 +302,7 @@ class UndoTokenTest extends UnitTestCase
             'entityType' => 'task',
             'entityId' => 'task-123',
             'previousState' => [],
+            'userId' => 'user-123',
             'createdAt' => (new \DateTimeImmutable('-2 minutes'))->format(\DateTimeImmutable::ATOM),
             'expiresAt' => (new \DateTimeImmutable('-1 minute'))->format(\DateTimeImmutable::ATOM),
         ];
@@ -303,6 +320,7 @@ class UndoTokenTest extends UnitTestCase
             'entityType' => 'task',
             'entityId' => 'task-123',
             'previousState' => [],
+            'userId' => 'user-123',
             'createdAt' => (new \DateTimeImmutable('-61 seconds'))->format(\DateTimeImmutable::ATOM),
             'expiresAt' => (new \DateTimeImmutable('-1 second'))->format(\DateTimeImmutable::ATOM),
         ];
@@ -323,6 +341,7 @@ class UndoTokenTest extends UnitTestCase
             entityType: 'task',
             entityId: 'task-123',
             previousState: [],
+            userId: 'user-123',
             ttl: 60,
         );
 
@@ -340,6 +359,7 @@ class UndoTokenTest extends UnitTestCase
             'entityType' => 'task',
             'entityId' => 'task-123',
             'previousState' => [],
+            'userId' => 'user-123',
             'createdAt' => (new \DateTimeImmutable('-2 minutes'))->format(\DateTimeImmutable::ATOM),
             'expiresAt' => (new \DateTimeImmutable('-1 minute'))->format(\DateTimeImmutable::ATOM),
         ];
@@ -357,6 +377,7 @@ class UndoTokenTest extends UnitTestCase
             'entityType' => 'task',
             'entityId' => 'task-123',
             'previousState' => [],
+            'userId' => 'user-123',
             'createdAt' => (new \DateTimeImmutable('-1 hour'))->format(\DateTimeImmutable::ATOM),
             'expiresAt' => (new \DateTimeImmutable('-50 minutes'))->format(\DateTimeImmutable::ATOM),
         ];
@@ -374,6 +395,7 @@ class UndoTokenTest extends UnitTestCase
             entityType: 'task',
             entityId: 'task-123',
             previousState: [],
+            userId: 'user-123',
             ttl: 60,
         );
 
@@ -395,6 +417,7 @@ class UndoTokenTest extends UnitTestCase
             entityType: 'task',
             entityId: 'task-123',
             previousState: [],
+            userId: 'user-123',
         );
 
         $this->assertEquals(UndoAction::DELETE, $token->getActionEnum());
@@ -408,6 +431,7 @@ class UndoTokenTest extends UnitTestCase
                 entityType: 'task',
                 entityId: 'task-123',
                 previousState: [],
+                userId: 'user-123',
             );
 
             $this->assertEquals($action, $token->getActionEnum());
@@ -422,6 +446,7 @@ class UndoTokenTest extends UnitTestCase
             'entityType' => 'task',
             'entityId' => 'task-123',
             'previousState' => [],
+            'userId' => 'user-123',
             'createdAt' => (new \DateTimeImmutable())->format(\DateTimeImmutable::ATOM),
             'expiresAt' => (new \DateTimeImmutable('+60 seconds'))->format(\DateTimeImmutable::ATOM),
         ];
@@ -442,6 +467,7 @@ class UndoTokenTest extends UnitTestCase
             entityType: 'task',
             entityId: 'task-123',
             previousState: ['title' => 'Test'],
+            userId: 'user-123',
         );
 
         // The class is marked as readonly, so properties cannot be modified
@@ -460,6 +486,7 @@ class UndoTokenTest extends UnitTestCase
             entityType: 'task',
             entityId: 'task-123',
             previousState: [],
+            userId: 'user-123',
         );
 
         $this->assertEquals([], $token->previousState);
@@ -482,6 +509,7 @@ class UndoTokenTest extends UnitTestCase
             entityType: 'task',
             entityId: 'task-123',
             previousState: $previousState,
+            userId: 'user-123',
         );
 
         $this->assertEquals($previousState, $token->previousState);
@@ -498,6 +526,7 @@ class UndoTokenTest extends UnitTestCase
             entityType: 'task',
             entityId: 'task-123',
             previousState: [],
+            userId: 'user-123',
             ttl: 0,
         );
 

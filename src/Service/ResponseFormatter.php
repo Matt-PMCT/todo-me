@@ -85,8 +85,9 @@ final class ResponseFormatter
      * @param int $total Total number of items across all pages
      * @param int $page Current page number (1-indexed)
      * @param int $limit Items per page
+     * @param string $baseUrl Optional base URL for pagination links
      */
-    public function paginated(array $items, int $total, int $page, int $limit): JsonResponse
+    public function paginated(array $items, int $total, int $page, int $limit, string $baseUrl = ''): JsonResponse
     {
         $totalPages = $limit > 0 ? (int) ceil($total / $limit) : 0;
 
@@ -101,18 +102,53 @@ final class ResponseFormatter
             ],
         ];
 
+        // Add pagination links if baseUrl is provided
+        if ($baseUrl !== '') {
+            $links = [
+                'self' => $this->buildPaginationUrl($baseUrl, $page, $limit),
+                'first' => $this->buildPaginationUrl($baseUrl, 1, $limit),
+                'last' => $totalPages > 0 ? $this->buildPaginationUrl($baseUrl, $totalPages, $limit) : null,
+            ];
+
+            if ($page > 1) {
+                $links['prev'] = $this->buildPaginationUrl($baseUrl, $page - 1, $limit);
+            }
+
+            if ($page < $totalPages) {
+                $links['next'] = $this->buildPaginationUrl($baseUrl, $page + 1, $limit);
+            }
+
+            $paginationMeta['links'] = $links;
+        }
+
         return $this->success($items, 200, $paginationMeta);
+    }
+
+    /**
+     * Builds a pagination URL with page and per_page query parameters.
+     */
+    private function buildPaginationUrl(string $baseUrl, int $page, int $limit): string
+    {
+        $separator = str_contains($baseUrl, '?') ? '&' : '?';
+        return sprintf('%s%spage=%d&per_page=%d', $baseUrl, $separator, $page, $limit);
     }
 
     /**
      * Creates a "created" response (HTTP 201).
      *
      * @param mixed $data The created resource data
+     * @param string|null $location Optional Location header URL
      * @param array<string, mixed> $meta Additional metadata
      */
-    public function created(mixed $data = null, array $meta = []): JsonResponse
+    public function created(mixed $data = null, ?string $location = null, array $meta = []): JsonResponse
     {
-        return $this->success($data, 201, $meta);
+        $response = $this->success($data, 201, $meta);
+
+        if ($location !== null) {
+            $response->headers->set('Location', $location);
+        }
+
+        return $response;
     }
 
     /**

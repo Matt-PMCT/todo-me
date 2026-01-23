@@ -15,7 +15,7 @@ final class CreateTaskRequest
     public function __construct(
         #[Assert\NotBlank(message: 'Title is required')]
         #[Assert\Length(
-            max: 255,
+            max: 500,
             maxMessage: 'Title must be at most {{ limit }} characters'
         )]
         public readonly string $title = '',
