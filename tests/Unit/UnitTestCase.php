@@ -24,6 +24,7 @@ abstract class UnitTestCase extends TestCase
         $user = new User();
         $user->setEmail($email);
         $user->setPasswordHash('hashed_password');
+        $user->setUsername('testuser_' . substr($id, 0, 8));
         $this->setEntityId($user, $id);
 
         return $user;

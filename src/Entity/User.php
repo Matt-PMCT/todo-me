@@ -16,6 +16,7 @@ use Symfony\Component\Security\Core\User\UserInterface;
 #[ORM\Table(name: 'users')]
 #[ORM\Index(columns: ['email'], name: 'idx_users_email')]
 #[ORM\Index(columns: ['api_token'], name: 'idx_users_api_token')]
+#[ORM\Index(columns: ['username'], name: 'idx_users_username')]
 #[ORM\HasLifecycleCallbacks]
 class User implements UserInterface, PasswordAuthenticatedUserInterface
 {
@@ -27,6 +28,12 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     #[ORM\Column(type: Types::STRING, length: 180, unique: true)]
     private string $email;
+
+    #[ORM\Column(type: Types::STRING, length: 100, unique: true)]
+    private string $username;
+
+    #[ORM\Column(type: Types::JSON, options: ['default' => '{}'])]
+    private array $settings = [];
 
     #[ORM\Column(type: Types::STRING, name: 'password_hash')]
     private string $passwordHash;
@@ -251,6 +258,63 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         }
 
         return $this;
+    }
+
+    public function getUsername(): string
+    {
+        return $this->username;
+    }
+
+    public function setUsername(string $username): static
+    {
+        $this->username = $username;
+
+        return $this;
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    public function getSettings(): array
+    {
+        return $this->settings;
+    }
+
+    /**
+     * @param array<string, mixed> $settings
+     */
+    public function setSettings(array $settings): static
+    {
+        $this->settings = $settings;
+
+        return $this;
+    }
+
+    public function getTimezone(): string
+    {
+        return $this->settings['timezone'] ?? 'UTC';
+    }
+
+    public function getDateFormat(): string
+    {
+        return $this->settings['date_format'] ?? 'MDY';
+    }
+
+    public function getStartOfWeek(): int
+    {
+        return $this->settings['start_of_week'] ?? 0;
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    public function getSettingsWithDefaults(): array
+    {
+        return array_merge([
+            'timezone' => 'UTC',
+            'date_format' => 'MDY',
+            'start_of_week' => 0,
+        ], $this->settings);
     }
 
     /**

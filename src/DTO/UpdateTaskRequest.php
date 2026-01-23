@@ -15,7 +15,7 @@ final class UpdateTaskRequest
 {
     public function __construct(
         #[Assert\Length(
-            max: 255,
+            max: 500,
             maxMessage: 'Title must be at most {{ limit }} characters'
         )]
         public readonly ?string $title = null,

@@ -21,6 +21,9 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\Index(columns: ['position'], name: 'idx_tasks_position')]
 #[ORM\Index(columns: ['status', 'priority'], name: 'idx_tasks_status_priority')]
 #[ORM\Index(columns: ['owner_id', 'status'], name: 'idx_tasks_owner_status')]
+#[ORM\Index(columns: ['parent_task_id'], name: 'idx_tasks_parent')]
+#[ORM\Index(columns: ['original_task_id'], name: 'idx_tasks_original')]
+#[ORM\Index(columns: ['is_recurring'], name: 'idx_tasks_recurring')]
 #[ORM\HasLifecycleCallbacks]
 class Task implements UserOwnedInterface
 {
@@ -34,9 +37,9 @@ class Task implements UserOwnedInterface
         self::STATUS_COMPLETED,
     ];
 
-    public const PRIORITY_MIN = 1;
-    public const PRIORITY_MAX = 5;
-    public const PRIORITY_DEFAULT = 3;
+    public const PRIORITY_MIN = 0;
+    public const PRIORITY_MAX = 4;
+    public const PRIORITY_DEFAULT = 2;
 
     #[ORM\Id]
     #[ORM\Column(type: 'guid')]
@@ -44,7 +47,7 @@ class Task implements UserOwnedInterface
     #[ORM\CustomIdGenerator(class: 'doctrine.uuid_generator')]
     private ?string $id = null;
 
-    #[ORM\Column(type: Types::STRING, length: 255)]
+    #[ORM\Column(type: Types::STRING, length: 500)]
     private string $title;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
@@ -59,8 +62,23 @@ class Task implements UserOwnedInterface
     #[ORM\Column(type: Types::DATE_IMMUTABLE, nullable: true, name: 'due_date')]
     private ?\DateTimeImmutable $dueDate = null;
 
+    #[ORM\Column(type: Types::TIME_IMMUTABLE, nullable: true, name: 'due_time')]
+    private ?\DateTimeImmutable $dueTime = null;
+
     #[ORM\Column(type: Types::INTEGER, options: ['default' => 0])]
     private int $position = 0;
+
+    #[ORM\Column(type: Types::BOOLEAN, name: 'is_recurring', options: ['default' => false])]
+    private bool $isRecurring = false;
+
+    #[ORM\Column(type: Types::STRING, length: 255, nullable: true, name: 'recurrence_rule')]
+    private ?string $recurrenceRule = null;
+
+    #[ORM\Column(type: Types::STRING, length: 20, nullable: true, name: 'recurrence_type')]
+    private ?string $recurrenceType = null;
+
+    #[ORM\Column(type: Types::DATE_IMMUTABLE, nullable: true, name: 'recurrence_end_date')]
+    private ?\DateTimeImmutable $recurrenceEndDate = null;
 
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE, name: 'created_at')]
     private \DateTimeImmutable $createdAt;
@@ -79,6 +97,20 @@ class Task implements UserOwnedInterface
     #[ORM\JoinColumn(name: 'project_id', nullable: true, onDelete: 'CASCADE')]
     private ?Project $project = null;
 
+    #[ORM\ManyToOne(targetEntity: Task::class, inversedBy: 'subtasks')]
+    #[ORM\JoinColumn(name: 'parent_task_id', nullable: true, onDelete: 'CASCADE')]
+    private ?Task $parentTask = null;
+
+    /**
+     * @var Collection<int, Task>
+     */
+    #[ORM\OneToMany(targetEntity: Task::class, mappedBy: 'parentTask')]
+    private Collection $subtasks;
+
+    #[ORM\ManyToOne(targetEntity: Task::class)]
+    #[ORM\JoinColumn(name: 'original_task_id', nullable: true, onDelete: 'SET NULL')]
+    private ?Task $originalTask = null;
+
     /**
      * @var Collection<int, Tag>
      */
@@ -91,6 +123,7 @@ class Task implements UserOwnedInterface
     public function __construct()
     {
         $this->tags = new ArrayCollection();
+        $this->subtasks = new ArrayCollection();
         $this->createdAt = new \DateTimeImmutable();
         $this->updatedAt = new \DateTimeImmutable();
     }
@@ -309,5 +342,118 @@ class Task implements UserOwnedInterface
         }
 
         return $this->dueDate < new \DateTimeImmutable('today');
+    }
+
+    public function getDueTime(): ?\DateTimeImmutable
+    {
+        return $this->dueTime;
+    }
+
+    public function setDueTime(?\DateTimeImmutable $dueTime): static
+    {
+        $this->dueTime = $dueTime;
+
+        return $this;
+    }
+
+    public function isRecurring(): bool
+    {
+        return $this->isRecurring;
+    }
+
+    public function setIsRecurring(bool $isRecurring): static
+    {
+        $this->isRecurring = $isRecurring;
+
+        return $this;
+    }
+
+    public function getRecurrenceRule(): ?string
+    {
+        return $this->recurrenceRule;
+    }
+
+    public function setRecurrenceRule(?string $recurrenceRule): static
+    {
+        $this->recurrenceRule = $recurrenceRule;
+
+        return $this;
+    }
+
+    public function getRecurrenceType(): ?string
+    {
+        return $this->recurrenceType;
+    }
+
+    public function setRecurrenceType(?string $recurrenceType): static
+    {
+        $this->recurrenceType = $recurrenceType;
+
+        return $this;
+    }
+
+    public function getRecurrenceEndDate(): ?\DateTimeImmutable
+    {
+        return $this->recurrenceEndDate;
+    }
+
+    public function setRecurrenceEndDate(?\DateTimeImmutable $recurrenceEndDate): static
+    {
+        $this->recurrenceEndDate = $recurrenceEndDate;
+
+        return $this;
+    }
+
+    public function getParentTask(): ?Task
+    {
+        return $this->parentTask;
+    }
+
+    public function setParentTask(?Task $parentTask): static
+    {
+        $this->parentTask = $parentTask;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Task>
+     */
+    public function getSubtasks(): Collection
+    {
+        return $this->subtasks;
+    }
+
+    public function addSubtask(Task $subtask): static
+    {
+        if (!$this->subtasks->contains($subtask)) {
+            $this->subtasks->add($subtask);
+            $subtask->setParentTask($this);
+        }
+
+        return $this;
+    }
+
+    public function removeSubtask(Task $subtask): static
+    {
+        if ($this->subtasks->removeElement($subtask)) {
+            if ($subtask->getParentTask() === $this) {
+                $subtask->setParentTask(null);
+            }
+        }
+
+        return $this;
+    }
+
+    public function getOriginalTask(): ?Task
+    {
+        return $this->originalTask;
+    }
+
+    public function setOriginalTask(?Task $originalTask): static
+    {
+        $this->originalTask = $originalTask;
+
+        return $this;
     }
 }

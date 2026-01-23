@@ -130,7 +130,10 @@ final class ProjectService
      */
     public function archive(Project $project): array
     {
-        $previousState = ['isArchived' => $project->isArchived()];
+        $previousState = [
+            'isArchived' => $project->isArchived(),
+            'archivedAt' => $project->getArchivedAt()?->format(\DateTimeInterface::ATOM),
+        ];
 
         $undoToken = $this->undoService->createUndoToken(
             userId: $project->getOwner()?->getId() ?? '',
@@ -141,6 +144,7 @@ final class ProjectService
         );
 
         $project->setIsArchived(true);
+        $project->setArchivedAt(new \DateTimeImmutable());
         $this->entityManager->flush();
 
         return [
@@ -157,7 +161,10 @@ final class ProjectService
      */
     public function unarchive(Project $project): array
     {
-        $previousState = ['isArchived' => $project->isArchived()];
+        $previousState = [
+            'isArchived' => $project->isArchived(),
+            'archivedAt' => $project->getArchivedAt()?->format(\DateTimeInterface::ATOM),
+        ];
 
         $undoToken = $this->undoService->createUndoToken(
             userId: $project->getOwner()?->getId() ?? '',
@@ -168,6 +175,7 @@ final class ProjectService
         );
 
         $project->setIsArchived(false);
+        $project->setArchivedAt(null);
         $this->entityManager->flush();
 
         return [
@@ -382,6 +390,9 @@ final class ProjectService
 
         $wasArchived = $undoToken->previousState['isArchived'] ?? false;
         $project->setIsArchived($wasArchived);
+
+        $archivedAtStr = $undoToken->previousState['archivedAt'] ?? null;
+        $project->setArchivedAt($archivedAtStr !== null ? new \DateTimeImmutable($archivedAtStr) : null);
 
         $this->entityManager->flush();
 

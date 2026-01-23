@@ -15,6 +15,7 @@ final readonly class UndoToken
         public string $entityType,
         public string $entityId,
         public array $previousState,
+        public string $userId,
         public DateTimeImmutable $createdAt,
         public DateTimeImmutable $expiresAt,
     ) {
@@ -27,6 +28,7 @@ final readonly class UndoToken
      * @param string $entityType The type of entity (e.g., 'todo', 'category')
      * @param string $entityId The entity ID
      * @param array $previousState The previous state of the entity for restoration
+     * @param string $userId The ID of the user who owns this token
      * @param int $ttl Time to live in seconds (default 60)
      */
     public static function create(
@@ -34,6 +36,7 @@ final readonly class UndoToken
         string $entityType,
         string $entityId,
         array $previousState,
+        string $userId,
         int $ttl = 60
     ): self {
         $token = bin2hex(random_bytes(16)); // 32 characters
@@ -46,6 +49,7 @@ final readonly class UndoToken
             entityType: $entityType,
             entityId: $entityId,
             previousState: $previousState,
+            userId: $userId,
             createdAt: $createdAt,
             expiresAt: $expiresAt,
         );
@@ -60,6 +64,7 @@ final readonly class UndoToken
      *     entityType: string,
      *     entityId: string,
      *     previousState: array,
+     *     userId: string,
      *     createdAt: string,
      *     expiresAt: string
      * }
@@ -72,6 +77,7 @@ final readonly class UndoToken
             'entityType' => $this->entityType,
             'entityId' => $this->entityId,
             'previousState' => $this->previousState,
+            'userId' => $this->userId,
             'createdAt' => $this->createdAt->format(DateTimeImmutable::ATOM),
             'expiresAt' => $this->expiresAt->format(DateTimeImmutable::ATOM),
         ];
@@ -86,6 +92,7 @@ final readonly class UndoToken
      *     entityType: string,
      *     entityId: string,
      *     previousState: array,
+     *     userId: string,
      *     createdAt: string,
      *     expiresAt: string
      * } $data
@@ -98,6 +105,7 @@ final readonly class UndoToken
             entityType: $data['entityType'],
             entityId: $data['entityId'],
             previousState: $data['previousState'],
+            userId: $data['userId'] ?? '',
             createdAt: new DateTimeImmutable($data['createdAt']),
             expiresAt: new DateTimeImmutable($data['expiresAt']),
         );

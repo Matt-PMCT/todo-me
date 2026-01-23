@@ -217,7 +217,7 @@ final class AuthController extends AbstractController
      *
      * @return JsonResponse
      */
-    #[Route('/token', name: 'revoke_token', methods: ['DELETE'])]
+    #[Route('/revoke', name: 'revoke_token', methods: ['POST'])]
     public function revokeToken(): JsonResponse
     {
         /** @var User|null $user */

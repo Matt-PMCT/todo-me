@@ -91,6 +91,10 @@ abstract class ApiTestCase extends WebTestCase
         $user = new User();
         $user->setEmail($email);
 
+        // Generate username from email (using part before @ plus random suffix)
+        $emailPrefix = explode('@', $email)[0];
+        $user->setUsername($emailPrefix . '_' . substr(md5(uniqid()), 0, 8));
+
         /** @var UserPasswordHasherInterface $passwordHasher */
         $passwordHasher = static::getContainer()->get(UserPasswordHasherInterface::class);
         $hashedPassword = $passwordHasher->hashPassword($user, $password);
