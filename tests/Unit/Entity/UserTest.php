@@ -87,6 +87,89 @@ class UserTest extends UnitTestCase
     }
 
     // ========================================
+    // API Token Expiration Tests
+    // ========================================
+
+    public function testIsApiTokenExpiredReturnsTrueWhenNoExpiration(): void
+    {
+        $user = new User();
+        $user->setApiToken('token');
+        // No expiration set
+
+        $this->assertTrue($user->isApiTokenExpired());
+    }
+
+    public function testIsApiTokenExpiredReturnsTrueWhenExpired(): void
+    {
+        $user = new User();
+        $user->setApiToken('token');
+        $user->setApiTokenExpiresAt(new \DateTimeImmutable('-1 hour'));
+
+        $this->assertTrue($user->isApiTokenExpired());
+    }
+
+    public function testIsApiTokenExpiredReturnsFalseWhenNotExpired(): void
+    {
+        $user = new User();
+        $user->setApiToken('token');
+        $user->setApiTokenExpiresAt(new \DateTimeImmutable('+1 hour'));
+
+        $this->assertFalse($user->isApiTokenExpired());
+    }
+
+    public function testSetApiTokenNullClearsExpiration(): void
+    {
+        $user = new User();
+        $user->setApiToken('token');
+        $user->setApiTokenIssuedAt(new \DateTimeImmutable());
+        $user->setApiTokenExpiresAt(new \DateTimeImmutable('+1 hour'));
+
+        $user->setApiToken(null);
+
+        $this->assertNull($user->getApiToken());
+        $this->assertNull($user->getApiTokenIssuedAt());
+        $this->assertNull($user->getApiTokenExpiresAt());
+    }
+
+    public function testGetApiTokenIssuedAtReturnsSetValue(): void
+    {
+        $user = new User();
+        $date = new \DateTimeImmutable('2024-01-15 10:00:00');
+
+        $user->setApiTokenIssuedAt($date);
+
+        $this->assertSame($date, $user->getApiTokenIssuedAt());
+    }
+
+    public function testGetApiTokenExpiresAtReturnsSetValue(): void
+    {
+        $user = new User();
+        $date = new \DateTimeImmutable('2024-01-17 10:00:00');
+
+        $user->setApiTokenExpiresAt($date);
+
+        $this->assertSame($date, $user->getApiTokenExpiresAt());
+    }
+
+    public function testSetApiTokenIssuedAtReturnsSelf(): void
+    {
+        $user = new User();
+
+        $result = $user->setApiTokenIssuedAt(new \DateTimeImmutable());
+
+        $this->assertSame($user, $result);
+    }
+
+    public function testSetApiTokenExpiresAtReturnsSelf(): void
+    {
+        $user = new User();
+
+        $result = $user->setApiTokenExpiresAt(new \DateTimeImmutable());
+
+        $this->assertSame($user, $result);
+    }
+
+    // ========================================
     // Roles Tests
     // ========================================
 

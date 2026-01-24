@@ -5,6 +5,7 @@
 # https://symfony.com/doc/current/best_practices.html#use-parameters-for-application-configuration
 parameters:
     redis_url: '%env(REDIS_URL)%'
+    api_token_ttl_hours: '%env(int:API_TOKEN_TTL_HOURS)%'
 
 services:
     # default configuration for services in this file
@@ -33,7 +34,13 @@ services:
         arguments:
             $apiLogger: '@monolog.logger.api'
 
-    App\EventListener\ApiExceptionListener:
+    # Exception mapper registry with tagged mappers
+    App\EventListener\ExceptionMapper\ExceptionMapperRegistry:
+        arguments:
+            $mappers: !tagged_iterator { tag: 'app.exception_mapper', default_priority_method: 'getPriority' }
+
+    # Server error mapper needs environment for debug info
+    App\EventListener\ExceptionMapper\Fallback\ServerErrorMapper:
         arguments:
             $environment: '%kernel.environment%'
 
@@ -45,3 +52,8 @@ services:
     App\Controller\Api\AuthController:
         arguments:
             $loginLimiter: '@limiter.login'
+
+    # User service with API token TTL configuration
+    App\Service\UserService:
+        arguments:
+            $apiTokenTtlHours: '%api_token_ttl_hours%'

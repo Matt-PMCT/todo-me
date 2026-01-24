@@ -205,11 +205,7 @@ final class ProjectService
         }
 
         $project = $this->findByIdOrFail($undoToken->entityId, $user);
-
-        // Restore previous archived state
-        $wasArchived = $undoToken->previousState['isArchived'] ?? false;
-        $project->setIsArchived($wasArchived);
-
+        $this->applyStateToProject($project, $undoToken->previousState);
         $this->entityManager->flush();
 
         return $project;
@@ -237,18 +233,11 @@ final class ProjectService
             throw new \InvalidArgumentException('Invalid undo token type for delete operation');
         }
 
-        // Restore the project from the previous state
-        $state = $undoToken->previousState;
-
-        $project = new Project();
-        $project->setOwner($user);
-        $project->setName($state['name'] ?? '');
-        $project->setDescription($state['description'] ?? null);
-        $project->setIsArchived($state['isArchived'] ?? false);
-
         // Note: The original ID, createdAt, and tasks are NOT restored.
         // The project will get a new ID and createdAt timestamp.
-
+        $project = new Project();
+        $project->setOwner($user);
+        $this->applyStateToProject($project, $undoToken->previousState);
         $this->projectRepository->save($project, true);
 
         return $project;
@@ -275,18 +264,7 @@ final class ProjectService
         }
 
         $project = $this->findByIdOrFail($undoToken->entityId, $user);
-
-        // Restore previous state
-        $state = $undoToken->previousState;
-
-        if (isset($state['name'])) {
-            $project->setName($state['name']);
-        }
-
-        if (array_key_exists('description', $state)) {
-            $project->setDescription($state['description']);
-        }
-
+        $this->applyStateToProject($project, $undoToken->previousState);
         $this->entityManager->flush();
 
         return $project;
@@ -295,8 +273,9 @@ final class ProjectService
     /**
      * Undo any project operation using the token.
      *
-     * This method peeks at the token to determine the action type,
-     * then delegates to the appropriate undo method.
+     * Uses consume-then-validate pattern to avoid race conditions. The token
+     * is atomically consumed first, then validated. This ensures only one
+     * concurrent request can successfully use a token.
      *
      * @param User $user The user performing the undo
      * @param string $token The undo token
@@ -306,94 +285,62 @@ final class ProjectService
      */
     public function undo(User $user, string $token): array
     {
-        // First, peek at the token to determine the action type
-        $undoToken = $this->undoService->getUndoToken($user->getId() ?? '', $token);
+        // Atomically consume the token first to prevent race conditions
+        $undoToken = $this->undoService->consumeUndoToken($user->getId() ?? '', $token);
 
         if ($undoToken === null) {
             throw new \InvalidArgumentException('Invalid or expired undo token');
         }
 
-        // Verify this is a project token
+        // Validate entity type after consumption
+        // Note: Token is already consumed and cannot be reused
         if ($undoToken->entityType !== self::ENTITY_TYPE) {
             throw new \InvalidArgumentException('This undo token is not for a project');
         }
 
-        // Now consume the token and perform the undo based on action type
-        $consumedToken = $this->undoService->consumeUndoToken($user->getId() ?? '', $token);
-
-        if ($consumedToken === null) {
-            throw new \InvalidArgumentException('Failed to consume undo token');
-        }
-
         $warning = null;
 
-        switch ($consumedToken->action) {
+        switch ($undoToken->action) {
             case UndoAction::UPDATE->value:
-                $project = $this->performUndoUpdate($user, $consumedToken);
+                $project = $this->performUndoExisting($user, $undoToken);
                 $message = 'Update operation undone successfully';
                 break;
 
             case UndoAction::ARCHIVE->value:
-                $project = $this->performUndoArchive($user, $consumedToken);
-                $wasArchived = $consumedToken->previousState['isArchived'] ?? false;
+                $project = $this->performUndoExisting($user, $undoToken);
+                $wasArchived = array_key_exists('isArchived', $undoToken->previousState)
+                    ? $undoToken->previousState['isArchived']
+                    : false;
                 $message = $wasArchived
                     ? 'Project archived again (undo of unarchive)'
                     : 'Project unarchived (undo of archive)';
                 break;
 
             case UndoAction::DELETE->value:
-                $project = $this->performUndoDelete($user, $consumedToken);
+                $project = $this->performUndoDelete($user, $undoToken);
                 $message = 'Delete operation undone successfully. Note: Previously associated tasks were not restored.';
                 $warning = 'Tasks that were deleted with the project have been permanently lost';
                 break;
 
             default:
-                throw new \InvalidArgumentException('Unknown undo action type: ' . $consumedToken->action);
+                throw new \InvalidArgumentException('Unknown undo action type: ' . $undoToken->action);
         }
 
         return [
             'project' => $project,
-            'action' => $consumedToken->action,
+            'action' => $undoToken->action,
             'message' => $message,
             'warning' => $warning,
         ];
     }
 
     /**
-     * Perform the actual update undo using a consumed token.
+     * Perform undo on an existing project (update or archive operations).
      */
-    private function performUndoUpdate(User $user, \App\ValueObject\UndoToken $undoToken): Project
+    private function performUndoExisting(User $user, UndoToken $undoToken): Project
     {
         $project = $this->findByIdOrFail($undoToken->entityId, $user);
-
-        $state = $undoToken->previousState;
-
-        if (isset($state['name'])) {
-            $project->setName($state['name']);
-        }
-
-        if (array_key_exists('description', $state)) {
-            $project->setDescription($state['description']);
-        }
-
-        $this->entityManager->flush();
-
-        return $project;
-    }
-
-    /**
-     * Perform the actual archive undo using a consumed token.
-     */
-    private function performUndoArchive(User $user, \App\ValueObject\UndoToken $undoToken): Project
-    {
-        $project = $this->findByIdOrFail($undoToken->entityId, $user);
-
-        $wasArchived = $undoToken->previousState['isArchived'] ?? false;
-        $project->setIsArchived($wasArchived);
-
-        $archivedAtStr = $undoToken->previousState['archivedAt'] ?? null;
-        $project->setArchivedAt($archivedAtStr !== null ? new \DateTimeImmutable($archivedAtStr) : null);
-
+        $this->applyStateToProject($project, $undoToken->previousState);
         $this->entityManager->flush();
 
         return $project;
@@ -402,16 +349,11 @@ final class ProjectService
     /**
      * Perform the actual delete undo using a consumed token.
      */
-    private function performUndoDelete(User $user, \App\ValueObject\UndoToken $undoToken): Project
+    private function performUndoDelete(User $user, UndoToken $undoToken): Project
     {
-        $state = $undoToken->previousState;
-
         $project = new Project();
         $project->setOwner($user);
-        $project->setName($state['name'] ?? '');
-        $project->setDescription($state['description'] ?? null);
-        $project->setIsArchived($state['isArchived'] ?? false);
-
+        $this->applyStateToProject($project, $undoToken->previousState);
         $this->projectRepository->save($project, true);
 
         return $project;
@@ -463,5 +405,34 @@ final class ProjectService
             'description' => $project->getDescription(),
             'isArchived' => $project->isArchived(),
         ];
+    }
+
+    /**
+     * Apply a serialized state to an existing project.
+     *
+     * @param Project $project The project to update
+     * @param array<string, mixed> $state The state to apply
+     */
+    private function applyStateToProject(Project $project, array $state): void
+    {
+        if (array_key_exists('name', $state)) {
+            $project->setName($state['name']);
+        }
+
+        if (array_key_exists('description', $state)) {
+            $project->setDescription($state['description']);
+        }
+
+        if (array_key_exists('isArchived', $state)) {
+            $project->setIsArchived($state['isArchived']);
+        }
+
+        if (array_key_exists('archivedAt', $state)) {
+            $project->setArchivedAt(
+                $state['archivedAt'] !== null
+                    ? new \DateTimeImmutable($state['archivedAt'])
+                    : null
+            );
+        }
     }
 }
