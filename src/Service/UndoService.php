@@ -127,40 +127,60 @@ class UndoService
     }
 
     /**
-     * Consume an undo token (get and delete - one-time use).
+     * Consume an undo token atomically (get and delete - one-time use).
+     *
+     * Uses atomic Redis operation to ensure the token can only be consumed once,
+     * even under concurrent requests. This prevents race conditions where multiple
+     * requests could peek at the same token and then try to consume it.
      *
      * @param string $userId The user ID
      * @param string $token The token string
+     * @return UndoToken|null The token if successfully consumed, null if not found or already consumed
      */
     public function consumeUndoToken(string $userId, string $token): ?UndoToken
     {
-        $undoToken = $this->getUndoToken($userId, $token);
-
-        if ($undoToken === null) {
-            return null;
-        }
-
-        // Delete the token after retrieval (one-time use)
         $key = $this->buildKey($userId, $token);
-        $deleted = $this->redisService->delete($key);
 
-        if (!$deleted) {
-            $this->logger->warning('Failed to delete consumed undo token', [
+        // Atomic get-and-delete operation - only one consumer can succeed
+        $data = $this->redisService->getJsonAndDelete($key);
+
+        if ($data === null) {
+            $this->logger->debug('Undo token not found or already consumed', [
                 'userId' => $userId,
                 'token' => $token,
             ]);
-            // Still return the token even if deletion failed
+            return null;
         }
 
-        $this->logger->info('Undo token consumed', [
-            'userId' => $userId,
-            'token' => $token,
-            'action' => $undoToken->action,
-            'entityType' => $undoToken->entityType,
-            'entityId' => $undoToken->entityId,
-        ]);
+        try {
+            $undoToken = UndoToken::fromArray($data);
 
-        return $undoToken;
+            if ($undoToken->isExpired()) {
+                $this->logger->debug('Consumed undo token was expired', [
+                    'userId' => $userId,
+                    'token' => $token,
+                ]);
+                // Token was already deleted by getJsonAndDelete, just return null
+                return null;
+            }
+
+            $this->logger->info('Undo token consumed', [
+                'userId' => $userId,
+                'token' => $token,
+                'action' => $undoToken->action,
+                'entityType' => $undoToken->entityType,
+                'entityId' => $undoToken->entityId,
+            ]);
+
+            return $undoToken;
+        } catch (\Throwable $e) {
+            $this->logger->error('Failed to deserialize consumed undo token', [
+                'userId' => $userId,
+                'token' => $token,
+                'error' => $e->getMessage(),
+            ]);
+            return null;
+        }
     }
 
     /**
