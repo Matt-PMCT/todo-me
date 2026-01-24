@@ -16,7 +16,6 @@ use App\Service\ValidationHelper;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
@@ -280,33 +279,25 @@ final class ProjectController extends AbstractController
         /** @var User $user */
         $user = $this->getUser();
 
-        try {
-            $result = $this->projectService->undo($user, $token);
+        $result = $this->projectService->undo($user, $token);
 
-            $taskCounts = $this->projectService->getTaskCounts($result['project']);
+        $taskCounts = $this->projectService->getTaskCounts($result['project']);
 
-            $response = ProjectResponse::fromEntity(
-                $result['project'],
-                $taskCounts['total'],
-                $taskCounts['completed'],
-            );
+        $response = ProjectResponse::fromEntity(
+            $result['project'],
+            $taskCounts['total'],
+            $taskCounts['completed'],
+        );
 
-            $data = [
-                'project' => $response->toArray(),
-                'message' => $result['message'],
-            ];
+        $data = [
+            'project' => $response->toArray(),
+            'message' => $result['message'],
+        ];
 
-            if ($result['warning'] !== null) {
-                $data['warning'] = $result['warning'];
-            }
-
-            return $this->responseFormatter->success($data);
-        } catch (\InvalidArgumentException $e) {
-            return $this->responseFormatter->error(
-                $e->getMessage(),
-                'INVALID_UNDO_TOKEN',
-                Response::HTTP_BAD_REQUEST
-            );
+        if ($result['warning'] !== null) {
+            $data['warning'] = $result['warning'];
         }
+
+        return $this->responseFormatter->success($data);
     }
 }

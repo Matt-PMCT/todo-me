@@ -4,60 +4,55 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Service;
 
-use App\Entity\Task;
-use App\Entity\User;
+use App\Entity\Project;
 use App\Enum\UndoAction;
 use App\Exception\EntityNotFoundException;
 use App\Exception\InvalidStateException;
 use App\Exception\InvalidUndoTokenException;
-use App\Repository\TaskRepository;
-use App\Service\OwnershipChecker;
-use App\Service\TaskStateService;
-use App\Service\TaskUndoService;
+use App\Repository\ProjectRepository;
+use App\Service\ProjectStateService;
+use App\Service\ProjectUndoService;
 use App\Service\UndoService;
 use App\Tests\Unit\UnitTestCase;
 use App\ValueObject\UndoToken;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\MockObject\MockObject;
 
-class TaskUndoServiceTest extends UnitTestCase
+class ProjectUndoServiceTest extends UnitTestCase
 {
-    private TaskUndoService $service;
+    private ProjectUndoService $service;
     private UndoService&MockObject $undoService;
-    private TaskRepository&MockObject $taskRepository;
-    private TaskStateService&MockObject $taskStateService;
+    private ProjectRepository&MockObject $projectRepository;
+    private ProjectStateService&MockObject $projectStateService;
     private EntityManagerInterface&MockObject $entityManager;
-    private OwnershipChecker&MockObject $ownershipChecker;
 
     protected function setUp(): void
     {
         $this->undoService = $this->createMock(UndoService::class);
-        $this->taskRepository = $this->createMock(TaskRepository::class);
-        $this->taskStateService = $this->createMock(TaskStateService::class);
+        $this->projectRepository = $this->createMock(ProjectRepository::class);
+        $this->projectStateService = $this->createMock(ProjectStateService::class);
         $this->entityManager = $this->createMock(EntityManagerInterface::class);
-        $this->ownershipChecker = $this->createMock(OwnershipChecker::class);
 
-        $this->service = new TaskUndoService(
+        $this->service = new ProjectUndoService(
             $this->undoService,
-            $this->taskRepository,
-            $this->taskStateService,
+            $this->projectRepository,
+            $this->projectStateService,
             $this->entityManager,
-            $this->ownershipChecker,
         );
     }
 
     public function testCreateUpdateUndoTokenSuccess(): void
     {
         $user = $this->createUserWithId('user-123');
-        $task = $this->createTaskWithId('task-123', $user);
-        $previousState = ['title' => 'Old Title'];
+        $project = $this->createProjectWithId('project-123', $user);
+        $previousState = ['name' => 'Old Name'];
 
         $undoToken = new UndoToken(
             token: 'undo-token-123',
             userId: 'user-123',
             action: UndoAction::UPDATE->value,
-            entityType: 'task',
-            entityId: 'task-123',
+            entityType: 'project',
+            entityId: 'project-123',
             previousState: $previousState,
             expiresAt: new \DateTimeImmutable('+60 seconds'),
         );
@@ -68,49 +63,49 @@ class TaskUndoServiceTest extends UnitTestCase
             ->with(
                 'user-123',
                 UndoAction::UPDATE->value,
-                'task',
-                'task-123',
+                'project',
+                'project-123',
                 $previousState
             )
             ->willReturn($undoToken);
 
-        $result = $this->service->createUpdateUndoToken($task, $previousState);
+        $result = $this->service->createUpdateUndoToken($project, $previousState);
 
-        $this->assertSame('undo-token-123', $result);
+        $this->assertSame($undoToken, $result);
     }
 
     public function testCreateUpdateUndoTokenThrowsOnMissingOwner(): void
     {
-        $task = new Task();
-        $task->setTitle('Test Task');
+        $project = new Project();
+        $project->setName('Test Project');
         // No owner set
 
         $this->expectException(InvalidStateException::class);
         $this->expectExceptionMessage('owner');
 
-        $this->service->createUpdateUndoToken($task, []);
+        $this->service->createUpdateUndoToken($project, []);
     }
 
     public function testCreateDeleteUndoTokenSuccess(): void
     {
         $user = $this->createUserWithId('user-123');
-        $task = $this->createTaskWithId('task-123', $user);
-        $serializedState = ['title' => 'Test Task'];
+        $project = $this->createProjectWithId('project-123', $user);
+        $serializedState = ['name' => 'Test Project'];
 
         $undoToken = new UndoToken(
             token: 'undo-token-123',
             userId: 'user-123',
             action: UndoAction::DELETE->value,
-            entityType: 'task',
-            entityId: 'task-123',
+            entityType: 'project',
+            entityId: 'project-123',
             previousState: $serializedState,
             expiresAt: new \DateTimeImmutable('+60 seconds'),
         );
 
-        $this->taskStateService
+        $this->projectStateService
             ->expects($this->once())
-            ->method('serializeTaskState')
-            ->with($task)
+            ->method('serializeProjectState')
+            ->with($project)
             ->willReturn($serializedState);
 
         $this->undoService
@@ -118,23 +113,23 @@ class TaskUndoServiceTest extends UnitTestCase
             ->method('createUndoToken')
             ->willReturn($undoToken);
 
-        $result = $this->service->createDeleteUndoToken($task);
+        $result = $this->service->createDeleteUndoToken($project);
 
         $this->assertSame($undoToken, $result);
     }
 
-    public function testCreateStatusChangeUndoTokenSuccess(): void
+    public function testCreateArchiveUndoTokenSuccess(): void
     {
         $user = $this->createUserWithId('user-123');
-        $task = $this->createTaskWithId('task-123', $user);
-        $previousState = ['status' => Task::STATUS_PENDING];
+        $project = $this->createProjectWithId('project-123', $user);
+        $previousState = ['isArchived' => false];
 
         $undoToken = new UndoToken(
             token: 'undo-token-123',
             userId: 'user-123',
-            action: UndoAction::STATUS_CHANGE->value,
-            entityType: 'task',
-            entityId: 'task-123',
+            action: UndoAction::ARCHIVE->value,
+            entityType: 'project',
+            entityId: 'project-123',
             previousState: $previousState,
             expiresAt: new \DateTimeImmutable('+60 seconds'),
         );
@@ -144,16 +139,16 @@ class TaskUndoServiceTest extends UnitTestCase
             ->method('createUndoToken')
             ->with(
                 'user-123',
-                UndoAction::STATUS_CHANGE->value,
-                'task',
-                'task-123',
+                UndoAction::ARCHIVE->value,
+                'project',
+                'project-123',
                 $previousState
             )
             ->willReturn($undoToken);
 
-        $result = $this->service->createStatusChangeUndoToken($task, $previousState);
+        $result = $this->service->createArchiveUndoToken($project, $previousState);
 
-        $this->assertSame('undo-token-123', $result);
+        $this->assertSame($undoToken, $result);
     }
 
     public function testUndoWithInvalidToken(): void
@@ -172,7 +167,7 @@ class TaskUndoServiceTest extends UnitTestCase
         $this->service->undo($user, 'invalid-token');
     }
 
-    public function testUndoWithNonTaskToken(): void
+    public function testUndoWithNonProjectToken(): void
     {
         $user = $this->createUserWithId('user-123');
 
@@ -180,8 +175,8 @@ class TaskUndoServiceTest extends UnitTestCase
             token: 'token-123',
             userId: 'user-123',
             action: UndoAction::DELETE->value,
-            entityType: 'project', // Not a task
-            entityId: 'project-123',
+            entityType: 'task', // Not a project
+            entityId: 'task-123',
             previousState: [],
             expiresAt: new \DateTimeImmutable('+60 seconds'),
         );
@@ -192,23 +187,61 @@ class TaskUndoServiceTest extends UnitTestCase
             ->willReturn($undoToken);
 
         $this->expectException(InvalidUndoTokenException::class);
-        $this->expectExceptionMessage('Undo token is for a project, not a task');
+        $this->expectExceptionMessage('Undo token is for a task, not a project');
 
         $this->service->undo($user, 'token-123');
     }
 
-    public function testUndoDeleteRestoresTask(): void
+    public function testUndoDeleteRestoresProject(): void
     {
         $user = $this->createUserWithId('user-123');
-        $previousState = ['title' => 'Deleted Task'];
-        $restoredTask = $this->createTaskWithId('task-123', $user, 'Deleted Task');
+        $project = $this->createProjectWithId('project-123', $user, 'Deleted Project');
+        $project->softDelete();
 
         $undoToken = new UndoToken(
             token: 'token-123',
             userId: 'user-123',
             action: UndoAction::DELETE->value,
-            entityType: 'task',
-            entityId: 'task-123',
+            entityType: 'project',
+            entityId: 'project-123',
+            previousState: ['name' => 'Deleted Project'],
+            expiresAt: new \DateTimeImmutable('+60 seconds'),
+        );
+
+        $this->undoService
+            ->expects($this->once())
+            ->method('consumeUndoToken')
+            ->willReturn($undoToken);
+
+        $this->projectRepository
+            ->expects($this->once())
+            ->method('findOneByOwnerAndId')
+            ->with($user, 'project-123', true)
+            ->willReturn($project);
+
+        $this->entityManager
+            ->expects($this->once())
+            ->method('flush');
+
+        $result = $this->service->undo($user, 'token-123');
+
+        $this->assertSame($project, $result['project']);
+        $this->assertSame(UndoAction::DELETE->value, $result['action']);
+        $this->assertStringContainsString('restored', strtolower($result['message']));
+    }
+
+    public function testUndoUpdateRestoresProject(): void
+    {
+        $user = $this->createUserWithId('user-123');
+        $project = $this->createProjectWithId('project-123', $user, 'Current Name');
+        $previousState = ['name' => 'Previous Name'];
+
+        $undoToken = new UndoToken(
+            token: 'token-123',
+            userId: 'user-123',
+            action: UndoAction::UPDATE->value,
+            entityType: 'project',
+            entityId: 'project-123',
             previousState: $previousState,
             expiresAt: new \DateTimeImmutable('+60 seconds'),
         );
@@ -218,16 +251,16 @@ class TaskUndoServiceTest extends UnitTestCase
             ->method('consumeUndoToken')
             ->willReturn($undoToken);
 
-        $this->taskStateService
+        $this->projectRepository
             ->expects($this->once())
-            ->method('restoreTaskFromState')
-            ->with($user, $previousState)
-            ->willReturn($restoredTask);
+            ->method('findOneByOwnerAndId')
+            ->with($user, 'project-123')
+            ->willReturn($project);
 
-        $this->entityManager
+        $this->projectStateService
             ->expects($this->once())
-            ->method('persist')
-            ->with($restoredTask);
+            ->method('applyStateToProject')
+            ->with($project, $previousState);
 
         $this->entityManager
             ->expects($this->once())
@@ -235,21 +268,23 @@ class TaskUndoServiceTest extends UnitTestCase
 
         $result = $this->service->undo($user, 'token-123');
 
-        $this->assertSame($restoredTask, $result);
+        $this->assertSame($project, $result['project']);
+        $this->assertSame(UndoAction::UPDATE->value, $result['action']);
     }
 
-    public function testUndoUpdateRestoresTask(): void
+    public function testUndoArchiveRestoresArchiveState(): void
     {
         $user = $this->createUserWithId('user-123');
-        $task = $this->createTaskWithId('task-123', $user, 'Current Title');
-        $previousState = ['title' => 'Previous Title'];
+        $project = $this->createProjectWithId('project-123', $user, 'Test Project');
+        $project->setIsArchived(true);
+        $previousState = ['isArchived' => false, 'archivedAt' => null];
 
         $undoToken = new UndoToken(
             token: 'token-123',
             userId: 'user-123',
-            action: UndoAction::UPDATE->value,
-            entityType: 'task',
-            entityId: 'task-123',
+            action: UndoAction::ARCHIVE->value,
+            entityType: 'project',
+            entityId: 'project-123',
             previousState: $previousState,
             expiresAt: new \DateTimeImmutable('+60 seconds'),
         );
@@ -259,21 +294,16 @@ class TaskUndoServiceTest extends UnitTestCase
             ->method('consumeUndoToken')
             ->willReturn($undoToken);
 
-        $this->taskRepository
+        $this->projectRepository
             ->expects($this->once())
-            ->method('find')
-            ->with('task-123')
-            ->willReturn($task);
+            ->method('findOneByOwnerAndId')
+            ->with($user, 'project-123')
+            ->willReturn($project);
 
-        $this->ownershipChecker
+        $this->projectStateService
             ->expects($this->once())
-            ->method('checkOwnership')
-            ->with($task);
-
-        $this->taskStateService
-            ->expects($this->once())
-            ->method('applyStateToTask')
-            ->with($task, $previousState);
+            ->method('applyStateToProject')
+            ->with($project, $previousState);
 
         $this->entityManager
             ->expects($this->once())
@@ -281,10 +311,12 @@ class TaskUndoServiceTest extends UnitTestCase
 
         $result = $this->service->undo($user, 'token-123');
 
-        $this->assertSame($task, $result);
+        $this->assertSame($project, $result['project']);
+        $this->assertSame(UndoAction::ARCHIVE->value, $result['action']);
+        $this->assertStringContainsString('unarchived', strtolower($result['message']));
     }
 
-    public function testUndoUpdateThrowsOnMissingTask(): void
+    public function testUndoUpdateThrowsOnMissingProject(): void
     {
         $user = $this->createUserWithId('user-123');
 
@@ -292,8 +324,8 @@ class TaskUndoServiceTest extends UnitTestCase
             token: 'token-123',
             userId: 'user-123',
             action: UndoAction::UPDATE->value,
-            entityType: 'task',
-            entityId: 'non-existent-task',
+            entityType: 'project',
+            entityId: 'non-existent-project',
             previousState: [],
             expiresAt: new \DateTimeImmutable('+60 seconds'),
         );
@@ -303,10 +335,10 @@ class TaskUndoServiceTest extends UnitTestCase
             ->method('consumeUndoToken')
             ->willReturn($undoToken);
 
-        $this->taskRepository
+        $this->projectRepository
             ->expects($this->once())
-            ->method('find')
-            ->with('non-existent-task')
+            ->method('findOneByOwnerAndId')
+            ->with($user, 'non-existent-project')
             ->willReturn(null);
 
         $this->expectException(EntityNotFoundException::class);
@@ -322,8 +354,8 @@ class TaskUndoServiceTest extends UnitTestCase
             token: 'token-123',
             userId: 'user-123',
             action: UndoAction::UPDATE->value, // Not DELETE
-            entityType: 'task',
-            entityId: 'task-123',
+            entityType: 'project',
+            entityId: 'project-123',
             previousState: [],
             expiresAt: new \DateTimeImmutable('+60 seconds'),
         );
@@ -347,8 +379,8 @@ class TaskUndoServiceTest extends UnitTestCase
             token: 'token-123',
             userId: 'user-123',
             action: UndoAction::DELETE->value, // Not UPDATE
-            entityType: 'task',
-            entityId: 'task-123',
+            entityType: 'project',
+            entityId: 'project-123',
             previousState: [],
             expiresAt: new \DateTimeImmutable('+60 seconds'),
         );
@@ -364,19 +396,17 @@ class TaskUndoServiceTest extends UnitTestCase
         $this->service->undoUpdate($user, 'token-123');
     }
 
-    public function testUndoUpdateAcceptsStatusChangeAction(): void
+    public function testUndoArchiveValidatesActionType(): void
     {
         $user = $this->createUserWithId('user-123');
-        $task = $this->createTaskWithId('task-123', $user);
-        $previousState = ['status' => Task::STATUS_PENDING];
 
         $undoToken = new UndoToken(
             token: 'token-123',
             userId: 'user-123',
-            action: UndoAction::STATUS_CHANGE->value,
-            entityType: 'task',
-            entityId: 'task-123',
-            previousState: $previousState,
+            action: UndoAction::DELETE->value, // Not ARCHIVE
+            entityType: 'project',
+            entityId: 'project-123',
+            previousState: [],
             expiresAt: new \DateTimeImmutable('+60 seconds'),
         );
 
@@ -385,21 +415,63 @@ class TaskUndoServiceTest extends UnitTestCase
             ->method('consumeUndoToken')
             ->willReturn($undoToken);
 
-        $this->taskRepository
+        $this->expectException(InvalidUndoTokenException::class);
+        $this->expectExceptionMessage('Undo token is not for a archive operation');
+
+        $this->service->undoArchive($user, 'token-123');
+    }
+
+    public function testUndoWithUnknownAction(): void
+    {
+        $user = $this->createUserWithId('user-123');
+
+        $undoToken = new UndoToken(
+            token: 'token-123',
+            userId: 'user-123',
+            action: 'unknown_action',
+            entityType: 'project',
+            entityId: 'project-123',
+            previousState: [],
+            expiresAt: new \DateTimeImmutable('+60 seconds'),
+        );
+
+        $this->undoService
             ->expects($this->once())
-            ->method('find')
-            ->willReturn($task);
+            ->method('consumeUndoToken')
+            ->willReturn($undoToken);
 
-        $this->ownershipChecker
-            ->expects($this->once())
-            ->method('checkOwnership');
+        $this->expectException(InvalidUndoTokenException::class);
+        $this->expectExceptionMessage('Unknown undo action type: unknown_action');
 
-        $this->taskStateService
-            ->expects($this->once())
-            ->method('applyStateToTask');
+        $this->service->undo($user, 'token-123');
+    }
 
-        $result = $this->service->undoUpdate($user, 'token-123');
+    public function testUndoArchiveMessageForPreviouslyArchived(): void
+    {
+        $user = $this->createUserWithId('user-123');
+        $project = $this->createProjectWithId('project-123', $user, 'Test Project');
+        $previousState = ['isArchived' => true, 'archivedAt' => '2024-01-01T00:00:00+00:00'];
 
-        $this->assertSame($task, $result);
+        $undoToken = new UndoToken(
+            token: 'token-123',
+            userId: 'user-123',
+            action: UndoAction::ARCHIVE->value,
+            entityType: 'project',
+            entityId: 'project-123',
+            previousState: $previousState,
+            expiresAt: new \DateTimeImmutable('+60 seconds'),
+        );
+
+        $this->undoService
+            ->method('consumeUndoToken')
+            ->willReturn($undoToken);
+
+        $this->projectRepository
+            ->method('findOneByOwnerAndId')
+            ->willReturn($project);
+
+        $result = $this->service->undo($user, 'token-123');
+
+        $this->assertStringContainsString('archived', strtolower($result['message']));
     }
 }
