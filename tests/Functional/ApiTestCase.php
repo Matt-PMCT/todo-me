@@ -106,6 +106,8 @@ abstract class ApiTestCase extends WebTestCase
             /** @var TokenGenerator $tokenGenerator */
             $tokenGenerator = static::getContainer()->get(TokenGenerator::class);
             $user->setApiToken($tokenGenerator->generateApiToken());
+            $user->setApiTokenIssuedAt(new \DateTimeImmutable());
+            $user->setApiTokenExpiresAt(new \DateTimeImmutable('+48 hours'));
         }
 
         $this->entityManager->persist($user);

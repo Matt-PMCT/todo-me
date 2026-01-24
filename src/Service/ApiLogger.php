@@ -173,4 +173,18 @@ final class ApiLogger
             default => 'info',
         };
     }
+
+    /**
+     * Hashes an email address for safe logging.
+     *
+     * Returns a truncated SHA-256 hash that allows correlation
+     * of log entries without exposing the full email address.
+     *
+     * @param string $email The email address to hash
+     * @return string 16-character truncated hash
+     */
+    public static function hashEmail(string $email): string
+    {
+        return substr(hash('sha256', $email), 0, 16);
+    }
 }

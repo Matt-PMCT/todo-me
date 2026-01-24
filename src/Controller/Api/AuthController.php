@@ -56,7 +56,7 @@ final class AuthController extends AbstractController
             }
 
             $this->apiLogger->logWarning('Registration validation failed', [
-                'email' => $registerRequest->email,
+                'email_hash' => ApiLogger::hashEmail($registerRequest->email),
                 'errors' => $validationErrors,
             ]);
 
@@ -72,7 +72,7 @@ final class AuthController extends AbstractController
         $existingUser = $this->userService->findByEmail($registerRequest->email);
         if ($existingUser !== null) {
             $this->apiLogger->logWarning('Registration attempt for existing email', [
-                'email' => $registerRequest->email,
+                'email_hash' => ApiLogger::hashEmail($registerRequest->email),
             ]);
 
             return $this->responseFormatter->error(
@@ -91,19 +91,23 @@ final class AuthController extends AbstractController
 
             $this->apiLogger->logInfo('User registered successfully', [
                 'user_id' => $user->getId(),
-                'email' => $user->getEmail(),
+                'email_hash' => ApiLogger::hashEmail($user->getEmail()),
             ]);
 
             $userResponse = UserResponse::fromUser($user);
-            $tokenResponse = new TokenResponse($user->getApiToken() ?? '');
+            $tokenResponse = new TokenResponse(
+                $user->getApiToken() ?? '',
+                $this->userService->getTokenExpiresAt($user)
+            );
 
             return $this->responseFormatter->created([
                 'user' => $userResponse->toArray(),
                 'token' => $tokenResponse->token,
+                'expiresAt' => $tokenResponse->expiresAt?->format(\DateTimeInterface::RFC3339),
             ]);
         } catch (\Exception $e) {
             $this->apiLogger->logError($e, [
-                'email' => $registerRequest->email,
+                'email_hash' => ApiLogger::hashEmail($registerRequest->email),
             ]);
 
             return $this->responseFormatter->error(
@@ -152,7 +156,7 @@ final class AuthController extends AbstractController
             $retryAfter = $limit->getRetryAfter();
 
             $this->apiLogger->logWarning('Login rate limit exceeded', [
-                'email' => $loginRequest->email,
+                'email_hash' => ApiLogger::hashEmail($loginRequest->email),
                 'ip' => $request->getClientIp(),
                 'retry_after' => $retryAfter->getTimestamp(),
             ]);
@@ -174,7 +178,7 @@ final class AuthController extends AbstractController
         $user = $this->userService->findByEmail($loginRequest->email);
         if ($user === null) {
             $this->apiLogger->logWarning('Login attempt for non-existent user', [
-                'email' => $loginRequest->email,
+                'email_hash' => ApiLogger::hashEmail($loginRequest->email),
                 'ip' => $request->getClientIp(),
             ]);
 
@@ -188,7 +192,7 @@ final class AuthController extends AbstractController
         // Validate password
         if (!$this->userService->validatePassword($user, $loginRequest->password)) {
             $this->apiLogger->logWarning('Login attempt with invalid password', [
-                'email' => $loginRequest->email,
+                'email_hash' => ApiLogger::hashEmail($loginRequest->email),
                 'ip' => $request->getClientIp(),
             ]);
 
@@ -204,10 +208,13 @@ final class AuthController extends AbstractController
 
         $this->apiLogger->logInfo('User logged in successfully', [
             'user_id' => $user->getId(),
-            'email' => $user->getEmail(),
+            'email_hash' => ApiLogger::hashEmail($user->getEmail()),
         ]);
 
-        $tokenResponse = new TokenResponse($apiToken);
+        $tokenResponse = new TokenResponse(
+            $apiToken,
+            $this->userService->getTokenExpiresAt($user)
+        );
 
         return $this->responseFormatter->success($tokenResponse->toArray());
     }
@@ -235,10 +242,94 @@ final class AuthController extends AbstractController
 
         $this->apiLogger->logInfo('User logged out (token revoked)', [
             'user_id' => $user->getId(),
-            'email' => $user->getEmail(),
+            'email_hash' => ApiLogger::hashEmail($user->getEmail()),
         ]);
 
         return $this->responseFormatter->noContent();
+    }
+
+    /**
+     * Refresh the current token.
+     * Requires a valid (but possibly expired) token.
+     *
+     * @return JsonResponse
+     */
+    #[Route('/refresh', name: 'refresh_token', methods: ['POST'])]
+    public function refreshToken(Request $request): JsonResponse
+    {
+        // Extract token from request (works even if expired)
+        $token = $this->extractTokenFromRequest($request);
+
+        if ($token === null) {
+            return $this->responseFormatter->error(
+                'API token not provided',
+                'TOKEN_REQUIRED',
+                Response::HTTP_UNAUTHORIZED
+            );
+        }
+
+        // Find user by token without expiration check
+        $user = $this->userService->findByApiTokenIgnoreExpiration($token);
+
+        if ($user === null) {
+            return $this->responseFormatter->error(
+                'Invalid API token',
+                'INVALID_TOKEN',
+                Response::HTTP_UNAUTHORIZED
+            );
+        }
+
+        // Check if token is too old (expired more than 7 days ago)
+        $expiresAt = $user->getApiTokenExpiresAt();
+        if ($expiresAt !== null) {
+            $maxRefreshWindow = $expiresAt->modify('+7 days');
+            if (new \DateTimeImmutable() > $maxRefreshWindow) {
+                $this->apiLogger->logWarning('Token refresh attempt outside window', [
+                    'user_id' => $user->getId(),
+                    'expired_at' => $expiresAt->format(\DateTimeInterface::RFC3339),
+                ]);
+
+                return $this->responseFormatter->error(
+                    'Token expired too long ago. Please login again.',
+                    'TOKEN_REFRESH_EXPIRED',
+                    Response::HTTP_UNAUTHORIZED
+                );
+            }
+        }
+
+        // Generate new token
+        $apiToken = $this->userService->generateNewApiToken($user);
+
+        $this->apiLogger->logInfo('Token refreshed successfully', [
+            'user_id' => $user->getId(),
+            'email' => $user->getEmail(),
+        ]);
+
+        $tokenResponse = new TokenResponse(
+            $apiToken,
+            $this->userService->getTokenExpiresAt($user)
+        );
+
+        return $this->responseFormatter->success($tokenResponse->toArray());
+    }
+
+    /**
+     * Extracts the API token from the request headers.
+     */
+    private function extractTokenFromRequest(Request $request): ?string
+    {
+        $authHeader = $request->headers->get('Authorization', '');
+        if (str_starts_with($authHeader, 'Bearer ')) {
+            $token = substr($authHeader, 7);
+            return $token !== '' ? $token : null;
+        }
+
+        $apiKey = $request->headers->get('X-API-Key');
+        if ($apiKey !== null && $apiKey !== '') {
+            return $apiKey;
+        }
+
+        return null;
     }
 
     /**

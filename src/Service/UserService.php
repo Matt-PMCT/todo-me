@@ -19,6 +19,7 @@ final class UserService
         private readonly UserPasswordHasherInterface $passwordHasher,
         private readonly TokenGenerator $tokenGenerator,
         private readonly UserRepository $userRepository,
+        private readonly int $apiTokenTtlHours = 48,
     ) {
     }
 
@@ -41,8 +42,7 @@ final class UserService
         $hashedPassword = $this->passwordHasher->hashPassword($user, $plainPassword);
         $user->setPasswordHash($hashedPassword);
 
-        $apiToken = $this->tokenGenerator->generateApiToken();
-        $user->setApiToken($apiToken);
+        $this->setNewApiToken($user);
 
         $this->entityManager->persist($user);
         $this->entityManager->flush();
@@ -58,13 +58,26 @@ final class UserService
      */
     public function generateNewApiToken(User $user): string
     {
-        $apiToken = $this->tokenGenerator->generateApiToken();
-        $user->setApiToken($apiToken);
+        $this->setNewApiToken($user);
 
         $this->entityManager->persist($user);
         $this->entityManager->flush();
 
-        return $apiToken;
+        return $user->getApiToken();
+    }
+
+    /**
+     * Sets a new API token with expiration on the user.
+     */
+    private function setNewApiToken(User $user): void
+    {
+        $apiToken = $this->tokenGenerator->generateApiToken();
+        $now = new \DateTimeImmutable();
+        $expiresAt = $now->modify("+{$this->apiTokenTtlHours} hours");
+
+        $user->setApiToken($apiToken);
+        $user->setApiTokenIssuedAt($now);
+        $user->setApiTokenExpiresAt($expiresAt);
     }
 
     /**
@@ -120,12 +133,44 @@ final class UserService
 
     /**
      * Finds a user by API token.
+     * Returns null if token is not found OR if token is expired.
+     *
+     * @param string $token The API token to search for
+     * @return User|null The user if found and token is valid, null otherwise
+     */
+    public function findByApiToken(string $token): ?User
+    {
+        $user = $this->userRepository->findByApiToken($token);
+
+        if ($user === null) {
+            return null;
+        }
+
+        // Return null if token is expired - authenticator will handle as invalid token
+        if ($user->isApiTokenExpired()) {
+            return null;
+        }
+
+        return $user;
+    }
+
+    /**
+     * Finds a user by API token without checking expiration.
+     * Used for token refresh where expired tokens are allowed.
      *
      * @param string $token The API token to search for
      * @return User|null The user if found, null otherwise
      */
-    public function findByApiToken(string $token): ?User
+    public function findByApiTokenIgnoreExpiration(string $token): ?User
     {
         return $this->userRepository->findByApiToken($token);
+    }
+
+    /**
+     * Gets the token expiration time for a user.
+     */
+    public function getTokenExpiresAt(User $user): ?\DateTimeImmutable
+    {
+        return $user->getApiTokenExpiresAt();
     }
 }

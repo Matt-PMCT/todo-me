@@ -615,11 +615,7 @@ class ProjectServiceTest extends UnitTestCase
             userId: 'user-123',
         );
 
-        $this->undoService->expects($this->once())
-            ->method('getUndoToken')
-            ->with('user-123', $undoToken->token)
-            ->willReturn($undoToken);
-
+        // Uses consume-then-validate pattern - no getUndoToken call
         $this->undoService->expects($this->once())
             ->method('consumeUndoToken')
             ->with('user-123', $undoToken->token)
@@ -654,11 +650,7 @@ class ProjectServiceTest extends UnitTestCase
             userId: 'user-123',
         );
 
-        $this->undoService->expects($this->once())
-            ->method('getUndoToken')
-            ->with('user-123', $undoToken->token)
-            ->willReturn($undoToken);
-
+        // Uses consume-then-validate pattern - no getUndoToken call
         $this->undoService->expects($this->once())
             ->method('consumeUndoToken')
             ->with('user-123', $undoToken->token)
@@ -693,11 +685,7 @@ class ProjectServiceTest extends UnitTestCase
             userId: 'user-123',
         );
 
-        $this->undoService->expects($this->once())
-            ->method('getUndoToken')
-            ->with('user-123', $undoToken->token)
-            ->willReturn($undoToken);
-
+        // Uses consume-then-validate pattern - no getUndoToken call
         $this->undoService->expects($this->once())
             ->method('consumeUndoToken')
             ->with('user-123', $undoToken->token)
@@ -718,8 +706,9 @@ class ProjectServiceTest extends UnitTestCase
     {
         $user = $this->createUserWithId();
 
+        // Uses consumeUndoToken directly instead of peek-then-consume
         $this->undoService->expects($this->once())
-            ->method('getUndoToken')
+            ->method('consumeUndoToken')
             ->with('user-123', 'invalid')
             ->willReturn(null);
 
@@ -739,8 +728,10 @@ class ProjectServiceTest extends UnitTestCase
             userId: 'user-123',
         );
 
+        // With consume-then-validate, the token is consumed first
+        // Note: Token is already consumed and cannot be reused after this
         $this->undoService->expects($this->once())
-            ->method('getUndoToken')
+            ->method('consumeUndoToken')
             ->with('user-123', $undoToken->token)
             ->willReturn($undoToken);
 

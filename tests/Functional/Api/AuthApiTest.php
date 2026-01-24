@@ -489,4 +489,184 @@ class AuthApiTest extends ApiTestCase
         // Token should be regenerated
         $this->assertNotEquals($originalToken, $newToken);
     }
+
+    // ========================================
+    // Token Expiration Tests
+    // ========================================
+
+    public function testLoginReturnsExpiresAt(): void
+    {
+        $this->createUser('expiry@example.com', 'Password123');
+
+        $response = $this->apiRequest('POST', '/api/v1/auth/token', [
+            'email' => 'expiry@example.com',
+            'password' => 'Password123',
+        ]);
+
+        $this->assertResponseStatusCode(Response::HTTP_OK, $response);
+
+        $data = $this->assertSuccessResponse($response);
+
+        $this->assertArrayHasKey('token', $data['data']);
+        $this->assertArrayHasKey('expiresAt', $data['data']);
+        $this->assertNotNull($data['data']['expiresAt']);
+    }
+
+    public function testRegisterReturnsExpiresAt(): void
+    {
+        $response = $this->apiRequest('POST', '/api/v1/auth/register', [
+            'email' => 'newexpiry@example.com',
+            'password' => 'SecurePassword123',
+        ]);
+
+        $this->assertResponseStatusCode(Response::HTTP_CREATED, $response);
+
+        $data = $this->assertSuccessResponse($response);
+
+        $this->assertArrayHasKey('expiresAt', $data['data']);
+        $this->assertNotNull($data['data']['expiresAt']);
+    }
+
+    public function testExpiredTokenReturnsUnauthorized(): void
+    {
+        $user = $this->createUser('expired@example.com', 'Password123');
+
+        // Manually expire the token
+        $user->setApiTokenExpiresAt(new \DateTimeImmutable('-1 hour'));
+        $this->entityManager->flush();
+
+        $response = $this->authenticatedApiRequest(
+            $user,
+            'GET',
+            '/api/v1/auth/me'
+        );
+
+        $this->assertResponseStatusCode(Response::HTTP_UNAUTHORIZED, $response);
+    }
+
+    public function testExpiredTokenErrorMessage(): void
+    {
+        $user = $this->createUser('expiredmsg@example.com', 'Password123');
+
+        // Manually expire the token
+        $user->setApiTokenExpiresAt(new \DateTimeImmutable('-1 hour'));
+        $this->entityManager->flush();
+
+        $response = $this->authenticatedApiRequest(
+            $user,
+            'GET',
+            '/api/v1/auth/me'
+        );
+
+        $this->assertResponseStatusCode(Response::HTTP_UNAUTHORIZED, $response);
+
+        $json = $this->assertJsonResponse($response);
+        $this->assertStringContainsString('expired', strtolower($json['error']['message']));
+    }
+
+    // ========================================
+    // Token Refresh Tests
+    // ========================================
+
+    public function testRefreshTokenSuccess(): void
+    {
+        $user = $this->createUser('refresh@example.com', 'Password123');
+        $originalToken = $user->getApiToken();
+
+        $response = $this->apiRequest(
+            'POST',
+            '/api/v1/auth/refresh',
+            null,
+            ['Authorization' => 'Bearer ' . $originalToken]
+        );
+
+        $this->assertResponseStatusCode(Response::HTTP_OK, $response);
+
+        $data = $this->assertSuccessResponse($response);
+
+        $this->assertArrayHasKey('token', $data['data']);
+        $this->assertArrayHasKey('expiresAt', $data['data']);
+        $this->assertNotEquals($originalToken, $data['data']['token']);
+    }
+
+    public function testRefreshTokenWithXApiKey(): void
+    {
+        $user = $this->createUser('refreshkey@example.com', 'Password123');
+        $originalToken = $user->getApiToken();
+
+        $response = $this->apiRequest(
+            'POST',
+            '/api/v1/auth/refresh',
+            null,
+            ['X-API-Key' => $originalToken]
+        );
+
+        $this->assertResponseStatusCode(Response::HTTP_OK, $response);
+
+        $data = $this->assertSuccessResponse($response);
+        $this->assertNotEquals($originalToken, $data['data']['token']);
+    }
+
+    public function testRefreshTokenWithExpiredToken(): void
+    {
+        $user = $this->createUser('refreshexpired@example.com', 'Password123');
+        $originalToken = $user->getApiToken();
+
+        // Manually expire the token (but within the 7-day refresh window)
+        $user->setApiTokenExpiresAt(new \DateTimeImmutable('-1 hour'));
+        $this->entityManager->flush();
+
+        $response = $this->apiRequest(
+            'POST',
+            '/api/v1/auth/refresh',
+            null,
+            ['Authorization' => 'Bearer ' . $originalToken]
+        );
+
+        $this->assertResponseStatusCode(Response::HTTP_OK, $response);
+
+        $data = $this->assertSuccessResponse($response);
+        $this->assertNotEquals($originalToken, $data['data']['token']);
+    }
+
+    public function testRefreshTokenWithoutToken(): void
+    {
+        $response = $this->apiRequest('POST', '/api/v1/auth/refresh');
+
+        $this->assertResponseStatusCode(Response::HTTP_UNAUTHORIZED, $response);
+        $this->assertErrorCode($response, 'TOKEN_REQUIRED');
+    }
+
+    public function testRefreshTokenWithInvalidToken(): void
+    {
+        $response = $this->apiRequest(
+            'POST',
+            '/api/v1/auth/refresh',
+            null,
+            ['Authorization' => 'Bearer invalid-token-12345']
+        );
+
+        $this->assertResponseStatusCode(Response::HTTP_UNAUTHORIZED, $response);
+        $this->assertErrorCode($response, 'INVALID_TOKEN');
+    }
+
+    public function testRefreshTokenOutsideWindow(): void
+    {
+        $user = $this->createUser('refreshold@example.com', 'Password123');
+        $originalToken = $user->getApiToken();
+
+        // Manually set token to be expired for more than 7 days
+        $user->setApiTokenExpiresAt(new \DateTimeImmutable('-8 days'));
+        $this->entityManager->flush();
+
+        $response = $this->apiRequest(
+            'POST',
+            '/api/v1/auth/refresh',
+            null,
+            ['Authorization' => 'Bearer ' . $originalToken]
+        );
+
+        $this->assertResponseStatusCode(Response::HTTP_UNAUTHORIZED, $response);
+        $this->assertErrorCode($response, 'TOKEN_REFRESH_EXPIRED');
+    }
 }
