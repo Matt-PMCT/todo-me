@@ -436,7 +436,7 @@ class AuthApiTest extends ApiTestCase
         ]);
 
         // Should fail validation (email too long or invalid)
-        $this->assertIn($response->getStatusCode(), [
+        $this->assertContains($response->getStatusCode(), [
             Response::HTTP_UNPROCESSABLE_ENTITY,
             Response::HTTP_BAD_REQUEST,
         ]);
@@ -465,7 +465,7 @@ class AuthApiTest extends ApiTestCase
         ]);
 
         // Should succeed with valid unicode email
-        $this->assertIn($response->getStatusCode(), [
+        $this->assertContains($response->getStatusCode(), [
             Response::HTTP_CREATED,
             Response::HTTP_UNPROCESSABLE_ENTITY, // If unicode not supported
         ]);

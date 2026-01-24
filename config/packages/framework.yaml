@@ -30,3 +30,12 @@ when@test:
         test: true
         session:
             storage_factory_id: session.storage.factory.mock_file
+        rate_limiter:
+            anonymous_api:
+                policy: 'sliding_window'
+                limit: 100000
+                interval: '1 minute'
+            authenticated_api:
+                policy: 'sliding_window'
+                limit: 100000
+                interval: '1 minute'
