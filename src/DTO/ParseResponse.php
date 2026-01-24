@@ -50,7 +50,7 @@ final class ParseResponse
             $project = [
                 'id' => $result->project->getId(),
                 'name' => $result->project->getName(),
-                'fullPath' => self::getProjectFullPath($result->project),
+                'fullPath' => $result->project->getFullPath(),
                 'color' => $result->project->getColor(),
             ];
         }
@@ -100,21 +100,5 @@ final class ParseResponse
             'highlights' => $this->highlights,
             'warnings' => $this->warnings,
         ];
-    }
-
-    /**
-     * Get the full path of a project by traversing its parent chain.
-     */
-    private static function getProjectFullPath(Project $project): string
-    {
-        $parts = [];
-        $current = $project;
-
-        while ($current !== null) {
-            array_unshift($parts, $current->getName());
-            $current = $current->getParent();
-        }
-
-        return implode('/', $parts);
     }
 }

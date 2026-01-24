@@ -17,6 +17,7 @@ use App\Repository\ProjectRepository;
 use App\Repository\TagRepository;
 use App\Repository\TaskRepository;
 use App\Service\OwnershipChecker;
+use App\Service\Parser\NaturalLanguageParserService;
 use App\Service\TaskService;
 use App\Service\UndoService;
 use App\Service\ValidationHelper;
@@ -34,6 +35,7 @@ class TaskServiceTest extends UnitTestCase
     private UndoService&MockObject $undoService;
     private ValidationHelper&MockObject $validationHelper;
     private OwnershipChecker&MockObject $ownershipChecker;
+    private NaturalLanguageParserService&MockObject $naturalLanguageParser;
     private TaskService $taskService;
 
     protected function setUp(): void
@@ -47,6 +49,7 @@ class TaskServiceTest extends UnitTestCase
         $this->undoService = $this->createMock(UndoService::class);
         $this->validationHelper = $this->createMock(ValidationHelper::class);
         $this->ownershipChecker = $this->createMock(OwnershipChecker::class);
+        $this->naturalLanguageParser = $this->createMock(NaturalLanguageParserService::class);
 
         $this->taskService = new TaskService(
             $this->taskRepository,
@@ -56,6 +59,7 @@ class TaskServiceTest extends UnitTestCase
             $this->undoService,
             $this->validationHelper,
             $this->ownershipChecker,
+            $this->naturalLanguageParser,
         );
     }
 

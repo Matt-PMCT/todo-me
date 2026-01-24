@@ -43,7 +43,14 @@ See [Claude Skills Documentation](https://docs.anthropic.com/en/docs/claude-code
 
 ## Agents
 
-Custom subagents for specialized workflows (not yet implemented for this project).
+Custom subagents for specialized workflows.
+
+### Available Agents
+
+| Agent | Description |
+|-------|-------------|
+| `previous-commit-reviewer` | Reviews the previous commit for plan alignment, code quality, tests, and safety |
+| `root-cause-investigator` | Investigates bugs using 5-Why methodology for systematic root cause analysis |
 
 ## Git Tracking
 

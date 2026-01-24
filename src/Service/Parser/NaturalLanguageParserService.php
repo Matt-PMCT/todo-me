@@ -17,7 +17,7 @@ use App\ValueObject\TaskParseResult;
  * - Independent parsing - failed components don't block others
  * - Title extraction - remove all matched metadata spans from input, trim/collapse whitespace
  */
-final class NaturalLanguageParserService
+class NaturalLanguageParserService
 {
     public function __construct(
         private readonly DateParserService $dateParser,
