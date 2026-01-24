@@ -977,7 +977,7 @@ Create the frontend UI for displaying and interacting with project hierarchy.
 - [ ] **3.8.1** Create project tree component
   ```twig
   {# templates/components/project-tree.html.twig #}
-  
+
   Structure:
   - Collapsible tree nodes
   - Indentation for hierarchy (max visual depth handling)
@@ -985,6 +985,22 @@ Create the frontend UI for displaying and interacting with project hierarchy.
   - Color indicators
   - Drag handle for reordering
   - Archived ancestor styling (gray/strikethrough)
+
+  {# PROJECT TREE VISUAL SPECIFICATIONS (per UI-DESIGN-SYSTEM.md): #}
+  {# - Container: py-2 space-y-1 #}
+  {# - Node item: flex items-center px-2 py-1.5 rounded-md cursor-pointer #}
+  {#   hover:bg-gray-50 transition-colors duration-150 #}
+  {# - Indentation: pl-4 (16px) per nesting level #}
+  {# - Collapse/expand icon: w-4 h-4 text-gray-400, chevron-right/chevron-down #}
+  {#   Use x-show with x-transition:rotate for smooth rotation #}
+  {# - Project color indicator: w-3 h-3 rounded-full mr-2 inline-block #}
+  {# - Project name: text-sm text-gray-700, truncate for overflow #}
+  {# - Task count: text-xs text-gray-500 ml-auto (parenthetical after name) #}
+  {# - Hover state: bg-gray-50 rounded-md #}
+  {# - Active/selected state: bg-indigo-50 text-indigo-700 font-medium #}
+  {# - Archived projects: text-gray-400 italic, with archive icon (w-4 h-4) #}
+  {# - Drag handle: w-4 h-4 text-gray-300 hover:text-gray-500, grip-vertical icon #}
+  {#   opacity-0 group-hover:opacity-100 transition-opacity #}
   ```
 
 - [ ] **3.8.2** Implement collapsible tree with JavaScript

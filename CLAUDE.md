@@ -91,6 +91,35 @@ All API endpoints return:
 
 Don't add error handling, fallbacks, or validation for scenarios that can't happen. Trust internal code and framework guarantees. Only validate at system boundaries (user input, external APIs). Don't use backwards-compatibility shims when you can just change the code. The right amount of complexity is the minimum needed for the current task. Reuse existing abstractions where possible and follow the DRY principle.
 
+## UI Design System
+
+All frontend work must follow the UI Design System documented in `docs/UI-DESIGN-SYSTEM.md`. Key principles:
+
+**Styling:**
+- Use Tailwind CSS utility classes directly (avoid `@apply`)
+- Follow the established color tokens: indigo-600 primary, semantic status colors
+- Typography: system font stack, text-sm default, font-semibold for buttons
+- Spacing: 4px base unit (Tailwind scale), p-4 card padding, gap-4 standard spacing
+
+**Components:**
+- Task cards: white bg, shadow, rounded-lg, hover:shadow-md transition
+- Buttons: rounded-md, text-sm font-semibold, focus ring states
+- Forms: ring-1 borders, focus:ring-2 focus:ring-indigo-600
+- Modals: fixed overlay, bg-gray-500/75 backdrop, max-w-lg panel
+
+**Interaction:**
+- Alpine.js for state (x-data, @click, x-show, x-transition)
+- Transitions: duration-100 for dropdowns, duration-300 for modals
+- Toast auto-dismiss: 5 seconds
+
+**Accessibility:**
+- Minimum 4.5:1 color contrast for text
+- All interactive elements keyboard accessible
+- sr-only labels for icon-only buttons
+- aria-labelledby for modals
+
+See `docs/UI-PHASE-MODIFICATIONS.md` for phase-specific UI requirements.
+
 ## Configuration
 
 - **Security:** `config/packages/security.yaml` - API firewall is stateless, web firewall uses sessions

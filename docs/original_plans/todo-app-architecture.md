@@ -1049,6 +1049,18 @@ Searches across tasks (title, description) and projects (name). Returns grouped 
 
 ## 6. User Interface Design
 
+**UI Design System Reference**: All UI implementation MUST follow the specifications in `docs/UI-DESIGN-SYSTEM.md`. This document defines:
+- Color system (indigo-600 primary, semantic colors)
+- Typography scale (system font stack, text sizes)
+- Spacing scale (4px base unit)
+- Component specifications (buttons, inputs, cards, badges, dropdowns, modals, toasts)
+- Task-specific component styling (task cards, priority indicators, project chips)
+- Accessibility requirements (WCAG 2.1 AA compliance)
+- Animation/transition standards
+- Responsive design patterns
+
+All visual specifications in this section should be cross-referenced with UI-DESIGN-SYSTEM.md for exact Tailwind CSS classes and Alpine.js patterns.
+
 ### 6.1 Layout Structure
 
 ```
