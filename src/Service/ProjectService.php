@@ -297,8 +297,9 @@ final class ProjectService
     /**
      * Undo any project operation using the token.
      *
-     * This method peeks at the token to determine the action type,
-     * then delegates to the appropriate undo method.
+     * Uses consume-then-validate pattern to avoid race conditions. The token
+     * is atomically consumed first, then validated. This ensures only one
+     * concurrent request can successfully use a token.
      *
      * @param User $user The user performing the undo
      * @param string $token The undo token
@@ -308,30 +309,24 @@ final class ProjectService
      */
     public function undo(User $user, string $token): array
     {
-        // First, peek at the token to determine the action type
-        $undoToken = $this->undoService->getUndoToken($user->getId() ?? '', $token);
+        // Atomically consume the token first to prevent race conditions
+        $undoToken = $this->undoService->consumeUndoToken($user->getId() ?? '', $token);
 
         if ($undoToken === null) {
             throw new \InvalidArgumentException('Invalid or expired undo token');
         }
 
-        // Verify this is a project token
+        // Validate entity type after consumption
+        // Note: Token is already consumed and cannot be reused
         if ($undoToken->entityType !== self::ENTITY_TYPE) {
             throw new \InvalidArgumentException('This undo token is not for a project');
         }
 
-        // Now consume the token and perform the undo based on action type
-        $consumedToken = $this->undoService->consumeUndoToken($user->getId() ?? '', $token);
-
-        if ($consumedToken === null) {
-            throw new \InvalidArgumentException('Failed to consume undo token');
-        }
-
         $warning = null;
 
-        switch ($consumedToken->action) {
+        switch ($undoToken->action) {
             case UndoAction::UPDATE->value:
-                $project = $this->performUndoUpdate($user, $consumedToken);
+                $project = $this->performUndoUpdate($user, $undoToken);
                 $message = 'Update operation undone successfully';
                 break;
 
@@ -346,18 +341,18 @@ final class ProjectService
                 break;
 
             case UndoAction::DELETE->value:
-                $project = $this->performUndoDelete($user, $consumedToken);
+                $project = $this->performUndoDelete($user, $undoToken);
                 $message = 'Delete operation undone successfully. Note: Previously associated tasks were not restored.';
                 $warning = 'Tasks that were deleted with the project have been permanently lost';
                 break;
 
             default:
-                throw new \InvalidArgumentException('Unknown undo action type: ' . $consumedToken->action);
+                throw new \InvalidArgumentException('Unknown undo action type: ' . $undoToken->action);
         }
 
         return [
             'project' => $project,
-            'action' => $consumedToken->action,
+            'action' => $undoToken->action,
             'message' => $message,
             'warning' => $warning,
         ];
