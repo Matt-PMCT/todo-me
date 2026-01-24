@@ -59,6 +59,24 @@ class TaskListController extends AbstractController
         // Check if grouping by project is requested
         $groupByProject = $request->query->getBoolean('groupByProject', false);
 
+        // Group tasks by project efficiently in PHP if requested
+        $groupedTasks = [];
+        if ($groupByProject) {
+            foreach ($tasks as $task) {
+                $project = $task->getProject();
+                $projectKey = $project ? (string) $project->getId() : 'no_project';
+
+                if (!isset($groupedTasks[$projectKey])) {
+                    $groupedTasks[$projectKey] = [
+                        'name' => $project ? $project->getName() : 'No Project',
+                        'tasks' => [],
+                    ];
+                }
+
+                $groupedTasks[$projectKey]['tasks'][] = $task;
+            }
+        }
+
         // Get sidebar data
         $sidebarProjects = $this->projectService->getTree($user);
         $tags = $this->tagRepository->findByOwner($user);
@@ -68,6 +86,7 @@ class TaskListController extends AbstractController
             'projects' => $projects,
             'currentFilters' => $filters,
             'groupByProject' => $groupByProject,
+            'groupedTasks' => $groupedTasks,
             'apiToken' => $user->getApiToken(),
             'sidebar_projects' => $sidebarProjects,
             'sidebar_tags' => $tags,

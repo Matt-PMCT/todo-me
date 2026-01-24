@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace App\Tests\Unit\Security;
 
 use App\Entity\User;
+use App\Interface\ApiLoggerInterface;
+use App\Interface\UserServiceInterface;
 use App\Security\ApiTokenAuthenticator;
-use App\Service\ApiLogger;
-use App\Service\UserService;
 use App\Tests\Unit\UnitTestCase;
 use PHPUnit\Framework\MockObject\MockObject;
 use Symfony\Component\HttpFoundation\Request;
@@ -29,16 +29,16 @@ use Symfony\Component\Security\Http\Authenticator\Passport\SelfValidatingPasspor
  */
 class ApiTokenAuthenticatorTest extends UnitTestCase
 {
-    private UserService&MockObject $userService;
-    private ApiLogger&MockObject $apiLogger;
+    private UserServiceInterface&MockObject $userService;
+    private ApiLoggerInterface&MockObject $apiLogger;
     private ApiTokenAuthenticator $authenticator;
 
     protected function setUp(): void
     {
         parent::setUp();
 
-        $this->userService = $this->createMock(UserService::class);
-        $this->apiLogger = $this->createMock(ApiLogger::class);
+        $this->userService = $this->createMock(UserServiceInterface::class);
+        $this->apiLogger = $this->createMock(ApiLoggerInterface::class);
 
         $this->authenticator = new ApiTokenAuthenticator(
             $this->userService,
@@ -239,7 +239,7 @@ class ApiTokenAuthenticatorTest extends UnitTestCase
             ->with('Authentication attempt with invalid token', $this->anything());
 
         $this->expectException(CustomUserMessageAuthenticationException::class);
-        $this->expectExceptionMessage('Invalid API token');
+        $this->expectExceptionMessage('Authentication failed');
 
         $passport = $this->authenticator->authenticate($request);
         // Trigger the user loader
@@ -263,7 +263,7 @@ class ApiTokenAuthenticatorTest extends UnitTestCase
             ->with('Authentication attempt with expired token', $this->anything());
 
         $this->expectException(CustomUserMessageAuthenticationException::class);
-        $this->expectExceptionMessage('API token has expired');
+        $this->expectExceptionMessage('Authentication failed');
 
         $passport = $this->authenticator->authenticate($request);
         $passport->getBadge('Symfony\Component\Security\Http\Authenticator\Passport\Badge\UserBadge')->getUser();

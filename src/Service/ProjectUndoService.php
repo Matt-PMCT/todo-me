@@ -296,8 +296,9 @@ final class ProjectUndoService
     private function invalidateCacheForUser(User $user): void
     {
         $userId = $user->getId();
-        if ($userId instanceof Uuid) {
-            $this->projectCacheService->invalidate($userId->toRfc4122());
+        if ($userId !== null) {
+            $userIdString = $userId instanceof Uuid ? $userId->toRfc4122() : (string) $userId;
+            $this->projectCacheService->invalidate($userIdString);
         }
     }
 

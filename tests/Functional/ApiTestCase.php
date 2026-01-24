@@ -44,15 +44,21 @@ abstract class ApiTestCase extends WebTestCase
 
     protected function tearDown(): void
     {
-        // Rollback transaction to reset database state
-        if ($this->entityManager !== null && $this->entityManager->getConnection()->isTransactionActive()) {
-            $this->entityManager->getConnection()->rollBack();
+        // Clear entity manager to release references to entities
+        if ($this->entityManager !== null) {
+            if ($this->entityManager->getConnection()->isTransactionActive()) {
+                $this->entityManager->getConnection()->rollBack();
+            }
+            $this->entityManager->clear();
         }
 
         $this->entityManager = null;
         $this->client = null;
 
         parent::tearDown();
+
+        // Force garbage collection to prevent memory accumulation in web tests
+        gc_collect_cycles();
     }
 
     /**
@@ -362,5 +368,23 @@ abstract class ApiTestCase extends WebTestCase
     protected function clearEntityManager(): void
     {
         $this->entityManager->clear();
+    }
+
+    /**
+     * Generates a valid UUID v4 for testing.
+     */
+    protected function generateUuid(): string
+    {
+        return sprintf(
+            '%04x%04x-%04x-%04x-%04x-%04x%04x%04x',
+            random_int(0, 0xffff),
+            random_int(0, 0xffff),
+            random_int(0, 0xffff),
+            random_int(0, 0x0fff) | 0x4000,
+            random_int(0, 0x3fff) | 0x8000,
+            random_int(0, 0xffff),
+            random_int(0, 0xffff),
+            random_int(0, 0xffff)
+        );
     }
 }

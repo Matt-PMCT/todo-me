@@ -11,6 +11,7 @@ use App\DTO\UpdateProjectRequest;
 use App\Entity\Project;
 use App\Entity\User;
 use App\Enum\UndoAction;
+use App\Exception\BatchSizeLimitExceededException;
 use App\Exception\EntityNotFoundException;
 use App\Exception\InvalidUndoTokenException;
 use App\Exception\ProjectMoveToDescendantException;
@@ -1050,8 +1051,7 @@ class ProjectServiceTest extends UnitTestCase
         $user = $this->createUserWithId();
         $projectIds = array_fill(0, 1001, 'project-id');
 
-        $this->expectException(\InvalidArgumentException::class);
-        $this->expectExceptionMessage('Batch reorder limited to 1000 projects');
+        $this->expectException(BatchSizeLimitExceededException::class);
 
         $this->projectService->batchReorder($user, null, $projectIds);
     }

@@ -6,6 +6,7 @@ namespace App\Service;
 
 use App\Entity\Task;
 use App\Entity\User;
+use App\Interface\TaskStateServiceInterface;
 use App\Repository\ProjectRepository;
 use App\Repository\TagRepository;
 
@@ -17,7 +18,7 @@ use App\Repository\TagRepository;
  *
  * @internal Used by TaskService and TaskUndoService for undo operations
  */
-final class TaskStateService
+final class TaskStateService implements TaskStateServiceInterface
 {
     public function __construct(
         private readonly ProjectRepository $projectRepository,

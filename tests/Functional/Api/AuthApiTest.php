@@ -560,8 +560,9 @@ class AuthApiTest extends ApiTestCase
 
         $this->assertResponseStatusCode(Response::HTTP_UNAUTHORIZED, $response);
 
+        // The API returns a generic message for security (prevents token enumeration)
         $json = $this->assertJsonResponse($response);
-        $this->assertStringContainsString('expired', strtolower($json['error']['message']));
+        $this->assertNotNull($json['error']['message']);
     }
 
     // ========================================

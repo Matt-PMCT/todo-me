@@ -38,8 +38,6 @@ class ValidationHelperTest extends UnitTestCase
 
     public function testValidatePassesWhenNoViolations(): void
     {
-        $this->expectNotToPerformAssertions();
-
         $dto = new \stdClass();
         $violations = new ConstraintViolationList();
 
@@ -48,7 +46,7 @@ class ValidationHelperTest extends UnitTestCase
             ->with($dto)
             ->willReturn($violations);
 
-        // Should not throw
+        // Should not throw - mock expectation verifies the call was made
         $this->validationHelper->validate($dto);
     }
 

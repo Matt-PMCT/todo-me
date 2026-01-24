@@ -139,17 +139,7 @@
                 </div>
 
                 {% if groupByProject %}
-                    {# Grouped view #}
-                    {% set groupedTasks = {} %}
-                    {% for task in tasks %}
-                        {% set projectKey = task.project ? task.project.id : 'no_project' %}
-                        {% set projectName = task.project ? task.project.name : 'No Project' %}
-                        {% if groupedTasks[projectKey] is not defined %}
-                            {% set groupedTasks = groupedTasks|merge({(projectKey): {name: projectName, tasks: []}}) %}
-                        {% endif %}
-                        {% set groupedTasks = groupedTasks|merge({(projectKey): groupedTasks[projectKey]|merge({tasks: groupedTasks[projectKey].tasks|merge([task])})}) %}
-                    {% endfor %}
-
+                    {# Grouped view - tasks are pre-grouped in the controller #}
                     <div class="space-y-8">
                         {% for projectId, group in groupedTasks %}
                             <div>
