@@ -1,0 +1,76 @@
+# Production Docker Compose Override
+#
+# This file contains production-specific overrides for the docker-compose.yml.
+# Usage: docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+#
+# Key differences from development:
+# - Database and Redis ports NOT exposed to host (internal network only)
+# - Redis password authentication enabled
+# - PHP OPcache timestamp validation disabled for performance
+# - Resource limits on all containers
+# - Health checks on all services
+
+services:
+  php:
+    environment:
+      # Disable OPcache timestamp validation for production performance
+      - PHP_OPCACHE_VALIDATE_TIMESTAMPS=0
+      # Redis password for authenticated connections
+      - REDIS_PASSWORD=${REDIS_PASSWORD:-}
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 512M
+        reservations:
+          memory: 256M
+    healthcheck:
+      test: ["CMD-SHELL", "php-fpm-healthcheck || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+  web:
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 256M
+        reservations:
+          memory: 128M
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+  db:
+    # Remove port exposure - only accessible within Docker network
+    ports: []
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 1G
+        reservations:
+          memory: 512M
+
+  redis:
+    # Remove port exposure - only accessible within Docker network
+    ports: []
+    # Enable Redis password authentication
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:-changeme}
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 512M
+        reservations:
+          memory: 256M
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD:-changeme}", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
