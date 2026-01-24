@@ -181,6 +181,8 @@ class OwnershipCheckerTest extends UnitTestCase
 
     public function testCheckOwnershipSucceedsForValidOwner(): void
     {
+        $this->expectNotToPerformAssertions();
+
         $user = $this->createUserWithId('user-123');
         $task = $this->createTaskWithId('task-456', $user);
 
@@ -188,9 +190,6 @@ class OwnershipCheckerTest extends UnitTestCase
 
         // Should not throw any exception
         $this->ownershipChecker->checkOwnership($task);
-
-        // If we reach here, no exception was thrown
-        $this->assertTrue(true);
     }
 
     public function testCheckOwnershipThrowsForbiddenExceptionForNonOwner(): void
