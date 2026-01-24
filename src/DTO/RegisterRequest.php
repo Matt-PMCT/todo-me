@@ -14,6 +14,7 @@ final class RegisterRequest
     public function __construct(
         #[Assert\NotBlank(message: 'Email is required')]
         #[Assert\Email(message: 'Email must be a valid email address')]
+        #[Assert\Length(max: 180, maxMessage: 'Email must be at most {{ limit }} characters')]
         public readonly string $email = '',
 
         #[Assert\NotBlank(message: 'Password is required')]

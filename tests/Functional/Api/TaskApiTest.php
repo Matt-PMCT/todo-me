@@ -568,12 +568,12 @@ class TaskApiTest extends ApiTestCase
         $user = $this->createUser('update-validation@example.com', 'Password123');
         $task = $this->createTask($user, 'Original Title');
 
-        // Title too long (> 255 characters)
+        // Title too long (> 500 characters)
         $response = $this->authenticatedApiRequest(
             $user,
             'PUT',
             '/api/v1/tasks/' . $task->getId(),
-            ['title' => str_repeat('a', 300)]
+            ['title' => str_repeat('a', 501)]
         );
 
         $this->assertResponseStatusCode(Response::HTTP_UNPROCESSABLE_ENTITY, $response);

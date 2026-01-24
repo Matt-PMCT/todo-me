@@ -112,7 +112,7 @@ final class ProjectController extends AbstractController
     /**
      * Get a single project by ID with task counts.
      */
-    #[Route('/{id}', name: 'show', methods: ['GET'])]
+    #[Route('/{id}', name: 'show', methods: ['GET'], requirements: ['id' => '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}'])]
     public function show(string $id): JsonResponse
     {
         /** @var User $user */
@@ -139,7 +139,7 @@ final class ProjectController extends AbstractController
      *
      * Returns the updated project with an undoToken for reverting changes.
      */
-    #[Route('/{id}', name: 'update', methods: ['PUT', 'PATCH'])]
+    #[Route('/{id}', name: 'update', methods: ['PUT', 'PATCH'], requirements: ['id' => '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}'])]
     public function update(Request $request, string $id): JsonResponse
     {
         /** @var User $user */
@@ -176,7 +176,7 @@ final class ProjectController extends AbstractController
      *
      * Returns the archived project with an undoToken.
      */
-    #[Route('/{id}', name: 'delete', methods: ['DELETE'])]
+    #[Route('/{id}', name: 'delete', methods: ['DELETE'], requirements: ['id' => '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}'])]
     public function delete(string $id): JsonResponse
     {
         /** @var User $user */
@@ -209,7 +209,7 @@ final class ProjectController extends AbstractController
      *
      * Returns the archived project with an undoToken.
      */
-    #[Route('/{id}/archive', name: 'archive', methods: ['PATCH'])]
+    #[Route('/{id}/archive', name: 'archive', methods: ['PATCH'], requirements: ['id' => '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}'])]
     public function archive(string $id): JsonResponse
     {
         /** @var User $user */
@@ -239,7 +239,7 @@ final class ProjectController extends AbstractController
      *
      * Returns the unarchived project with an undoToken.
      */
-    #[Route('/{id}/unarchive', name: 'unarchive', methods: ['PATCH'])]
+    #[Route('/{id}/unarchive', name: 'unarchive', methods: ['PATCH'], requirements: ['id' => '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}'])]
     public function unarchive(string $id): JsonResponse
     {
         /** @var User $user */
