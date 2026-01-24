@@ -115,6 +115,7 @@ class ProjectTreeTransformerTest extends UnitTestCase
 
         $this->assertEquals(5, $result[0]['taskCount']);
         $this->assertEquals(3, $result[0]['completedTaskCount']);
+        $this->assertEquals(2, $result[0]['pendingTaskCount']); // 5 - 3 = 2
     }
 
     public function testTransformToTreeHandlesDeepNesting(): void
@@ -171,6 +172,7 @@ class ProjectTreeTransformerTest extends UnitTestCase
         $this->assertEquals(0, $result['depth']);
         $this->assertEquals(0, $result['taskCount']);
         $this->assertEquals(0, $result['completedTaskCount']);
+        $this->assertEquals(0, $result['pendingTaskCount']);
         $this->assertEmpty($result['children']);
     }
 
@@ -202,5 +204,6 @@ class ProjectTreeTransformerTest extends UnitTestCase
 
         $this->assertEquals(10, $result['taskCount']);
         $this->assertEquals(7, $result['completedTaskCount']);
+        $this->assertEquals(3, $result['pendingTaskCount']); // 10 - 7 = 3
     }
 }
