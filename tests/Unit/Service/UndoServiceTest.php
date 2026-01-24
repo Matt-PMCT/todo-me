@@ -236,7 +236,7 @@ class UndoServiceTest extends UnitTestCase
     // Consume Undo Token Tests
     // ========================================
 
-    public function testConsumeUndoTokenGetsAndDeletes(): void
+    public function testConsumeUndoTokenUsesAtomicGetAndDelete(): void
     {
         $userId = 'user-123';
         $token = bin2hex(random_bytes(16));
@@ -250,15 +250,11 @@ class UndoServiceTest extends UnitTestCase
             'expiresAt' => (new \DateTimeImmutable('+60 seconds'))->format(\DateTimeImmutable::ATOM),
         ];
 
+        // Uses atomic getJsonAndDelete instead of separate get + delete
         $this->redisService->expects($this->once())
-            ->method('getJson')
+            ->method('getJsonAndDelete')
             ->with("undo:{$userId}:{$token}")
             ->willReturn($tokenData);
-
-        $this->redisService->expects($this->once())
-            ->method('delete')
-            ->with("undo:{$userId}:{$token}")
-            ->willReturn(true);
 
         $this->logger->expects($this->once())
             ->method('info')
@@ -284,22 +280,17 @@ class UndoServiceTest extends UnitTestCase
             'expiresAt' => (new \DateTimeImmutable('+60 seconds'))->format(\DateTimeImmutable::ATOM),
         ];
 
-        // First call returns data, second call returns null (deleted)
+        // First call returns data and atomically deletes, second call returns null
         $this->redisService->expects($this->exactly(2))
-            ->method('getJson')
+            ->method('getJsonAndDelete')
             ->with("undo:{$userId}:{$token}")
             ->willReturnOnConsecutiveCalls($tokenData, null);
-
-        $this->redisService->expects($this->once())
-            ->method('delete')
-            ->with("undo:{$userId}:{$token}")
-            ->willReturn(true);
 
         // First consume succeeds
         $result1 = $this->undoService->consumeUndoToken($userId, $token);
         $this->assertNotNull($result1);
 
-        // Second consume returns null (token already consumed)
+        // Second consume returns null (token already consumed atomically)
         $result2 = $this->undoService->consumeUndoToken($userId, $token);
         $this->assertNull($result2);
     }
@@ -310,7 +301,7 @@ class UndoServiceTest extends UnitTestCase
         $token = 'non-existent';
 
         $this->redisService->expects($this->once())
-            ->method('getJson')
+            ->method('getJsonAndDelete')
             ->willReturn(null);
 
         $result = $this->undoService->consumeUndoToken($userId, $token);
@@ -318,7 +309,7 @@ class UndoServiceTest extends UnitTestCase
         $this->assertNull($result);
     }
 
-    public function testConsumeUndoTokenReturnsTokenEvenIfDeleteFails(): void
+    public function testConsumeUndoTokenReturnsNullWhenExpired(): void
     {
         $userId = 'user-123';
         $token = bin2hex(random_bytes(16));
@@ -328,26 +319,42 @@ class UndoServiceTest extends UnitTestCase
             'entityType' => 'task',
             'entityId' => 'task-123',
             'previousState' => [],
-            'createdAt' => (new \DateTimeImmutable())->format(\DateTimeImmutable::ATOM),
-            'expiresAt' => (new \DateTimeImmutable('+60 seconds'))->format(\DateTimeImmutable::ATOM),
+            'createdAt' => (new \DateTimeImmutable('-120 seconds'))->format(\DateTimeImmutable::ATOM),
+            'expiresAt' => (new \DateTimeImmutable('-60 seconds'))->format(\DateTimeImmutable::ATOM),
         ];
 
+        // Token is retrieved and deleted atomically, but it's expired
         $this->redisService->expects($this->once())
-            ->method('getJson')
+            ->method('getJsonAndDelete')
             ->willReturn($tokenData);
 
-        $this->redisService->expects($this->once())
-            ->method('delete')
-            ->willReturn(false);
-
         $this->logger->expects($this->once())
-            ->method('warning')
-            ->with('Failed to delete consumed undo token', $this->anything());
+            ->method('debug')
+            ->with('Consumed undo token was expired', $this->anything());
 
         $result = $this->undoService->consumeUndoToken($userId, $token);
 
-        // Should still return the token even if deletion failed
-        $this->assertInstanceOf(UndoToken::class, $result);
+        // Should return null for expired token (already deleted by atomic operation)
+        $this->assertNull($result);
+    }
+
+    public function testConsumeUndoTokenReturnsNullOnDeserializationError(): void
+    {
+        $userId = 'user-123';
+        $token = 'some-token';
+
+        $this->redisService->expects($this->once())
+            ->method('getJsonAndDelete')
+            ->with("undo:{$userId}:{$token}")
+            ->willReturn(['invalid' => 'data']);
+
+        $this->logger->expects($this->once())
+            ->method('error')
+            ->with('Failed to deserialize consumed undo token', $this->anything());
+
+        $result = $this->undoService->consumeUndoToken($userId, $token);
+
+        $this->assertNull($result);
     }
 
     // ========================================

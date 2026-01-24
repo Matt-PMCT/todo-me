@@ -263,4 +263,77 @@ class RedisService
             return null;
         }
     }
+
+    /**
+     * Atomically get a value and delete it (one-shot consume pattern).
+     *
+     * Uses a Lua script to ensure the operation is atomic, preventing race
+     * conditions where concurrent requests could both read the same value
+     * before either deletes it.
+     *
+     * @param string $key The key to get and delete
+     * @return string|null The value if key existed, null otherwise
+     */
+    public function getAndDelete(string $key): ?string
+    {
+        try {
+            $client = $this->getClient();
+            if ($client === null) {
+                return null;
+            }
+
+            // Lua script: GET and DEL atomically
+            // This ensures only one consumer can get the value
+            $script = <<<'LUA'
+                local value = redis.call('GET', KEYS[1])
+                if value then
+                    redis.call('DEL', KEYS[1])
+                end
+                return value
+            LUA;
+
+            $result = $client->eval($script, 1, $key);
+
+            $this->logger->debug('Redis GETDEL (Lua)', [
+                'key' => $key,
+                'found' => $result !== null,
+            ]);
+
+            return $result;
+        } catch (Throwable $e) {
+            $this->logger->error('Redis GETDEL failed', [
+                'key' => $key,
+                'error' => $e->getMessage(),
+            ]);
+            return null;
+        }
+    }
+
+    /**
+     * Atomically get a JSON value and delete the key.
+     *
+     * Combines getAndDelete() with JSON decoding for consuming one-time-use
+     * JSON data like undo tokens.
+     *
+     * @param string $key The key to get and delete
+     * @return array|null The decoded JSON data if key existed and was valid JSON, null otherwise
+     */
+    public function getJsonAndDelete(string $key): ?array
+    {
+        try {
+            $value = $this->getAndDelete($key);
+            if ($value === null) {
+                return null;
+            }
+
+            $data = json_decode($value, true, 512, JSON_THROW_ON_ERROR);
+            return is_array($data) ? $data : null;
+        } catch (Throwable $e) {
+            $this->logger->error('Redis getJsonAndDelete failed', [
+                'key' => $key,
+                'error' => $e->getMessage(),
+            ]);
+            return null;
+        }
+    }
 }
