@@ -456,4 +456,66 @@ class Task implements UserOwnedInterface
 
         return $this;
     }
+
+    /**
+     * Restores task state from a serialized undo state array.
+     *
+     * This method directly sets properties without triggering side effects
+     * (like auto-setting completedAt) because we're restoring exact state.
+     * Validation is still performed to ensure data integrity.
+     *
+     * @param array<string, mixed> $state The state to restore
+     * @internal Only for use by TaskService undo operations
+     */
+    public function restoreFromState(array $state): void
+    {
+        if (isset($state['title'])) {
+            $this->title = $state['title'];
+        }
+
+        if (array_key_exists('description', $state)) {
+            $this->description = $state['description'];
+        }
+
+        if (isset($state['status'])) {
+            // Validate status value but don't trigger completedAt logic
+            if (!in_array($state['status'], self::STATUSES, true)) {
+                throw new \InvalidArgumentException(sprintf(
+                    'Invalid status "%s". Allowed values: %s',
+                    $state['status'],
+                    implode(', ', self::STATUSES)
+                ));
+            }
+            $this->status = $state['status'];
+        }
+
+        if (isset($state['priority'])) {
+            // Validate priority
+            if ($state['priority'] < self::PRIORITY_MIN || $state['priority'] > self::PRIORITY_MAX) {
+                throw new \InvalidArgumentException(sprintf(
+                    'Invalid priority %d. Allowed range: %d-%d',
+                    $state['priority'],
+                    self::PRIORITY_MIN,
+                    self::PRIORITY_MAX
+                ));
+            }
+            $this->priority = $state['priority'];
+        }
+
+        if (array_key_exists('dueDate', $state)) {
+            $this->dueDate = $state['dueDate'] !== null
+                ? new \DateTimeImmutable($state['dueDate'])
+                : null;
+        }
+
+        if (isset($state['position'])) {
+            $this->position = $state['position'];
+        }
+
+        if (array_key_exists('completedAt', $state)) {
+            $this->completedAt = $state['completedAt'] !== null
+                ? new \DateTimeImmutable($state['completedAt'])
+                : null;
+        }
+    }
 }
