@@ -660,22 +660,63 @@ Add functional tests for web routes and form submissions.
 
 ## 5. ARCHITECTURE RECOMMENDATIONS
 
-### 5.1 Refactor ApiExceptionListener (SRP Violation)
+### 5.1 Refactor ApiExceptionListener (SRP Violation) ✅ FIXED
 
-**Current:** 145+ lines with 12+ `instanceof` checks
+**Status:** RESOLVED (2026-01-24)
 
-**Proposed:** Strategy pattern with exception mappers:
-```php
-interface ExceptionMapperInterface {
-    public function canHandle(Throwable $e): bool;
-    public function map(Throwable $e): array; // [code, message, status, details]
-}
+**Previous:** 326 lines with 18 `instanceof` checks in a monolithic `mapException()` method
 
-class ExceptionMapperRegistry {
-    public function __construct(iterable $mappers) { }
-    public function map(Throwable $e): array { }
-}
+**Solution:** Implemented Strategy pattern with exception mappers:
+
+#### Architecture
 ```
+src/EventListener/
+├── ApiExceptionListener.php              # Simplified orchestrator (69 lines)
+└── ExceptionMapper/
+    ├── ExceptionMapperInterface.php      # Contract for all mappers
+    ├── ExceptionMapping.php              # Immutable value object for mapping results
+    ├── ExceptionMapperRegistry.php       # Aggregates and dispatches to mappers
+    ├── Domain/                           # Custom domain exceptions (priority: 100)
+    │   ├── ValidationExceptionMapper.php
+    │   ├── InvalidStatusExceptionMapper.php
+    │   ├── InvalidPriorityExceptionMapper.php
+    │   ├── InvalidRecurrenceExceptionMapper.php
+    │   ├── EntityNotFoundExceptionMapper.php
+    │   ├── UnauthorizedExceptionMapper.php
+    │   └── ForbiddenExceptionMapper.php
+    ├── Symfony/                          # Symfony framework exceptions (priority: 75/10)
+    │   ├── ValidationFailedExceptionMapper.php
+    │   ├── AuthenticationExceptionMapper.php
+    │   ├── AccessDeniedExceptionMapper.php
+    │   └── HttpExceptionMapper.php
+    └── Fallback/
+        └── ServerErrorMapper.php         # Generic fallback (priority: 0)
+```
+
+#### Key Implementation Details
+- **ExceptionMapperInterface** defines `canHandle()`, `map()`, and `getPriority()` methods
+- **ExceptionMapping** is an immutable value object containing `errorCode`, `message`, `statusCode`, and `details`
+- **ExceptionMapperRegistry** uses Symfony's tagged iterator to aggregate mappers sorted by priority
+- Mappers are auto-discovered via `#[AutoconfigureTag('app.exception_mapper')]` attribute
+- Priority system ensures specific domain exceptions are matched before generic HTTP exceptions
+
+#### Benefits
+1. **SRP Compliance**: Each mapper handles exactly one exception type
+2. **Open/Closed**: New exceptions require only a new mapper class
+3. **Testability**: Each mapper is trivial to unit test in isolation
+4. **Discoverability**: Symfony's autoconfigure automatically registers mappers
+5. **Line Count Reduction**: Main listener reduced from 326 to 69 lines (79% reduction)
+
+#### Tests Added
+- `tests/Unit/EventListener/ExceptionMapper/ExceptionMappingTest.php`
+- `tests/Unit/EventListener/ExceptionMapper/ExceptionMapperRegistryTest.php`
+- `tests/Unit/EventListener/ExceptionMapper/Domain/ValidationExceptionMapperTest.php`
+- `tests/Unit/EventListener/ExceptionMapper/Domain/InvalidStatusExceptionMapperTest.php`
+- `tests/Unit/EventListener/ExceptionMapper/Domain/EntityNotFoundExceptionMapperTest.php`
+- `tests/Unit/EventListener/ExceptionMapper/Symfony/HttpExceptionMapperTest.php`
+- `tests/Unit/EventListener/ExceptionMapper/Fallback/ServerErrorMapperTest.php`
+
+**Total: 36 new unit tests, all passing**
 
 ---
 
