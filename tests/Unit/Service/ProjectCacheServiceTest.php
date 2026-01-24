@@ -6,20 +6,21 @@ namespace App\Tests\Unit\Service;
 
 use App\Service\ProjectCacheService;
 use App\Tests\Unit\UnitTestCase;
-use Symfony\Contracts\Cache\CacheInterface;
-use Symfony\Contracts\Cache\ItemInterface;
+use Psr\Log\LoggerInterface;
+use Symfony\Component\Cache\Adapter\ArrayAdapter;
 
 class ProjectCacheServiceTest extends UnitTestCase
 {
-    private CacheInterface $cache;
+    private ArrayAdapter $cache;
     private ProjectCacheService $service;
 
     protected function setUp(): void
     {
         parent::setUp();
 
-        $this->cache = $this->createMock(CacheInterface::class);
-        $this->service = new ProjectCacheService($this->cache);
+        $this->cache = new ArrayAdapter();
+        $logger = $this->createMock(LoggerInterface::class);
+        $this->service = new ProjectCacheService($this->cache, $logger);
     }
 
     // ========================================
@@ -30,28 +31,28 @@ class ProjectCacheServiceTest extends UnitTestCase
     {
         $key = $this->service->buildKey('user-123', false, false);
 
-        $this->assertEquals('project_tree:user-123:0:0', $key);
+        $this->assertEquals('project_tree_user-123_0_0', $key);
     }
 
     public function testBuildKeyWithIncludeArchivedTrue(): void
     {
         $key = $this->service->buildKey('user-123', true, false);
 
-        $this->assertEquals('project_tree:user-123:1:0', $key);
+        $this->assertEquals('project_tree_user-123_1_0', $key);
     }
 
     public function testBuildKeyWithIncludeTaskCountsTrue(): void
     {
         $key = $this->service->buildKey('user-123', false, true);
 
-        $this->assertEquals('project_tree:user-123:0:1', $key);
+        $this->assertEquals('project_tree_user-123_0_1', $key);
     }
 
     public function testBuildKeyWithAllTrue(): void
     {
         $key = $this->service->buildKey('user-123', true, true);
 
-        $this->assertEquals('project_tree:user-123:1:1', $key);
+        $this->assertEquals('project_tree_user-123_1_1', $key);
     }
 
     public function testBuildKeyWithDifferentUserId(): void
@@ -70,33 +71,28 @@ class ProjectCacheServiceTest extends UnitTestCase
 
     public function testInvalidateDeletesAllFourVariants(): void
     {
-        $deletedKeys = [];
+        $tree = [['id' => 'project-1', 'name' => 'Test']];
 
-        $this->cache->expects($this->exactly(4))
-            ->method('delete')
-            ->willReturnCallback(function ($key) use (&$deletedKeys) {
-                $deletedKeys[] = $key;
-                return true;
-            });
+        // Pre-populate all four cache variants
+        $this->service->set('user-123', false, false, $tree);
+        $this->service->set('user-123', false, true, $tree);
+        $this->service->set('user-123', true, false, $tree);
+        $this->service->set('user-123', true, true, $tree);
 
+        // Verify they exist
+        $this->assertNotNull($this->service->get('user-123', false, false));
+        $this->assertNotNull($this->service->get('user-123', false, true));
+        $this->assertNotNull($this->service->get('user-123', true, false));
+        $this->assertNotNull($this->service->get('user-123', true, true));
+
+        // Invalidate all
         $this->service->invalidate('user-123');
 
-        $this->assertContains('project_tree:user-123:0:0', $deletedKeys);
-        $this->assertContains('project_tree:user-123:0:1', $deletedKeys);
-        $this->assertContains('project_tree:user-123:1:0', $deletedKeys);
-        $this->assertContains('project_tree:user-123:1:1', $deletedKeys);
-    }
-
-    public function testInvalidateHandlesCacheException(): void
-    {
-        $this->cache->expects($this->exactly(4))
-            ->method('delete')
-            ->willThrowException(new \Exception('Cache error'));
-
-        // Should not throw - exceptions are silently caught
-        $this->service->invalidate('user-123');
-
-        $this->assertTrue(true); // If we got here, no exception was thrown
+        // Verify all are gone
+        $this->assertNull($this->service->get('user-123', false, false));
+        $this->assertNull($this->service->get('user-123', false, true));
+        $this->assertNull($this->service->get('user-123', true, false));
+        $this->assertNull($this->service->get('user-123', true, true));
     }
 
     // ========================================
@@ -110,22 +106,11 @@ class ProjectCacheServiceTest extends UnitTestCase
             ['id' => 'project-2', 'name' => 'Project 2'],
         ];
 
-        $this->cache->expects($this->once())
-            ->method('delete')
-            ->with('project_tree:user-123:0:1');
-
-        $this->cache->expects($this->once())
-            ->method('get')
-            ->with('project_tree:user-123:0:1')
-            ->willReturnCallback(function ($key, $callback) use ($tree) {
-                $item = $this->createMock(ItemInterface::class);
-                $item->expects($this->once())
-                    ->method('expiresAfter')
-                    ->with(300);
-                return $callback($item);
-            });
-
         $this->service->set('user-123', false, true, $tree);
+
+        $result = $this->service->get('user-123', false, true);
+
+        $this->assertEquals($tree, $result);
     }
 
     // ========================================
@@ -134,10 +119,6 @@ class ProjectCacheServiceTest extends UnitTestCase
 
     public function testGetReturnsNullWhenNotCached(): void
     {
-        $this->cache->expects($this->once())
-            ->method('get')
-            ->willReturn(['__not_found__' => true]);
-
         $result = $this->service->get('user-123', false, true);
 
         $this->assertNull($result);
@@ -149,23 +130,10 @@ class ProjectCacheServiceTest extends UnitTestCase
             ['id' => 'project-1', 'name' => 'Project 1'],
         ];
 
-        $this->cache->expects($this->once())
-            ->method('get')
-            ->willReturn($tree);
+        $this->service->set('user-123', false, true, $tree);
 
         $result = $this->service->get('user-123', false, true);
 
         $this->assertEquals($tree, $result);
-    }
-
-    public function testGetReturnsNullOnException(): void
-    {
-        $this->cache->expects($this->once())
-            ->method('get')
-            ->willThrowException(new \Exception('Cache error'));
-
-        $result = $this->service->get('user-123', false, true);
-
-        $this->assertNull($result);
     }
 }

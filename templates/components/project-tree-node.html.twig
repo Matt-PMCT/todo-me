@@ -26,7 +26,9 @@
         <button x-show="project.children && project.children.length > 0"
                 @click.stop="toggleCollapse(project.id)"
                 class="w-5 h-5 flex items-center justify-center text-gray-400 hover:text-gray-600 transition-transform"
-                :class="{ 'rotate-90': !isCollapsed(project.id) }">
+                :class="{ 'rotate-90': !isCollapsed(project.id) }"
+                :aria-expanded="!isCollapsed(project.id)"
+                :aria-label="isCollapsed(project.id) ? 'Expand ' + project.name : 'Collapse ' + project.name">
             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
             </svg>
@@ -60,7 +62,10 @@
         {# Actions Menu #}
         <div x-data="{ menuOpen: false }" class="relative opacity-0 group-hover:opacity-100 transition-opacity">
             <button @click.stop="menuOpen = !menuOpen"
-                    class="p-1 text-gray-400 hover:text-gray-600 rounded">
+                    class="p-1 text-gray-400 hover:text-gray-600 rounded"
+                    :aria-expanded="menuOpen"
+                    :aria-label="'Actions for ' + project.name">
+                <span class="sr-only">Project actions</span>
                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
                 </svg>
@@ -102,7 +107,12 @@
 
     {# Children - Recursive #}
     <div x-show="project.children && project.children.length > 0 && !isCollapsed(project.id)"
-         x-collapse>
+         x-transition:enter="transition ease-out duration-100"
+         x-transition:enter-start="opacity-0 transform -translate-y-1"
+         x-transition:enter-end="opacity-100 transform translate-y-0"
+         x-transition:leave="transition ease-in duration-75"
+         x-transition:leave-start="opacity-100 transform translate-y-0"
+         x-transition:leave-end="opacity-0 transform -translate-y-1">
         <template x-for="child in project.children" :key="child.id">
             <div x-data="{ project: child }">
                 {% include 'components/project-tree-node.html.twig' with { depth: depth + 1 } %}

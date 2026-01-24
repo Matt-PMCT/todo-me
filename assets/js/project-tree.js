@@ -243,13 +243,14 @@ document.addEventListener('alpine:init', () => {
 
                 if (response.ok) {
                     await this.refreshTree();
+                    window.showToast('Project archived successfully', 'success');
                 } else {
                     const data = await response.json();
-                    alert(data.error?.message || 'Failed to archive project');
+                    window.showToast(data.error?.message || 'Failed to archive project', 'error');
                 }
             } catch (error) {
                 console.error('Failed to archive project:', error);
-                alert('Failed to archive project');
+                window.showToast('Failed to archive project', 'error');
             }
         },
 
@@ -265,13 +266,14 @@ document.addEventListener('alpine:init', () => {
 
                 if (response.ok) {
                     await this.refreshTree();
+                    window.showToast('Project unarchived successfully', 'success');
                 } else {
                     const data = await response.json();
-                    alert(data.error?.message || 'Failed to unarchive project');
+                    window.showToast(data.error?.message || 'Failed to unarchive project', 'error');
                 }
             } catch (error) {
                 console.error('Failed to unarchive project:', error);
-                alert('Failed to unarchive project');
+                window.showToast('Failed to unarchive project', 'error');
             }
         },
 

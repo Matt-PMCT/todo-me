@@ -6,6 +6,9 @@
  */
 import './styles/app.css';
 
+// Import toast notification system
+import './js/toast.js';
+
 // Import project tree components
 import './js/project-tree.js';
 import './js/drag-drop.js';

@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Service;
 
+use Psr\Log\LoggerInterface;
+use Symfony\Component\Cache\Adapter\AdapterInterface;
 use Symfony\Contracts\Cache\CacheInterface;
 use Symfony\Contracts\Cache\ItemInterface;
 
@@ -17,6 +19,7 @@ final class ProjectCacheService
 
     public function __construct(
         private readonly CacheInterface $cache,
+        private readonly LoggerInterface $logger,
     ) {
     }
 
@@ -31,7 +34,7 @@ final class ProjectCacheService
     public function buildKey(string $userId, bool $includeArchived, bool $includeTaskCounts): string
     {
         return sprintf(
-            '%s:%s:%d:%d',
+            '%s_%s_%d_%d',
             self::KEY_PREFIX,
             $userId,
             (int) $includeArchived,
@@ -52,17 +55,23 @@ final class ProjectCacheService
         $key = $this->buildKey($userId, $includeArchived, $includeTaskCounts);
 
         try {
-            $item = $this->cache->get($key, function (ItemInterface $item) {
-                // Return null marker if not found - the callback should not be called if cached
-                return ['__not_found__' => true];
-            });
-
-            if (isset($item['__not_found__'])) {
+            if (!$this->cache instanceof AdapterInterface) {
                 return null;
             }
 
-            return $item;
-        } catch (\Exception) {
+            $item = $this->cache->getItem($key);
+            if (!$item->isHit()) {
+                return null;
+            }
+
+            return $item->get();
+        } catch (\Exception $e) {
+            $this->logger->warning('Failed to get project tree cache', [
+                'key' => $key,
+                'userId' => $userId,
+                'exception' => $e->getMessage(),
+            ]);
+
             return null;
         }
     }
@@ -80,13 +89,20 @@ final class ProjectCacheService
         $key = $this->buildKey($userId, $includeArchived, $includeTaskCounts);
 
         try {
-            $this->cache->delete($key);
-            $this->cache->get($key, function (ItemInterface $item) use ($tree) {
-                $item->expiresAfter(self::TTL);
-                return $tree;
-            });
-        } catch (\Exception) {
-            // Silently fail - cache is optional
+            if (!$this->cache instanceof AdapterInterface) {
+                return;
+            }
+
+            $item = $this->cache->getItem($key);
+            $item->set($tree);
+            $item->expiresAfter(self::TTL);
+            $this->cache->save($item);
+        } catch (\Exception $e) {
+            $this->logger->warning('Failed to set project tree cache', [
+                'key' => $key,
+                'userId' => $userId,
+                'exception' => $e->getMessage(),
+            ]);
         }
     }
 
@@ -97,6 +113,10 @@ final class ProjectCacheService
      */
     public function invalidate(string $userId): void
     {
+        if (!$this->cache instanceof AdapterInterface) {
+            return;
+        }
+
         // Clear all 4 variants (archived: true/false, taskCounts: true/false)
         $variants = [
             $this->buildKey($userId, false, false),
@@ -107,9 +127,13 @@ final class ProjectCacheService
 
         foreach ($variants as $key) {
             try {
-                $this->cache->delete($key);
-            } catch (\Exception) {
-                // Silently fail
+                $this->cache->deleteItem($key);
+            } catch (\Exception $e) {
+                $this->logger->warning('Failed to invalidate project tree cache', [
+                    'key' => $key,
+                    'userId' => $userId,
+                    'exception' => $e->getMessage(),
+                ]);
             }
         }
     }

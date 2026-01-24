@@ -7,7 +7,9 @@ namespace App\Controller\Web;
 use App\DTO\CreateTaskRequest;
 use App\Entity\User;
 use App\Repository\ProjectRepository;
+use App\Repository\TagRepository;
 use App\Repository\TaskRepository;
+use App\Service\ProjectService;
 use App\Service\TaskService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -24,7 +26,9 @@ class TaskListController extends AbstractController
     public function __construct(
         private readonly TaskRepository $taskRepository,
         private readonly ProjectRepository $projectRepository,
+        private readonly TagRepository $tagRepository,
         private readonly TaskService $taskService,
+        private readonly ProjectService $projectService,
     ) {
     }
 
@@ -55,12 +59,19 @@ class TaskListController extends AbstractController
         // Check if grouping by project is requested
         $groupByProject = $request->query->getBoolean('groupByProject', false);
 
+        // Get sidebar data
+        $sidebarProjects = $this->projectService->getTree($user);
+        $tags = $this->tagRepository->findByOwner($user);
+
         return $this->render('task/list.html.twig', [
             'tasks' => $tasks,
             'projects' => $projects,
             'currentFilters' => $filters,
             'groupByProject' => $groupByProject,
             'apiToken' => $user->getApiToken(),
+            'sidebar_projects' => $sidebarProjects,
+            'sidebar_tags' => $tags,
+            'selected_project_id' => $projectId,
         ]);
     }
 

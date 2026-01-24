@@ -13,7 +13,9 @@ use App\DTO\ReorderProjectsRequest;
 use App\DTO\UpdateProjectRequest;
 use App\Entity\User;
 use App\Repository\ProjectRepository;
+use App\ValueObject\UndoToken;
 use App\Repository\TaskRepository;
+use App\Service\PaginationHelper;
 use App\Service\ProjectService;
 use App\Service\ResponseFormatter;
 use App\Service\ValidationHelper;
@@ -36,9 +38,28 @@ final class ProjectController extends AbstractController
         private readonly ProjectService $projectService,
         private readonly ProjectRepository $projectRepository,
         private readonly TaskRepository $taskRepository,
+        private readonly PaginationHelper $paginationHelper,
         private readonly ResponseFormatter $responseFormatter,
         private readonly ValidationHelper $validationHelper,
     ) {
+    }
+
+    /**
+     * Builds undo metadata array from an undo token.
+     *
+     * @param UndoToken|null $undoToken The undo token, or null if no token was created
+     * @return array<string, mixed> The undo metadata array, empty if no token
+     */
+    private function buildUndoMeta(?UndoToken $undoToken): array
+    {
+        if ($undoToken === null) {
+            return [];
+        }
+
+        return [
+            'undoToken' => $undoToken->token,
+            'undoExpiresIn' => $undoToken->getRemainingSeconds(),
+        ];
     }
 
     /**
@@ -47,7 +68,7 @@ final class ProjectController extends AbstractController
      * Query Parameters:
      * - page: Page number (default: 1)
      * - limit: Items per page (default: 20, max: 100)
-     * - includeArchived: Include archived projects (default: false)
+     * - include_archived: Include archived projects (default: false)
      */
     #[Route('', name: 'list', methods: ['GET'])]
     public function list(Request $request): JsonResponse
@@ -55,9 +76,9 @@ final class ProjectController extends AbstractController
         /** @var User $user */
         $user = $this->getUser();
 
-        $page = max(1, $request->query->getInt('page', 1));
-        $limit = min(100, max(1, $request->query->getInt('limit', 20)));
-        $includeArchived = $request->query->getBoolean('includeArchived', false);
+        $page = $this->paginationHelper->normalizePage($request->query->getInt('page', 1));
+        $limit = $this->paginationHelper->normalizeLimit($request->query->getInt('limit', 20));
+        $includeArchived = $request->query->getBoolean('include_archived', false);
 
         $result = $this->projectRepository->findByOwnerPaginated(
             owner: $user,
@@ -163,11 +184,7 @@ final class ProjectController extends AbstractController
             $taskCounts['completed'],
         );
 
-        $meta = [];
-        if ($result['undoToken'] !== null) {
-            $meta['undoToken'] = $result['undoToken']->token;
-            $meta['undoExpiresIn'] = $result['undoToken']->getRemainingSeconds();
-        }
+        $meta = $this->buildUndoMeta($result['undoToken']);
 
         return $this->responseFormatter->success($response->toArray(), 200, $meta);
     }
@@ -196,13 +213,13 @@ final class ProjectController extends AbstractController
             $taskCounts['completed'],
         );
 
-        $meta = [];
-        if ($result['undoToken'] !== null) {
-            $meta['undoToken'] = $result['undoToken']->token;
-            $meta['undoExpiresIn'] = $result['undoToken']->getRemainingSeconds();
-        }
+        $data = array_merge(
+            ['message' => 'Project archived successfully'],
+            ['project' => $response->toArray()]
+        );
+        $meta = $this->buildUndoMeta($result['undoToken']);
 
-        return $this->responseFormatter->success($response->toArray(), 200, $meta);
+        return $this->responseFormatter->success($data, 200, $meta);
     }
 
     /**
@@ -236,11 +253,7 @@ final class ProjectController extends AbstractController
             $taskCounts['completed'],
         );
 
-        $meta = [];
-        if ($result['undoToken'] !== null) {
-            $meta['undoToken'] = $result['undoToken']->token;
-            $meta['undoExpiresIn'] = $result['undoToken']->getRemainingSeconds();
-        }
+        $meta = $this->buildUndoMeta($result['undoToken']);
 
         if (!empty($result['affectedProjects'])) {
             $meta['affectedProjects'] = $result['affectedProjects'];
@@ -275,11 +288,7 @@ final class ProjectController extends AbstractController
             $taskCounts['completed'],
         );
 
-        $meta = [];
-        if ($result['undoToken'] !== null) {
-            $meta['undoToken'] = $result['undoToken']->token;
-            $meta['undoExpiresIn'] = $result['undoToken']->getRemainingSeconds();
-        }
+        $meta = $this->buildUndoMeta($result['undoToken']);
 
         if (!empty($result['affectedProjects'])) {
             $meta['affectedProjects'] = $result['affectedProjects'];
@@ -319,11 +328,12 @@ final class ProjectController extends AbstractController
             'message' => $result['message'],
         ];
 
+        $meta = [];
         if ($result['warning'] !== null) {
-            $data['warning'] = $result['warning'];
+            $meta['warning'] = $result['warning'];
         }
 
-        return $this->responseFormatter->success($data);
+        return $this->responseFormatter->success($data, 200, $meta);
     }
 
     /**
@@ -452,11 +462,7 @@ final class ProjectController extends AbstractController
             $taskCounts['completed'],
         );
 
-        $meta = [];
-        if ($result['undoToken'] !== null) {
-            $meta['undoToken'] = $result['undoToken']->token;
-            $meta['undoExpiresIn'] = $result['undoToken']->getRemainingSeconds();
-        }
+        $meta = $this->buildUndoMeta($result['undoToken']);
 
         return $this->responseFormatter->success($response->toArray(), 200, $meta);
     }
@@ -483,15 +489,24 @@ final class ProjectController extends AbstractController
     }
 
     /**
-     * List archived projects.
+     * List archived projects with pagination.
+     *
+     * Query Parameters:
+     * - page: Page number (default: 1)
+     * - limit: Items per page (default: 20, max: 100)
      */
     #[Route('/archived', name: 'archived_list', methods: ['GET'])]
-    public function archivedList(): JsonResponse
+    public function archivedList(Request $request): JsonResponse
     {
         /** @var User $user */
         $user = $this->getUser();
 
-        $projects = $this->projectService->getArchivedProjects($user);
+        $page = $this->paginationHelper->normalizePage($request->query->getInt('page', 1));
+        $limit = $this->paginationHelper->normalizeLimit($request->query->getInt('limit', 20));
+
+        $result = $this->projectRepository->findArchivedByOwnerPaginated($user, $page, $limit);
+        $projects = $result['projects'];
+        $total = $result['total'];
 
         // Get task counts for all projects
         $taskCounts = $this->projectRepository->getTaskCountsForProjects($projects);
@@ -506,12 +521,11 @@ final class ProjectController extends AbstractController
                 $project,
                 $counts['total'],
                 $counts['completed'],
-            )->toArray();
+            );
         }
 
-        return $this->responseFormatter->success([
-            'projects' => $items,
-            'total' => count($items),
-        ]);
+        $listResponse = ProjectListResponse::create($items, $total, $page, $limit);
+
+        return $this->responseFormatter->success($listResponse->toArray());
     }
 }

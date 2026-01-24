@@ -14,20 +14,19 @@ final class ProjectParentNotOwnedException extends HttpException
     public readonly string $errorCode;
 
     public function __construct(
-        public readonly string $parentId,
         ?\Throwable $previous = null,
     ) {
         $this->errorCode = 'PROJECT_PARENT_NOT_OWNED_BY_USER';
 
         parent::__construct(
             statusCode: 403,
-            message: sprintf('Parent project "%s" is not owned by the current user', $parentId),
+            message: 'You do not have permission to access the specified parent project',
             previous: $previous,
         );
     }
 
     public static function create(string $parentId): self
     {
-        return new self($parentId);
+        return new self();
     }
 }
