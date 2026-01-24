@@ -65,7 +65,7 @@ final class AutocompleteController extends AbstractController
             return [
                 'id' => $project->getId(),
                 'name' => $project->getName(),
-                'fullPath' => $this->getProjectFullPath($project),
+                'fullPath' => $project->getFullPath(),
                 'color' => $project->getColor(),
                 'parent' => $parent !== null ? [
                     'id' => $parent->getId(),
@@ -121,19 +121,4 @@ final class AutocompleteController extends AbstractController
         ]);
     }
 
-    /**
-     * Get the full path of a project by traversing its parent chain.
-     */
-    private function getProjectFullPath($project): string
-    {
-        $parts = [];
-        $current = $project;
-
-        while ($current !== null) {
-            array_unshift($parts, $current->getName());
-            $current = $current->getParent();
-        }
-
-        return implode('/', $parts);
-    }
 }

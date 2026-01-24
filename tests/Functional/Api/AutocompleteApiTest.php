@@ -159,8 +159,8 @@ class AutocompleteApiTest extends ApiTestCase
     {
         $user = $this->createUser('autocomplete-archived@example.com', 'Password123');
 
-        $this->createProject($user, 'Active Project');
-        $this->createProject($user, 'Archived Project', null, true);
+        $this->createProject($user, 'Project Active');
+        $this->createProject($user, 'Project Archived', null, true);
 
         $response = $this->authenticatedApiRequest(
             $user,
@@ -172,9 +172,9 @@ class AutocompleteApiTest extends ApiTestCase
 
         $data = $this->getResponseData($response);
 
-        // Should only return active project
+        // Should only return active project (prefix search matches "Project Active")
         $this->assertCount(1, $data['items']);
-        $this->assertEquals('Active Project', $data['items'][0]['name']);
+        $this->assertEquals('Project Active', $data['items'][0]['name']);
     }
 
     public function testProjectAutocompleteWithNestedProjects(): void
@@ -211,21 +211,22 @@ class AutocompleteApiTest extends ApiTestCase
         $user1 = $this->createUser('user1-projects@example.com', 'Password123');
         $user2 = $this->createUser('user2-projects@example.com', 'Password123');
 
-        $this->createProject($user1, 'User1 Project');
-        $this->createProject($user2, 'User2 Project');
+        $this->createProject($user1, 'Shared Name Project');
+        $this->createProject($user2, 'Shared Name Project');
 
         $response = $this->authenticatedApiRequest(
             $user1,
             'GET',
-            '/api/v1/autocomplete/projects?q=project'
+            '/api/v1/autocomplete/projects?q=shared'
         );
 
         $this->assertResponseStatusCode(Response::HTTP_OK, $response);
 
         $data = $this->getResponseData($response);
 
+        // Should only return user1's project (prefix search matches "Shared Name Project")
         $this->assertCount(1, $data['items']);
-        $this->assertEquals('User1 Project', $data['items'][0]['name']);
+        $this->assertEquals('Shared Name Project', $data['items'][0]['name']);
     }
 
     public function testProjectAutocompleteUnauthenticated(): void

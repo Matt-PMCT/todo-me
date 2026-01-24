@@ -207,7 +207,7 @@ export function quickAdd(apiToken) {
                 const result = await response.json();
 
                 if (result.success && result.data) {
-                    this.autocompleteItems = result.data;
+                    this.autocompleteItems = result.data.items;
                     this.autocompleteIndex = 0;
                     this.showAutocomplete = this.autocompleteItems.length > 0;
                 }

@@ -386,8 +386,8 @@ class ParseApiTest extends ApiTestCase
         $highlight = $data['highlights'][0];
         $this->assertArrayHasKey('type', $highlight);
         $this->assertArrayHasKey('text', $highlight);
-        $this->assertArrayHasKey('startPosition', $highlight);
-        $this->assertArrayHasKey('endPosition', $highlight);
+        $this->assertArrayHasKey('start', $highlight);
+        $this->assertArrayHasKey('end', $highlight);
         $this->assertArrayHasKey('value', $highlight);
         $this->assertArrayHasKey('valid', $highlight);
 

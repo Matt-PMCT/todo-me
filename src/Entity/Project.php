@@ -296,4 +296,23 @@ class Project implements UserOwnedInterface
 
         return $this;
     }
+
+    /**
+     * Get the full path of this project by traversing its parent chain.
+     *
+     * For example, if this project is "Backend" with parent "Work",
+     * returns "Work/Backend".
+     */
+    public function getFullPath(): string
+    {
+        $parts = [];
+        $current = $this;
+
+        while ($current !== null) {
+            array_unshift($parts, $current->getName());
+            $current = $current->getParent();
+        }
+
+        return implode('/', $parts);
+    }
 }

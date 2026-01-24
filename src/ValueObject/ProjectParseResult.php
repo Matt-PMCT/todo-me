@@ -68,7 +68,7 @@ final readonly class ProjectParseResult
         return [
             'projectId' => $this->project?->getId(),
             'projectName' => $this->project?->getName(),
-            'projectFullPath' => $this->project !== null ? $this->getProjectFullPath($this->project) : null,
+            'projectFullPath' => $this->project?->getFullPath(),
             'originalText' => $this->originalText,
             'startPosition' => $this->startPosition,
             'endPosition' => $this->endPosition,
@@ -111,22 +111,6 @@ final readonly class ProjectParseResult
             matchedName: $data['matchedName'],
             found: $data['found'],
         );
-    }
-
-    /**
-     * Get the full path of a project by traversing its parent chain.
-     */
-    private function getProjectFullPath(Project $project): string
-    {
-        $parts = [];
-        $current = $project;
-
-        while ($current !== null) {
-            array_unshift($parts, $current->getName());
-            $current = $current->getParent();
-        }
-
-        return implode('/', $parts);
     }
 
     /**

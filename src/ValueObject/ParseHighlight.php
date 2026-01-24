@@ -56,8 +56,8 @@ final readonly class ParseHighlight
      * @return array{
      *     type: string,
      *     text: string,
-     *     startPosition: int,
-     *     endPosition: int,
+     *     start: int,
+     *     end: int,
      *     value: mixed,
      *     valid: bool
      * }
@@ -67,8 +67,8 @@ final readonly class ParseHighlight
         return [
             'type' => $this->type,
             'text' => $this->text,
-            'startPosition' => $this->startPosition,
-            'endPosition' => $this->endPosition,
+            'start' => $this->startPosition,
+            'end' => $this->endPosition,
             'value' => $this->value,
             'valid' => $this->valid,
         ];
@@ -80,15 +80,15 @@ final readonly class ParseHighlight
      * @param array{
      *     type: string,
      *     text: string,
-     *     startPosition: int,
-     *     endPosition: int,
+     *     start: int,
+     *     end: int,
      *     value: mixed,
      *     valid: bool
      * } $data
      */
     public static function fromArray(array $data): self
     {
-        $requiredKeys = ['type', 'text', 'startPosition', 'endPosition', 'value', 'valid'];
+        $requiredKeys = ['type', 'text', 'start', 'end', 'value', 'valid'];
         foreach ($requiredKeys as $key) {
             if (!array_key_exists($key, $data)) {
                 throw new \InvalidArgumentException(sprintf('Missing required key "%s" in parse highlight data', $key));
@@ -98,8 +98,8 @@ final readonly class ParseHighlight
         return new self(
             type: $data['type'],
             text: $data['text'],
-            startPosition: $data['startPosition'],
-            endPosition: $data['endPosition'],
+            startPosition: $data['start'],
+            endPosition: $data['end'],
             value: $data['value'],
             valid: $data['valid'],
         );

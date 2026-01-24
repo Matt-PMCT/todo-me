@@ -645,8 +645,8 @@ class NaturalLanguageParserServiceTest extends UnitTestCase
 
         $this->assertEquals('priority', $array['type']);
         $this->assertEquals('p1', $array['text']);
-        $this->assertEquals(0, $array['startPosition']);
-        $this->assertEquals(2, $array['endPosition']);
+        $this->assertEquals(0, $array['start']);
+        $this->assertEquals(2, $array['end']);
         $this->assertEquals(1, $array['value']);
         $this->assertTrue($array['valid']);
     }
@@ -656,8 +656,8 @@ class NaturalLanguageParserServiceTest extends UnitTestCase
         $data = [
             'type' => 'project',
             'text' => '#work',
-            'startPosition' => 15,
-            'endPosition' => 20,
+            'start' => 15,
+            'end' => 20,
             'value' => 'work',
             'valid' => false,
         ];
@@ -679,8 +679,8 @@ class NaturalLanguageParserServiceTest extends UnitTestCase
 
         ParseHighlight::fromArray([
             'text' => 'test',
-            'startPosition' => 0,
-            'endPosition' => 4,
+            'start' => 0,
+            'end' => 4,
             'value' => 'test',
             'valid' => true,
         ]);
