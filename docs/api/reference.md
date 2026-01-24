@@ -316,13 +316,6 @@ POST /tasks/batch/undo/{token}
 GET /projects
 ```
 
-### Get Project Tree
-```
-GET /projects/tree
-```
-
-Returns hierarchical project structure.
-
 ### Create Project
 ```
 POST /projects

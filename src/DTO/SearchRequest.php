@@ -26,9 +26,9 @@ final class SearchRequest
     public function __construct(
         #[Assert\NotBlank(message: 'Search query is required')]
         #[Assert\Length(
-            min: 1,
+            min: 2,
             max: 200,
-            minMessage: 'Search query must be at least {{ limit }} character',
+            minMessage: 'Search query must be at least {{ limit }} characters',
             maxMessage: 'Search query must be at most {{ limit }} characters'
         )]
         public readonly string $query,

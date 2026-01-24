@@ -27,21 +27,21 @@ framework:
 when@test:
     framework:
         rate_limiter:
-            # Low limits for testing 429 responses
-            # Uses filesystem cache for persistence between test requests
+            # Higher limits for normal functional tests
+            # Rate limit tests use dedicated test helpers to exhaust limits
             # Each test clears the cache in setUp for isolation
             login:
                 policy: 'sliding_window'
-                limit: 5
+                limit: 100
                 interval: '1 minute'
                 cache_pool: rate_limiter.cache
             api:
                 policy: 'sliding_window'
-                limit: 5
+                limit: 100
                 interval: '1 minute'
                 cache_pool: rate_limiter.cache
             registration:
                 policy: 'sliding_window'
-                limit: 5
+                limit: 100
                 interval: '1 minute'
                 cache_pool: rate_limiter.cache
