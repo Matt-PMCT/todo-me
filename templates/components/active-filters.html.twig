@@ -1,0 +1,49 @@
+{# Active filter chips component #}
+{# Expects: currentFilters (array), projects (array of Project), tags (array of Tag) #}
+
+{% set hasFilters = currentFilters.status or currentFilters.priority is not null or currentFilters.projectId %}
+
+{% if hasFilters %}
+<div class="flex flex-wrap items-center gap-2 mt-4">
+    <span class="text-sm text-gray-500">Active filters:</span>
+
+    {% if currentFilters.status %}
+        {% set params = app.request.query.all|filter((v, k) => k != 'status') %}
+        <a href="{{ path(app.request.attributes.get('_route'), params) }}"
+           class="inline-flex items-center gap-1 rounded-full bg-indigo-100 px-3 py-1 text-sm font-medium text-indigo-700 hover:bg-indigo-200">
+            Status: {{ currentFilters.status|replace({'_': ' '})|capitalize }}
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+        </a>
+    {% endif %}
+
+    {% if currentFilters.priority is not null %}
+        {% set params = app.request.query.all|filter((v, k) => k != 'priority') %}
+        <a href="{{ path(app.request.attributes.get('_route'), params) }}"
+           class="inline-flex items-center gap-1 rounded-full bg-yellow-100 px-3 py-1 text-sm font-medium text-yellow-700 hover:bg-yellow-200">
+            Priority: {{ currentFilters.priority }}
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+        </a>
+    {% endif %}
+
+    {% if currentFilters.projectId %}
+        {% set projectName = 'Unknown' %}
+        {% for project in projects %}
+            {% if project.id == currentFilters.projectId %}
+                {% set projectName = project.name %}
+            {% endif %}
+        {% endfor %}
+        {% set params = app.request.query.all|filter((v, k) => k != 'projectId') %}
+        <a href="{{ path(app.request.attributes.get('_route'), params) }}"
+           class="inline-flex items-center gap-1 rounded-full bg-purple-100 px-3 py-1 text-sm font-medium text-purple-700 hover:bg-purple-200">
+            Project: {{ projectName }}
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+        </a>
+    {% endif %}
+</div>
+{% endif %}

@@ -1,0 +1,65 @@
+{# Filter panel component for task filtering #}
+{# Expects: currentFilters (array), projects (array of Project), tags (array of Tag) #}
+
+<div class="bg-white shadow rounded-lg p-4" x-data="{ showFilters: false }">
+    <div class="flex items-center justify-between">
+        <button @click="showFilters = !showFilters" type="button" class="inline-flex items-center gap-2 text-sm font-medium text-gray-700 hover:text-gray-900">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path>
+            </svg>
+            Filters
+            <svg class="w-4 h-4 transition-transform" :class="{ 'rotate-180': showFilters }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+            </svg>
+        </button>
+
+        {# Clear filters link #}
+        {% if currentFilters.status or currentFilters.priority or currentFilters.projectId or currentFilters.tagIds is not empty %}
+            <a href="{{ path(app.request.attributes.get('_route')) }}" class="text-sm text-indigo-600 hover:text-indigo-500">Clear filters</a>
+        {% endif %}
+    </div>
+
+    <div x-show="showFilters" x-cloak x-transition class="mt-4 border-t pt-4">
+        <form action="{{ path(app.request.attributes.get('_route')) }}" method="GET" class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {# Status filter #}
+            <div>
+                <label for="filter_status" class="block text-sm font-medium text-gray-700">Status</label>
+                <select name="status" id="filter_status" class="mt-1 block w-full rounded-md border-gray-300 py-2 pl-3 pr-10 text-base focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm">
+                    <option value="">All statuses</option>
+                    <option value="pending" {% if currentFilters.status == 'pending' %}selected{% endif %}>Pending</option>
+                    <option value="in_progress" {% if currentFilters.status == 'in_progress' %}selected{% endif %}>In Progress</option>
+                    <option value="completed" {% if currentFilters.status == 'completed' %}selected{% endif %}>Completed</option>
+                </select>
+            </div>
+
+            {# Priority filter #}
+            <div>
+                <label for="filter_priority" class="block text-sm font-medium text-gray-700">Priority</label>
+                <select name="priority" id="filter_priority" class="mt-1 block w-full rounded-md border-gray-300 py-2 pl-3 pr-10 text-base focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm">
+                    <option value="">All priorities</option>
+                    {% for i in 0..4 %}
+                        <option value="{{ i }}" {% if currentFilters.priority is same as(i) %}selected{% endif %}>{{ i }} {% if i == 0 %}(Lowest){% elseif i == 4 %}(Highest){% endif %}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            {# Project filter #}
+            <div>
+                <label for="filter_project" class="block text-sm font-medium text-gray-700">Project</label>
+                <select name="projectId" id="filter_project" class="mt-1 block w-full rounded-md border-gray-300 py-2 pl-3 pr-10 text-base focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm">
+                    <option value="">All projects</option>
+                    {% for project in projects %}
+                        <option value="{{ project.id }}" {% if currentFilters.projectId == project.id %}selected{% endif %}>{{ project.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            {# Apply button #}
+            <div class="flex items-end">
+                <button type="submit" class="inline-flex items-center rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
+                    Apply Filters
+                </button>
+            </div>
+        </form>
+    </div>
+</div>

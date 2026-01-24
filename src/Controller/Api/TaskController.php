@@ -6,8 +6,10 @@ namespace App\Controller\Api;
 
 use App\DTO\CreateTaskRequest;
 use App\DTO\NaturalLanguageTaskRequest;
+use App\DTO\TaskFilterRequest;
 use App\DTO\TaskListResponse;
 use App\DTO\TaskResponse;
+use App\DTO\TaskSortRequest;
 use App\DTO\UpdateTaskRequest;
 use App\Entity\User;
 use App\Exception\ValidationException;
@@ -45,13 +47,19 @@ final class TaskController extends AbstractController
      * Query parameters:
      * - page: Page number (default: 1)
      * - limit: Items per page (default: 20, max: 100)
-     * - status: Filter by status (pending, in_progress, completed)
-     * - priority: Filter by priority (1-5)
-     * - projectId: Filter by project UUID
+     * - status/statuses: Filter by status (pending, in_progress, completed) - comma-separated or array
+     * - priority_min/priority_max: Filter by priority range (1-5)
+     * - project_ids: Filter by project UUIDs (comma-separated or array)
+     * - include_child_projects: Include tasks from child projects (default: false)
+     * - tag_ids: Filter by tag UUIDs (comma-separated or array)
+     * - tag_mode: Tag matching mode - AND or OR (default: OR)
      * - search: Search in title and description
-     * - dueBefore: Filter tasks due before date (ISO 8601)
-     * - dueAfter: Filter tasks due after date (ISO 8601)
-     * - tagIds: Filter by tag UUIDs (comma-separated)
+     * - due_before: Filter tasks due before date (ISO 8601)
+     * - due_after: Filter tasks due after date (ISO 8601)
+     * - has_no_due_date: Filter tasks with/without due date
+     * - include_completed: Include completed tasks (default: true)
+     * - sort/sort_by: Sort field (due_date, priority, created_at, updated_at, title, position)
+     * - direction/order: Sort direction (ASC, DESC)
      */
     #[Route('', name: 'list', methods: ['GET'])]
     public function list(Request $request): JsonResponse
@@ -63,45 +71,105 @@ final class TaskController extends AbstractController
         $page = (int) $request->query->get('page', '1');
         $limit = (int) $request->query->get('limit', '20');
 
-        // Extract filters
-        $filters = [];
+        // Build filter and sort request DTOs
+        $filterRequest = TaskFilterRequest::fromRequest($request);
+        $sortRequest = TaskSortRequest::fromRequest($request);
 
-        if ($request->query->has('status')) {
-            $filters['status'] = $request->query->get('status');
-        }
+        // Validate the filter DTO
+        $this->validationHelper->validate($filterRequest);
 
-        if ($request->query->has('priority')) {
-            $filters['priority'] = (int) $request->query->get('priority');
-        }
-
-        if ($request->query->has('projectId')) {
-            $filters['projectId'] = $request->query->get('projectId');
-        }
-
-        if ($request->query->has('search')) {
-            $filters['search'] = $request->query->get('search');
-        }
-
-        if ($request->query->has('dueBefore')) {
-            $filters['dueBefore'] = $request->query->get('dueBefore');
-        }
-
-        if ($request->query->has('dueAfter')) {
-            $filters['dueAfter'] = $request->query->get('dueAfter');
-        }
-
-        if ($request->query->has('tagIds')) {
-            $tagIdsParam = $request->query->get('tagIds');
-            $filters['tagIds'] = array_filter(explode(',', $tagIdsParam));
-        }
-
-        // Build query and paginate
-        $queryBuilder = $this->taskRepository->findByOwnerPaginatedQueryBuilder($user, $filters);
+        // Build query with advanced filtering
+        $queryBuilder = $this->taskRepository->createAdvancedFilteredQueryBuilder($user, $filterRequest, $sortRequest);
         $result = $this->paginationHelper->paginate($queryBuilder, $page, $limit);
         $meta = $this->paginationHelper->calculateMeta($result['total'], $page, $limit);
 
         // Build response
         $response = TaskListResponse::fromTasks($result['items'], $meta);
+
+        return $this->responseFormatter->success($response->toArray());
+    }
+
+    /**
+     * Get tasks for Today view (due today + overdue).
+     */
+    #[Route('/today', name: 'today', methods: ['GET'])]
+    public function today(): JsonResponse
+    {
+        /** @var User $user */
+        $user = $this->getUser();
+
+        $tasks = $this->taskRepository->findTodayTasks($user);
+        $response = TaskListResponse::fromTasks($tasks);
+
+        return $this->responseFormatter->success($response->toArray());
+    }
+
+    /**
+     * Get upcoming tasks (due within next N days).
+     */
+    #[Route('/upcoming', name: 'upcoming', methods: ['GET'])]
+    public function upcoming(Request $request): JsonResponse
+    {
+        /** @var User $user */
+        $user = $this->getUser();
+
+        $days = (int) $request->query->get('days', '7');
+        if ($days < 1 || $days > 90) {
+            $days = 7;
+        }
+
+        $tasks = $this->taskRepository->findUpcomingTasks($user, $days);
+        $response = TaskListResponse::fromTasks($tasks);
+
+        return $this->responseFormatter->success($response->toArray());
+    }
+
+    /**
+     * Get overdue tasks.
+     */
+    #[Route('/overdue', name: 'overdue', methods: ['GET'])]
+    public function overdue(): JsonResponse
+    {
+        /** @var User $user */
+        $user = $this->getUser();
+
+        $tasks = $this->taskRepository->findOverdueByOwner($user);
+        $response = TaskListResponse::fromTasks($tasks);
+
+        return $this->responseFormatter->success($response->toArray());
+    }
+
+    /**
+     * Get tasks without a due date.
+     */
+    #[Route('/no-date', name: 'no_date', methods: ['GET'])]
+    public function noDate(): JsonResponse
+    {
+        /** @var User $user */
+        $user = $this->getUser();
+
+        $tasks = $this->taskRepository->findTasksWithNoDueDate($user);
+        $response = TaskListResponse::fromTasks($tasks);
+
+        return $this->responseFormatter->success($response->toArray());
+    }
+
+    /**
+     * Get recently completed tasks.
+     */
+    #[Route('/completed', name: 'completed', methods: ['GET'])]
+    public function completed(Request $request): JsonResponse
+    {
+        /** @var User $user */
+        $user = $this->getUser();
+
+        $limit = (int) $request->query->get('limit', '50');
+        if ($limit < 1 || $limit > 200) {
+            $limit = 50;
+        }
+
+        $tasks = $this->taskRepository->findCompletedTasksRecent($user, $limit);
+        $response = TaskListResponse::fromTasks($tasks);
 
         return $this->responseFormatter->success($response->toArray());
     }

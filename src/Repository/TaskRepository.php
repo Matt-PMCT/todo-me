@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Repository;
 
+use App\DTO\TaskFilterRequest;
+use App\DTO\TaskSortRequest;
 use App\Entity\Project;
 use App\Entity\Task;
 use App\Entity\User;
@@ -401,6 +403,251 @@ class TaskRepository extends ServiceEntityRepository
         if ($flush) {
             $this->getEntityManager()->flush();
         }
+    }
+
+    /**
+     * Creates a QueryBuilder for advanced task filtering with DTO-based parameters.
+     */
+    public function createAdvancedFilteredQueryBuilder(
+        User $owner,
+        TaskFilterRequest $filterRequest,
+        TaskSortRequest $sortRequest
+    ): QueryBuilder {
+        $qb = $this->createQueryBuilder('t')
+            ->leftJoin('t.project', 'p')
+            ->leftJoin('t.tags', 'tag')
+            ->where('t.owner = :owner')
+            ->setParameter('owner', $owner);
+
+        // Apply status filter
+        if ($filterRequest->statuses !== null && count($filterRequest->statuses) > 0) {
+            $qb->andWhere('t.status IN (:statuses)')
+                ->setParameter('statuses', $filterRequest->statuses);
+        }
+
+        // Apply priority range filter
+        if ($filterRequest->priorityMin !== null) {
+            $qb->andWhere('t.priority >= :priorityMin')
+                ->setParameter('priorityMin', $filterRequest->priorityMin);
+        }
+
+        if ($filterRequest->priorityMax !== null) {
+            $qb->andWhere('t.priority <= :priorityMax')
+                ->setParameter('priorityMax', $filterRequest->priorityMax);
+        }
+
+        // Apply project filter
+        $this->applyProjectFilter($qb, $filterRequest);
+
+        // Apply tag filter
+        $this->applyTagFilter($qb, $filterRequest);
+
+        // Apply due date filters
+        if ($filterRequest->dueBefore !== null) {
+            $dueBefore = new \DateTimeImmutable($filterRequest->dueBefore);
+            $qb->andWhere('t.dueDate <= :dueBefore')
+                ->setParameter('dueBefore', $dueBefore);
+        }
+
+        if ($filterRequest->dueAfter !== null) {
+            $dueAfter = new \DateTimeImmutable($filterRequest->dueAfter);
+            $qb->andWhere('t.dueDate >= :dueAfter')
+                ->setParameter('dueAfter', $dueAfter);
+        }
+
+        // Apply has no due date filter
+        if ($filterRequest->hasNoDueDate === true) {
+            $qb->andWhere('t.dueDate IS NULL');
+        } elseif ($filterRequest->hasNoDueDate === false) {
+            $qb->andWhere('t.dueDate IS NOT NULL');
+        }
+
+        // Apply search filter
+        if ($filterRequest->search !== null && $filterRequest->search !== '') {
+            $searchTerm = '%' . $filterRequest->search . '%';
+            $qb->andWhere($qb->expr()->orX(
+                $qb->expr()->like('LOWER(t.title)', 'LOWER(:search)'),
+                $qb->expr()->like('LOWER(t.description)', 'LOWER(:search)')
+            ))
+                ->setParameter('search', $searchTerm);
+        }
+
+        // Apply includeCompleted filter
+        if (!$filterRequest->includeCompleted) {
+            $qb->andWhere('t.status != :completedStatus')
+                ->setParameter('completedStatus', Task::STATUS_COMPLETED);
+        }
+
+        // Apply sorting
+        $this->applySorting($qb, $sortRequest);
+
+        // Ensure distinct results when joining tags
+        $qb->distinct();
+
+        return $qb;
+    }
+
+    /**
+     * Applies project filtering, optionally including child projects.
+     */
+    private function applyProjectFilter(QueryBuilder $qb, TaskFilterRequest $filterRequest): void
+    {
+        if ($filterRequest->projectIds === null || count($filterRequest->projectIds) === 0) {
+            return;
+        }
+
+        if ($filterRequest->includeChildProjects) {
+            // Get all descendant project IDs for each project
+            /** @var ProjectRepository $projectRepository */
+            $projectRepository = $this->getEntityManager()->getRepository(Project::class);
+
+            $allProjectIds = $filterRequest->projectIds;
+            foreach ($filterRequest->projectIds as $projectId) {
+                $project = $projectRepository->find($projectId);
+                if ($project !== null) {
+                    $descendantIds = $projectRepository->getDescendantIds($project);
+                    $allProjectIds = array_merge($allProjectIds, $descendantIds);
+                }
+            }
+
+            $qb->andWhere('t.project IN (:projectIds)')
+                ->setParameter('projectIds', array_unique($allProjectIds));
+        } else {
+            $qb->andWhere('t.project IN (:projectIds)')
+                ->setParameter('projectIds', $filterRequest->projectIds);
+        }
+    }
+
+    /**
+     * Applies tag filtering with support for AND/OR modes.
+     */
+    private function applyTagFilter(QueryBuilder $qb, TaskFilterRequest $filterRequest): void
+    {
+        if ($filterRequest->tagIds === null || count($filterRequest->tagIds) === 0) {
+            return;
+        }
+
+        if ($filterRequest->tagMode === 'OR') {
+            // OR mode: any tag matches
+            $qb->andWhere('tag.id IN (:tagIds)')
+                ->setParameter('tagIds', $filterRequest->tagIds);
+        } else {
+            // AND mode: all tags must match
+            // Use subquery to count matching tags
+            $tagCount = count($filterRequest->tagIds);
+            $subQuery = $this->getEntityManager()->createQueryBuilder()
+                ->select('COUNT(DISTINCT tt.id)')
+                ->from('App\Entity\Tag', 'tt')
+                ->join('tt.tasks', 'ttask')
+                ->where('ttask.id = t.id')
+                ->andWhere('tt.id IN (:tagIds)')
+                ->getDQL();
+
+            $qb->andWhere("($subQuery) = :tagCount")
+                ->setParameter('tagIds', $filterRequest->tagIds)
+                ->setParameter('tagCount', $tagCount);
+        }
+    }
+
+    /**
+     * Applies sorting to the query builder.
+     */
+    private function applySorting(QueryBuilder $qb, TaskSortRequest $sortRequest): void
+    {
+        $dqlField = $sortRequest->getDqlField();
+
+        if ($sortRequest->isNullsLastField()) {
+            // For nulls-last fields (like due_date), add special handling
+            $qb->addSelect("CASE WHEN {$dqlField} IS NULL THEN 1 ELSE 0 END AS HIDDEN nulls_last")
+                ->addOrderBy('nulls_last', 'ASC')
+                ->addOrderBy($dqlField, $sortRequest->direction);
+        } else {
+            $qb->addOrderBy($dqlField, $sortRequest->direction);
+        }
+    }
+
+    /**
+     * Finds tasks due today or overdue (excludes completed).
+     *
+     * @return Task[]
+     */
+    public function findTodayTasks(User $owner): array
+    {
+        $today = new \DateTimeImmutable('today');
+        $endOfToday = new \DateTimeImmutable('today 23:59:59');
+
+        return $this->createQueryBuilder('t')
+            ->where('t.owner = :owner')
+            ->andWhere('t.dueDate <= :endOfToday')
+            ->andWhere('t.status != :completed')
+            ->setParameter('owner', $owner)
+            ->setParameter('endOfToday', $endOfToday)
+            ->setParameter('completed', Task::STATUS_COMPLETED)
+            ->orderBy('t.dueDate', 'ASC')
+            ->addOrderBy('t.priority', 'DESC')
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
+     * Finds tasks due after today within N days (excludes completed).
+     *
+     * @return Task[]
+     */
+    public function findUpcomingTasks(User $owner, int $days = 7): array
+    {
+        $tomorrow = new \DateTimeImmutable('tomorrow');
+        $endDate = (new \DateTimeImmutable('today'))->modify("+{$days} days")->setTime(23, 59, 59);
+
+        return $this->createQueryBuilder('t')
+            ->where('t.owner = :owner')
+            ->andWhere('t.dueDate >= :tomorrow')
+            ->andWhere('t.dueDate <= :endDate')
+            ->andWhere('t.status != :completed')
+            ->setParameter('owner', $owner)
+            ->setParameter('tomorrow', $tomorrow)
+            ->setParameter('endDate', $endDate)
+            ->setParameter('completed', Task::STATUS_COMPLETED)
+            ->orderBy('t.dueDate', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
+     * Finds tasks with no due date (excludes completed).
+     *
+     * @return Task[]
+     */
+    public function findTasksWithNoDueDate(User $owner): array
+    {
+        return $this->createQueryBuilder('t')
+            ->where('t.owner = :owner')
+            ->andWhere('t.dueDate IS NULL')
+            ->andWhere('t.status != :completed')
+            ->setParameter('owner', $owner)
+            ->setParameter('completed', Task::STATUS_COMPLETED)
+            ->orderBy('t.position', 'ASC')
+            ->addOrderBy('t.createdAt', 'DESC')
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
+     * Finds recently completed tasks, ordered by completion date.
+     *
+     * @return Task[]
+     */
+    public function findCompletedTasksRecent(User $owner, int $limit = 50): array
+    {
+        return $this->createQueryBuilder('t')
+            ->where('t.owner = :owner')
+            ->andWhere('t.status = :completed')
+            ->setParameter('owner', $owner)
+            ->setParameter('completed', Task::STATUS_COMPLETED)
+            ->orderBy('t.completedAt', 'DESC')
+            ->setMaxResults($limit)
+            ->getQuery()
+            ->getResult();
     }
 
     /**
