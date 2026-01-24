@@ -34,7 +34,13 @@ services:
         arguments:
             $apiLogger: '@monolog.logger.api'
 
-    App\EventListener\ApiExceptionListener:
+    # Exception mapper registry with tagged mappers
+    App\EventListener\ExceptionMapper\ExceptionMapperRegistry:
+        arguments:
+            $mappers: !tagged_iterator { tag: 'app.exception_mapper', default_priority_method: 'getPriority' }
+
+    # Server error mapper needs environment for debug info
+    App\EventListener\ExceptionMapper\Fallback\ServerErrorMapper:
         arguments:
             $environment: '%kernel.environment%'
 
