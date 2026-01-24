@@ -5,16 +5,20 @@ declare(strict_types=1);
 namespace App\Tests\Unit\Service;
 
 use App\Entity\Project;
+use App\Repository\ProjectRepository;
 use App\Service\ProjectStateService;
 use App\Tests\Unit\UnitTestCase;
+use PHPUnit\Framework\MockObject\MockObject;
 
 class ProjectStateServiceTest extends UnitTestCase
 {
+    private ProjectRepository&MockObject $projectRepository;
     private ProjectStateService $service;
 
     protected function setUp(): void
     {
-        $this->service = new ProjectStateService();
+        $this->projectRepository = $this->createMock(ProjectRepository::class);
+        $this->service = new ProjectStateService($this->projectRepository);
     }
 
     public function testSerializeProjectStateWithMinimalProject(): void

@@ -10,10 +10,13 @@ use App\Entity\Project;
 use App\Entity\User;
 use App\Enum\UndoAction;
 use App\Exception\EntityNotFoundException;
+use App\Exception\InvalidUndoTokenException;
 use App\Interface\OwnershipCheckerInterface;
 use App\Repository\ProjectRepository;
 use App\Service\ProjectCacheService;
 use App\Service\ProjectService;
+use App\Service\ProjectStateService;
+use App\Service\ProjectUndoService;
 use App\Service\UndoService;
 use App\Service\ValidationHelper;
 use App\Tests\Unit\UnitTestCase;
@@ -31,6 +34,8 @@ class ProjectServiceTest extends UnitTestCase
     private ValidationHelper&MockObject $validationHelper;
     private OwnershipCheckerInterface&MockObject $ownershipChecker;
     private CacheInterface&MockObject $cache;
+    private ProjectStateService $projectStateService;
+    private ProjectUndoService $projectUndoService;
     private ProjectCacheService $projectCacheService;
     private ProjectTreeTransformer $projectTreeTransformer;
     private ProjectService $projectService;
@@ -45,17 +50,29 @@ class ProjectServiceTest extends UnitTestCase
         $this->validationHelper = $this->createMock(ValidationHelper::class);
         $this->ownershipChecker = $this->createMock(OwnershipCheckerInterface::class);
 
-        // Use actual services - ProjectCacheService and ProjectTreeTransformer are final
+        // Use actual services - ProjectStateService, ProjectUndoService, ProjectCacheService and ProjectTreeTransformer are final
         $this->cache = $this->createMock(CacheInterface::class);
         $this->projectCacheService = new ProjectCacheService($this->cache);
         $this->projectTreeTransformer = new ProjectTreeTransformer();
 
+        // Create ProjectStateService with the mocked repository
+        $this->projectStateService = new ProjectStateService($this->projectRepository);
+
+        // Create ProjectUndoService with mocked dependencies
+        $this->projectUndoService = new ProjectUndoService(
+            $this->undoService,
+            $this->projectRepository,
+            $this->projectStateService,
+            $this->entityManager,
+        );
+
         $this->projectService = new ProjectService(
             $this->projectRepository,
             $this->entityManager,
-            $this->undoService,
             $this->validationHelper,
             $this->ownershipChecker,
+            $this->projectStateService,
+            $this->projectUndoService,
             $this->projectCacheService,
             $this->projectTreeTransformer,
         );
@@ -464,7 +481,7 @@ class ProjectServiceTest extends UnitTestCase
             ->with('user-123', 'invalid-token')
             ->willReturn(null);
 
-        $this->expectException(\InvalidArgumentException::class);
+        $this->expectException(InvalidUndoTokenException::class);
         $this->projectService->undoArchive($user, 'invalid-token');
     }
 
@@ -485,7 +502,7 @@ class ProjectServiceTest extends UnitTestCase
             ->with('user-123', $undoToken->token)
             ->willReturn($undoToken);
 
-        $this->expectException(\InvalidArgumentException::class);
+        $this->expectException(InvalidUndoTokenException::class);
         $this->projectService->undoArchive($user, $undoToken->token);
     }
 
@@ -549,7 +566,7 @@ class ProjectServiceTest extends UnitTestCase
             ->with('user-123', 'invalid-token')
             ->willReturn(null);
 
-        $this->expectException(\InvalidArgumentException::class);
+        $this->expectException(InvalidUndoTokenException::class);
         $this->projectService->undoDelete($user, 'invalid-token');
     }
 
@@ -570,7 +587,7 @@ class ProjectServiceTest extends UnitTestCase
             ->with('user-123', $undoToken->token)
             ->willReturn($undoToken);
 
-        $this->expectException(\InvalidArgumentException::class);
+        $this->expectException(InvalidUndoTokenException::class);
         $this->projectService->undoDelete($user, $undoToken->token);
     }
 
@@ -765,7 +782,7 @@ class ProjectServiceTest extends UnitTestCase
             ->with('user-123', 'invalid')
             ->willReturn(null);
 
-        $this->expectException(\InvalidArgumentException::class);
+        $this->expectException(InvalidUndoTokenException::class);
         $this->projectService->undo($user, 'invalid');
     }
 
@@ -788,7 +805,7 @@ class ProjectServiceTest extends UnitTestCase
             ->with('user-123', $undoToken->token)
             ->willReturn($undoToken);
 
-        $this->expectException(\InvalidArgumentException::class);
+        $this->expectException(InvalidUndoTokenException::class);
         $this->projectService->undo($user, $undoToken->token);
     }
 
