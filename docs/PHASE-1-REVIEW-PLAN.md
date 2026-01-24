@@ -334,21 +334,37 @@ Add complexity requirements:
 
 ---
 
-### 2.6 API Token Has No Expiration
+### 2.6 API Token Has No Expiration ✅ FIXED
 
 **Category:** Data Safety
 **File:** `src/Entity/User.php`
+**Status:** RESOLVED (2026-01-24)
 
-#### Issue
+#### Issue (Original)
 - Tokens are valid indefinitely after creation
 - No `token_issued_at` or `token_expires_at` fields
 - Compromised tokens remain valid forever
 
-#### Remediation
-1. Add columns: `api_token_issued_at`, `api_token_expires_at`
-2. Default expiration: 24-72 hours
-3. Validate expiration in `ApiTokenAuthenticator`
-4. Add token refresh endpoint
+#### Resolution Implemented
+1. ✅ Added `api_token_issued_at` and `api_token_expires_at` columns to User entity
+2. ✅ Default expiration: 48 hours (configurable via `API_TOKEN_TTL_HOURS` env var)
+3. ✅ Expiration validation in `ApiTokenAuthenticator` with clear error messages
+4. ✅ Added `POST /api/v1/auth/refresh` endpoint for token refresh
+5. ✅ Refresh window: 7 days after expiration (requires re-login after)
+6. ✅ Migration: `Version20260124000001.php` - existing tokens set to expire in 48 hours
+7. ✅ Unit and functional tests added for token expiration and refresh
+
+#### Files Changed
+- `src/Entity/User.php` - Added expiration fields and `isApiTokenExpired()` method
+- `src/Service/UserService.php` - Token generation with expiration, expiration checking
+- `src/Controller/Api/AuthController.php` - Added refresh endpoint, expiresAt in responses
+- `src/Security/ApiTokenAuthenticator.php` - Expired token detection with specific error
+- `migrations/Version20260124000001.php` - Database schema migration
+- `config/services.yaml` - Token TTL configuration
+- `.env.dev`, `.env.test`, `.env.local.example` - `API_TOKEN_TTL_HOURS` variable
+- `tests/Unit/Entity/UserTest.php` - Token expiration unit tests
+- `tests/Unit/Service/UserServiceTest.php` - Service layer unit tests
+- `tests/Functional/Api/AuthApiTest.php` - Functional tests for expiration and refresh
 
 ---
 
@@ -756,7 +772,7 @@ class UndoOperationDispatcher {
 1. Implement user deletion endpoint
 2. Implement data export endpoint
 3. Implement password reset flow
-4. Add token expiration
+4. ~~Add token expiration~~ ✅ COMPLETED (2026-01-24)
 
 ### Week 3: Code Quality
 1. Fix N+1 query in task reordering
