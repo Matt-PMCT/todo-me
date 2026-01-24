@@ -531,12 +531,17 @@ class TaskFilterRepositoryTest extends IntegrationTestCase
     {
         $user = $this->createUser('sort-created@example.com');
 
-        // Create tasks in sequence to ensure distinct createdAt
+        // Create tasks with explicit distinct createdAt timestamps
         $task1 = $this->createTask($user, 'First Created');
-        usleep(1000); // Small delay to ensure different timestamps
+        $task1->setCreatedAt(new \DateTimeImmutable('2024-01-01 10:00:00'));
+
         $task2 = $this->createTask($user, 'Second Created');
-        usleep(1000);
+        $task2->setCreatedAt(new \DateTimeImmutable('2024-01-01 11:00:00'));
+
         $task3 = $this->createTask($user, 'Third Created');
+        $task3->setCreatedAt(new \DateTimeImmutable('2024-01-01 12:00:00'));
+
+        $this->entityManager->flush();
 
         $filterRequest = new TaskFilterRequest();
         $sortRequest = new TaskSortRequest(field: 'created_at', direction: 'DESC');
