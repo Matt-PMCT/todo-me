@@ -13,6 +13,7 @@ use App\Entity\User;
 use App\Enum\UndoAction;
 use App\Exception\EntityNotFoundException;
 use App\Exception\ForbiddenException;
+use App\Exception\InvalidStateException;
 use App\Exception\ValidationException;
 use App\Repository\ProjectRepository;
 use App\Repository\TagRepository;
@@ -200,12 +201,23 @@ final class TaskService
         $task->setDueDate($date);
         $this->entityManager->flush();
 
+        // Validate required IDs for undo token creation
+        $ownerId = $task->getOwner()?->getId();
+        $taskId = $task->getId();
+
+        if ($ownerId === null) {
+            throw InvalidStateException::missingOwner('Task');
+        }
+        if ($taskId === null) {
+            throw InvalidStateException::missingRequiredId('Task');
+        }
+
         // Create undo token
         $undoToken = $this->undoService->createUndoToken(
-            userId: $task->getOwner()->getId(),
+            userId: $ownerId,
             action: UndoAction::UPDATE->value,
             entityType: 'task',
-            entityId: $task->getId(),
+            entityId: $taskId,
             previousState: $previousState,
         );
 
@@ -324,12 +336,23 @@ final class TaskService
 
         $this->entityManager->flush();
 
+        // Validate required IDs for undo token creation
+        $ownerId = $task->getOwner()?->getId();
+        $taskId = $task->getId();
+
+        if ($ownerId === null) {
+            throw InvalidStateException::missingOwner('Task');
+        }
+        if ($taskId === null) {
+            throw InvalidStateException::missingRequiredId('Task');
+        }
+
         // Create undo token
         $undoToken = $this->undoService->createUndoToken(
-            userId: $task->getOwner()->getId(),
+            userId: $ownerId,
             action: UndoAction::UPDATE->value,
             entityType: 'task',
-            entityId: $task->getId(),
+            entityId: $taskId,
             previousState: $previousState,
         );
 
@@ -347,15 +370,26 @@ final class TaskService
      */
     public function delete(Task $task): ?UndoToken
     {
+        // Validate required IDs for undo token creation
+        $ownerId = $task->getOwner()?->getId();
+        $taskId = $task->getId();
+
+        if ($ownerId === null) {
+            throw InvalidStateException::missingOwner('Task');
+        }
+        if ($taskId === null) {
+            throw InvalidStateException::missingRequiredId('Task');
+        }
+
         // Store full state for undo
         $previousState = $this->serializeTaskState($task);
 
         // Create undo token before deleting
         $undoToken = $this->undoService->createUndoToken(
-            userId: $task->getOwner()->getId(),
+            userId: $ownerId,
             action: UndoAction::DELETE->value,
             entityType: 'task',
-            entityId: $task->getId(),
+            entityId: $taskId,
             previousState: $previousState,
         );
 
@@ -378,6 +412,17 @@ final class TaskService
         // Validate status
         $this->validationHelper->validateTaskStatus($newStatus);
 
+        // Validate required IDs for undo token creation
+        $ownerId = $task->getOwner()?->getId();
+        $taskId = $task->getId();
+
+        if ($ownerId === null) {
+            throw InvalidStateException::missingOwner('Task');
+        }
+        if ($taskId === null) {
+            throw InvalidStateException::missingRequiredId('Task');
+        }
+
         // Store previous state for undo
         $previousState = [
             'status' => $task->getStatus(),
@@ -391,10 +436,10 @@ final class TaskService
 
         // Create undo token
         $undoToken = $this->undoService->createUndoToken(
-            userId: $task->getOwner()->getId(),
+            userId: $ownerId,
             action: UndoAction::STATUS_CHANGE->value,
             entityType: 'task',
-            entityId: $task->getId(),
+            entityId: $taskId,
             previousState: $previousState,
         );
 
@@ -668,76 +713,53 @@ final class TaskService
     /**
      * Applies a serialized state to an existing task.
      *
+     * Uses Task::restoreFromState() for basic properties to avoid triggering
+     * side effects like auto-setting completedAt. Handles related entities
+     * (project, tags) separately with ownership validation.
+     *
      * @param Task $task The task to update
      * @param array<string, mixed> $state The state to apply
      */
     private function applyStateToTask(Task $task, array $state): void
     {
-        if (isset($state['title'])) {
-            $task->setTitle($state['title']);
-        }
+        // Use the entity's restoreFromState method for basic properties
+        // This handles status without triggering completedAt auto-set
+        $task->restoreFromState($state);
 
-        if (array_key_exists('description', $state)) {
-            $task->setDescription($state['description']);
-        }
-
-        if (isset($state['status'])) {
-            // Use direct property access to avoid triggering completedAt logic
-            // when restoring state, we'll handle completedAt separately
-            $reflection = new \ReflectionClass($task);
-            $property = $reflection->getProperty('status');
-            $property->setValue($task, $state['status']);
-        }
-
-        if (isset($state['priority'])) {
-            $task->setPriority($state['priority']);
-        }
-
-        if (array_key_exists('dueDate', $state)) {
-            $task->setDueDate(
-                $state['dueDate'] !== null
-                    ? new \DateTimeImmutable($state['dueDate'])
-                    : null
-            );
-        }
-
-        if (isset($state['position'])) {
-            $task->setPosition($state['position']);
-        }
-
-        // Handle project
+        // Handle project with ownership validation
         if (array_key_exists('projectId', $state)) {
             if ($state['projectId'] !== null) {
-                $project = $this->projectRepository->find($state['projectId']);
+                // Validate ownership - only restore if project belongs to same user
+                $project = $this->projectRepository->findOneByOwnerAndId(
+                    $task->getOwner(),
+                    $state['projectId']
+                );
+                // Only set project if it exists AND belongs to the user
+                // Silently skip if project was deleted or ownership changed
                 $task->setProject($project);
             } else {
                 $task->setProject(null);
             }
         }
 
-        // Handle tags
+        // Handle tags with ownership validation
         if (isset($state['tagIds'])) {
             // Clear existing tags
             foreach ($task->getTags()->toArray() as $tag) {
                 $task->removeTag($tag);
             }
 
-            // Add tags from state
+            // Add tags from state, validating ownership
             foreach ($state['tagIds'] as $tagId) {
-                $tag = $this->tagRepository->find($tagId);
+                $tag = $this->tagRepository->findOneByOwnerAndId(
+                    $task->getOwner(),
+                    $tagId
+                );
+                // Only add tag if it exists AND belongs to the user
                 if ($tag !== null) {
                     $task->addTag($tag);
                 }
             }
-        }
-
-        // Restore completedAt
-        if (array_key_exists('completedAt', $state)) {
-            $task->setCompletedAt(
-                $state['completedAt'] !== null
-                    ? new \DateTimeImmutable($state['completedAt'])
-                    : null
-            );
         }
     }
 }

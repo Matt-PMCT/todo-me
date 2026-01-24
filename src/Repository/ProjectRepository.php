@@ -28,7 +28,7 @@ class ProjectRepository extends ServiceEntityRepository
     /**
      * @return Project[]
      */
-    public function findByOwner(User $owner, bool $includeArchived = false): array
+    public function findByOwner(User $owner, bool $includeArchived = false, bool $includeDeleted = false): array
     {
         $qb = $this->createQueryBuilder('p')
             ->where('p.owner = :owner')
@@ -38,6 +38,10 @@ class ProjectRepository extends ServiceEntityRepository
         if (!$includeArchived) {
             $qb->andWhere('p.isArchived = :archived')
                 ->setParameter('archived', false);
+        }
+
+        if (!$includeDeleted) {
+            $qb->andWhere('p.deletedAt IS NULL');
         }
 
         return $qb->getQuery()->getResult();
@@ -50,13 +54,15 @@ class ProjectRepository extends ServiceEntityRepository
      * @param int $page The page number (1-indexed)
      * @param int $limit Items per page
      * @param bool $includeArchived Whether to include archived projects
+     * @param bool $includeDeleted Whether to include soft-deleted projects
      * @return array{projects: Project[], total: int}
      */
     public function findByOwnerPaginated(
         User $owner,
         int $page,
         int $limit,
-        bool $includeArchived = false
+        bool $includeArchived = false,
+        bool $includeDeleted = false
     ): array {
         $qb = $this->createQueryBuilder('p')
             ->where('p.owner = :owner')
@@ -66,6 +72,10 @@ class ProjectRepository extends ServiceEntityRepository
         if (!$includeArchived) {
             $qb->andWhere('p.isArchived = :archived')
                 ->setParameter('archived', false);
+        }
+
+        if (!$includeDeleted) {
+            $qb->andWhere('p.deletedAt IS NULL');
         }
 
         // Get total count (remove orderBy to avoid PostgreSQL grouping error)
@@ -98,6 +108,7 @@ class ProjectRepository extends ServiceEntityRepository
         return $this->createQueryBuilder('p')
             ->where('p.owner = :owner')
             ->andWhere('p.isArchived = :archived')
+            ->andWhere('p.deletedAt IS NULL')
             ->setParameter('owner', $owner)
             ->setParameter('archived', false)
             ->orderBy('p.name', 'ASC')
@@ -113,6 +124,7 @@ class ProjectRepository extends ServiceEntityRepository
         return $this->createQueryBuilder('p')
             ->where('p.owner = :owner')
             ->andWhere('p.isArchived = :archived')
+            ->andWhere('p.deletedAt IS NULL')
             ->setParameter('owner', $owner)
             ->setParameter('archived', true)
             ->orderBy('p.updatedAt', 'DESC')
@@ -120,9 +132,44 @@ class ProjectRepository extends ServiceEntityRepository
             ->getResult();
     }
 
-    public function findOneByOwnerAndId(User $owner, string $id): ?Project
+    /**
+     * Find a project by owner and ID.
+     *
+     * @param User $owner The project owner
+     * @param string $id The project ID
+     * @param bool $includeDeleted Whether to include soft-deleted projects
+     * @return Project|null
+     */
+    public function findOneByOwnerAndId(User $owner, string $id, bool $includeDeleted = false): ?Project
     {
-        return $this->findOneBy(['owner' => $owner, 'id' => $id]);
+        $qb = $this->createQueryBuilder('p')
+            ->where('p.owner = :owner')
+            ->andWhere('p.id = :id')
+            ->setParameter('owner', $owner)
+            ->setParameter('id', $id);
+
+        if (!$includeDeleted) {
+            $qb->andWhere('p.deletedAt IS NULL');
+        }
+
+        return $qb->getQuery()->getOneOrNullResult();
+    }
+
+    /**
+     * Find soft-deleted projects for a user.
+     *
+     * @param User $owner The project owner
+     * @return Project[]
+     */
+    public function findDeletedByOwner(User $owner): array
+    {
+        return $this->createQueryBuilder('p')
+            ->where('p.owner = :owner')
+            ->andWhere('p.deletedAt IS NOT NULL')
+            ->setParameter('owner', $owner)
+            ->orderBy('p.deletedAt', 'DESC')
+            ->getQuery()
+            ->getResult();
     }
 
     /**
@@ -249,6 +296,7 @@ class ProjectRepository extends ServiceEntityRepository
             ->where('p.owner = :owner')
             ->andWhere('LOWER(p.name) = LOWER(:name)')
             ->andWhere('p.isArchived = :archived')
+            ->andWhere('p.deletedAt IS NULL')
             ->setParameter('owner', $owner)
             ->setParameter('name', $name)
             ->setParameter('archived', false)
@@ -280,6 +328,7 @@ class ProjectRepository extends ServiceEntityRepository
             ->andWhere('LOWER(p.name) = LOWER(:name)')
             ->andWhere('p.parent IS NULL')
             ->andWhere('p.isArchived = :archived')
+            ->andWhere('p.deletedAt IS NULL')
             ->setParameter('owner', $owner)
             ->setParameter('name', $parts[0])
             ->setParameter('archived', false)
@@ -297,6 +346,7 @@ class ProjectRepository extends ServiceEntityRepository
                 ->andWhere('LOWER(p.name) = LOWER(:name)')
                 ->andWhere('p.parent = :parent')
                 ->andWhere('p.isArchived = :archived')
+                ->andWhere('p.deletedAt IS NULL')
                 ->setParameter('owner', $owner)
                 ->setParameter('name', $parts[$i])
                 ->setParameter('parent', $currentProject)
@@ -326,6 +376,7 @@ class ProjectRepository extends ServiceEntityRepository
             ->where('p.owner = :owner')
             ->andWhere('LOWER(p.name) LIKE LOWER(:prefix)')
             ->andWhere('p.isArchived = :archived')
+            ->andWhere('p.deletedAt IS NULL')
             ->setParameter('owner', $owner)
             ->setParameter('prefix', $prefix . '%')
             ->setParameter('archived', false)
