@@ -91,21 +91,41 @@ final class TaskController extends AbstractController
 
     /**
      * Get tasks for Today view (due today + overdue).
+     *
+     * Query parameters:
+     * - page: Page number (default: 1)
+     * - limit: Items per page (default: 20, max: 100)
+     * - sort/sort_by: Sort field (due_date, priority, created_at, updated_at, completed_at, title, position)
+     * - direction/order: Sort direction (ASC, DESC)
      */
     #[Route('/today', name: 'today', methods: ['GET'])]
-    public function today(): JsonResponse
+    public function today(Request $request): JsonResponse
     {
         /** @var User $user */
         $user = $this->getUser();
 
-        $tasks = $this->taskRepository->findTodayTasks($user);
-        $response = TaskListResponse::fromTasks($tasks);
+        $page = (int) $request->query->get('page', '1');
+        $limit = (int) $request->query->get('limit', '20');
+        $sortRequest = TaskSortRequest::fromRequest($request);
 
-        return $this->responseFormatter->success($response->toArray());
+        $qb = $this->taskRepository->createTodayTasksQueryBuilder($user, $sortRequest);
+        $result = $this->paginationHelper->paginate($qb, $page, $limit);
+        $meta = $this->paginationHelper->calculateMeta($result['total'], $page, $limit);
+
+        return $this->responseFormatter->success(
+            TaskListResponse::fromTasks($result['items'], $meta)->toArray()
+        );
     }
 
     /**
      * Get upcoming tasks (due within next N days).
+     *
+     * Query parameters:
+     * - days: Days in the future to include (default: 7, max: 90)
+     * - page: Page number (default: 1)
+     * - limit: Items per page (default: 20, max: 100)
+     * - sort/sort_by: Sort field (due_date, priority, created_at, updated_at, completed_at, title, position)
+     * - direction/order: Sort direction (ASC, DESC)
      */
     #[Route('/upcoming', name: 'upcoming', methods: ['GET'])]
     public function upcoming(Request $request): JsonResponse
@@ -118,44 +138,83 @@ final class TaskController extends AbstractController
             $days = 7;
         }
 
-        $tasks = $this->taskRepository->findUpcomingTasks($user, $days);
-        $response = TaskListResponse::fromTasks($tasks);
+        $page = (int) $request->query->get('page', '1');
+        $limit = (int) $request->query->get('limit', '20');
+        $sortRequest = TaskSortRequest::fromRequest($request);
 
-        return $this->responseFormatter->success($response->toArray());
+        $qb = $this->taskRepository->createUpcomingTasksQueryBuilder($user, $days, $sortRequest);
+        $result = $this->paginationHelper->paginate($qb, $page, $limit);
+        $meta = $this->paginationHelper->calculateMeta($result['total'], $page, $limit);
+
+        return $this->responseFormatter->success(
+            TaskListResponse::fromTasks($result['items'], $meta)->toArray()
+        );
     }
 
     /**
      * Get overdue tasks.
+     *
+     * Query parameters:
+     * - page: Page number (default: 1)
+     * - limit: Items per page (default: 20, max: 100)
+     * - sort/sort_by: Sort field (due_date, priority, created_at, updated_at, completed_at, title, position)
+     * - direction/order: Sort direction (ASC, DESC)
      */
     #[Route('/overdue', name: 'overdue', methods: ['GET'])]
-    public function overdue(): JsonResponse
+    public function overdue(Request $request): JsonResponse
     {
         /** @var User $user */
         $user = $this->getUser();
 
-        $tasks = $this->taskRepository->findOverdueByOwner($user);
-        $response = TaskListResponse::fromTasks($tasks);
+        $page = (int) $request->query->get('page', '1');
+        $limit = (int) $request->query->get('limit', '20');
+        $sortRequest = TaskSortRequest::fromRequest($request);
 
-        return $this->responseFormatter->success($response->toArray());
+        $qb = $this->taskRepository->createOverdueQueryBuilder($user, $sortRequest);
+        $result = $this->paginationHelper->paginate($qb, $page, $limit);
+        $meta = $this->paginationHelper->calculateMeta($result['total'], $page, $limit);
+
+        return $this->responseFormatter->success(
+            TaskListResponse::fromTasks($result['items'], $meta)->toArray()
+        );
     }
 
     /**
      * Get tasks without a due date.
+     *
+     * Query parameters:
+     * - page: Page number (default: 1)
+     * - limit: Items per page (default: 20, max: 100)
+     * - sort/sort_by: Sort field (due_date, priority, created_at, updated_at, completed_at, title, position)
+     * - direction/order: Sort direction (ASC, DESC)
      */
     #[Route('/no-date', name: 'no_date', methods: ['GET'])]
-    public function noDate(): JsonResponse
+    public function noDate(Request $request): JsonResponse
     {
         /** @var User $user */
         $user = $this->getUser();
 
-        $tasks = $this->taskRepository->findTasksWithNoDueDate($user);
-        $response = TaskListResponse::fromTasks($tasks);
+        $page = (int) $request->query->get('page', '1');
+        $limit = (int) $request->query->get('limit', '20');
+        $sortRequest = TaskSortRequest::fromRequest($request);
 
-        return $this->responseFormatter->success($response->toArray());
+        $qb = $this->taskRepository->createNoDueDateQueryBuilder($user, $sortRequest);
+        $result = $this->paginationHelper->paginate($qb, $page, $limit);
+        $meta = $this->paginationHelper->calculateMeta($result['total'], $page, $limit);
+
+        return $this->responseFormatter->success(
+            TaskListResponse::fromTasks($result['items'], $meta)->toArray()
+        );
     }
 
     /**
      * Get recently completed tasks.
+     *
+     * Query parameters:
+     * - page: Page number (default: 1)
+     * - limit: Items per page (default: 20, max: 100)
+     * - sort/sort_by: Sort field (due_date, priority, created_at, updated_at, completed_at, title, position)
+     * - direction/order: Sort direction (ASC, DESC)
      */
     #[Route('/completed', name: 'completed', methods: ['GET'])]
     public function completed(Request $request): JsonResponse
@@ -163,15 +222,17 @@ final class TaskController extends AbstractController
         /** @var User $user */
         $user = $this->getUser();
 
-        $limit = (int) $request->query->get('limit', '50');
-        if ($limit < 1 || $limit > 200) {
-            $limit = 50;
-        }
+        $page = (int) $request->query->get('page', '1');
+        $limit = (int) $request->query->get('limit', '20');
+        $sortRequest = TaskSortRequest::fromRequest($request);
 
-        $tasks = $this->taskRepository->findCompletedTasksRecent($user, $limit);
-        $response = TaskListResponse::fromTasks($tasks);
+        $qb = $this->taskRepository->createCompletedTasksQueryBuilder($user, $sortRequest);
+        $result = $this->paginationHelper->paginate($qb, $page, $limit);
+        $meta = $this->paginationHelper->calculateMeta($result['total'], $page, $limit);
 
-        return $this->responseFormatter->success($response->toArray());
+        return $this->responseFormatter->success(
+            TaskListResponse::fromTasks($result['items'], $meta)->toArray()
+        );
     }
 
     /**

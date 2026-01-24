@@ -210,20 +210,33 @@ class TaskRepository extends ServiceEntityRepository
     }
 
     /**
-     * @return Task[]
+     * Creates a QueryBuilder for overdue tasks (excludes completed).
      */
-    public function findOverdueByOwner(User $owner): array
+    public function createOverdueQueryBuilder(User $owner, ?TaskSortRequest $sortRequest = null): QueryBuilder
     {
-        return $this->createQueryBuilder('t')
+        $qb = $this->createQueryBuilder('t')
             ->where('t.owner = :owner')
             ->andWhere('t.dueDate < :today')
             ->andWhere('t.status != :completed')
             ->setParameter('owner', $owner)
             ->setParameter('today', new \DateTimeImmutable('today'))
-            ->setParameter('completed', Task::STATUS_COMPLETED)
-            ->orderBy('t.dueDate', 'ASC')
-            ->getQuery()
-            ->getResult();
+            ->setParameter('completed', Task::STATUS_COMPLETED);
+
+        if ($sortRequest !== null) {
+            $this->applySorting($qb, $sortRequest);
+        } else {
+            $qb->orderBy('t.dueDate', 'ASC');
+        }
+
+        return $qb;
+    }
+
+    /**
+     * @return Task[]
+     */
+    public function findOverdueByOwner(User $owner): array
+    {
+        return $this->createOverdueQueryBuilder($owner)->getQuery()->getResult();
     }
 
     /**
@@ -567,26 +580,65 @@ class TaskRepository extends ServiceEntityRepository
     }
 
     /**
+     * Creates a QueryBuilder for tasks due today or overdue (excludes completed).
+     */
+    public function createTodayTasksQueryBuilder(User $owner, ?TaskSortRequest $sortRequest = null): QueryBuilder
+    {
+        $endOfToday = new \DateTimeImmutable('today 23:59:59');
+
+        $qb = $this->createQueryBuilder('t')
+            ->where('t.owner = :owner')
+            ->andWhere('t.dueDate <= :endOfToday')
+            ->andWhere('t.status != :completed')
+            ->setParameter('owner', $owner)
+            ->setParameter('endOfToday', $endOfToday)
+            ->setParameter('completed', Task::STATUS_COMPLETED);
+
+        if ($sortRequest !== null) {
+            $this->applySorting($qb, $sortRequest);
+        } else {
+            $qb->orderBy('t.dueDate', 'ASC')
+                ->addOrderBy('t.priority', 'DESC');
+        }
+
+        return $qb;
+    }
+
+    /**
      * Finds tasks due today or overdue (excludes completed).
      *
      * @return Task[]
      */
     public function findTodayTasks(User $owner): array
     {
-        $today = new \DateTimeImmutable('today');
-        $endOfToday = new \DateTimeImmutable('today 23:59:59');
+        return $this->createTodayTasksQueryBuilder($owner)->getQuery()->getResult();
+    }
 
-        return $this->createQueryBuilder('t')
+    /**
+     * Creates a QueryBuilder for tasks due after today within N days (excludes completed).
+     */
+    public function createUpcomingTasksQueryBuilder(User $owner, int $days = 7, ?TaskSortRequest $sortRequest = null): QueryBuilder
+    {
+        $tomorrow = new \DateTimeImmutable('tomorrow');
+        $endDate = (new \DateTimeImmutable('today'))->modify("+{$days} days")->setTime(23, 59, 59);
+
+        $qb = $this->createQueryBuilder('t')
             ->where('t.owner = :owner')
-            ->andWhere('t.dueDate <= :endOfToday')
+            ->andWhere('t.dueDate >= :tomorrow')
+            ->andWhere('t.dueDate <= :endDate')
             ->andWhere('t.status != :completed')
             ->setParameter('owner', $owner)
-            ->setParameter('endOfToday', $endOfToday)
-            ->setParameter('completed', Task::STATUS_COMPLETED)
-            ->orderBy('t.dueDate', 'ASC')
-            ->addOrderBy('t.priority', 'DESC')
-            ->getQuery()
-            ->getResult();
+            ->setParameter('tomorrow', $tomorrow)
+            ->setParameter('endDate', $endDate)
+            ->setParameter('completed', Task::STATUS_COMPLETED);
+
+        if ($sortRequest !== null) {
+            $this->applySorting($qb, $sortRequest);
+        } else {
+            $qb->orderBy('t.dueDate', 'ASC');
+        }
+
+        return $qb;
     }
 
     /**
@@ -596,21 +648,29 @@ class TaskRepository extends ServiceEntityRepository
      */
     public function findUpcomingTasks(User $owner, int $days = 7): array
     {
-        $tomorrow = new \DateTimeImmutable('tomorrow');
-        $endDate = (new \DateTimeImmutable('today'))->modify("+{$days} days")->setTime(23, 59, 59);
+        return $this->createUpcomingTasksQueryBuilder($owner, $days)->getQuery()->getResult();
+    }
 
-        return $this->createQueryBuilder('t')
+    /**
+     * Creates a QueryBuilder for tasks with no due date (excludes completed).
+     */
+    public function createNoDueDateQueryBuilder(User $owner, ?TaskSortRequest $sortRequest = null): QueryBuilder
+    {
+        $qb = $this->createQueryBuilder('t')
             ->where('t.owner = :owner')
-            ->andWhere('t.dueDate >= :tomorrow')
-            ->andWhere('t.dueDate <= :endDate')
+            ->andWhere('t.dueDate IS NULL')
             ->andWhere('t.status != :completed')
             ->setParameter('owner', $owner)
-            ->setParameter('tomorrow', $tomorrow)
-            ->setParameter('endDate', $endDate)
-            ->setParameter('completed', Task::STATUS_COMPLETED)
-            ->orderBy('t.dueDate', 'ASC')
-            ->getQuery()
-            ->getResult();
+            ->setParameter('completed', Task::STATUS_COMPLETED);
+
+        if ($sortRequest !== null) {
+            $this->applySorting($qb, $sortRequest);
+        } else {
+            $qb->orderBy('t.position', 'ASC')
+                ->addOrderBy('t.createdAt', 'DESC');
+        }
+
+        return $qb;
     }
 
     /**
@@ -620,16 +680,27 @@ class TaskRepository extends ServiceEntityRepository
      */
     public function findTasksWithNoDueDate(User $owner): array
     {
-        return $this->createQueryBuilder('t')
+        return $this->createNoDueDateQueryBuilder($owner)->getQuery()->getResult();
+    }
+
+    /**
+     * Creates a QueryBuilder for completed tasks.
+     */
+    public function createCompletedTasksQueryBuilder(User $owner, ?TaskSortRequest $sortRequest = null): QueryBuilder
+    {
+        $qb = $this->createQueryBuilder('t')
             ->where('t.owner = :owner')
-            ->andWhere('t.dueDate IS NULL')
-            ->andWhere('t.status != :completed')
+            ->andWhere('t.status = :completed')
             ->setParameter('owner', $owner)
-            ->setParameter('completed', Task::STATUS_COMPLETED)
-            ->orderBy('t.position', 'ASC')
-            ->addOrderBy('t.createdAt', 'DESC')
-            ->getQuery()
-            ->getResult();
+            ->setParameter('completed', Task::STATUS_COMPLETED);
+
+        if ($sortRequest !== null) {
+            $this->applySorting($qb, $sortRequest);
+        } else {
+            $qb->orderBy('t.completedAt', 'DESC');
+        }
+
+        return $qb;
     }
 
     /**
@@ -639,12 +710,7 @@ class TaskRepository extends ServiceEntityRepository
      */
     public function findCompletedTasksRecent(User $owner, int $limit = 50): array
     {
-        return $this->createQueryBuilder('t')
-            ->where('t.owner = :owner')
-            ->andWhere('t.status = :completed')
-            ->setParameter('owner', $owner)
-            ->setParameter('completed', Task::STATUS_COMPLETED)
-            ->orderBy('t.completedAt', 'DESC')
+        return $this->createCompletedTasksQueryBuilder($owner)
             ->setMaxResults($limit)
             ->getQuery()
             ->getResult();

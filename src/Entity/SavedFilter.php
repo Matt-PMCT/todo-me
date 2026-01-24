@@ -34,6 +34,12 @@ class SavedFilter implements UserOwnedInterface
     #[ORM\Column(type: Types::INTEGER, options: ['default' => 0])]
     private int $position = 0;
 
+    #[ORM\Column(type: Types::STRING, length: 50, nullable: true)]
+    private ?string $icon = null;
+
+    #[ORM\Column(type: Types::STRING, length: 7, nullable: true)]
+    private ?string $color = null;
+
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE, name: 'created_at')]
     private \DateTimeImmutable $createdAt;
 
@@ -99,6 +105,30 @@ class SavedFilter implements UserOwnedInterface
     public function setPosition(int $position): static
     {
         $this->position = $position;
+
+        return $this;
+    }
+
+    public function getIcon(): ?string
+    {
+        return $this->icon;
+    }
+
+    public function setIcon(?string $icon): static
+    {
+        $this->icon = $icon;
+
+        return $this;
+    }
+
+    public function getColor(): ?string
+    {
+        return $this->color;
+    }
+
+    public function setColor(?string $color): static
+    {
+        $this->color = $color;
 
         return $this;
     }

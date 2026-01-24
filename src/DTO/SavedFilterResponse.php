@@ -17,6 +17,8 @@ final class SavedFilterResponse
         public readonly array $criteria,
         public readonly bool $isDefault,
         public readonly int $position,
+        public readonly ?string $icon,
+        public readonly ?string $color,
         public readonly string $createdAt,
         public readonly string $updatedAt,
     ) {
@@ -33,6 +35,8 @@ final class SavedFilterResponse
             criteria: $filter->getCriteria(),
             isDefault: $filter->isDefault(),
             position: $filter->getPosition(),
+            icon: $filter->getIcon(),
+            color: $filter->getColor(),
             createdAt: $filter->getCreatedAt()->format(\DateTimeInterface::RFC3339),
             updatedAt: $filter->getUpdatedAt()->format(\DateTimeInterface::RFC3339),
         );
@@ -51,6 +55,8 @@ final class SavedFilterResponse
             'criteria' => $this->criteria,
             'isDefault' => $this->isDefault,
             'position' => $this->position,
+            'icon' => $this->icon,
+            'color' => $this->color,
             'createdAt' => $this->createdAt,
             'updatedAt' => $this->updatedAt,
         ];
