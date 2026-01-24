@@ -415,6 +415,11 @@ final class TaskService
             && $task->isRecurring()
         ) {
             $nextTask = $this->createNextRecurringInstance($task);
+
+            // Store the generated next task ID for undo
+            if ($nextTask !== null) {
+                $previousState['_generatedNextTaskId'] = $nextTask->getId();
+            }
         }
 
         // Create undo token

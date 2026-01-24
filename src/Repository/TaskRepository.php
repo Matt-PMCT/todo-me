@@ -297,6 +297,89 @@ class TaskRepository extends ServiceEntityRepository
             ->getResult();
     }
 
+    /**
+     * Full-text search with highlighted results and rank scores.
+     *
+     * @return array<array{task: Task, rank: float, titleHighlight: string|null, descriptionHighlight: string|null}>
+     */
+    public function searchWithHighlights(User $owner, string $query, int $limit = 20): array
+    {
+        $conn = $this->getEntityManager()->getConnection();
+
+        $sql = "
+            SELECT
+                t.id,
+                ts_rank(t.search_vector, plainto_tsquery(:locale, :query)) AS rank,
+                ts_headline(:locale, t.title, plainto_tsquery(:locale, :query), 'StartSel=<mark>, StopSel=</mark>') AS title_highlight,
+                ts_headline(:locale, COALESCE(t.description, ''), plainto_tsquery(:locale, :query), 'StartSel=<mark>, StopSel=</mark>') AS description_highlight
+            FROM tasks t
+            WHERE t.owner_id = :owner_id
+            AND t.search_vector @@ plainto_tsquery(:locale, :query)
+            ORDER BY rank DESC
+            LIMIT :limit
+        ";
+
+        $result = $conn->executeQuery($sql, [
+            'owner_id' => $owner->getId(),
+            'query' => $query,
+            'locale' => $this->searchLocale,
+            'limit' => $limit,
+        ]);
+
+        $rows = $result->fetchAllAssociative();
+
+        if (empty($rows)) {
+            return [];
+        }
+
+        // Fetch Task entities by ID
+        $ids = array_column($rows, 'id');
+        $tasks = $this->createQueryBuilder('t')
+            ->where('t.id IN (:ids)')
+            ->setParameter('ids', $ids)
+            ->getQuery()
+            ->getResult();
+
+        // Index tasks by ID for O(1) lookup
+        $taskMap = [];
+        foreach ($tasks as $task) {
+            $taskMap[$task->getId()] = $task;
+        }
+
+        // Build result array preserving rank order
+        $results = [];
+        foreach ($rows as $row) {
+            if (isset($taskMap[$row['id']])) {
+                $results[] = [
+                    'task' => $taskMap[$row['id']],
+                    'rank' => (float) $row['rank'],
+                    'titleHighlight' => $row['title_highlight'],
+                    'descriptionHighlight' => $row['description_highlight'],
+                ];
+            }
+        }
+
+        return $results;
+    }
+
+    /**
+     * Prefix search for autocomplete functionality.
+     *
+     * @return Task[]
+     */
+    public function prefixSearch(User $owner, string $prefix, int $limit = 10): array
+    {
+        return $this->createQueryBuilder('t')
+            ->where('t.owner = :owner')
+            ->andWhere('t.title LIKE :prefix')
+            ->setParameter('owner', $owner)
+            ->setParameter('prefix', $prefix . '%')
+            ->orderBy('t.title', 'ASC')
+            ->setMaxResults($limit)
+            ->getQuery()
+            ->getResult();
+    }
+
     public function findOneByOwnerAndId(User $owner, string $id): ?Task
     {
         return $this->findOneBy(['owner' => $owner, 'id' => $id]);
@@ -475,14 +558,31 @@ class TaskRepository extends ServiceEntityRepository
             $qb->andWhere('t.dueDate IS NOT NULL');
         }
 
-        // Apply search filter
+        // Apply search filter using PostgreSQL full-text search
         if ($filterRequest->search !== null && $filterRequest->search !== '') {
-            $searchTerm = '%' . $filterRequest->search . '%';
-            $qb->andWhere($qb->expr()->orX(
-                $qb->expr()->like('LOWER(t.title)', 'LOWER(:search)'),
-                $qb->expr()->like('LOWER(t.description)', 'LOWER(:search)')
-            ))
-                ->setParameter('search', $searchTerm);
+            $conn = $this->getEntityManager()->getConnection();
+            $ftsSql = "
+                SELECT t.id
+                FROM tasks t
+                WHERE t.owner_id = :owner_id
+                AND t.search_vector @@ plainto_tsquery(:locale, :query)
+            ";
+
+            $ftsResult = $conn->executeQuery($ftsSql, [
+                'owner_id' => $owner->getId(),
+                'query' => $filterRequest->search,
+                'locale' => $this->searchLocale,
+            ]);
+
+            $ftsIds = array_column($ftsResult->fetchAllAssociative(), 'id');
+
+            if (empty($ftsIds)) {
+                // No FTS matches - add impossible condition to return empty result
+                $qb->andWhere('1 = 0');
+            } else {
+                $qb->andWhere('t.id IN (:ftsIds)')
+                    ->setParameter('ftsIds', $ftsIds);
+            }
         }
 
         // Apply includeCompleted filter

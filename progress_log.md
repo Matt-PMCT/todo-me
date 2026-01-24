@@ -88,3 +88,61 @@ Keep entries brief. Use task IDs from phase docs for reference.
 - All entities implement UserOwnedInterface for ownership checking
 - Undo tokens stored in Redis with 60-second TTL
 - Rate limiting: 100 req/min (anon), 1000 req/min (authenticated)
+
+---
+
+### 2026-01-24
+
+**Phase**: 7 - Search & Undo System Enhancements
+**Status**: ✅ COMPLETE
+
+**Completed**:
+- [x] 7.1 TaskRepository Highlight/Prefix Search
+  - `searchWithHighlights()` using `ts_headline()` and `ts_rank()`
+  - `prefixSearch()` for autocomplete with ILIKE
+- [x] 7.2 ProjectRepository & TagRepository Prefix Search
+  - Verified existing `searchByNamePrefix()` and `searchByPrefix()` methods
+- [x] 7.3 Search API Enhancements
+  - `highlight` query parameter (default: true)
+  - `titleHighlight`, `descriptionHighlight`, `rank` fields in results
+  - `meta.searchTimeMs` timing metric using `hrtime(true)`
+- [x] 7.4 FTS-First Filter Integration
+  - TaskRepository `createAdvancedFilteredQueryBuilder()` now uses native SQL FTS
+  - `/api/v1/tasks?search=` uses full-text search instead of LIKE
+- [x] 7.5 Generic Undo Endpoint
+  - New `UndoController` at `POST /api/v1/undo`
+  - Routes to TaskUndoService or ProjectUndoService based on entityType
+- [x] 7.6 Recurring Task Undo
+  - TaskService stores `_generatedNextTaskId` when completing recurring tasks
+  - TaskUndoService deletes auto-generated next task if still pending
+- [x] 7.7 Search UI Component
+  - New `search-input.html.twig` with Alpine.js
+  - `search.js` with "/" global shortcut, debounced API calls, keyboard navigation
+- [x] 7.8 Toast Undo UI
+  - `showWithUndo()` method with countdown timer
+  - Undo button that calls `POST /api/v1/undo`
+
+**Tests Added**:
+- 7 new SearchApiTest tests (highlights, rank, timing, prefix search)
+- 13 new UndoApiTest tests (generic undo, recurring undo, validation)
+- Total: 33 tests, 243 assertions for Phase 7
+
+**Key Files Created**:
+- `src/Controller/Api/UndoController.php`
+- `templates/components/search-input.html.twig`
+- `assets/js/search.js`
+- `tests/Functional/Api/UndoApiTest.php`
+
+**Key Files Modified**:
+- `src/Repository/TaskRepository.php` (highlight search, FTS filters)
+- `src/Service/SearchService.php` (highlights, timing)
+- `src/DTO/SearchResponse.php`, `SearchRequest.php` (highlight fields)
+- `src/Service/TaskService.php` (store nextTaskId for recurring)
+- `src/Service/TaskUndoService.php` (recurring undo logic)
+- `assets/js/toast.js` (undo support, countdown)
+- `templates/base.html.twig` (search component, undo button)
+
+**Notes**:
+- Used parallel sub-agents for all 4 implementation waves
+- FTS integration uses native SQL to get matching IDs, then IN clause with QueryBuilder
+- Recurring undo only deletes next task if still pending (not completed/modified)

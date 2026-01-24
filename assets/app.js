@@ -13,4 +13,7 @@ import './js/toast.js';
 import './js/project-tree.js';
 import './js/drag-drop.js';
 
+// Import search component
+import './js/search.js';
+
 console.log('This log comes from assets/app.js - welcome to AssetMapper!');

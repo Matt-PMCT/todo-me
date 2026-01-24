@@ -43,6 +43,7 @@ final class SearchController extends AbstractController
             new OA\Parameter(name: 'type', in: 'query', description: 'Filter by entity type', schema: new OA\Schema(type: 'string', enum: ['all', 'tasks', 'projects', 'tags'], default: 'all')),
             new OA\Parameter(name: 'page', in: 'query', description: 'Page number', schema: new OA\Schema(type: 'integer', minimum: 1, default: 1)),
             new OA\Parameter(name: 'limit', in: 'query', description: 'Items per page', schema: new OA\Schema(type: 'integer', minimum: 1, maximum: 100, default: 20)),
+            new OA\Parameter(name: 'highlight', in: 'query', description: 'Include highlighted search matches in task results', schema: new OA\Schema(type: 'boolean', default: true)),
         ],
         responses: [
             new OA\Response(
