@@ -431,6 +431,10 @@ final class TaskService
      */
     public function completeForever(Task $task): TaskStatusResult
     {
+        if (!$task->isRecurring()) {
+            throw InvalidRecurrenceException::taskNotRecurring();
+        }
+
         // Store previous state for undo
         $previousState = $this->taskStateService->serializeTaskState($task);
 
