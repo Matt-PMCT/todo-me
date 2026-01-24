@@ -26,12 +26,13 @@ The Phase 1 implementation of the todo-me application demonstrates **solid found
 
 ## 1. CRITICAL ISSUES (Immediate Action Required)
 
-### 1.1 Secret Disclosure in Git History
+### 1.1 Secret Disclosure in Git History ✅ FIXED
 
 **Severity:** CRITICAL
 **Category:** Secrets/Security
+**Status:** RESOLVED (2026-01-24)
 
-#### Issue
+#### Issue (Original)
 Multiple secrets are committed to git history and currently tracked:
 
 | File | Secret Type | Status |
@@ -44,34 +45,48 @@ Multiple secrets are committed to git history and currently tracked:
 - `.env.dev` line 3: `APP_SECRET=d472151c7cbe312ebf0c3eaf21191794`
 - Committed in `c788cab` and remains in history
 
-#### Remediation
-1. **Immediately rotate** the APP_SECRET in any production environment
-2. **Use BFG Repo-Cleaner** to remove secrets from git history:
-   ```bash
-   bfg --delete-files .env.dev
-   bfg --replace-text passwords.txt
-   git reflog expire --expire=now --all && git gc --prune=now --aggressive
-   ```
-3. **Update `.gitignore`** to add:
-   ```
-   .env.dev
-   .env.test
-   ```
-4. **Externalize docker credentials** to environment variables:
-   ```yaml
-   environment:
-     POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-todo_password}
-   ```
+#### Resolution Implemented
+1. ✅ **Updated `.gitignore`** to exclude secret files:
+   - Added `.env.dev` to .gitignore
+   - Added `.env.test` to .gitignore
+   - Added `docker/.env.docker` to .gitignore
+
+2. ✅ **Created template files** for developers:
+   - `.env.dev.example` - Template with placeholder values and generation instructions
+   - `.env.test.example` - Template for test environment configuration
+   - `docker/.env.docker.example` - Template for Docker PostgreSQL credentials
+
+3. ✅ **Removed files from git tracking**:
+   - Executed `git rm --cached .env.dev .env.test`
+   - Files remain locally for existing installations but won't be tracked
+
+4. ✅ **Externalized docker credentials**:
+   - Modified `docker/docker-compose.yml` to use `env_file: .env.docker`
+   - Uses environment variable substitution: `${POSTGRES_PASSWORD:-}`
+   - Created `docker/.env.docker` for local development (gitignored)
+
+#### Files Changed
+- `.gitignore` - Added exclusions for `.env.dev`, `.env.test`, `docker/.env.docker`
+- `.env.dev.example` - New template file
+- `.env.test.example` - New template file
+- `docker/.env.docker.example` - New template file for Docker credentials
+- `docker/.env.docker` - Local credentials file (gitignored)
+- `docker/docker-compose.yml` - Externalized database credentials
+
+#### Remaining Actions (Out of Scope)
+- **Rotate APP_SECRET** in any production environment (manual action required)
+- **Clean git history** using BFG Repo-Cleaner (separate operation, requires force push)
 
 ---
 
-### 1.2 CORS Misconfiguration Allows All Origins
+### 1.2 CORS Misconfiguration Allows All Origins ✅ FIXED
 
 **Severity:** CRITICAL
 **Category:** Security
 **File:** `config/packages/nelmio_cors.yaml:10-14`
+**Status:** RESOLVED (2026-01-24)
 
-#### Issue
+#### Issue (Original)
 ```yaml
 paths:
     '^/api/':
@@ -84,16 +99,37 @@ paths:
 - CSRF protection effectively bypassed for authenticated requests
 - User credentials/tokens exposed to any origin
 
-#### Remediation
+#### Resolution Implemented
+Updated `config/packages/nelmio_cors.yaml` with secure configuration:
+
 ```yaml
-paths:
-    '^/api/':
-        allow_origin: ['^https?://(localhost|127\.0\.0\.1|yourdomain\.com)(:[0-9]+)?$']
-        allow_methods: [POST, PUT, GET, DELETE, PATCH, OPTIONS]
+nelmio_cors:
+    defaults:
+        origin_regex: true
+        allow_origin: ['%env(CORS_ALLOW_ORIGIN)%']
+        allow_methods: ['GET', 'OPTIONS', 'POST', 'PUT', 'PATCH', 'DELETE']
         allow_headers: ['Content-Type', 'Authorization', 'X-API-Key']
         expose_headers: ['Link', 'X-RateLimit-Remaining', 'X-Request-ID']
         max_age: 3600
+    paths:
+        '^/api/':
+            allow_origin: ['%env(CORS_ALLOW_ORIGIN)%']
+            allow_headers: ['Content-Type', 'Authorization', 'X-API-Key']
+            allow_methods: ['POST', 'PUT', 'GET', 'DELETE', 'PATCH', 'OPTIONS']
+            expose_headers: ['Link', 'X-RateLimit-Remaining', 'X-Request-ID']
+            max_age: 3600
 ```
+
+**Key Changes:**
+1. ✅ `allow_origin: ['*']` replaced with `'%env(CORS_ALLOW_ORIGIN)%'` - uses environment variable
+2. ✅ `allow_headers: ['*']` replaced with explicit list: `['Content-Type', 'Authorization', 'X-API-Key']`
+3. ✅ Added `X-API-Key` to both defaults and paths sections (required for API authentication)
+4. ✅ Added `expose_headers` for rate limiting and request tracking headers
+
+**Configuration:**
+- The `CORS_ALLOW_ORIGIN` environment variable controls allowed origins
+- Default value (from `.env`): `'^https?://(localhost|127\.0\.0\.1)(:[0-9]+)?$'`
+- Production deployments should set this to their specific domain(s)
 
 ---
 
@@ -801,7 +837,7 @@ class UndoOperationDispatcher {
 | Access Control | MET | OwnershipChecker |
 | Session Security | PARTIAL | Enable HTTPS + SameSite=strict |
 | Rate Limiting | MET | 5/min login, 1000/hr API |
-| Secret Management | NOT MET | Remove from git history |
+| Secret Management | PARTIAL | ✅ Files removed from tracking; git history cleanup pending |
 
 ---
 
@@ -829,8 +865,8 @@ class UndoOperationDispatcher {
 ## 8. IMPLEMENTATION PRIORITY
 
 ### Week 1: Critical Security
-1. Remove secrets from git history (BFG Repo-Cleaner)
-2. Fix CORS configuration
+1. ~~Remove secrets from git history (BFG Repo-Cleaner)~~ ✅ PARTIAL: Files untracked; history cleanup pending
+2. ~~Fix CORS configuration~~ ✅ COMPLETED (2026-01-24)
 3. Configure HTTPS with valid certificate
 4. Add security headers
 
