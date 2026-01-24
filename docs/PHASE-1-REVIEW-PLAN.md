@@ -373,10 +373,11 @@ Split into focused services:
 
 ---
 
-### 2.8 Peek-Then-Consume Race Condition
+### 2.8 Peek-Then-Consume Race Condition ✅ FIXED
 
 **Category:** Code Quality
 **File:** `src/Service/ProjectService.php:307-326`
+**Status:** RESOLVED
 
 #### Issue
 ```php
@@ -388,8 +389,25 @@ $consumedToken = $this->undoService->consumeUndoToken($user->getId(), $token);
 
 Between peek and consume, token could be consumed by concurrent request.
 
-#### Remediation
-Modify `consumeUndoToken()` to return both token data and success flag in atomic operation using Redis `WATCH`/`MULTI`.
+#### Remediation Applied
+1. **Added atomic `getJsonAndDelete()` to `RedisService`** (`src/Service/RedisService.php:269-324`):
+   - Uses Lua script to atomically GET and DEL in a single operation
+   - Ensures only one consumer can successfully retrieve the value
+   - Prevents race conditions at the Redis level
+
+2. **Updated `UndoService.consumeUndoToken()`** (`src/Service/UndoService.php:135-187`):
+   - Now uses `getJsonAndDelete()` for atomic consumption
+   - Removes separate get-then-delete pattern
+   - Handles expiration check after atomic retrieval
+
+3. **Refactored `ProjectService.undo()`** (`src/Service/ProjectService.php:307-360`):
+   - Changed from peek-then-consume to consume-then-validate pattern
+   - Token is atomically consumed first, then entity type is validated
+   - Eliminates race window between peek and consume
+
+4. **Updated unit tests**:
+   - `tests/Unit/Service/UndoServiceTest.php`: Updated to mock `getJsonAndDelete()`
+   - `tests/Unit/Service/ProjectServiceTest.php`: Removed `getUndoToken` expectations
 
 ---
 
