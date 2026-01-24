@@ -117,13 +117,14 @@ window.projectDragDrop = {
                 if (treeComponent) {
                     await treeComponent.refreshTree();
                 }
+                window.showToast('Project moved successfully', 'success');
             } else {
                 const data = await response.json();
-                alert(data.error?.message || 'Failed to move project');
+                window.showToast(data.error?.message || 'Failed to move project', 'error');
             }
         } catch (error) {
             console.error('Failed to move project:', error);
-            alert('Failed to move project');
+            window.showToast('Failed to move project', 'error');
         }
 
         this.reset();

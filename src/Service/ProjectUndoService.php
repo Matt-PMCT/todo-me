@@ -13,6 +13,7 @@ use App\Exception\InvalidUndoTokenException;
 use App\Repository\ProjectRepository;
 use App\ValueObject\UndoToken;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\Uid\Uuid;
 
 /**
  * Service for project undo operations.
@@ -29,6 +30,7 @@ final class ProjectUndoService
         private readonly ProjectRepository $projectRepository,
         private readonly ProjectStateService $projectStateService,
         private readonly EntityManagerInterface $entityManager,
+        private readonly ProjectCacheService $projectCacheService,
     ) {
     }
 
@@ -135,17 +137,7 @@ final class ProjectUndoService
      */
     public function undo(User $user, string $token): array
     {
-        // Atomically consume the token first to prevent race conditions
-        $undoToken = $this->undoService->consumeUndoToken($user->getId() ?? '', $token);
-
-        if ($undoToken === null) {
-            throw InvalidUndoTokenException::expired();
-        }
-
-        // Validate entity type after consumption
-        if ($undoToken->entityType !== self::ENTITY_TYPE) {
-            throw InvalidUndoTokenException::wrongEntityType(self::ENTITY_TYPE, $undoToken->entityType);
-        }
+        $undoToken = $this->consumeAndValidateToken($user, $token);
 
         $warning = null;
 
@@ -184,19 +176,7 @@ final class ProjectUndoService
      */
     public function undoArchive(User $user, string $token): Project
     {
-        $undoToken = $this->undoService->consumeUndoToken($user->getId() ?? '', $token);
-
-        if ($undoToken === null) {
-            throw InvalidUndoTokenException::expired();
-        }
-
-        if ($undoToken->entityType !== self::ENTITY_TYPE) {
-            throw InvalidUndoTokenException::wrongEntityType(self::ENTITY_TYPE, $undoToken->entityType);
-        }
-
-        if ($undoToken->action !== UndoAction::ARCHIVE->value) {
-            throw InvalidUndoTokenException::wrongActionType('archive');
-        }
+        $undoToken = $this->consumeAndValidateToken($user, $token, UndoAction::ARCHIVE->value);
 
         return $this->performUndoExisting($user, $undoToken);
     }
@@ -212,19 +192,7 @@ final class ProjectUndoService
      */
     public function undoDelete(User $user, string $token): Project
     {
-        $undoToken = $this->undoService->consumeUndoToken($user->getId() ?? '', $token);
-
-        if ($undoToken === null) {
-            throw InvalidUndoTokenException::expired();
-        }
-
-        if ($undoToken->entityType !== self::ENTITY_TYPE) {
-            throw InvalidUndoTokenException::wrongEntityType(self::ENTITY_TYPE, $undoToken->entityType);
-        }
-
-        if ($undoToken->action !== UndoAction::DELETE->value) {
-            throw InvalidUndoTokenException::wrongActionType('delete');
-        }
+        $undoToken = $this->consumeAndValidateToken($user, $token, UndoAction::DELETE->value);
 
         return $this->performUndoDelete($user, $undoToken);
     }
@@ -240,6 +208,25 @@ final class ProjectUndoService
      */
     public function undoUpdate(User $user, string $token): Project
     {
+        $undoToken = $this->consumeAndValidateToken($user, $token, UndoAction::UPDATE->value);
+
+        return $this->performUndoExisting($user, $undoToken);
+    }
+
+    /**
+     * Consumes and validates an undo token.
+     *
+     * Atomically consumes the token first to prevent race conditions, then validates
+     * the entity type and optionally the action type.
+     *
+     * @param User $user The user performing the undo
+     * @param string $token The undo token string
+     * @param string|null $expectedAction The expected action type, or null to skip action validation
+     * @return UndoToken The validated undo token
+     * @throws InvalidUndoTokenException If the token is invalid, expired, or has wrong type
+     */
+    private function consumeAndValidateToken(User $user, string $token, ?string $expectedAction = null): UndoToken
+    {
         $undoToken = $this->undoService->consumeUndoToken($user->getId() ?? '', $token);
 
         if ($undoToken === null) {
@@ -250,11 +237,11 @@ final class ProjectUndoService
             throw InvalidUndoTokenException::wrongEntityType(self::ENTITY_TYPE, $undoToken->entityType);
         }
 
-        if ($undoToken->action !== UndoAction::UPDATE->value) {
-            throw InvalidUndoTokenException::wrongActionType('update');
+        if ($expectedAction !== null && $undoToken->action !== $expectedAction) {
+            throw InvalidUndoTokenException::wrongActionType($expectedAction);
         }
 
-        return $this->performUndoExisting($user, $undoToken);
+        return $undoToken;
     }
 
     /**
@@ -270,6 +257,8 @@ final class ProjectUndoService
 
         $this->projectStateService->applyStateToProject($project, $undoToken->previousState);
         $this->entityManager->flush();
+
+        $this->invalidateCacheForUser($user);
 
         return $project;
     }
@@ -296,7 +285,20 @@ final class ProjectUndoService
         $project->restore();
         $this->entityManager->flush();
 
+        $this->invalidateCacheForUser($user);
+
         return $project;
+    }
+
+    /**
+     * Invalidates the project cache for a user.
+     */
+    private function invalidateCacheForUser(User $user): void
+    {
+        $userId = $user->getId();
+        if ($userId instanceof Uuid) {
+            $this->projectCacheService->invalidate($userId->toRfc4122());
+        }
     }
 
     /**

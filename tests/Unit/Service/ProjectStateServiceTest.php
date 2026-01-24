@@ -9,6 +9,7 @@ use App\Repository\ProjectRepository;
 use App\Service\ProjectStateService;
 use App\Tests\Unit\UnitTestCase;
 use PHPUnit\Framework\MockObject\MockObject;
+use Psr\Log\LoggerInterface;
 
 class ProjectStateServiceTest extends UnitTestCase
 {
@@ -18,7 +19,8 @@ class ProjectStateServiceTest extends UnitTestCase
     protected function setUp(): void
     {
         $this->projectRepository = $this->createMock(ProjectRepository::class);
-        $this->service = new ProjectStateService($this->projectRepository);
+        $logger = $this->createMock(LoggerInterface::class);
+        $this->service = new ProjectStateService($this->projectRepository, $logger);
     }
 
     public function testSerializeProjectStateWithMinimalProject(): void

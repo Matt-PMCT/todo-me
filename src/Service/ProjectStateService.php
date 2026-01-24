@@ -6,6 +6,7 @@ namespace App\Service;
 
 use App\Entity\Project;
 use App\Repository\ProjectRepository;
+use Psr\Log\LoggerInterface;
 
 /**
  * Service for project state serialization and deserialization.
@@ -19,6 +20,7 @@ final class ProjectStateService
 {
     public function __construct(
         private readonly ProjectRepository $projectRepository,
+        private readonly LoggerInterface $logger,
     ) {
     }
     /**
@@ -97,9 +99,20 @@ final class ProjectStateService
             if ($state['parentId'] === null) {
                 $project->setParent(null);
             } else {
-                $parent = $this->projectRepository->find($state['parentId']);
-                if ($parent !== null) {
+                $parent = $this->projectRepository->findOneByOwnerAndId(
+                    $project->getOwner(),
+                    $state['parentId']
+                );
+                if ($parent !== null && !$parent->isDeleted() && !$parent->isArchived()) {
                     $project->setParent($parent);
+                } else {
+                    $this->logger->warning('Cannot restore parent project during undo: parent not found, deleted, or archived', [
+                        'projectId' => $project->getId(),
+                        'parentId' => $state['parentId'],
+                        'parentExists' => $parent !== null,
+                        'parentDeleted' => $parent?->isDeleted(),
+                        'parentArchived' => $parent?->isArchived(),
+                    ]);
                 }
             }
         }

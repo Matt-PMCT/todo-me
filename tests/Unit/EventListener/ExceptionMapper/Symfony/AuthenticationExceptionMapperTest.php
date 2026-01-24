@@ -95,7 +95,7 @@ class AuthenticationExceptionMapperTest extends TestCase
 
         $mapping = $this->mapper->map($exception);
 
-        $this->assertNull($mapping->details);
+        $this->assertEmpty($mapping->details);
     }
 
     public function testPriorityIs75(): void
