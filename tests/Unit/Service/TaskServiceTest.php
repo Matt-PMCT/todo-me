@@ -6,60 +6,81 @@ namespace App\Tests\Unit\Service;
 
 use App\DTO\CreateTaskRequest;
 use App\DTO\UpdateTaskRequest;
-use App\Entity\Project;
 use App\Entity\Task;
-use App\Entity\User;
-use App\Enum\UndoAction;
 use App\Exception\EntityNotFoundException;
 use App\Exception\ForbiddenException;
-use App\Exception\ValidationException;
 use App\Repository\ProjectRepository;
 use App\Repository\TagRepository;
 use App\Repository\TaskRepository;
 use App\Service\OwnershipChecker;
 use App\Service\Parser\NaturalLanguageParserService;
 use App\Service\TaskService;
-use App\Service\UndoService;
+use App\Service\TaskStateService;
+use App\Service\TaskUndoService;
 use App\Service\ValidationHelper;
 use App\Tests\Unit\UnitTestCase;
 use App\ValueObject\UndoToken;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\MockObject\MockObject;
+use Symfony\Component\Validator\Validation;
 
+/**
+ * Unit tests for TaskService.
+ *
+ * Uses real ValidationHelper to improve test reliability. Infrastructure
+ * dependencies (repositories, EntityManager) remain mocked. TaskStateService
+ * and TaskUndoService are mocked as they have their own dedicated tests.
+ */
 class TaskServiceTest extends UnitTestCase
 {
     private TaskRepository&MockObject $taskRepository;
     private ProjectRepository&MockObject $projectRepository;
     private TagRepository&MockObject $tagRepository;
     private EntityManagerInterface&MockObject $entityManager;
-    private UndoService&MockObject $undoService;
-    private ValidationHelper&MockObject $validationHelper;
+    private ValidationHelper $validationHelper;
     private OwnershipChecker&MockObject $ownershipChecker;
     private NaturalLanguageParserService&MockObject $naturalLanguageParser;
+    private TaskStateService&MockObject $taskStateService;
+    private TaskUndoService&MockObject $taskUndoService;
     private TaskService $taskService;
 
     protected function setUp(): void
     {
         parent::setUp();
 
+        // Infrastructure mocks
         $this->taskRepository = $this->createMock(TaskRepository::class);
         $this->projectRepository = $this->createMock(ProjectRepository::class);
         $this->tagRepository = $this->createMock(TagRepository::class);
         $this->entityManager = $this->createMock(EntityManagerInterface::class);
-        $this->undoService = $this->createMock(UndoService::class);
-        $this->validationHelper = $this->createMock(ValidationHelper::class);
+
+        // Use REAL ValidationHelper with real Symfony Validator
+        // This improves test reliability - validation changes are now caught
+        $validator = Validation::createValidatorBuilder()
+            ->enableAttributeMapping()
+            ->getValidator();
+        $this->validationHelper = new ValidationHelper($validator);
+
+        // OwnershipChecker requires Security which needs request context - keep mocked
         $this->ownershipChecker = $this->createMock(OwnershipChecker::class);
+
+        // NaturalLanguageParser has complex dependencies - keep mocked
         $this->naturalLanguageParser = $this->createMock(NaturalLanguageParserService::class);
+
+        // TaskStateService and TaskUndoService are tested separately - mock them
+        $this->taskStateService = $this->createMock(TaskStateService::class);
+        $this->taskUndoService = $this->createMock(TaskUndoService::class);
 
         $this->taskService = new TaskService(
             $this->taskRepository,
             $this->projectRepository,
             $this->tagRepository,
             $this->entityManager,
-            $this->undoService,
             $this->validationHelper,
             $this->ownershipChecker,
             $this->naturalLanguageParser,
+            $this->taskStateService,
+            $this->taskUndoService,
         );
     }
 
@@ -73,18 +94,6 @@ class TaskServiceTest extends UnitTestCase
         $dto = new CreateTaskRequest(
             title: 'Test Task',
         );
-
-        $this->validationHelper->expects($this->once())
-            ->method('validate')
-            ->with($dto);
-
-        $this->validationHelper->expects($this->once())
-            ->method('validateTaskStatus')
-            ->with(Task::STATUS_PENDING);
-
-        $this->validationHelper->expects($this->once())
-            ->method('validateTaskPriority')
-            ->with(Task::PRIORITY_DEFAULT);
 
         $this->taskRepository->expects($this->once())
             ->method('getMaxPosition')
@@ -121,18 +130,6 @@ class TaskServiceTest extends UnitTestCase
             dueDate: '2024-12-31',
             projectId: 'project-123',
         );
-
-        $this->validationHelper->expects($this->once())
-            ->method('validate')
-            ->with($dto);
-
-        $this->validationHelper->expects($this->once())
-            ->method('validateTaskStatus')
-            ->with(Task::STATUS_IN_PROGRESS);
-
-        $this->validationHelper->expects($this->once())
-            ->method('validateTaskPriority')
-            ->with(4);
 
         $this->projectRepository->expects($this->once())
             ->method('find')
@@ -173,10 +170,6 @@ class TaskServiceTest extends UnitTestCase
             projectId: 'non-existent-project',
         );
 
-        $this->validationHelper->method('validate');
-        $this->validationHelper->method('validateTaskStatus');
-        $this->validationHelper->method('validateTaskPriority');
-
         $this->projectRepository->expects($this->once())
             ->method('find')
             ->with('non-existent-project')
@@ -197,10 +190,6 @@ class TaskServiceTest extends UnitTestCase
             projectId: 'project-123',
         );
 
-        $this->validationHelper->method('validate');
-        $this->validationHelper->method('validateTaskStatus');
-        $this->validationHelper->method('validateTaskPriority');
-
         $this->projectRepository->expects($this->once())
             ->method('find')
             ->with('project-123')
@@ -219,10 +208,6 @@ class TaskServiceTest extends UnitTestCase
     {
         $user = $this->createUserWithId();
         $dto = new CreateTaskRequest(title: 'Task');
-
-        $this->validationHelper->method('validate');
-        $this->validationHelper->method('validateTaskStatus');
-        $this->validationHelper->method('validateTaskPriority');
 
         $this->taskRepository->expects($this->once())
             ->method('getMaxPosition')
@@ -248,28 +233,15 @@ class TaskServiceTest extends UnitTestCase
 
         $dto = new UpdateTaskRequest(title: 'Updated Title');
 
-        $undoToken = UndoToken::create(
-            action: UndoAction::UPDATE->value,
-            entityType: 'task',
-            entityId: 'task-123',
-            previousState: [],
-            userId: 'user-123',
-        );
+        $this->taskStateService->expects($this->once())
+            ->method('serializeTaskState')
+            ->with($task)
+            ->willReturn(['title' => 'Original Title']);
 
-        $this->validationHelper->expects($this->once())
-            ->method('validate')
-            ->with($dto);
-
-        $this->undoService->expects($this->once())
-            ->method('createUndoToken')
-            ->with(
-                'user-123',
-                UndoAction::UPDATE->value,
-                'task',
-                'task-123',
-                $this->isType('array')
-            )
-            ->willReturn($undoToken);
+        $this->taskUndoService->expects($this->once())
+            ->method('createUpdateUndoToken')
+            ->with($task, ['title' => 'Original Title'])
+            ->willReturn('undo-token-123');
 
         $this->entityManager->expects($this->once())
             ->method('flush');
@@ -278,7 +250,7 @@ class TaskServiceTest extends UnitTestCase
 
         $this->assertArrayHasKey('task', $result);
         $this->assertArrayHasKey('undoToken', $result);
-        $this->assertEquals($undoToken->token, $result['undoToken']);
+        $this->assertEquals('undo-token-123', $result['undoToken']);
     }
 
     public function testUpdateTaskModifiesTitle(): void
@@ -288,8 +260,8 @@ class TaskServiceTest extends UnitTestCase
 
         $dto = new UpdateTaskRequest(title: 'Updated Title');
 
-        $this->validationHelper->method('validate');
-        $this->undoService->method('createUndoToken');
+        $this->taskStateService->method('serializeTaskState')->willReturn([]);
+        $this->taskUndoService->method('createUpdateUndoToken')->willReturn(null);
         $this->entityManager->method('flush');
 
         $result = $this->taskService->update($task, $dto);
@@ -305,8 +277,8 @@ class TaskServiceTest extends UnitTestCase
 
         $dto = new UpdateTaskRequest(description: 'New Description');
 
-        $this->validationHelper->method('validate');
-        $this->undoService->method('createUndoToken');
+        $this->taskStateService->method('serializeTaskState')->willReturn([]);
+        $this->taskUndoService->method('createUpdateUndoToken')->willReturn(null);
         $this->entityManager->method('flush');
 
         $result = $this->taskService->update($task, $dto);
@@ -322,8 +294,8 @@ class TaskServiceTest extends UnitTestCase
 
         $dto = new UpdateTaskRequest(clearDescription: true);
 
-        $this->validationHelper->method('validate');
-        $this->undoService->method('createUndoToken');
+        $this->taskStateService->method('serializeTaskState')->willReturn([]);
+        $this->taskUndoService->method('createUpdateUndoToken')->willReturn(null);
         $this->entityManager->method('flush');
 
         $result = $this->taskService->update($task, $dto);
@@ -338,18 +310,13 @@ class TaskServiceTest extends UnitTestCase
 
         $dto = new UpdateTaskRequest(status: Task::STATUS_COMPLETED);
 
-        $this->validationHelper->expects($this->once())
-            ->method('validate')
-            ->with($dto);
-
-        $this->validationHelper->expects($this->once())
-            ->method('validateTaskStatus')
-            ->with(Task::STATUS_COMPLETED);
-
-        $this->undoService->method('createUndoToken');
+        $this->taskStateService->method('serializeTaskState')->willReturn([]);
+        $this->taskUndoService->method('createUpdateUndoToken')->willReturn(null);
         $this->entityManager->method('flush');
 
-        $this->taskService->update($task, $dto);
+        $result = $this->taskService->update($task, $dto);
+
+        $this->assertEquals(Task::STATUS_COMPLETED, $result['task']->getStatus());
     }
 
     public function testUpdateTaskValidatesPriority(): void
@@ -359,18 +326,13 @@ class TaskServiceTest extends UnitTestCase
 
         $dto = new UpdateTaskRequest(priority: 4);
 
-        $this->validationHelper->expects($this->once())
-            ->method('validate')
-            ->with($dto);
-
-        $this->validationHelper->expects($this->once())
-            ->method('validateTaskPriority')
-            ->with(4);
-
-        $this->undoService->method('createUndoToken');
+        $this->taskStateService->method('serializeTaskState')->willReturn([]);
+        $this->taskUndoService->method('createUpdateUndoToken')->willReturn(null);
         $this->entityManager->method('flush');
 
-        $this->taskService->update($task, $dto);
+        $result = $this->taskService->update($task, $dto);
+
+        $this->assertEquals(4, $result['task']->getPriority());
     }
 
     // ========================================
@@ -383,22 +345,16 @@ class TaskServiceTest extends UnitTestCase
         $task = $this->createTaskWithId('task-123', $user);
 
         $undoToken = UndoToken::create(
-            action: UndoAction::DELETE->value,
+            action: 'delete',
             entityType: 'task',
             entityId: 'task-123',
             previousState: [],
             userId: 'user-123',
         );
 
-        $this->undoService->expects($this->once())
-            ->method('createUndoToken')
-            ->with(
-                'user-123',
-                UndoAction::DELETE->value,
-                'task',
-                'task-123',
-                $this->isType('array')
-            )
+        $this->taskUndoService->expects($this->once())
+            ->method('createDeleteUndoToken')
+            ->with($task)
             ->willReturn($undoToken);
 
         $this->entityManager->expects($this->once())
@@ -418,7 +374,7 @@ class TaskServiceTest extends UnitTestCase
         $user = $this->createUserWithId();
         $task = $this->createTaskWithId('task-123', $user);
 
-        $this->undoService->method('createUndoToken');
+        $this->taskUndoService->method('createDeleteUndoToken')->willReturn(null);
 
         $this->entityManager->expects($this->once())
             ->method('remove')
@@ -439,14 +395,14 @@ class TaskServiceTest extends UnitTestCase
         $user = $this->createUserWithId();
         $task = $this->createTaskWithId('task-123', $user);
 
-        $this->validationHelper->expects($this->once())
-            ->method('validateTaskStatus')
-            ->with(Task::STATUS_COMPLETED);
-
-        $this->undoService->method('createUndoToken');
+        $this->taskStateService->method('serializeStatusState')->willReturn([]);
+        $this->taskUndoService->method('createStatusChangeUndoToken')->willReturn(null);
         $this->entityManager->method('flush');
 
-        $this->taskService->changeStatus($task, Task::STATUS_COMPLETED);
+        // Real validation helper is used - will validate the status
+        $result = $this->taskService->changeStatus($task, Task::STATUS_COMPLETED);
+
+        $this->assertEquals(Task::STATUS_COMPLETED, $result['task']->getStatus());
     }
 
     public function testChangeStatusCreatesUndoToken(): void
@@ -454,33 +410,22 @@ class TaskServiceTest extends UnitTestCase
         $user = $this->createUserWithId();
         $task = $this->createTaskWithId('task-123', $user);
 
-        $undoToken = UndoToken::create(
-            action: UndoAction::STATUS_CHANGE->value,
-            entityType: 'task',
-            entityId: 'task-123',
-            previousState: [],
-            userId: 'user-123',
-        );
+        $this->taskStateService->expects($this->once())
+            ->method('serializeStatusState')
+            ->with($task)
+            ->willReturn(['status' => Task::STATUS_PENDING]);
 
-        $this->validationHelper->method('validateTaskStatus');
-
-        $this->undoService->expects($this->once())
-            ->method('createUndoToken')
-            ->with(
-                'user-123',
-                UndoAction::STATUS_CHANGE->value,
-                'task',
-                'task-123',
-                $this->isType('array')
-            )
-            ->willReturn($undoToken);
+        $this->taskUndoService->expects($this->once())
+            ->method('createStatusChangeUndoToken')
+            ->with($task, ['status' => Task::STATUS_PENDING])
+            ->willReturn('undo-token-status');
 
         $this->entityManager->method('flush');
 
         $result = $this->taskService->changeStatus($task, Task::STATUS_COMPLETED);
 
         $this->assertArrayHasKey('undoToken', $result);
-        $this->assertEquals($undoToken->token, $result['undoToken']);
+        $this->assertEquals('undo-token-status', $result['undoToken']);
     }
 
     public function testChangeStatusSetsCompletedAtWhenChangingToCompleted(): void
@@ -488,8 +433,8 @@ class TaskServiceTest extends UnitTestCase
         $user = $this->createUserWithId();
         $task = $this->createTaskWithId('task-123', $user);
 
-        $this->validationHelper->method('validateTaskStatus');
-        $this->undoService->method('createUndoToken');
+        $this->taskStateService->method('serializeStatusState')->willReturn([]);
+        $this->taskUndoService->method('createStatusChangeUndoToken')->willReturn(null);
         $this->entityManager->method('flush');
 
         $result = $this->taskService->changeStatus($task, Task::STATUS_COMPLETED);
@@ -499,175 +444,52 @@ class TaskServiceTest extends UnitTestCase
     }
 
     // ========================================
-    // Undo Delete Tests
+    // Undo Tests (Delegated to TaskUndoService)
     // ========================================
 
-    public function testUndoDeleteRestoresTask(): void
+    public function testUndoDeleteDelegatesToTaskUndoService(): void
     {
         $user = $this->createUserWithId();
+        $restoredTask = $this->createTaskWithId('task-123', $user, 'Restored Task');
 
-        $undoToken = UndoToken::create(
-            action: UndoAction::DELETE->value,
-            entityType: 'task',
-            entityId: 'task-123',
-            previousState: [
-                'id' => 'task-123',
-                'title' => 'Deleted Task',
-                'description' => 'Task description',
-                'status' => Task::STATUS_PENDING,
-                'priority' => 3,
-                'position' => 1,
-                'projectId' => null,
-                'tagIds' => [],
-                'createdAt' => '2024-01-01T00:00:00+00:00',
-                'completedAt' => null,
-            ],
-            userId: 'user-123',
-        );
+        $this->taskUndoService->expects($this->once())
+            ->method('undoDelete')
+            ->with($user, 'undo-token')
+            ->willReturn($restoredTask);
 
-        $this->undoService->expects($this->once())
-            ->method('consumeUndoToken')
-            ->with('user-123', $undoToken->token)
-            ->willReturn($undoToken);
+        $result = $this->taskService->undoDelete($user, 'undo-token');
 
-        $this->entityManager->expects($this->once())
-            ->method('persist')
-            ->with($this->isInstanceOf(Task::class));
-
-        $this->entityManager->expects($this->once())
-            ->method('flush');
-
-        $task = $this->taskService->undoDelete($user, $undoToken->token);
-
-        $this->assertEquals('Deleted Task', $task->getTitle());
-        $this->assertSame($user, $task->getOwner());
+        $this->assertSame($restoredTask, $result);
     }
 
-    public function testUndoDeleteWithInvalidTokenThrowsException(): void
+    public function testUndoUpdateDelegatesToTaskUndoService(): void
     {
         $user = $this->createUserWithId();
+        $restoredTask = $this->createTaskWithId('task-123', $user, 'Restored Task');
 
-        $this->undoService->expects($this->once())
-            ->method('consumeUndoToken')
-            ->with('user-123', 'invalid-token')
-            ->willReturn(null);
+        $this->taskUndoService->expects($this->once())
+            ->method('undoUpdate')
+            ->with($user, 'undo-token')
+            ->willReturn($restoredTask);
 
-        $this->expectException(ValidationException::class);
-        $this->taskService->undoDelete($user, 'invalid-token');
+        $result = $this->taskService->undoUpdate($user, 'undo-token');
+
+        $this->assertSame($restoredTask, $result);
     }
 
-    public function testUndoDeleteWithWrongActionTypeThrowsException(): void
+    public function testUndoDelegatesToTaskUndoService(): void
     {
         $user = $this->createUserWithId();
+        $restoredTask = $this->createTaskWithId('task-123', $user, 'Restored Task');
 
-        $undoToken = UndoToken::create(
-            action: UndoAction::UPDATE->value,
-            entityType: 'task',
-            entityId: 'task-123',
-            previousState: [],
-            userId: 'user-123',
-        );
+        $this->taskUndoService->expects($this->once())
+            ->method('undo')
+            ->with($user, 'undo-token')
+            ->willReturn($restoredTask);
 
-        $this->undoService->expects($this->once())
-            ->method('consumeUndoToken')
-            ->with('user-123', $undoToken->token)
-            ->willReturn($undoToken);
+        $result = $this->taskService->undo($user, 'undo-token');
 
-        $this->expectException(ValidationException::class);
-        $this->taskService->undoDelete($user, $undoToken->token);
-    }
-
-    public function testUndoDeleteWithWrongEntityTypeThrowsException(): void
-    {
-        $user = $this->createUserWithId();
-
-        $undoToken = UndoToken::create(
-            action: UndoAction::DELETE->value,
-            entityType: 'project',
-            entityId: 'project-123',
-            previousState: [],
-            userId: 'user-123',
-        );
-
-        $this->undoService->expects($this->once())
-            ->method('consumeUndoToken')
-            ->with('user-123', $undoToken->token)
-            ->willReturn($undoToken);
-
-        $this->expectException(ValidationException::class);
-        $this->taskService->undoDelete($user, $undoToken->token);
-    }
-
-    // ========================================
-    // Undo Update Tests
-    // ========================================
-
-    public function testUndoUpdateRestoresPreviousState(): void
-    {
-        $user = $this->createUserWithId();
-        $task = $this->createTaskWithId('task-123', $user, 'Current Title');
-
-        $undoToken = UndoToken::create(
-            action: UndoAction::UPDATE->value,
-            entityType: 'task',
-            entityId: 'task-123',
-            previousState: [
-                'title' => 'Previous Title',
-                'description' => 'Previous Description',
-                'status' => Task::STATUS_PENDING,
-                'priority' => 2,
-            ],
-            userId: 'user-123',
-        );
-
-        $this->undoService->expects($this->once())
-            ->method('consumeUndoToken')
-            ->with('user-123', $undoToken->token)
-            ->willReturn($undoToken);
-
-        $this->taskRepository->expects($this->once())
-            ->method('find')
-            ->with('task-123')
-            ->willReturn($task);
-
-        $this->ownershipChecker->expects($this->once())
-            ->method('checkOwnership')
-            ->with($task);
-
-        $this->entityManager->expects($this->once())
-            ->method('flush');
-
-        $result = $this->taskService->undoUpdate($user, $undoToken->token);
-
-        $this->assertEquals('Previous Title', $result->getTitle());
-        $this->assertEquals('Previous Description', $result->getDescription());
-        $this->assertEquals(2, $result->getPriority());
-    }
-
-    public function testUndoUpdateWithMissingTaskThrowsException(): void
-    {
-        $user = $this->createUserWithId();
-
-        $undoToken = UndoToken::create(
-            action: UndoAction::UPDATE->value,
-            entityType: 'task',
-            entityId: 'non-existent-task',
-            previousState: [],
-            userId: 'user-123',
-        );
-
-        $this->undoService->expects($this->once())
-            ->method('consumeUndoToken')
-            ->with('user-123', $undoToken->token)
-            ->willReturn($undoToken);
-
-        $this->taskRepository->expects($this->once())
-            ->method('find')
-            ->with('non-existent-task')
-            ->willReturn(null);
-
-        $this->expectException(EntityNotFoundException::class);
-        $this->taskService->undoUpdate($user, $undoToken->token);
+        $this->assertSame($restoredTask, $result);
     }
 
     // ========================================
@@ -725,108 +547,5 @@ class TaskServiceTest extends UnitTestCase
 
         $this->expectException(ForbiddenException::class);
         $this->taskService->findByIdOrFail('task-123', $user);
-    }
-
-    // ========================================
-    // Generic Undo Tests
-    // ========================================
-
-    public function testUndoHandlesDeleteAction(): void
-    {
-        $user = $this->createUserWithId();
-
-        $undoToken = UndoToken::create(
-            action: UndoAction::DELETE->value,
-            entityType: 'task',
-            entityId: 'task-123',
-            previousState: [
-                'id' => 'task-123',
-                'title' => 'Deleted Task',
-                'status' => Task::STATUS_PENDING,
-                'priority' => 3,
-                'position' => 1,
-                'createdAt' => '2024-01-01T00:00:00+00:00',
-            ],
-            userId: 'user-123',
-        );
-
-        $this->undoService->expects($this->once())
-            ->method('consumeUndoToken')
-            ->with('user-123', $undoToken->token)
-            ->willReturn($undoToken);
-
-        $this->entityManager->method('persist');
-        $this->entityManager->method('flush');
-
-        $task = $this->taskService->undo($user, $undoToken->token);
-
-        $this->assertEquals('Deleted Task', $task->getTitle());
-    }
-
-    public function testUndoHandlesUpdateAction(): void
-    {
-        $user = $this->createUserWithId();
-        $task = $this->createTaskWithId('task-123', $user);
-
-        $undoToken = UndoToken::create(
-            action: UndoAction::UPDATE->value,
-            entityType: 'task',
-            entityId: 'task-123',
-            previousState: [
-                'title' => 'Previous Title',
-            ],
-            userId: 'user-123',
-        );
-
-        $this->undoService->expects($this->once())
-            ->method('consumeUndoToken')
-            ->with('user-123', $undoToken->token)
-            ->willReturn($undoToken);
-
-        $this->taskRepository->expects($this->once())
-            ->method('find')
-            ->with('task-123')
-            ->willReturn($task);
-
-        $this->ownershipChecker->method('checkOwnership');
-        $this->entityManager->method('flush');
-
-        $result = $this->taskService->undo($user, $undoToken->token);
-
-        $this->assertEquals('Previous Title', $result->getTitle());
-    }
-
-    public function testUndoWithInvalidTokenThrowsException(): void
-    {
-        $user = $this->createUserWithId();
-
-        $this->undoService->expects($this->once())
-            ->method('consumeUndoToken')
-            ->with('user-123', 'invalid')
-            ->willReturn(null);
-
-        $this->expectException(ValidationException::class);
-        $this->taskService->undo($user, 'invalid');
-    }
-
-    public function testUndoWithWrongEntityTypeThrowsException(): void
-    {
-        $user = $this->createUserWithId();
-
-        $undoToken = UndoToken::create(
-            action: UndoAction::DELETE->value,
-            entityType: 'project',
-            entityId: 'project-123',
-            previousState: [],
-            userId: 'user-123',
-        );
-
-        $this->undoService->expects($this->once())
-            ->method('consumeUndoToken')
-            ->with('user-123', $undoToken->token)
-            ->willReturn($undoToken);
-
-        $this->expectException(ValidationException::class);
-        $this->taskService->undo($user, $undoToken->token);
     }
 }
