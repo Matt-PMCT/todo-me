@@ -42,11 +42,13 @@ class TaskListController extends AbstractController
         $status = $request->query->get('status');
         $priority = $request->query->get('priority');
         $projectId = $request->query->get('projectId');
+        $isRecurring = $request->query->get('isRecurring');
 
         $filters = [
             'status' => $status ?: null,
             'priority' => $priority ? (int) $priority : null,
             'projectId' => $projectId ?: null,
+            'isRecurring' => $isRecurring !== null && $isRecurring !== '' ? (bool) (int) $isRecurring : null,
         ];
 
         // Get tasks with filters

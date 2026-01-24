@@ -491,6 +491,23 @@ class TaskRepository extends ServiceEntityRepository
                 ->setParameter('completedStatus', Task::STATUS_COMPLETED);
         }
 
+        // Apply isRecurring filter
+        if ($filterRequest->isRecurring !== null) {
+            $qb->andWhere('t.isRecurring = :isRecurring')
+                ->setParameter('isRecurring', $filterRequest->isRecurring);
+        }
+
+        // Apply originalTaskId filter (for recurring task chains)
+        if ($filterRequest->originalTaskId !== null) {
+            $qb->andWhere(
+                $qb->expr()->orX(
+                    $qb->expr()->eq('t.id', ':originalTaskId'),
+                    $qb->expr()->eq('t.originalTask', ':originalTaskId')
+                )
+            )
+                ->setParameter('originalTaskId', $filterRequest->originalTaskId);
+        }
+
         // Apply sorting
         $this->applySorting($qb, $sortRequest);
 
@@ -714,6 +731,69 @@ class TaskRepository extends ServiceEntityRepository
             ->setMaxResults($limit)
             ->getQuery()
             ->getResult();
+    }
+
+    /**
+     * Find all tasks in a recurring chain (original + all instances).
+     *
+     * @param User $owner The task owner
+     * @param string $originalTaskId The ID of the first task in the chain
+     * @return Task[] All tasks in the chain, ordered by created date
+     */
+    public function findRecurringChain(User $owner, string $originalTaskId): array
+    {
+        return $this->createQueryBuilder('t')
+            ->where('t.owner = :owner')
+            ->andWhere('t.id = :originalId OR t.originalTask = :originalId')
+            ->setParameter('owner', $owner)
+            ->setParameter('originalId', $originalTaskId)
+            ->orderBy('t.createdAt', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
+     * Count completed tasks in a recurring chain.
+     *
+     * @param User $owner The task owner
+     * @param string $originalTaskId The ID of the first task in the chain
+     * @return int Number of completed tasks
+     */
+    public function countCompletedInChain(User $owner, string $originalTaskId): int
+    {
+        $result = $this->createQueryBuilder('t')
+            ->select('COUNT(t.id)')
+            ->where('t.owner = :owner')
+            ->andWhere('t.id = :originalId OR t.originalTask = :originalId')
+            ->andWhere('t.status = :completed')
+            ->setParameter('owner', $owner)
+            ->setParameter('originalId', $originalTaskId)
+            ->setParameter('completed', Task::STATUS_COMPLETED)
+            ->getQuery()
+            ->getSingleScalarResult();
+
+        return (int) $result;
+    }
+
+    /**
+     * Count all tasks in a recurring chain.
+     *
+     * @param User $owner The task owner
+     * @param string $originalTaskId The ID of the first task in the chain
+     * @return int Total number of tasks
+     */
+    public function countInChain(User $owner, string $originalTaskId): int
+    {
+        $result = $this->createQueryBuilder('t')
+            ->select('COUNT(t.id)')
+            ->where('t.owner = :owner')
+            ->andWhere('t.id = :originalId OR t.originalTask = :originalId')
+            ->setParameter('owner', $owner)
+            ->setParameter('originalId', $originalTaskId)
+            ->getQuery()
+            ->getSingleScalarResult();
+
+        return (int) $result;
     }
 
     /**

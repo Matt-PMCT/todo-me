@@ -7,11 +7,13 @@ namespace App\Service;
 use App\DTO\CreateTaskRequest;
 use App\DTO\NaturalLanguageTaskRequest;
 use App\DTO\TaskCreationResult;
+use App\DTO\TaskStatusResult;
 use App\DTO\UpdateTaskRequest;
 use App\Entity\Task;
 use App\Entity\User;
 use App\Exception\EntityNotFoundException;
 use App\Exception\ForbiddenException;
+use App\Exception\InvalidRecurrenceException;
 use App\Exception\ValidationException;
 use App\Interface\OwnershipCheckerInterface;
 use App\Interface\TaskStateServiceInterface;
@@ -20,6 +22,9 @@ use App\Repository\ProjectRepository;
 use App\Repository\TagRepository;
 use App\Repository\TaskRepository;
 use App\Service\Parser\NaturalLanguageParserService;
+use App\Service\Recurrence\NextDateCalculator;
+use App\Service\Recurrence\RecurrenceRuleParser;
+use App\ValueObject\RecurrenceRule;
 use App\ValueObject\UndoToken;
 use Doctrine\ORM\EntityManagerInterface;
 
@@ -41,6 +46,8 @@ final class TaskService
         private readonly NaturalLanguageParserService $naturalLanguageParser,
         private readonly TaskStateServiceInterface $taskStateService,
         private readonly TaskUndoServiceInterface $taskUndoService,
+        private readonly RecurrenceRuleParser $recurrenceRuleParser,
+        private readonly NextDateCalculator $nextDateCalculator,
     ) {
     }
 
@@ -98,6 +105,11 @@ final class TaskService
         // Handle tags
         if ($dto->tagIds !== null && !empty($dto->tagIds)) {
             $this->attachTags($task, $user, $dto->tagIds);
+        }
+
+        // Handle recurrence
+        if ($dto->isRecurring && $dto->recurrenceRule !== null) {
+            $this->applyRecurrence($task, $dto->recurrenceRule);
         }
 
         $this->entityManager->persist($task);
@@ -158,6 +170,11 @@ final class TaskService
             $task->setPriority($parseResult->priority);
         } else {
             $task->setPriority(Task::PRIORITY_DEFAULT);
+        }
+
+        // Handle recurrence
+        if ($dto->isRecurring && $dto->recurrenceRule !== null) {
+            $this->applyRecurrence($task, $dto->recurrenceRule);
         }
 
         // Set position
@@ -322,6 +339,23 @@ final class TaskService
             }
         }
 
+        // Update recurrence
+        if ($dto->clearRecurrence) {
+            $task->setIsRecurring(false);
+            $task->setRecurrenceRule(null);
+            $task->setRecurrenceType(null);
+            $task->setRecurrenceEndDate(null);
+        } elseif ($dto->recurrenceRule !== null) {
+            $this->applyRecurrence($task, $dto->recurrenceRule);
+        } elseif ($dto->isRecurring !== null) {
+            $task->setIsRecurring($dto->isRecurring);
+            if (!$dto->isRecurring) {
+                $task->setRecurrenceRule(null);
+                $task->setRecurrenceType(null);
+                $task->setRecurrenceEndDate(null);
+            }
+        }
+
         $this->entityManager->flush();
 
         // Create undo token
@@ -353,12 +387,13 @@ final class TaskService
 
     /**
      * Changes the status of a task.
+     * For recurring tasks that are completed, creates the next instance.
      *
      * @param Task $task The task to update
      * @param string $newStatus The new status
-     * @return array{task: Task, undoToken: string|null}
+     * @return TaskStatusResult The result including the task, optional next task, and undo token
      */
-    public function changeStatus(Task $task, string $newStatus): array
+    public function changeStatus(Task $task, string $newStatus): TaskStatusResult
     {
         // Validate status
         $this->validationHelper->validateTaskStatus($newStatus);
@@ -366,18 +401,117 @@ final class TaskService
         // Store previous state for undo
         $previousState = $this->taskStateService->serializeStatusState($task);
 
+        $previousStatus = $task->getStatus();
+
         // Update status
         $task->setStatus($newStatus);
 
         $this->entityManager->flush();
 
+        // Handle recurring task completion
+        $nextTask = null;
+        if ($newStatus === Task::STATUS_COMPLETED
+            && $previousStatus !== Task::STATUS_COMPLETED
+            && $task->isRecurring()
+        ) {
+            $nextTask = $this->createNextRecurringInstance($task);
+        }
+
         // Create undo token
         $undoToken = $this->taskUndoService->createStatusChangeUndoToken($task, $previousState);
 
-        return [
-            'task' => $task,
-            'undoToken' => $undoToken,
-        ];
+        return new TaskStatusResult($task, $nextTask, $undoToken);
+    }
+
+    /**
+     * Completes a recurring task permanently (stops recurrence).
+     *
+     * @param Task $task The recurring task to complete forever
+     * @return TaskStatusResult The result with no next task
+     */
+    public function completeForever(Task $task): TaskStatusResult
+    {
+        if (!$task->isRecurring()) {
+            throw InvalidRecurrenceException::taskNotRecurring();
+        }
+
+        // Store previous state for undo
+        $previousState = $this->taskStateService->serializeTaskState($task);
+
+        // Complete the task and disable recurrence
+        $task->setStatus(Task::STATUS_COMPLETED);
+        $task->setIsRecurring(false);
+
+        $this->entityManager->flush();
+
+        // Create undo token
+        $undoToken = $this->taskUndoService->createUpdateUndoToken($task, $previousState);
+
+        return new TaskStatusResult($task, null, $undoToken);
+    }
+
+    /**
+     * Creates the next instance of a recurring task.
+     *
+     * @param Task $completedTask The task that was just completed
+     * @return Task|null The next instance, or null if recurrence has ended
+     */
+    public function createNextRecurringInstance(Task $completedTask): ?Task
+    {
+        if (!$completedTask->isRecurring() || $completedTask->getRecurrenceRule() === null) {
+            return null;
+        }
+
+        // Parse the recurrence rule
+        $rule = $this->recurrenceRuleParser->parse($completedTask->getRecurrenceRule());
+
+        // Determine the reference date based on recurrence type
+        $referenceDate = $rule->isRelative()
+            ? $completedTask->getCompletedAt() ?? new \DateTimeImmutable()
+            : $completedTask->getDueDate() ?? new \DateTimeImmutable();
+
+        // Calculate next date
+        $nextDueDate = $this->nextDateCalculator->calculate($rule, $referenceDate);
+
+        // Check if we should create another instance
+        if (!$this->nextDateCalculator->shouldCreateNextInstance($rule, $nextDueDate)) {
+            return null;
+        }
+
+        // Create the next instance
+        $nextTask = new Task();
+        $nextTask->setOwner($completedTask->getOwner());
+        $nextTask->setTitle($completedTask->getTitle());
+        $nextTask->setDescription($completedTask->getDescription());
+        $nextTask->setStatus(Task::STATUS_PENDING);
+        $nextTask->setPriority($completedTask->getPriority());
+        $nextTask->setDueDate(\DateTimeImmutable::createFromFormat('Y-m-d', $nextDueDate->format('Y-m-d')));
+        $nextTask->setProject($completedTask->getProject());
+
+        // Copy tags
+        foreach ($completedTask->getTags() as $tag) {
+            $nextTask->addTag($tag);
+        }
+
+        // Copy recurrence settings
+        $nextTask->setIsRecurring(true);
+        $nextTask->setRecurrenceRule($completedTask->getRecurrenceRule());
+        $nextTask->setRecurrenceType($completedTask->getRecurrenceType());
+        $nextTask->setRecurrenceEndDate($completedTask->getRecurrenceEndDate());
+
+        // Set original task for chain tracking
+        // If this is the first task (no original), it becomes the original for the chain
+        $originalTask = $completedTask->getOriginalTask() ?? $completedTask;
+        $nextTask->setOriginalTask($originalTask);
+
+        // Set position
+        $maxPosition = $this->taskRepository->getMaxPosition($completedTask->getOwner(), $completedTask->getProject());
+        $nextTask->setPosition($maxPosition + 1);
+
+        $this->entityManager->persist($nextTask);
+        $this->entityManager->flush();
+
+        return $nextTask;
     }
 
     /**
@@ -505,6 +639,28 @@ final class TaskService
             }
 
             $task->addTag($tag);
+        }
+    }
+
+    /**
+     * Applies recurrence settings to a task.
+     *
+     * @param Task $task The task
+     * @param string $recurrenceRule The natural language recurrence rule
+     * @throws InvalidRecurrenceException If the rule cannot be parsed
+     */
+    private function applyRecurrence(Task $task, string $recurrenceRule): void
+    {
+        // Parse and validate the rule
+        $rule = $this->recurrenceRuleParser->parse($recurrenceRule);
+
+        // Apply to task
+        $task->setIsRecurring(true);
+        $task->setRecurrenceRule($recurrenceRule);
+        $task->setRecurrenceType($rule->type->value);
+
+        if ($rule->endDate !== null) {
+            $task->setRecurrenceEndDate($rule->endDate);
         }
     }
 }

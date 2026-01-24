@@ -29,6 +29,11 @@ final class TaskResponse
         public readonly ?array $project,
         public readonly array $tags,
         public readonly ?string $undoToken = null,
+        public readonly bool $isRecurring = false,
+        public readonly ?string $recurrenceRule = null,
+        public readonly ?string $recurrenceType = null,
+        public readonly ?string $recurrenceEndDate = null,
+        public readonly ?string $originalTaskId = null,
     ) {
     }
 
@@ -68,6 +73,11 @@ final class TaskResponse
             project: $project,
             tags: $tags,
             undoToken: $undoToken,
+            isRecurring: $task->isRecurring(),
+            recurrenceRule: $task->getRecurrenceRule(),
+            recurrenceType: $task->getRecurrenceType(),
+            recurrenceEndDate: $task->getRecurrenceEndDate()?->format('Y-m-d'),
+            originalTaskId: $task->getOriginalTask()?->getId(),
         );
     }
 
@@ -91,10 +101,21 @@ final class TaskResponse
             'completedAt' => $this->completedAt,
             'project' => $this->project,
             'tags' => $this->tags,
+            'isRecurring' => $this->isRecurring,
         ];
 
         if ($this->undoToken !== null) {
             $data['undoToken'] = $this->undoToken;
+        }
+
+        if ($this->isRecurring) {
+            $data['recurrenceRule'] = $this->recurrenceRule;
+            $data['recurrenceType'] = $this->recurrenceType;
+            $data['recurrenceEndDate'] = $this->recurrenceEndDate;
+        }
+
+        if ($this->originalTaskId !== null) {
+            $data['originalTaskId'] = $this->originalTaskId;
         }
 
         return $data;
