@@ -87,6 +87,10 @@ All API endpoints return:
 - Composite indexes on common filter combinations (owner, status, priority, due_date, position)
 - Relationships: User → Projects/Tasks/Tags (orphanRemoval), Project → Tasks, Task ↔ Tags (many-to-many)
 
+## Coding Guidelines
+
+Don't add error handling, fallbacks, or validation for scenarios that can't happen. Trust internal code and framework guarantees. Only validate at system boundaries (user input, external APIs). Don't use backwards-compatibility shims when you can just change the code. The right amount of complexity is the minimum needed for the current task. Reuse existing abstractions where possible and follow the DRY principle.
+
 ## Configuration
 
 - **Security:** `config/packages/security.yaml` - API firewall is stateless, web firewall uses sessions
