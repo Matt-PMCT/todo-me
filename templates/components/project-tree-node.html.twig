@@ -105,7 +105,19 @@
         </div>
     </div>
 
-    {# Children - Recursive with depth limit to prevent Twig compilation issues #}
+    {# Children - Recursive rendering with UI depth limit of 10 levels.
+
+       Note on depth limits:
+       - Database/Entity allows MAX_HIERARCHY_DEPTH = 50 levels (Project.php)
+       - UI renders only 10 levels here to prevent Twig compilation memory issues
+
+       This is intentional: the database constraint ensures data integrity, while the
+       lower UI limit is a performance optimization. Projects nested deeper than 10
+       levels will still exist and be accessible via direct URLs, but their children
+       won't appear in the sidebar tree. This is an acceptable tradeoff since trees
+       deeper than 10 levels are rare in practice.
+
+       Decision documented 2026-01-24 during Phase 3 review. #}
     {% if depth < 10 %}
     <div x-show="project.children && project.children.length > 0 && !isCollapsed(project.id)"
          x-transition:enter="transition ease-out duration-100"
