@@ -58,7 +58,7 @@
                     </svg>
                 </button>
 
-                {% if currentFilters.status or currentFilters.priority or currentFilters.projectId %}
+                {% if currentFilters.status or currentFilters.priority or currentFilters.projectId or currentFilters.isRecurring is not null %}
                     <a href="{{ path('app_task_list') }}" class="text-sm text-indigo-600 hover:text-indigo-500">Clear filters</a>
                 {% endif %}
             </div>
@@ -98,6 +98,16 @@
                         </select>
                     </div>
 
+                    {# Recurring filter #}
+                    <div>
+                        <label for="filter_recurring" class="block text-sm font-medium text-gray-700">Recurring</label>
+                        <select name="isRecurring" id="filter_recurring" class="mt-1 block w-full rounded-md border-gray-300 py-2 pl-3 pr-10 text-base focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm">
+                            <option value="">All tasks</option>
+                            <option value="1" {% if currentFilters.isRecurring == true %}selected{% endif %}>Recurring only</option>
+                            <option value="0" {% if currentFilters.isRecurring == false %}selected{% endif %}>Non-recurring only</option>
+                        </select>
+                    </div>
+
                     {# Apply button #}
                     <div class="flex items-end">
                         <button type="submit" class="inline-flex items-center rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
@@ -123,6 +133,9 @@
                         {% endif %}
                         {% if currentFilters.projectId %}
                             <input type="hidden" name="projectId" value="{{ currentFilters.projectId }}">
+                        {% endif %}
+                        {% if currentFilters.isRecurring is not null %}
+                            <input type="hidden" name="isRecurring" value="{{ currentFilters.isRecurring ? '1' : '0' }}">
                         {% endif %}
 
                         <label class="inline-flex items-center cursor-pointer">

@@ -51,6 +51,20 @@ final class CreateTaskRequest
             new Assert\Uuid(message: 'Each tag ID must be a valid UUID')
         ])]
         public readonly ?array $tagIds = null,
+
+        /**
+         * Whether this task recurs.
+         */
+        public readonly bool $isRecurring = false,
+
+        /**
+         * The recurrence rule in natural language (e.g., "every day", "every Monday").
+         */
+        #[Assert\Length(
+            max: 500,
+            maxMessage: 'Recurrence rule must be at most {{ limit }} characters'
+        )]
+        public readonly ?string $recurrenceRule = null,
     ) {
     }
 
@@ -71,6 +85,8 @@ final class CreateTaskRequest
             tagIds: isset($data['tagIds']) && is_array($data['tagIds'])
                 ? array_map('strval', $data['tagIds'])
                 : null,
+            isRecurring: (bool) ($data['isRecurring'] ?? false),
+            recurrenceRule: isset($data['recurrenceRule']) ? (string) $data['recurrenceRule'] : null,
         );
     }
 }
