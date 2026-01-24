@@ -16,7 +16,7 @@ use App\Exception\ValidationException;
 use App\Repository\ProjectRepository;
 use App\Repository\TagRepository;
 use App\Repository\TaskRepository;
-use App\Service\OwnershipChecker;
+use App\Interface\OwnershipCheckerInterface;
 use App\Service\Parser\NaturalLanguageParserService;
 use App\Service\TaskService;
 use App\Service\UndoService;
@@ -34,7 +34,7 @@ class TaskServiceTest extends UnitTestCase
     private EntityManagerInterface&MockObject $entityManager;
     private UndoService&MockObject $undoService;
     private ValidationHelper&MockObject $validationHelper;
-    private OwnershipChecker&MockObject $ownershipChecker;
+    private OwnershipCheckerInterface&MockObject $ownershipChecker;
     private NaturalLanguageParserService&MockObject $naturalLanguageParser;
     private TaskService $taskService;
 
@@ -48,7 +48,7 @@ class TaskServiceTest extends UnitTestCase
         $this->entityManager = $this->createMock(EntityManagerInterface::class);
         $this->undoService = $this->createMock(UndoService::class);
         $this->validationHelper = $this->createMock(ValidationHelper::class);
-        $this->ownershipChecker = $this->createMock(OwnershipChecker::class);
+        $this->ownershipChecker = $this->createMock(OwnershipCheckerInterface::class);
         $this->naturalLanguageParser = $this->createMock(NaturalLanguageParserService::class);
 
         $this->taskService = new TaskService(

@@ -10,8 +10,8 @@ use App\Entity\Project;
 use App\Entity\User;
 use App\Enum\UndoAction;
 use App\Exception\EntityNotFoundException;
+use App\Interface\OwnershipCheckerInterface;
 use App\Repository\ProjectRepository;
-use App\Service\OwnershipChecker;
 use App\Service\ProjectService;
 use App\Service\UndoService;
 use App\Service\ValidationHelper;
@@ -26,7 +26,7 @@ class ProjectServiceTest extends UnitTestCase
     private EntityManagerInterface&MockObject $entityManager;
     private UndoService&MockObject $undoService;
     private ValidationHelper&MockObject $validationHelper;
-    private OwnershipChecker&MockObject $ownershipChecker;
+    private OwnershipCheckerInterface&MockObject $ownershipChecker;
     private ProjectService $projectService;
 
     protected function setUp(): void
@@ -37,7 +37,7 @@ class ProjectServiceTest extends UnitTestCase
         $this->entityManager = $this->createMock(EntityManagerInterface::class);
         $this->undoService = $this->createMock(UndoService::class);
         $this->validationHelper = $this->createMock(ValidationHelper::class);
-        $this->ownershipChecker = $this->createMock(OwnershipChecker::class);
+        $this->ownershipChecker = $this->createMock(OwnershipCheckerInterface::class);
 
         $this->projectService = new ProjectService(
             $this->projectRepository,

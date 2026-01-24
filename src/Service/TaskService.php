@@ -13,6 +13,7 @@ use App\Entity\User;
 use App\Exception\EntityNotFoundException;
 use App\Exception\ForbiddenException;
 use App\Exception\ValidationException;
+use App\Interface\OwnershipCheckerInterface;
 use App\Repository\ProjectRepository;
 use App\Repository\TagRepository;
 use App\Repository\TaskRepository;
@@ -34,7 +35,7 @@ final class TaskService
         private readonly TagRepository $tagRepository,
         private readonly EntityManagerInterface $entityManager,
         private readonly ValidationHelper $validationHelper,
-        private readonly OwnershipChecker $ownershipChecker,
+        private readonly OwnershipCheckerInterface $ownershipChecker,
         private readonly NaturalLanguageParserService $naturalLanguageParser,
         private readonly TaskStateService $taskStateService,
         private readonly TaskUndoService $taskUndoService,

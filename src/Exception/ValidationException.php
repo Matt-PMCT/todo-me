@@ -76,4 +76,12 @@ final class ValidationException extends HttpException
     {
         return self::forField('password', 'Password must be at least 8 characters and contain at least one letter and one number');
     }
+
+    /**
+     * Creates a ValidationException for invalid JSON in request body.
+     */
+    public static function invalidJson(string $error = 'Invalid JSON in request body'): self
+    {
+        return self::forField('body', $error);
+    }
 }

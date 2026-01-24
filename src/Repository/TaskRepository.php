@@ -21,8 +21,10 @@ use Doctrine\Persistence\ManagerRegistry;
  */
 class TaskRepository extends ServiceEntityRepository
 {
-    public function __construct(ManagerRegistry $registry)
-    {
+    public function __construct(
+        ManagerRegistry $registry,
+        private readonly string $searchLocale = 'english',
+    ) {
         parent::__construct($registry, Task::class);
     }
 
@@ -257,13 +259,14 @@ class TaskRepository extends ServiceEntityRepository
             SELECT t.id
             FROM tasks t
             WHERE t.owner_id = :owner_id
-            AND t.search_vector @@ plainto_tsquery('english', :query)
-            ORDER BY ts_rank(t.search_vector, plainto_tsquery('english', :query)) DESC
+            AND t.search_vector @@ plainto_tsquery(:locale, :query)
+            ORDER BY ts_rank(t.search_vector, plainto_tsquery(:locale, :query)) DESC
         ";
 
         $result = $conn->executeQuery($sql, [
             'owner_id' => $owner->getId(),
             'query' => $query,
+            'locale' => $this->searchLocale,
         ]);
 
         $ids = array_column($result->fetchAllAssociative(), 'id');

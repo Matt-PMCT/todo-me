@@ -13,6 +13,7 @@ use App\Exception\InvalidRecurrenceException;
 use App\Exception\InvalidStatusException;
 use App\Exception\ValidationException;
 use App\Interface\UserOwnedInterface;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Validator\ConstraintViolationListInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
@@ -252,5 +253,33 @@ class ValidationHelper
         if ($owner === null || $owner->getId() !== $user->getId()) {
             throw ForbiddenException::resourceAccessDenied();
         }
+    }
+
+    /**
+     * Decodes JSON from request body and validates it.
+     *
+     * @param Request $request The HTTP request
+     *
+     * @throws ValidationException If JSON is invalid
+     *
+     * @return array<string, mixed> The decoded JSON data
+     */
+    public function decodeJsonBody(Request $request): array
+    {
+        $content = $request->getContent();
+
+        if ($content === '' || $content === null) {
+            return [];
+        }
+
+        $data = json_decode($content, true);
+
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            throw ValidationException::invalidJson(
+                sprintf('Invalid JSON: %s', json_last_error_msg())
+            );
+        }
+
+        return $data ?? [];
     }
 }

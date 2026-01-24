@@ -46,7 +46,7 @@ security:
             # Remember me functionality
             remember_me:
                 secret: '%kernel.secret%'
-                lifetime: 604800  # 1 week
+                lifetime: 172800  # 48 hours
                 path: /
 
             # https://symfony.com/doc/current/security/impersonating_user.html

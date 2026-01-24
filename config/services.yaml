@@ -6,6 +6,7 @@
 parameters:
     redis_url: '%env(REDIS_URL)%'
     api_token_ttl_hours: '%env(int:API_TOKEN_TTL_HOURS)%'
+    search_locale: '%env(default:english:SEARCH_LOCALE)%'
 
 services:
     # default configuration for services in this file
@@ -48,12 +49,18 @@ services:
     # The factory names are derived from the rate_limiter config keys in framework.yaml
     # (anonymous_api -> anonymousApiLimiter, authenticated_api -> authenticatedApiLimiter)
 
-    # Auth controller with login rate limiter
+    # Auth controller with login and registration rate limiters
     App\Controller\Api\AuthController:
         arguments:
             $loginLimiter: '@limiter.login'
+            $registrationLimiter: '@limiter.registration'
 
     # User service with API token TTL configuration
     App\Service\UserService:
         arguments:
             $apiTokenTtlHours: '%api_token_ttl_hours%'
+
+    # Task repository with configurable search locale
+    App\Repository\TaskRepository:
+        arguments:
+            $searchLocale: '%search_locale%'

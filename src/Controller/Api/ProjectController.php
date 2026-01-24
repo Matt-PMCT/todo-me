@@ -98,7 +98,7 @@ final class ProjectController extends AbstractController
         /** @var User $user */
         $user = $this->getUser();
 
-        $data = json_decode($request->getContent(), true) ?? [];
+        $data = $this->validationHelper->decodeJsonBody($request);
         $dto = CreateProjectRequest::fromArray($data);
 
         $project = $this->projectService->create($user, $dto);
@@ -146,7 +146,7 @@ final class ProjectController extends AbstractController
 
         $project = $this->projectService->findByIdOrFail($id, $user);
 
-        $data = json_decode($request->getContent(), true) ?? [];
+        $data = $this->validationHelper->decodeJsonBody($request);
         $dto = UpdateProjectRequest::fromArray($data);
 
         $result = $this->projectService->update($project, $dto);

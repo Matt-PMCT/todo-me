@@ -13,6 +13,7 @@ use App\Exception\ValidationException;
 use App\Service\ApiLogger;
 use App\Service\ResponseFormatter;
 use App\Service\UserService;
+use App\Service\ValidationHelper;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -30,6 +31,8 @@ final class AuthController extends AbstractController
         private readonly ValidatorInterface $validator,
         private readonly ApiLogger $apiLogger,
         private readonly RateLimiterFactory $loginLimiter,
+        private readonly RateLimiterFactory $registrationLimiter,
+        private readonly ValidationHelper $validationHelper,
     ) {
     }
 
@@ -42,7 +45,32 @@ final class AuthController extends AbstractController
     #[Route('/register', name: 'register', methods: ['POST'])]
     public function register(Request $request): JsonResponse
     {
-        $data = json_decode($request->getContent(), true) ?? [];
+        // Rate limiting: 10 attempts per hour per IP
+        $limiter = $this->registrationLimiter->create($request->getClientIp() ?? 'unknown');
+        $limit = $limiter->consume(1);
+
+        if (!$limit->isAccepted()) {
+            $retryAfter = $limit->getRetryAfter();
+
+            $this->apiLogger->logWarning('Registration rate limit exceeded', [
+                'ip' => $request->getClientIp(),
+                'retry_after' => $retryAfter->getTimestamp(),
+            ]);
+
+            $response = $this->responseFormatter->error(
+                'Too many registration attempts. Please try again later.',
+                'RATE_LIMIT_EXCEEDED',
+                Response::HTTP_TOO_MANY_REQUESTS
+            );
+
+            $response->headers->set('Retry-After', (string) $retryAfter->getTimestamp());
+            $response->headers->set('X-RateLimit-Remaining', '0');
+            $response->headers->set('X-RateLimit-Reset', (string) $retryAfter->getTimestamp());
+
+            return $response;
+        }
+
+        $data = $this->validationHelper->decodeJsonBody($request);
 
         $registerRequest = RegisterRequest::fromArray($data);
 
@@ -127,7 +155,7 @@ final class AuthController extends AbstractController
     #[Route('/token', name: 'token', methods: ['POST'])]
     public function token(Request $request): JsonResponse
     {
-        $data = json_decode($request->getContent(), true) ?? [];
+        $data = $this->validationHelper->decodeJsonBody($request);
 
         $loginRequest = LoginRequest::fromArray($data);
 

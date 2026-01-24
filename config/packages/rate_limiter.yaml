@@ -17,14 +17,26 @@ framework:
             limit: 1000
             interval: '1 hour'
 
+        # Registration rate limiter: 10 attempts per hour per IP
+        # Prevents spam account creation
+        registration:
+            policy: 'sliding_window'
+            limit: 10
+            interval: '1 hour'
+
 when@test:
     framework:
         rate_limiter:
+            # Low limits for testing 429 responses
             login:
                 policy: 'sliding_window'
-                limit: 1000
+                limit: 3
                 interval: '1 minute'
             api:
                 policy: 'sliding_window'
-                limit: 100000
-                interval: '1 hour'
+                limit: 5
+                interval: '1 minute'
+            registration:
+                policy: 'sliding_window'
+                limit: 3
+                interval: '1 minute'
