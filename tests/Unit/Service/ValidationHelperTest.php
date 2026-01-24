@@ -9,7 +9,6 @@ use App\Entity\Task;
 use App\Entity\User;
 use App\Exception\ForbiddenException;
 use App\Exception\InvalidPriorityException;
-use App\Exception\InvalidRecurrenceException;
 use App\Exception\InvalidStatusException;
 use App\Exception\ValidationException;
 use App\Service\ValidationHelper;
@@ -39,6 +38,8 @@ class ValidationHelperTest extends UnitTestCase
 
     public function testValidatePassesWhenNoViolations(): void
     {
+        $this->expectNotToPerformAssertions();
+
         $dto = new \stdClass();
         $violations = new ConstraintViolationList();
 
@@ -49,7 +50,6 @@ class ValidationHelperTest extends UnitTestCase
 
         // Should not throw
         $this->validationHelper->validate($dto);
-        $this->assertTrue(true);
     }
 
     public function testValidateThrowsExceptionWhenViolationsExist(): void
@@ -82,9 +82,10 @@ class ValidationHelperTest extends UnitTestCase
     #[DataProvider('validStatusProvider')]
     public function testValidateTaskStatusWithValidStatuses(string $status): void
     {
+        $this->expectNotToPerformAssertions();
+
         // Should not throw
         $this->validationHelper->validateTaskStatus($status);
-        $this->assertTrue(true);
     }
 
     public static function validStatusProvider(): array
@@ -121,9 +122,10 @@ class ValidationHelperTest extends UnitTestCase
     #[DataProvider('validPriorityProvider')]
     public function testValidateTaskPriorityWithValidPriorities(int $priority): void
     {
+        $this->expectNotToPerformAssertions();
+
         // Should not throw
         $this->validationHelper->validateTaskPriority($priority);
-        $this->assertTrue(true);
     }
 
     public static function validPriorityProvider(): array
@@ -158,9 +160,10 @@ class ValidationHelperTest extends UnitTestCase
     #[DataProvider('validEmailProvider')]
     public function testValidateEmailWithValidFormats(string $email): void
     {
+        $this->expectNotToPerformAssertions();
+
         // Should not throw
         $this->validationHelper->validateEmail($email);
-        $this->assertTrue(true);
     }
 
     public static function validEmailProvider(): array
@@ -201,9 +204,10 @@ class ValidationHelperTest extends UnitTestCase
     #[DataProvider('validPasswordProvider')]
     public function testValidatePasswordWithValidPasswords(string $password): void
     {
+        $this->expectNotToPerformAssertions();
+
         // Should not throw
         $this->validationHelper->validatePassword($password);
-        $this->assertTrue(true);
     }
 
     public static function validPasswordProvider(): array
@@ -405,71 +409,28 @@ class ValidationHelperTest extends UnitTestCase
     }
 
     // ========================================
-    // Validate Recurrence Type Tests
-    // ========================================
-
-    #[DataProvider('validRecurrenceTypeProvider')]
-    public function testValidateRecurrenceTypeWithValidTypes(string $type): void
-    {
-        // Should not throw
-        $this->validationHelper->validateRecurrenceType($type);
-        $this->assertTrue(true);
-    }
-
-    public static function validRecurrenceTypeProvider(): array
-    {
-        return [
-            'absolute' => ['absolute'],
-            'relative' => ['relative'],
-        ];
-    }
-
-    public function testValidateRecurrenceTypeAcceptsNull(): void
-    {
-        // Should not throw for null
-        $this->validationHelper->validateRecurrenceType(null);
-        $this->assertTrue(true);
-    }
-
-    #[DataProvider('invalidRecurrenceTypeProvider')]
-    public function testValidateRecurrenceTypeWithInvalidTypesThrowsException(string $type): void
-    {
-        $this->expectException(InvalidRecurrenceException::class);
-        $this->validationHelper->validateRecurrenceType($type);
-    }
-
-    public static function invalidRecurrenceTypeProvider(): array
-    {
-        return [
-            'invalid' => ['invalid'],
-            'empty' => [''],
-            'uppercase' => ['ABSOLUTE'],
-            'mixed_case' => ['Relative'],
-            'typo' => ['absolutee'],
-        ];
-    }
-
-    // ========================================
     // Validate Task Project Ownership Tests
     // ========================================
 
     public function testValidateTaskProjectOwnershipAcceptsNullProject(): void
     {
+        $this->expectNotToPerformAssertions();
+
         $user = $this->createUserWithId();
 
         // Should not throw for null project
         $this->validationHelper->validateTaskProjectOwnership($user, null);
-        $this->assertTrue(true);
     }
 
     public function testValidateTaskProjectOwnershipPassesForMatchingOwner(): void
     {
+        $this->expectNotToPerformAssertions();
+
         $user = $this->createUserWithId('user-123');
         $project = $this->createProjectWithId('project-123', $user);
 
         // Should not throw
         $this->validationHelper->validateTaskProjectOwnership($user, $project);
-        $this->assertTrue(true);
     }
 
     public function testValidateTaskProjectOwnershipThrowsForDifferentOwner(): void
@@ -488,12 +449,13 @@ class ValidationHelperTest extends UnitTestCase
 
     public function testValidateOwnershipPassesForMatchingOwner(): void
     {
+        $this->expectNotToPerformAssertions();
+
         $user = $this->createUserWithId('user-123');
         $project = $this->createProjectWithId('project-123', $user);
 
         // Should not throw
         $this->validationHelper->validateOwnership($user, $project);
-        $this->assertTrue(true);
     }
 
     public function testValidateOwnershipThrowsForDifferentOwner(): void

@@ -9,7 +9,6 @@ use App\Entity\Task;
 use App\Entity\User;
 use App\Exception\ForbiddenException;
 use App\Exception\InvalidPriorityException;
-use App\Exception\InvalidRecurrenceException;
 use App\Exception\InvalidStatusException;
 use App\Exception\ValidationException;
 use App\Interface\UserOwnedInterface;
@@ -24,8 +23,6 @@ use Symfony\Component\Validator\Validator\ValidatorInterface;
  */
 class ValidationHelper
 {
-    public const VALID_RECURRENCE_TYPES = ['absolute', 'relative'];
-
     public function __construct(
         private ValidatorInterface $validator,
     ) {
@@ -199,24 +196,6 @@ class ValidationHelper
         }
 
         return $errors;
-    }
-
-    /**
-     * Validates that a recurrence type is one of the allowed values.
-     *
-     * @param string|null $type The recurrence type to validate
-     *
-     * @throws InvalidRecurrenceException If the recurrence type is invalid
-     */
-    public function validateRecurrenceType(?string $type): void
-    {
-        if ($type === null) {
-            return;
-        }
-
-        if (!in_array($type, self::VALID_RECURRENCE_TYPES, true)) {
-            throw InvalidRecurrenceException::forRecurrenceType($type);
-        }
     }
 
     /**

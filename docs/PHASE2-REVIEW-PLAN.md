@@ -688,10 +688,10 @@ The codebase demonstrates excellent adoption of modern PHP and Symfony patterns 
 |-------|-------------|--------|--------|
 | 4.2.2 | Undo pattern consolidation | 4-8 hours | **FIXED** - Created ProjectStateService, ProjectUndoService; refactored ProjectService to delegate |
 | 4.2.3 | Exception type standardization | 2-4 hours | **FIXED** - Created InvalidUndoTokenException with factory methods; updated TaskUndoService and ProjectUndoService |
-| 4.2.6 | Remove/implement recurrence | 4-16 hours | |
+| 4.2.6 | Remove/implement recurrence | 4-16 hours | **FIXED** - Removed unused recurrence properties from Task entity, deleted InvalidRecurrenceException and mapper, created migration to drop columns |
 | 4.2.7 | Query optimization | 2-4 hours | **FIXED** - Combined 2 queries into 1 using conditional SUM in getTaskCountsForProjects |
-| 5.3.4 | Fix useless assertions | 1-2 hours | |
-| 5.3.5 | Reduce heavy mocking | 4-8 hours | |
+| 5.3.4 | Fix useless assertions | 1-2 hours | **FIXED** - Replaced assertTrue(true) with expectNotToPerformAssertions() in ValidationHelperTest, OwnershipCheckerTest, UserTest |
+| 5.3.5 | Reduce heavy mocking | 4-8 hours | **FIXED** - Updated TaskServiceTest to use real ValidationHelper with Symfony Validator, updated constructor to use TaskStateService and TaskUndoService |
 | 5.3.6 | Add edge case tests | 8-16 hours | |
 | 6.2.1 | Add static analysis | 4-8 hours | |
 | 6.2.2 | Add API documentation | 8-16 hours | |
@@ -707,8 +707,8 @@ The codebase demonstrates excellent adoption of modern PHP and Symfony patterns 
 | Secret Disclosure | 10/10 | SECURE | |
 | Security | 9/10 | EXCELLENT | Issues 2.2.1, 2.2.4, 2.2.6 fixed |
 | User Data Safety | 8/10 | GOOD | Issues 3.2.1, 3.2.2, 3.2.3, 3.2.5 fixed |
-| Code Quality | 9/10 | EXCELLENT | Issues 4.2.1, 4.2.2, 4.2.3, 4.2.7 fixed - Service layer fully refactored with proper undo pattern consolidation, standardized exceptions, and optimized queries |
-| Testing | 9/10 | EXCELLENT | Issues 5.2.3, 5.3.1, 5.3.2, 5.3.3 fixed |
+| Code Quality | 9/10 | EXCELLENT | Issues 4.2.1, 4.2.2, 4.2.3, 4.2.6, 4.2.7 fixed - Service layer fully refactored with proper undo pattern consolidation, standardized exceptions, optimized queries, removed unused recurrence feature |
+| Testing | 9/10 | EXCELLENT | Issues 5.2.3, 5.3.1, 5.3.2, 5.3.3, 5.3.4, 5.3.5 fixed - Fixed useless assertions, reduced heavy mocking with real ValidationHelper |
 | Best Practices | 8.5/10 | GOOD | |
 | **OVERALL** | **9.0/10** | **EXCELLENT** | Priority 1, 2, 3, and select Priority 4 issues resolved |
 
