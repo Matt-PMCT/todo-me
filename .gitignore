@@ -71,3 +71,11 @@ docker-compose.override.yml
 /public/assets/
 /assets/vendor/
 ###< symfony/asset-mapper ###
+
+###> claude ###
+# Claude Code configuration
+# Skills and agents ARE tracked (shared with team)
+# Only ignore user-specific local settings
+.claude/settings.local.json
+.claude/*.local.*
+###< claude ###
