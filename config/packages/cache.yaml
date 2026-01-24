@@ -24,6 +24,10 @@ when@test:
                 undo.cache:
                     adapter: cache.adapter.array
                     default_lifetime: 60
+                # Use filesystem for rate limiter so it persists between requests
+                rate_limiter.cache:
+                    adapter: cache.adapter.filesystem
+                    default_lifetime: 60
 
 when@prod:
     framework:
