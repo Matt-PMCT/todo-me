@@ -14,6 +14,7 @@ use App\Service\ApiLogger;
 use App\Service\ResponseFormatter;
 use App\Service\UserService;
 use App\Service\ValidationHelper;
+use OpenApi\Attributes as OA;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -22,6 +23,7 @@ use Symfony\Component\RateLimiter\RateLimiterFactory;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
+#[OA\Tag(name: 'Authentication', description: 'User authentication and token management')]
 #[Route('/api/v1/auth', name: 'api_auth_')]
 final class AuthController extends AbstractController
 {
@@ -38,11 +40,32 @@ final class AuthController extends AbstractController
 
     /**
      * Register a new user.
-     *
-     * @param Request $request The HTTP request
-     * @return JsonResponse
      */
     #[Route('/register', name: 'register', methods: ['POST'])]
+    #[OA\Post(
+        summary: 'Register a new user',
+        description: 'Creates a new user account and returns an API token',
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(
+                required: ['email', 'password'],
+                properties: [
+                    new OA\Property(property: 'email', type: 'string', format: 'email', example: 'user@example.com'),
+                    new OA\Property(property: 'password', type: 'string', minLength: 8, example: 'SecurePass123'),
+                ]
+            )
+        ),
+        responses: [
+            new OA\Response(
+                response: 201,
+                description: 'User created successfully',
+                content: new OA\JsonContent(ref: '#/components/schemas/ApiResponse')
+            ),
+            new OA\Response(response: 400, description: 'User already exists'),
+            new OA\Response(response: 422, description: 'Validation error'),
+            new OA\Response(response: 429, description: 'Rate limit exceeded'),
+        ]
+    )]
     public function register(Request $request): JsonResponse
     {
         // Rate limiting: 10 attempts per hour per IP
@@ -148,11 +171,32 @@ final class AuthController extends AbstractController
 
     /**
      * Generate a new token (login).
-     *
-     * @param Request $request The HTTP request
-     * @return JsonResponse
      */
     #[Route('/token', name: 'token', methods: ['POST'])]
+    #[OA\Post(
+        summary: 'Login and get API token',
+        description: 'Authenticates user credentials and returns an API token',
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(
+                required: ['email', 'password'],
+                properties: [
+                    new OA\Property(property: 'email', type: 'string', format: 'email', example: 'user@example.com'),
+                    new OA\Property(property: 'password', type: 'string', example: 'SecurePass123'),
+                ]
+            )
+        ),
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: 'Login successful',
+                content: new OA\JsonContent(ref: '#/components/schemas/ApiResponse')
+            ),
+            new OA\Response(response: 401, description: 'Invalid credentials'),
+            new OA\Response(response: 422, description: 'Validation error'),
+            new OA\Response(response: 429, description: 'Rate limit exceeded'),
+        ]
+    )]
     public function token(Request $request): JsonResponse
     {
         $data = $this->validationHelper->decodeJsonBody($request);
@@ -249,10 +293,16 @@ final class AuthController extends AbstractController
 
     /**
      * Revoke the current token (logout).
-     *
-     * @return JsonResponse
      */
     #[Route('/revoke', name: 'revoke_token', methods: ['POST'])]
+    #[OA\Post(
+        summary: 'Revoke API token (logout)',
+        description: 'Invalidates the current API token',
+        responses: [
+            new OA\Response(response: 204, description: 'Token revoked successfully'),
+            new OA\Response(response: 401, description: 'Not authenticated'),
+        ]
+    )]
     public function revokeToken(): JsonResponse
     {
         /** @var User|null $user */
@@ -278,11 +328,20 @@ final class AuthController extends AbstractController
 
     /**
      * Refresh the current token.
-     * Requires a valid (but possibly expired) token.
-     *
-     * @return JsonResponse
      */
     #[Route('/refresh', name: 'refresh_token', methods: ['POST'])]
+    #[OA\Post(
+        summary: 'Refresh API token',
+        description: 'Generates a new API token. Requires a valid (but possibly expired within 7 days) token.',
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: 'Token refreshed successfully',
+                content: new OA\JsonContent(ref: '#/components/schemas/ApiResponse')
+            ),
+            new OA\Response(response: 401, description: 'Invalid or expired token'),
+        ]
+    )]
     public function refreshToken(Request $request): JsonResponse
     {
         // Extract token from request (works even if expired)
@@ -362,10 +421,20 @@ final class AuthController extends AbstractController
 
     /**
      * Get the current user's information.
-     *
-     * @return JsonResponse
      */
     #[Route('/me', name: 'me', methods: ['GET'])]
+    #[OA\Get(
+        summary: 'Get current user',
+        description: 'Returns information about the authenticated user',
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: 'User information',
+                content: new OA\JsonContent(ref: '#/components/schemas/ApiResponse')
+            ),
+            new OA\Response(response: 401, description: 'Not authenticated'),
+        ]
+    )]
     public function me(): JsonResponse
     {
         /** @var User|null $user */
