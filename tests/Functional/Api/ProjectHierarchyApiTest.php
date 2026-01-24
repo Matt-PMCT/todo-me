@@ -111,6 +111,7 @@ class ProjectHierarchyApiTest extends ApiTestCase
 
         $this->assertEquals(2, $data['projects'][0]['taskCount']);
         $this->assertEquals(1, $data['projects'][0]['completedTaskCount']);
+        $this->assertEquals(1, $data['projects'][0]['pendingTaskCount']); // 2 - 1 = 1
     }
 
     public function testTreeEndpointExcludesArchivedByDefault(): void

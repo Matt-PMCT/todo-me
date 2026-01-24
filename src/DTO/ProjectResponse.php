@@ -20,6 +20,7 @@ final class ProjectResponse
      * @param \DateTimeImmutable $updatedAt Last update timestamp
      * @param int $taskCount Total number of tasks in the project
      * @param int $completedTaskCount Number of completed tasks
+     * @param int $pendingTaskCount Number of pending (non-completed) tasks
      * @param string|null $parentId Parent project ID (null for root projects)
      * @param int $depth Depth in the hierarchy (0 for root projects)
      * @param array<array{id: string, name: string, isArchived: bool}> $path Path from root to this project
@@ -37,6 +38,7 @@ final class ProjectResponse
         public readonly \DateTimeImmutable $updatedAt,
         public readonly int $taskCount = 0,
         public readonly int $completedTaskCount = 0,
+        public readonly int $pendingTaskCount = 0,
         public readonly ?string $parentId = null,
         public readonly int $depth = 0,
         public readonly array $path = [],
@@ -68,6 +70,7 @@ final class ProjectResponse
             updatedAt: $project->getUpdatedAt(),
             taskCount: $taskCount,
             completedTaskCount: $completedTaskCount,
+            pendingTaskCount: $taskCount - $completedTaskCount,
             parentId: $project->getParent()?->getId(),
             depth: $project->getDepth(),
             path: $project->getPathDetails(),
@@ -94,6 +97,7 @@ final class ProjectResponse
             'updatedAt' => $this->updatedAt->format(\DateTimeInterface::RFC3339),
             'taskCount' => $this->taskCount,
             'completedTaskCount' => $this->completedTaskCount,
+            'pendingTaskCount' => $this->pendingTaskCount,
             'parentId' => $this->parentId,
             'depth' => $this->depth,
             'path' => $this->path,

@@ -28,6 +28,7 @@ final class ProjectTreeTransformer
      *     depth: int,
      *     taskCount: int,
      *     completedTaskCount: int,
+     *     pendingTaskCount: int,
      *     children: array
      * }>
      */
@@ -91,6 +92,7 @@ final class ProjectTreeTransformer
      *     depth: int,
      *     taskCount: int,
      *     completedTaskCount: int,
+     *     pendingTaskCount: int,
      *     children: array
      * }
      */
@@ -118,6 +120,7 @@ final class ProjectTreeTransformer
             'depth' => $project->getDepth(),
             'taskCount' => $taskCount['total'],
             'completedTaskCount' => $taskCount['completed'],
+            'pendingTaskCount' => $taskCount['total'] - $taskCount['completed'],
             'children' => $children,
         ];
     }
@@ -140,11 +143,15 @@ final class ProjectTreeTransformer
      *     depth: int,
      *     taskCount: int,
      *     completedTaskCount: int,
+     *     pendingTaskCount: int,
      *     children: array
      * }
      */
     public function transformNode(Project $project, array $children = [], ?array $taskCount = null): array
     {
+        $total = $taskCount['total'] ?? 0;
+        $completed = $taskCount['completed'] ?? 0;
+
         return [
             'id' => $project->getId(),
             'name' => $project->getName(),
@@ -155,8 +162,9 @@ final class ProjectTreeTransformer
             'isArchived' => $project->isArchived(),
             'showChildrenTasks' => $project->isShowChildrenTasks(),
             'depth' => $project->getDepth(),
-            'taskCount' => $taskCount['total'] ?? 0,
-            'completedTaskCount' => $taskCount['completed'] ?? 0,
+            'taskCount' => $total,
+            'completedTaskCount' => $completed,
+            'pendingTaskCount' => $total - $completed,
             'children' => $children,
         ];
     }
