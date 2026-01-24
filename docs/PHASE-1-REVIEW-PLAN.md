@@ -373,10 +373,11 @@ Split into focused services:
 
 ---
 
-### 2.8 Peek-Then-Consume Race Condition
+### 2.8 Peek-Then-Consume Race Condition ✅ FIXED
 
 **Category:** Code Quality
 **File:** `src/Service/ProjectService.php:307-326`
+**Status:** RESOLVED
 
 #### Issue
 ```php
@@ -388,8 +389,25 @@ $consumedToken = $this->undoService->consumeUndoToken($user->getId(), $token);
 
 Between peek and consume, token could be consumed by concurrent request.
 
-#### Remediation
-Modify `consumeUndoToken()` to return both token data and success flag in atomic operation using Redis `WATCH`/`MULTI`.
+#### Remediation Applied
+1. **Added atomic `getJsonAndDelete()` to `RedisService`** (`src/Service/RedisService.php:269-324`):
+   - Uses Lua script to atomically GET and DEL in a single operation
+   - Ensures only one consumer can successfully retrieve the value
+   - Prevents race conditions at the Redis level
+
+2. **Updated `UndoService.consumeUndoToken()`** (`src/Service/UndoService.php:135-187`):
+   - Now uses `getJsonAndDelete()` for atomic consumption
+   - Removes separate get-then-delete pattern
+   - Handles expiration check after atomic retrieval
+
+3. **Refactored `ProjectService.undo()`** (`src/Service/ProjectService.php:307-360`):
+   - Changed from peek-then-consume to consume-then-validate pattern
+   - Token is atomically consumed first, then entity type is validated
+   - Eliminates race window between peek and consume
+
+4. **Updated unit tests**:
+   - `tests/Unit/Service/UndoServiceTest.php`: Updated to mock `getJsonAndDelete()`
+   - `tests/Unit/Service/ProjectServiceTest.php`: Removed `getUndoToken` expectations
 
 ---
 
@@ -468,10 +486,11 @@ Add `: array` return type to all DTO `toArray()` methods.
 
 ---
 
-### 3.6 Inconsistent Array Access Patterns
+### 3.6 Inconsistent Array Access Patterns ✅ FIXED
 
 **Category:** Code Quality
 **File:** `src/Service/ProjectService.php:210, 245-247, 282-287`
+**Status:** RESOLVED (2026-01-24)
 
 #### Issue
 Inconsistent use of `isset()`, `array_key_exists()`, and null-coalescing:
@@ -483,6 +502,20 @@ if (array_key_exists('description', $state)) { ... }  // array_key_exists
 
 #### Remediation
 Standardize on `array_key_exists()` for explicit null handling throughout.
+
+#### Resolution
+All array access patterns in `ProjectService.php` have been standardized to use `array_key_exists()`:
+- Conditional checks now use `if (array_key_exists('key', $array))`
+- Value access with defaults now uses `array_key_exists('key', $array) ? $array['key'] : default`
+
+This ensures consistent, explicit null handling across all undo operations including:
+- `undoArchive()` - lines 210-212
+- `undoDelete()` - lines 247-249
+- `undoUpdate()` - lines 284-290
+- `undo()` switch statement - lines 340-342
+- `performUndoUpdate()` - lines 375-381
+- `performUndoArchive()` - lines 395-402
+- `performUndoDelete()` - lines 419-421
 
 ---
 
