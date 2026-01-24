@@ -10,6 +10,7 @@ use App\Entity\Project;
 use App\Entity\User;
 use App\Exception\EntityNotFoundException;
 use App\Exception\InvalidStateException;
+use App\Interface\OwnershipCheckerInterface;
 use App\Repository\ProjectRepository;
 use App\ValueObject\UndoToken;
 use Doctrine\ORM\EntityManagerInterface;
@@ -23,7 +24,7 @@ final class ProjectService
         private readonly ProjectRepository $projectRepository,
         private readonly EntityManagerInterface $entityManager,
         private readonly ValidationHelper $validationHelper,
-        private readonly OwnershipChecker $ownershipChecker,
+        private readonly OwnershipCheckerInterface $ownershipChecker,
         private readonly ProjectStateService $projectStateService,
         private readonly ProjectUndoService $projectUndoService,
     ) {
