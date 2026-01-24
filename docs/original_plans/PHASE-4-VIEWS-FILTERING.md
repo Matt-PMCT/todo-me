@@ -194,14 +194,25 @@ Create the Today view showing tasks due today and overdue tasks.
   ```
 
 - [ ] **4.1.4** Add overdue visual indicators
-  ```css
-  /* Overdue task styling */
-  .task-overdue {
-    border-left: 3px solid #e74c3c;
-  }
-  .task-overdue .due-date {
-    color: #e74c3c;
-  }
+  ```twig
+  {# OVERDUE STYLING (per UI-DESIGN-SYSTEM.md): #}
+  {# - Task card: border-l-4 border-red-500 (4px left border) #}
+  {# - Due date text: text-red-600 font-medium #}
+  {# - Overdue badge: bg-red-100 text-red-800 rounded-full px-2.5 py-0.5 text-xs font-medium #}
+  {# - Calendar icon: w-4 h-4 text-red-500 #}
+  {# - Container: add ring-1 ring-red-200 for subtle emphasis on hover #}
+
+  {# Example implementation: #}
+  <div class="task-card {% if task.isOverdue %}border-l-4 border-red-500{% endif %}">
+      {% if task.isOverdue %}
+          <span class="bg-red-100 text-red-800 rounded-full px-2.5 py-0.5 text-xs font-medium">
+              Overdue
+          </span>
+          <span class="text-red-600 font-medium text-sm">
+              {{ task.dueDate|date('M j') }}
+          </span>
+      {% endif %}
+  </div>
   ```
 
 ### Completion Criteria
@@ -364,11 +375,36 @@ Create the Upcoming view showing all tasks with future due dates, grouped by tim
 - [ ] **4.2.4** Create Upcoming view template
   ```twig
   {# templates/task/upcoming.html.twig #}
-  
+
   Layout:
   - Grouped sections with collapsible headers
   - Date headers showing "Tomorrow", "Mon, Jan 27", etc.
   - Week/month boundaries visually marked
+
+  {# UPCOMING VIEW GROUP STYLING (per UI-DESIGN-SYSTEM.md): #}
+  {# - Group header: text-sm font-semibold text-gray-900 py-2 sticky top-0 bg-gray-50 #}
+  {#   flex items-center justify-between, cursor-pointer for collapse #}
+  {# - Today header: bg-indigo-50 text-indigo-700 rounded-md px-3 py-2 #}
+  {# - Tomorrow header: bg-gray-50 text-gray-900 #}
+  {# - Overdue header: bg-red-50 text-red-700 rounded-md px-3 py-2 #}
+  {# - Date format: "Today", "Tomorrow", "Fri, Jan 24", "Next Week" #}
+  {# - Collapsible: chevron-right icon (w-4 h-4), rotates to chevron-down when open #}
+  {#   Use x-show with x-transition for smooth collapse/expand #}
+  {# - Task count badge: text-xs text-gray-500 ml-2 (e.g., "(5 tasks)") #}
+  {# - Section divider: border-b border-gray-200 my-4 for week boundaries #}
+
+  {# Example group header: #}
+  <div x-data="{ open: true }" class="mb-4">
+      <button @click="open = !open"
+              class="w-full flex items-center justify-between py-2 px-3 bg-gray-50 rounded-md hover:bg-gray-100 transition-colors">
+          <span class="text-sm font-semibold text-gray-900">Tomorrow</span>
+          <span class="text-xs text-gray-500">(3 tasks)</span>
+          <svg :class="{ 'rotate-90': open }" class="w-4 h-4 text-gray-400 transition-transform">...</svg>
+      </button>
+      <div x-show="open" x-transition class="mt-2 space-y-2">
+          {# Tasks here #}
+      </div>
+  </div>
   ```
 
 ### Completion Criteria
@@ -486,12 +522,42 @@ Create dedicated Overdue view with urgency-based sorting.
 - [ ] **4.3.4** Create Overdue view template
   ```twig
   {# templates/task/overdue.html.twig #}
-  
+
   Layout:
   - Header with count
   - Severity grouping (optional)
   - Visual urgency indicators (color intensity)
   - "Reschedule all to tomorrow" bulk action
+
+  {# OVERDUE SEVERITY STYLING (per UI-DESIGN-SYSTEM.md): #}
+  {# Severity is based on days overdue: #}
+  {# - Low (1-2 days):   border-l-4 border-yellow-400, bg-yellow-50 for badge #}
+  {# - Medium (3-7 days): border-l-4 border-orange-500, bg-orange-50 for badge #}
+  {# - High (7+ days):   border-l-4 border-red-600, bg-red-50 for badge #}
+
+  {# Severity badge styling: #}
+  {# - Low:    bg-yellow-100 text-yellow-800 rounded-full px-2 py-0.5 text-xs font-medium #}
+  {# - Medium: bg-orange-100 text-orange-800 rounded-full px-2 py-0.5 text-xs font-medium #}
+  {# - High:   bg-red-100 text-red-800 rounded-full px-2 py-0.5 text-xs font-medium #}
+
+  {# Group header by severity: #}
+  {# - text-sm font-semibold py-2, color matches severity #}
+  {# - Shows count: "High Priority (4 tasks)" #}
+
+  {# Bulk action button: #}
+  {# - Secondary button style: bg-white border border-gray-300 rounded-md px-4 py-2 #}
+  {#   text-sm font-medium text-gray-700 hover:bg-gray-50 #}
+  {# - Icon: calendar w-4 h-4 mr-2 #}
+
+  {# Example severity card: #}
+  {% set severityClasses = {
+      'low': 'border-yellow-400',
+      'medium': 'border-orange-500',
+      'high': 'border-red-600'
+  } %}
+  <div class="task-card border-l-4 {{ severityClasses[task.overdueSeverity] }}">
+      ...
+  </div>
   ```
 
 ### Completion Criteria
@@ -880,7 +946,7 @@ Create the frontend UI for filtering and sorting tasks.
 - [ ] **4.7.1** Create filter panel component
   ```twig
   {# templates/components/filter-panel.html.twig #}
-  
+
   Sections:
   - Status (checkboxes: Pending, In Progress, Completed)
   - Projects (multi-select with search, shows hierarchy)
@@ -890,6 +956,46 @@ Create the frontend UI for filtering and sorting tasks.
   - Priority (range slider or checkboxes)
   - Due date (date range picker)
   - Search input
+
+  {# FILTER PANEL STYLING (per UI-DESIGN-SYSTEM.md): #}
+  {# - Container: bg-white shadow rounded-lg p-4 mb-4 #}
+  {# - Collapsed header: flex items-center justify-between cursor-pointer #}
+  {#   py-2 hover:bg-gray-50 rounded-md transition-colors #}
+  {# - Filter icon: w-5 h-5 text-gray-500 mr-2 (funnel icon) #}
+  {# - Header text: text-sm font-medium text-gray-700 #}
+  {# - Chevron: w-4 h-4 text-gray-400, rotate-180 when expanded #}
+  {# - Active filter count badge: bg-indigo-100 text-indigo-700 rounded-full px-2 py-0.5 text-xs ml-2 #}
+
+  {# Expanded panel layout: #}
+  {# - Grid: grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-4 #}
+  {# - Section labels: text-sm font-medium text-gray-700 mb-2 #}
+  {# - Checkboxes: standard form checkbox (rounded, indigo-600 accent) #}
+  {# - Select inputs: standard form input styles (rounded-md, ring-1, etc.) #}
+
+  {# Action buttons row: #}
+  {# - Container: flex items-center justify-end gap-3 mt-4 pt-4 border-t border-gray-200 #}
+  {# - Clear link: text-sm text-indigo-600 hover:text-indigo-500 font-medium #}
+  {# - Apply button: Primary button style (bg-indigo-600 hover:bg-indigo-700 text-white #}
+  {#   rounded-md px-4 py-2 text-sm font-semibold) #}
+
+  {# Alpine.js pattern for collapse: #}
+  <div x-data="{ expanded: false }" class="bg-white shadow rounded-lg p-4 mb-4">
+      <button @click="expanded = !expanded" class="w-full flex items-center justify-between py-2">
+          <div class="flex items-center">
+              <svg class="w-5 h-5 text-gray-500 mr-2">...</svg>
+              <span class="text-sm font-medium text-gray-700">Filters</span>
+              {% if activeFilterCount > 0 %}
+                  <span class="bg-indigo-100 text-indigo-700 rounded-full px-2 py-0.5 text-xs ml-2">
+                      {{ activeFilterCount }}
+                  </span>
+              {% endif %}
+          </div>
+          <svg :class="{ 'rotate-180': expanded }" class="w-4 h-4 text-gray-400 transition-transform">...</svg>
+      </button>
+      <div x-show="expanded" x-transition class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-4">
+          {# Filter sections here #}
+      </div>
+  </div>
   ```
 
 - [ ] **4.7.2** Create JavaScript for filter management
@@ -907,20 +1013,52 @@ Create the frontend UI for filtering and sorting tasks.
 - [ ] **4.7.3** Create active filters display
   ```twig
   {# templates/components/active-filters.html.twig #}
-  
+
   Layout:
   - Row of filter chips above task list
   - Each chip shows: filter type + value + remove button
   - "Clear all" button
-  
+
   Example:
   [Status: Pending ×] [Project: Work (+ children) ×] [Tag: urgent ×] [Clear all]
+
+  {# ACTIVE FILTERS STYLING (per UI-DESIGN-SYSTEM.md): #}
+  {# - Container: flex flex-wrap items-center gap-2 py-2 #}
+  {# - Filter chip: inline-flex items-center gap-1.5 rounded-full px-3 py-1 #}
+  {#   bg-gray-100 text-gray-700 text-sm transition-colors hover:bg-gray-200 #}
+  {# - Chip label: text-xs text-gray-500 (e.g., "Status:") #}
+  {# - Chip value: text-sm font-medium text-gray-700 #}
+  {# - Remove button: w-4 h-4 text-gray-400 hover:text-gray-600 #}
+  {#   rounded-full hover:bg-gray-300 p-0.5 transition-colors #}
+  {# - Clear all link: text-sm text-indigo-600 hover:text-indigo-500 font-medium ml-2 #}
+  {# - Transition: x-transition for smooth add/remove animation #}
+
+  {# Example implementation: #}
+  <div class="flex flex-wrap items-center gap-2 py-2">
+      {% for filter in activeFilters %}
+          <span x-data x-transition
+                class="inline-flex items-center gap-1.5 rounded-full px-3 py-1 bg-gray-100 text-gray-700 text-sm">
+              <span class="text-xs text-gray-500">{{ filter.type }}:</span>
+              <span class="font-medium">{{ filter.value }}</span>
+              <button @click="removeFilter('{{ filter.key }}')"
+                      class="w-4 h-4 text-gray-400 hover:text-gray-600 rounded-full hover:bg-gray-300 p-0.5">
+                  <svg class="w-3 h-3">...</svg> {# x-mark icon #}
+              </button>
+          </span>
+      {% endfor %}
+      {% if activeFilters|length > 0 %}
+          <button @click="clearAllFilters()"
+                  class="text-sm text-indigo-600 hover:text-indigo-500 font-medium ml-2">
+              Clear all
+          </button>
+      {% endif %}
+  </div>
   ```
 
 - [ ] **4.7.4** Create sort dropdown component
   ```twig
   {# templates/components/sort-dropdown.html.twig #}
-  
+
   Options:
   - Due date (nearest first)
   - Due date (furthest first)
@@ -929,8 +1067,51 @@ Create the frontend UI for filtering and sorting tasks.
   - Recently created
   - Alphabetical
   - Manual
-  
+
   Visual indicator of current sort
+
+  {# SORT DROPDOWN STYLING (per UI-DESIGN-SYSTEM.md): #}
+  {# - Trigger button: Secondary button style #}
+  {#   bg-white border border-gray-300 rounded-md px-3 py-2 #}
+  {#   text-sm font-medium text-gray-700 hover:bg-gray-50 #}
+  {#   inline-flex items-center gap-2 #}
+  {# - Sort icon: arrows-up-down w-4 h-4 text-gray-500 #}
+  {# - Current sort indicator: font-medium text in trigger #}
+
+  {# Dropdown menu: #}
+  {# - Container: absolute z-10 mt-2 w-56 rounded-md bg-white shadow-lg #}
+  {#   ring-1 ring-black ring-opacity-5 focus:outline-none #}
+  {# - Menu section: py-1 #}
+  {# - Sort option: px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 #}
+  {#   flex items-center justify-between cursor-pointer #}
+  {# - Active sort: bg-indigo-50 text-indigo-700 font-medium #}
+  {# - Checkmark icon for active: w-4 h-4 text-indigo-600 #}
+  {# - Direction indicator: text-xs text-gray-400 (asc ↑ / desc ↓) #}
+
+  {# Alpine.js dropdown pattern: #}
+  <div x-data="{ open: false }" class="relative">
+      <button @click="open = !open" @click.away="open = false"
+              class="bg-white border border-gray-300 rounded-md px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 inline-flex items-center gap-2">
+          <svg class="w-4 h-4 text-gray-500">...</svg> {# arrows-up-down #}
+          <span>{{ currentSort.label }}</span>
+          <svg class="w-4 h-4 text-gray-400">...</svg> {# chevron-down #}
+      </button>
+      <div x-show="open" x-transition
+           class="absolute right-0 z-10 mt-2 w-56 rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5">
+          <div class="py-1">
+              {% for option in sortOptions %}
+                  <button @click="setSort('{{ option.value }}'); open = false"
+                          class="w-full px-4 py-2 text-sm text-left flex items-center justify-between
+                                 {% if option.value == currentSort.value %}bg-indigo-50 text-indigo-700 font-medium{% else %}text-gray-700 hover:bg-gray-100{% endif %}">
+                      <span>{{ option.label }}</span>
+                      {% if option.value == currentSort.value %}
+                          <svg class="w-4 h-4 text-indigo-600">...</svg> {# check icon #}
+                      {% endif %}
+                  </button>
+              {% endfor %}
+          </div>
+      </div>
+  </div>
   ```
 
 - [ ] **4.7.5** Create project multi-select with hierarchy
@@ -948,13 +1129,23 @@ Create the frontend UI for filtering and sorting tasks.
 - [ ] **4.7.6** Create tag multi-select
   ```javascript
   // assets/js/tag-select.js
-  
+
   Features:
   - Searchable dropdown
   - Show tag colors
   - Toggle AND/OR mode (tag_match)
   - Show selected as chips
   ```
+
+- [ ] **4.7.9** Verify UI Design System compliance
+  - All filter components match `docs/UI-DESIGN-SYSTEM.md` specifications
+  - Color usage follows semantic color rules (Section 2)
+  - Spacing uses defined spacing scale (Section 3)
+  - Typography follows scale (Section 4)
+  - Transitions follow animation standards (Section 9)
+  - Accessibility checklist completed for all filter components (Section 10)
+  - Keyboard navigation tested for dropdowns and selects
+  - Focus states visible and styled consistently
 
 ### Completion Criteria
 - [ ] Filter panel renders all options

@@ -799,73 +799,82 @@ Create the frontend search interface.
 - [ ] **7.5.3** Add keyboard navigation (included above)
 
 - [ ] **7.5.4** Style search UI
-  ```css
-  /* assets/css/search.css */
-  
-  .search-container {
-      position: relative;
-  }
-  
-  .search-dropdown {
-      position: absolute;
-      top: 100%;
-      left: 0;
-      right: 0;
-      background: white;
-      border: 1px solid #ddd;
-      border-radius: 4px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-      max-height: 400px;
-      overflow-y: auto;
-      z-index: 1000;
-  }
-  
-  .search-dropdown.hidden {
-      display: none;
-  }
-  
-  .search-section h4 {
-      padding: 8px 12px;
-      margin: 0;
-      background: #f5f5f5;
-      font-size: 12px;
-      text-transform: uppercase;
-      color: #666;
-  }
-  
-  .search-result {
-      display: flex;
-      justify-content: space-between;
-      padding: 10px 12px;
-      text-decoration: none;
-      color: #333;
-      border-bottom: 1px solid #eee;
-  }
-  
-  .search-result:hover,
-  .search-result.selected {
-      background: #f0f7ff;
-  }
-  
-  .search-result .title {
-      flex: 1;
-  }
-  
-  .search-result .title mark {
-      background: #fff3cd;
-      padding: 0 2px;
-  }
-  
-  .search-result .project {
-      color: #666;
-      font-size: 12px;
-  }
-  
-  .no-results {
-      padding: 20px;
-      text-align: center;
-      color: #666;
-  }
+  ```twig
+  {# SEARCH UI STYLING (per UI-DESIGN-SYSTEM.md): #}
+
+  {# Search container: #}
+  {# - Container: relative w-full max-w-md #}
+  {# - Input: w-full rounded-md border-gray-300 shadow-sm text-sm #}
+  {#   pl-10 (for icon) focus:border-indigo-500 focus:ring-indigo-500 #}
+  {# - Search icon: absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 #}
+  {# - Keyboard hint: absolute right-3 top-1/2 -translate-y-1/2 #}
+  {#   text-xs text-gray-400 bg-gray-100 rounded px-1.5 py-0.5 ("/" or "⌘K") #}
+
+  {# Search dropdown: #}
+  {# - Container: absolute z-20 mt-2 w-full rounded-md bg-white shadow-lg #}
+  {#   ring-1 ring-black ring-opacity-5 max-h-96 overflow-y-auto #}
+  {# - Use x-show with x-transition for smooth open/close #}
+
+  {# SEARCH RESULT HIGHLIGHTING (per UI-DESIGN-SYSTEM.md): #}
+  {# - Match highlight: bg-yellow-200 rounded px-0.5 (inline <mark> tag) #}
+  {# - Result item: px-4 py-3 cursor-pointer hover:bg-gray-50 transition-colors #}
+  {#   border-b border-gray-100 last:border-0 #}
+  {# - Selected item (keyboard nav): bg-indigo-50 #}
+
+  {# Section headers: #}
+  {# - Header: px-4 py-2 bg-gray-50 text-xs font-semibold text-gray-500 uppercase tracking-wider #}
+  {#   sticky top-0 #}
+  {# - Count badge: text-gray-400 font-normal lowercase ml-1 (e.g., "Tasks (5)") #}
+
+  {# Result item layout: #}
+  {# - Title: text-sm font-medium text-gray-900 truncate #}
+  {# - Subtitle (project name): text-xs text-gray-500 mt-0.5 #}
+  {# - Status indicator: inline-flex items-center gap-1 #}
+
+  {# Empty state: #}
+  {# - Container: py-12 text-center #}
+  {# - Icon: w-12 h-12 text-gray-300 mx-auto mb-4 (magnifying glass with x) #}
+  {# - Message: text-sm text-gray-500 "No results found" #}
+  {# - Suggestion: text-xs text-gray-400 mt-1 "Try different keywords" #}
+
+  {# Example implementation: #}
+  <div x-data="{ open: false, results: [], query: '' }" class="relative w-full max-w-md">
+      <div class="relative">
+          <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400">...</svg>
+          <input type="text"
+                 x-model="query"
+                 @input.debounce.300ms="performSearch()"
+                 @focus="open = results.length > 0"
+                 @keydown.escape="open = false"
+                 placeholder="Search tasks..."
+                 class="w-full rounded-md border-gray-300 shadow-sm text-sm pl-10 pr-12
+                        focus:border-indigo-500 focus:ring-indigo-500">
+          <span class="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400 bg-gray-100 rounded px-1.5 py-0.5">/</span>
+      </div>
+
+      <div x-show="open" x-transition @click.away="open = false"
+           class="absolute z-20 mt-2 w-full rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 max-h-96 overflow-y-auto">
+
+          {# Tasks section #}
+          <div class="px-4 py-2 bg-gray-50 text-xs font-semibold text-gray-500 uppercase tracking-wider sticky top-0">
+              Tasks <span class="text-gray-400 font-normal lowercase">(5)</span>
+          </div>
+
+          <a href="#" class="block px-4 py-3 hover:bg-gray-50 border-b border-gray-100 transition-colors">
+              <div class="text-sm font-medium text-gray-900 truncate">
+                  Review <mark class="bg-yellow-200 rounded px-0.5">meeting</mark> notes
+              </div>
+              <div class="text-xs text-gray-500 mt-0.5">Work / Meetings</div>
+          </a>
+
+          {# Empty state #}
+          <div class="py-12 text-center" x-show="results.length === 0">
+              <svg class="w-12 h-12 text-gray-300 mx-auto mb-4">...</svg>
+              <p class="text-sm text-gray-500">No results found</p>
+              <p class="text-xs text-gray-400 mt-1">Try different keywords</p>
+          </div>
+      </div>
+  </div>
   ```
 
 ### Completion Criteria
@@ -1360,63 +1369,65 @@ Create the frontend undo toast notifications.
   ```
 
 - [ ] **7.7.5** Style toast notifications
-  ```css
-  .toast {
-      position: fixed;
-      bottom: 20px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: #333;
-      color: white;
-      padding: 12px 20px;
-      border-radius: 8px;
-      display: flex;
-      align-items: center;
-      gap: 15px;
-      z-index: 1000;
-      animation: slideUp 0.3s ease;
-  }
-  
-  .toast.hiding {
-      animation: slideDown 0.3s ease forwards;
-  }
-  
-  .toast-error {
-      background: #dc3545;
-  }
-  
-  .toast .undo-btn {
-      background: #4a9eff;
-      color: white;
-      border: none;
-      padding: 6px 12px;
-      border-radius: 4px;
-      cursor: pointer;
-  }
-  
-  .toast .undo-btn:disabled {
-      background: #666;
-      cursor: not-allowed;
-  }
-  
-  .toast .close-btn {
-      background: none;
-      border: none;
-      color: white;
-      font-size: 18px;
-      cursor: pointer;
-      padding: 0 5px;
-  }
-  
-  @keyframes slideUp {
-      from { transform: translateX(-50%) translateY(100%); opacity: 0; }
-      to { transform: translateX(-50%) translateY(0); opacity: 1; }
-  }
-  
-  @keyframes slideDown {
-      from { transform: translateX(-50%) translateY(0); opacity: 1; }
-      to { transform: translateX(-50%) translateY(100%); opacity: 0; }
-  }
+  ```twig
+  {# UNDO TOAST STYLING (per UI-DESIGN-SYSTEM.md Section 5.7): #}
+  {# - Position: fixed bottom-4 right-4 z-50 #}
+  {# - Container: bg-gray-900 text-white rounded-lg shadow-lg px-4 py-3 #}
+  {#   flex items-center gap-4 max-w-md #}
+  {# - Message: text-sm flex-1 #}
+  {# - Undo button: text-indigo-400 hover:text-indigo-300 font-medium #}
+  {#   transition-colors cursor-pointer #}
+  {# - Countdown: text-xs text-gray-400, shows seconds remaining #}
+  {# - Close button: text-gray-400 hover:text-gray-200 ml-2 #}
+  {# - Transition: x-transition with slide-up and fade (origin-bottom-right) #}
+  {#   enter: transition ease-out duration-300 #}
+  {#   enter-start: translate-y-4 opacity-0 #}
+  {#   enter-end: translate-y-0 opacity-100 #}
+  {#   leave: transition ease-in duration-200 #}
+  {#   leave-start: translate-y-0 opacity-100 #}
+  {#   leave-end: translate-y-4 opacity-0 #}
+  {# - Auto-dismiss: 5 seconds (x-init="setTimeout(() => show = false, 5000)") #}
+
+  {# Toast variants: #}
+  {# - Success: bg-green-900 (or keep neutral gray-900) #}
+  {# - Error: bg-red-900 text-red-100 #}
+  {# - Info: bg-gray-900 (default) #}
+
+  {# Example toast implementation: #}
+  <div x-data="{ show: true, countdown: 5 }"
+       x-show="show"
+       x-init="
+           let interval = setInterval(() => {
+               countdown--;
+               if (countdown <= 0) {
+                   clearInterval(interval);
+                   show = false;
+               }
+           }, 1000);
+       "
+       x-transition:enter="transition ease-out duration-300"
+       x-transition:enter-start="translate-y-4 opacity-0"
+       x-transition:enter-end="translate-y-0 opacity-100"
+       x-transition:leave="transition ease-in duration-200"
+       x-transition:leave-start="translate-y-0 opacity-100"
+       x-transition:leave-end="translate-y-4 opacity-0"
+       class="fixed bottom-4 right-4 z-50 bg-gray-900 text-white rounded-lg shadow-lg px-4 py-3 flex items-center gap-4 max-w-md">
+
+      <span class="text-sm flex-1">Task completed</span>
+
+      <button @click="executeUndo('{{ undo_token }}')"
+              class="text-indigo-400 hover:text-indigo-300 font-medium transition-colors">
+          Undo
+      </button>
+
+      <span class="text-xs text-gray-400" x-text="countdown + 's'"></span>
+
+      <button @click="show = false" class="text-gray-400 hover:text-gray-200">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+      </button>
+  </div>
   ```
 
 ### Completion Criteria
