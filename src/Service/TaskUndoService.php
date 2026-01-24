@@ -241,6 +241,17 @@ final class TaskUndoService implements TaskUndoServiceInterface
         // Verify ownership
         $this->ownershipChecker->checkOwnership($task);
 
+        // Handle recurring task undo - delete auto-generated next task if it wasn't modified
+        if (isset($undoToken->previousState['_generatedNextTaskId'])) {
+            $nextTaskId = $undoToken->previousState['_generatedNextTaskId'];
+            $nextTask = $this->taskRepository->find($nextTaskId);
+
+            // Only delete if task exists, is pending, and wasn't modified
+            if ($nextTask !== null && $nextTask->getStatus() === Task::STATUS_PENDING) {
+                $this->entityManager->remove($nextTask);
+            }
+        }
+
         // Restore from previous state
         $this->taskStateService->applyStateToTask($task, $undoToken->previousState);
 

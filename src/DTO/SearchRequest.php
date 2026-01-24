@@ -52,6 +52,8 @@ final class SearchRequest
             notInRangeMessage: 'Limit must be between {{ min }} and {{ max }}'
         )]
         public readonly int $limit = 20,
+
+        public readonly bool $highlight = true,
     ) {
     }
 
@@ -67,6 +69,7 @@ final class SearchRequest
             type: (string) ($params['type'] ?? self::TYPE_ALL),
             page: isset($params['page']) ? (int) $params['page'] : 1,
             limit: isset($params['limit']) ? (int) $params['limit'] : 20,
+            highlight: !isset($params['highlight']) || filter_var($params['highlight'], FILTER_VALIDATE_BOOLEAN),
         );
     }
 }

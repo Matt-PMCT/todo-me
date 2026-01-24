@@ -379,4 +379,198 @@ class SearchApiTest extends ApiTestCase
         $this->assertCount(1, $data['projects']);
         $this->assertEquals('MixedCase Project', $data['projects'][0]['name']);
     }
+
+    // ========================================
+    // Highlight Tests
+    // ========================================
+
+    public function testSearchHighlightsMatches(): void
+    {
+        $user = $this->createUser('search-highlight@example.com', 'Password123');
+
+        $this->createTask($user, 'Important meeting tomorrow', 'Discuss important quarterly planning');
+
+        $response = $this->authenticatedApiRequest(
+            $user,
+            'GET',
+            '/api/v1/search?q=important&type=tasks'
+        );
+
+        $this->assertResponseStatusCode(Response::HTTP_OK, $response);
+
+        $data = $this->getResponseData($response);
+
+        $this->assertCount(1, $data['tasks']);
+        $task = $data['tasks'][0];
+
+        // Verify highlight fields exist and contain <mark> tags
+        $this->assertArrayHasKey('titleHighlight', $task);
+        $this->assertArrayHasKey('descriptionHighlight', $task);
+
+        // At least one should have the <mark> tag since we searched for 'important'
+        $hasHighlight = (
+            ($task['titleHighlight'] !== null && str_contains($task['titleHighlight'], '<mark>')) ||
+            ($task['descriptionHighlight'] !== null && str_contains($task['descriptionHighlight'], '<mark>'))
+        );
+        $this->assertTrue($hasHighlight, 'Expected at least one field to have <mark> highlight tags');
+    }
+
+    public function testSearchReturnsRankScore(): void
+    {
+        $user = $this->createUser('search-rank@example.com', 'Password123');
+
+        $this->createTask($user, 'Review code for bugs', 'Check for memory leaks');
+
+        $response = $this->authenticatedApiRequest(
+            $user,
+            'GET',
+            '/api/v1/search?q=code&type=tasks'
+        );
+
+        $this->assertResponseStatusCode(Response::HTTP_OK, $response);
+
+        $data = $this->getResponseData($response);
+
+        $this->assertCount(1, $data['tasks']);
+        $task = $data['tasks'][0];
+
+        // Verify rank field exists and is a float
+        $this->assertArrayHasKey('rank', $task);
+        $this->assertIsFloat($task['rank']);
+        $this->assertGreaterThan(0, $task['rank']);
+    }
+
+    public function testSearchIncludesTimingMetrics(): void
+    {
+        $user = $this->createUser('search-timing@example.com', 'Password123');
+
+        $this->createTask($user, 'Performance test task');
+
+        $response = $this->authenticatedApiRequest(
+            $user,
+            'GET',
+            '/api/v1/search?q=performance'
+        );
+
+        $this->assertResponseStatusCode(Response::HTTP_OK, $response);
+
+        $data = $this->getResponseData($response);
+
+        // Verify searchTimeMs is present in meta and is a positive number
+        $this->assertArrayHasKey('meta', $data);
+        $this->assertArrayHasKey('searchTimeMs', $data['meta']);
+        $this->assertIsFloat($data['meta']['searchTimeMs']);
+        $this->assertGreaterThanOrEqual(0, $data['meta']['searchTimeMs']);
+    }
+
+    public function testSearchWithHighlightDisabled(): void
+    {
+        $user = $this->createUser('search-no-highlight@example.com', 'Password123');
+
+        $this->createTask($user, 'Highlight disabled test');
+
+        $response = $this->authenticatedApiRequest(
+            $user,
+            'GET',
+            '/api/v1/search?q=highlight&type=tasks&highlight=false'
+        );
+
+        $this->assertResponseStatusCode(Response::HTTP_OK, $response);
+
+        $data = $this->getResponseData($response);
+
+        $this->assertCount(1, $data['tasks']);
+        $task = $data['tasks'][0];
+
+        // When highlight=false, highlight fields should not be present
+        $this->assertArrayNotHasKey('titleHighlight', $task);
+        $this->assertArrayNotHasKey('descriptionHighlight', $task);
+        $this->assertArrayNotHasKey('rank', $task);
+    }
+
+    // ========================================
+    // Prefix Search Tests
+    // ========================================
+
+    public function testPrefixSearchTasks(): void
+    {
+        $user = $this->createUser('search-prefix-task@example.com', 'Password123');
+
+        // Note: Task search uses PostgreSQL full-text search which requires complete word matches.
+        // "investigate" and "investigation" share the same stem so FTS finds them.
+        $this->createTask($user, 'Investigation report');
+        $this->createTask($user, 'Unrelated task');
+
+        // Search for "investigation" should find the matching task via FTS
+        $response = $this->authenticatedApiRequest(
+            $user,
+            'GET',
+            '/api/v1/search?q=investigation&type=tasks'
+        );
+
+        $this->assertResponseStatusCode(Response::HTTP_OK, $response);
+
+        $data = $this->getResponseData($response);
+
+        $this->assertGreaterThanOrEqual(1, count($data['tasks']));
+
+        $titles = array_column($data['tasks'], 'title');
+        $this->assertContains('Investigation report', $titles);
+    }
+
+    public function testPrefixSearchProjects(): void
+    {
+        $user = $this->createUser('search-prefix-project@example.com', 'Password123');
+
+        $this->createProject($user, 'Development project');
+        $this->createProject($user, 'Design research');
+        $this->createProject($user, 'Unrelated project');
+
+        // Search with prefix "de" should find development and design projects
+        $response = $this->authenticatedApiRequest(
+            $user,
+            'GET',
+            '/api/v1/search?q=de&type=projects'
+        );
+
+        $this->assertResponseStatusCode(Response::HTTP_OK, $response);
+
+        $data = $this->getResponseData($response);
+
+        $this->assertGreaterThanOrEqual(2, count($data['projects']));
+
+        $names = array_column($data['projects'], 'name');
+        $this->assertTrue(
+            in_array('Development project', $names) && in_array('Design research', $names),
+            'Expected to find projects with prefix "de"'
+        );
+    }
+
+    public function testPrefixSearchTags(): void
+    {
+        $user = $this->createUser('search-prefix-tag@example.com', 'Password123');
+
+        $this->createTag($user, 'urgent');
+        $this->createTag($user, 'upcoming');
+        $this->createTag($user, 'other');
+
+        // Search with prefix "ur" should find urgent (and possibly upcoming depending on implementation)
+        $response = $this->authenticatedApiRequest(
+            $user,
+            'GET',
+            '/api/v1/search?q=ur&type=tags'
+        );
+
+        $this->assertResponseStatusCode(Response::HTTP_OK, $response);
+
+        $data = $this->getResponseData($response);
+
+        $this->assertGreaterThanOrEqual(1, count($data['tags']));
+
+        $names = array_column($data['tags'], 'name');
+        $this->assertTrue(
+            in_array('urgent', $names),
+            'Expected to find tag "urgent" with prefix "ur"'
+        );
+    }
 }

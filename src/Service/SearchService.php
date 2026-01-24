@@ -35,7 +35,10 @@ final class SearchService
      */
     public function search(User $user, SearchRequest $request): SearchResponse
     {
+        $startTime = hrtime(true);
+
         $tasks = [];
+        $tasksWithHighlights = [];
         $projects = [];
         $tags = [];
         $totalTasks = 0;
@@ -44,19 +47,32 @@ final class SearchService
 
         $searchType = $request->type;
         $limit = $request->limit;
+        $useHighlights = $request->highlight && ($searchType === SearchRequest::TYPE_ALL || $searchType === SearchRequest::TYPE_TASKS);
 
         // Search tasks
         if ($searchType === SearchRequest::TYPE_ALL || $searchType === SearchRequest::TYPE_TASKS) {
-            $taskResults = $this->taskRepository->search($user, $request->query);
-            $totalTasks = count($taskResults);
+            if ($useHighlights) {
+                $taskResults = $this->taskRepository->searchWithHighlights($user, $request->query);
+                $totalTasks = count($taskResults);
 
-            // Apply pagination for tasks in type=all mode by taking proportional share
-            if ($searchType === SearchRequest::TYPE_ALL) {
-                $tasks = array_slice($taskResults, 0, $limit);
+                // Apply pagination for tasks in type=all mode by taking proportional share
+                if ($searchType === SearchRequest::TYPE_ALL) {
+                    $tasksWithHighlights = array_slice($taskResults, 0, $limit);
+                } else {
+                    // For type=tasks, apply proper pagination
+                    $offset = ($request->page - 1) * $limit;
+                    $tasksWithHighlights = array_slice($taskResults, $offset, $limit);
+                }
             } else {
-                // For type=tasks, apply proper pagination
-                $offset = ($request->page - 1) * $limit;
-                $tasks = array_slice($taskResults, $offset, $limit);
+                $taskResults = $this->taskRepository->search($user, $request->query);
+                $totalTasks = count($taskResults);
+
+                if ($searchType === SearchRequest::TYPE_ALL) {
+                    $tasks = array_slice($taskResults, 0, $limit);
+                } else {
+                    $offset = ($request->page - 1) * $limit;
+                    $tasks = array_slice($taskResults, $offset, $limit);
+                }
             }
         }
 
@@ -86,6 +102,22 @@ final class SearchService
             }
         }
 
+        $searchTimeMs = (hrtime(true) - $startTime) / 1_000_000;
+
+        if ($useHighlights) {
+            return SearchResponse::fromEntitiesWithHighlights(
+                tasksWithHighlights: $tasksWithHighlights,
+                projects: $projects,
+                tags: $tags,
+                totalTasks: $totalTasks,
+                totalProjects: $totalProjects,
+                totalTags: $totalTags,
+                page: $request->page,
+                limit: $request->limit,
+                searchTimeMs: $searchTimeMs,
+            );
+        }
+
         return SearchResponse::fromEntities(
             tasks: $tasks,
             projects: $projects,
@@ -95,6 +127,7 @@ final class SearchService
             totalTags: $totalTags,
             page: $request->page,
             limit: $request->limit,
+            searchTimeMs: $searchTimeMs,
         );
     }
 }
