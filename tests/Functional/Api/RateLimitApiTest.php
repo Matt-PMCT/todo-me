@@ -15,9 +15,10 @@ use Symfony\Component\HttpFoundation\Response;
  * - 429 response when limit exceeded
  * - Different limits for authenticated vs anonymous
  *
- * Note: In test environment, rate limits are set much higher to avoid
- * interfering with other tests. These tests verify the mechanics work
- * correctly, not the actual production limits.
+ * Note: In test environment, rate limits are set low (5 requests/minute)
+ * to allow testing 429 responses without making thousands of requests.
+ * The base ApiTestCase clears the rate limiter cache before each test
+ * for isolation.
  */
 class RateLimitApiTest extends ApiTestCase
 {
@@ -28,6 +29,8 @@ class RateLimitApiTest extends ApiTestCase
     public function testRateLimitHeadersPresentOnAuthenticatedRequest(): void
     {
         $user = $this->createUser('ratelimit-auth@example.com', 'Password123');
+
+        $beforeRequest = time();
 
         $response = $this->authenticatedApiRequest(
             $user,
@@ -46,8 +49,8 @@ class RateLimitApiTest extends ApiTestCase
         $this->assertGreaterThan(0, $limit);
         $this->assertGreaterThanOrEqual(0, $remaining);
         $this->assertLessThanOrEqual($limit, $remaining + 1);
-        // Reset time should be at or after current time
-        $this->assertGreaterThanOrEqual(time(), $reset);
+        // Reset time should be at or after when we started (with 1s tolerance for timing)
+        $this->assertGreaterThanOrEqual($beforeRequest - 1, $reset);
     }
 
     public function testRateLimitHeadersPresentOnPublicEndpoint(): void
@@ -125,71 +128,27 @@ class RateLimitApiTest extends ApiTestCase
     // ========================================
 
     /**
-     * Note: This test is skipped in the test environment because rate limits
-     * are set very high (10000 requests/minute) to avoid interfering with
-     * other tests. In production, the actual rate limit would be much lower.
+     * Tests that exceeding the rate limit returns a 429 response.
      *
-     * The test below demonstrates what WOULD happen if the limit was exceeded.
+     * In test environment, the API rate limit is 5 requests per minute,
+     * so making 6 requests should trigger a 429.
      */
-    public function testRateLimitExceededResponseFormat(): void
+    public function testRateLimitExceededReturns429(): void
     {
-        // We can't easily trigger the rate limit in test environment,
-        // but we can verify the expected response format by checking
-        // that rate limit headers are present
-        $user = $this->createUser('ratelimit-format@example.com', 'Password123');
+        $user = $this->createUser('ratelimit-429@example.com', 'Password123');
 
-        $response = $this->authenticatedApiRequest(
-            $user,
-            'GET',
-            '/api/v1/tasks'
-        );
+        // Test env allows 5 requests/minute - make 5 requests first
+        for ($i = 0; $i < 5; $i++) {
+            $this->authenticatedApiRequest($user, 'GET', '/api/v1/tasks');
+        }
 
-        // Verify we have rate limit headers
-        $this->assertRateLimitHeaders($response);
+        // The 6th request should trigger 429
+        $response = $this->authenticatedApiRequest($user, 'GET', '/api/v1/tasks');
 
-        // Document the expected behavior when rate limit IS exceeded:
-        // - Status code: 429 Too Many Requests
-        // - Error code: RATE_LIMITED
-        // - X-RateLimit-Remaining: 0
-        // - Retry-After header present
-    }
-
-    /**
-     * Tests the format of 429 response.
-     *
-     * Note: This test documents the expected behavior but cannot actually
-     * trigger a 429 in the test environment without making thousands of
-     * requests. The EventSubscriber test would better test this.
-     */
-    public function testExpectedRateLimitExceededBehavior(): void
-    {
-        // Document expected 429 response structure
-        $expected429Response = [
-            'success' => false,
-            'data' => null,
-            'error' => [
-                'code' => 'RATE_LIMITED',
-                'message' => 'Rate limit exceeded. Please try again later.',
-                'details' => [
-                    'retry_after' => '/* seconds until reset */',
-                ],
-            ],
-            'meta' => [
-                'requestId' => '/* uuid */',
-                'timestamp' => '/* ISO 8601 */',
-            ],
-        ];
-
-        // Expected headers on 429 response
-        $expectedHeaders = [
-            'X-RateLimit-Limit',
-            'X-RateLimit-Remaining',  // Should be 0
-            'X-RateLimit-Reset',
-            'Retry-After',
-        ];
-
-        // This just documents the expected behavior
-        $this->assertTrue(true, 'See documented expected 429 response structure');
+        $this->assertResponseStatusCode(Response::HTTP_TOO_MANY_REQUESTS, $response);
+        $this->assertErrorCode($response, 'RATE_LIMITED');
+        $this->assertTrue($response->headers->has('Retry-After'));
+        $this->assertEquals('0', $response->headers->get('X-RateLimit-Remaining'));
     }
 
     // ========================================
@@ -198,9 +157,6 @@ class RateLimitApiTest extends ApiTestCase
 
     /**
      * Tests that authenticated requests use authenticated rate limit.
-     *
-     * Note: Both anonymous and authenticated limits are set high in test env,
-     * so we can only verify the mechanics work, not the actual limits.
      */
     public function testAuthenticatedRequestUsesAuthenticatedLimit(): void
     {
@@ -216,8 +172,7 @@ class RateLimitApiTest extends ApiTestCase
 
         $limit = (int) $response->headers->get('X-RateLimit-Limit');
 
-        // In test env, authenticated limit is 10000
-        // In production, this would be a different value
+        // In test env, API limit is 5 requests/minute
         $this->assertGreaterThan(0, $limit);
     }
 
@@ -295,6 +250,8 @@ class RateLimitApiTest extends ApiTestCase
     {
         $user = $this->createUser('ratelimit-reset@example.com', 'Password123');
 
+        $beforeRequest = time();
+
         $response = $this->authenticatedApiRequest(
             $user,
             'GET',
@@ -303,11 +260,11 @@ class RateLimitApiTest extends ApiTestCase
 
         $reset = (int) $response->headers->get('X-RateLimit-Reset');
 
-        // Reset time should be at or after current time (within the window interval)
-        $this->assertGreaterThanOrEqual(time(), $reset);
+        // Reset time should be at or after when we started (with 1s tolerance for timing)
+        $this->assertGreaterThanOrEqual($beforeRequest - 1, $reset);
 
         // Reset should be within a reasonable window (e.g., 2 minutes)
-        $this->assertLessThan(time() + 120, $reset);
+        $this->assertLessThan($beforeRequest + 120, $reset);
     }
 
     public function testRateLimitResetTimeConsistentAcrossRequests(): void
@@ -337,75 +294,36 @@ class RateLimitApiTest extends ApiTestCase
     // Rate Limit with Different HTTP Methods
     // ========================================
 
-    public function testRateLimitAppliesToGetRequests(): void
+    /**
+     * @dataProvider httpMethodProvider
+     */
+    public function testRateLimitAppliesToHttpMethod(string $method, string $uri, ?array $body, bool $requiresTask): void
     {
-        $user = $this->createUser('ratelimit-get@example.com', 'Password123');
+        $user = $this->createUser("ratelimit-{$method}@example.com", 'Password123');
 
-        $response = $this->authenticatedApiRequest(
-            $user,
-            'GET',
-            '/api/v1/tasks'
-        );
+        $actualUri = $uri;
+        if ($requiresTask) {
+            $task = $this->createTask($user, 'Test Task');
+            $actualUri = str_replace('{taskId}', (string) $task->getId(), $uri);
+        }
+
+        $response = $this->authenticatedApiRequest($user, $method, $actualUri, $body);
 
         $this->assertRateLimitHeaders($response);
     }
 
-    public function testRateLimitAppliesToPostRequests(): void
+    /**
+     * @return array<string, array{string, string, array<string, string>|null, bool}>
+     */
+    public static function httpMethodProvider(): array
     {
-        $user = $this->createUser('ratelimit-post@example.com', 'Password123');
-
-        $response = $this->authenticatedApiRequest(
-            $user,
-            'POST',
-            '/api/v1/tasks',
-            ['title' => 'Test Task']
-        );
-
-        $this->assertRateLimitHeaders($response);
-    }
-
-    public function testRateLimitAppliesToPutRequests(): void
-    {
-        $user = $this->createUser('ratelimit-put@example.com', 'Password123');
-        $task = $this->createTask($user, 'Test Task');
-
-        $response = $this->authenticatedApiRequest(
-            $user,
-            'PUT',
-            '/api/v1/tasks/' . $task->getId(),
-            ['title' => 'Updated Task']
-        );
-
-        $this->assertRateLimitHeaders($response);
-    }
-
-    public function testRateLimitAppliesToDeleteRequests(): void
-    {
-        $user = $this->createUser('ratelimit-delete@example.com', 'Password123');
-        $task = $this->createTask($user, 'Test Task');
-
-        $response = $this->authenticatedApiRequest(
-            $user,
-            'DELETE',
-            '/api/v1/tasks/' . $task->getId()
-        );
-
-        $this->assertRateLimitHeaders($response);
-    }
-
-    public function testRateLimitAppliesToPatchRequests(): void
-    {
-        $user = $this->createUser('ratelimit-patch@example.com', 'Password123');
-        $task = $this->createTask($user, 'Test Task');
-
-        $response = $this->authenticatedApiRequest(
-            $user,
-            'PATCH',
-            '/api/v1/tasks/' . $task->getId() . '/status',
-            ['status' => 'in_progress']
-        );
-
-        $this->assertRateLimitHeaders($response);
+        return [
+            'GET' => ['GET', '/api/v1/tasks', null, false],
+            'POST' => ['POST', '/api/v1/tasks', ['title' => 'Test Task'], false],
+            'PUT' => ['PUT', '/api/v1/tasks/{taskId}', ['title' => 'Updated Task'], true],
+            'DELETE' => ['DELETE', '/api/v1/tasks/{taskId}', null, true],
+            'PATCH' => ['PATCH', '/api/v1/tasks/{taskId}/status', ['status' => 'in_progress'], true],
+        ];
     }
 
     // ========================================
