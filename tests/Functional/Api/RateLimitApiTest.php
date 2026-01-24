@@ -57,7 +57,7 @@ class RateLimitApiTest extends ApiTestCase
         ]);
 
         // Should be created OR have validation error, but should have rate limit headers
-        $this->assertIn($response->getStatusCode(), [
+        $this->assertContains($response->getStatusCode(), [
             Response::HTTP_CREATED,
             Response::HTTP_UNPROCESSABLE_ENTITY,
             Response::HTTP_BAD_REQUEST,

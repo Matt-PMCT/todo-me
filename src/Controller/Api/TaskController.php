@@ -127,7 +127,7 @@ final class TaskController extends AbstractController
     /**
      * Get a single task by ID.
      */
-    #[Route('/{id}', name: 'show', methods: ['GET'])]
+    #[Route('/{id}', name: 'show', methods: ['GET'], requirements: ['id' => '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}'])]
     public function show(string $id): JsonResponse
     {
         /** @var User $user */
@@ -142,7 +142,7 @@ final class TaskController extends AbstractController
     /**
      * Update a task.
      */
-    #[Route('/{id}', name: 'update', methods: ['PUT', 'PATCH'])]
+    #[Route('/{id}', name: 'update', methods: ['PUT', 'PATCH'], requirements: ['id' => '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}'])]
     public function update(Request $request, string $id): JsonResponse
     {
         /** @var User $user */
@@ -163,7 +163,7 @@ final class TaskController extends AbstractController
     /**
      * Delete a task.
      */
-    #[Route('/{id}', name: 'delete', methods: ['DELETE'])]
+    #[Route('/{id}', name: 'delete', methods: ['DELETE'], requirements: ['id' => '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}'])]
     public function delete(string $id): JsonResponse
     {
         /** @var User $user */
@@ -187,7 +187,7 @@ final class TaskController extends AbstractController
     /**
      * Change task status.
      */
-    #[Route('/{id}/status', name: 'change_status', methods: ['PATCH'])]
+    #[Route('/{id}/status', name: 'change_status', methods: ['PATCH'], requirements: ['id' => '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}'])]
     public function changeStatus(Request $request, string $id): JsonResponse
     {
         /** @var User $user */

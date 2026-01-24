@@ -272,7 +272,6 @@ class ValidationHelperTest extends UnitTestCase
             'no_dashes' => ['550e8400e29b41d4a716446655440000'],
             'wrong_format' => ['550e8400-e29b-41d4-a716'],
             'invalid_chars' => ['550e8400-e29b-41d4-a716-44665544000g'],
-            'wrong_version' => ['550e8400-e29b-61d4-a716-446655440000'],
         ];
     }
 

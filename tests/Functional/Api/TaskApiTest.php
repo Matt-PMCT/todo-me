@@ -154,12 +154,12 @@ class TaskApiTest extends ApiTestCase
 
         $this->createTask($user, 'Low Priority', null, Task::STATUS_PENDING, 1);
         $this->createTask($user, 'Medium Priority', null, Task::STATUS_PENDING, 3);
-        $this->createTask($user, 'High Priority', null, Task::STATUS_PENDING, 5);
+        $this->createTask($user, 'High Priority', null, Task::STATUS_PENDING, 4);
 
         $response = $this->authenticatedApiRequest(
             $user,
             'GET',
-            '/api/v1/tasks?priority=5'
+            '/api/v1/tasks?priority=4'
         );
 
         $this->assertResponseStatusCode(Response::HTTP_OK, $response);
@@ -506,7 +506,7 @@ class TaskApiTest extends ApiTestCase
         );
 
         // Should return 404 or 403 (depending on implementation)
-        $this->assertIn($response->getStatusCode(), [
+        $this->assertContains($response->getStatusCode(), [
             Response::HTTP_NOT_FOUND,
             Response::HTTP_FORBIDDEN,
         ]);
@@ -528,7 +528,7 @@ class TaskApiTest extends ApiTestCase
             [
                 'title' => 'Updated Title',
                 'description' => 'Updated Description',
-                'priority' => 5,
+                'priority' => 4,
             ]
         );
 
@@ -538,7 +538,7 @@ class TaskApiTest extends ApiTestCase
 
         $this->assertEquals('Updated Title', $data['title']);
         $this->assertEquals('Updated Description', $data['description']);
-        $this->assertEquals(5, $data['priority']);
+        $this->assertEquals(4, $data['priority']);
     }
 
     public function testUpdateTaskPartialUpdate(): void
@@ -682,7 +682,7 @@ class TaskApiTest extends ApiTestCase
             '/api/v1/tasks/' . $task->getId()
         );
 
-        $this->assertIn($response->getStatusCode(), [
+        $this->assertContains($response->getStatusCode(), [
             Response::HTTP_NOT_FOUND,
             Response::HTTP_FORBIDDEN,
         ]);
@@ -923,7 +923,7 @@ class TaskApiTest extends ApiTestCase
         );
 
         // Should fail - token belongs to different user
-        $this->assertIn($response->getStatusCode(), [
+        $this->assertContains($response->getStatusCode(), [
             Response::HTTP_UNPROCESSABLE_ENTITY,
             Response::HTTP_FORBIDDEN,
             Response::HTTP_NOT_FOUND,

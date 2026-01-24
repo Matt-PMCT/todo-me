@@ -68,8 +68,9 @@ class ProjectRepository extends ServiceEntityRepository
                 ->setParameter('archived', false);
         }
 
-        // Get total count
+        // Get total count (remove orderBy to avoid PostgreSQL grouping error)
         $countQb = clone $qb;
+        $countQb->resetDQLPart('orderBy');
         $total = (int) $countQb->select('COUNT(p.id)')->getQuery()->getSingleScalarResult();
 
         // Get paginated results

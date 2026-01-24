@@ -776,7 +776,7 @@ class ProjectApiTest extends ApiTestCase
         );
 
         // Should fail - token belongs to different user
-        $this->assertIn($response->getStatusCode(), [
+        $this->assertContains($response->getStatusCode(), [
             Response::HTTP_BAD_REQUEST,
             Response::HTTP_FORBIDDEN,
             Response::HTTP_NOT_FOUND,
