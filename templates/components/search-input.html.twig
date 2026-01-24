@@ -13,6 +13,7 @@
             @keydown.enter.prevent="selectCurrent()"
             @focus="open = true"
             placeholder="Search tasks, projects, tags..."
+            aria-label="Search tasks, projects, and tags"
             class="w-full rounded-md border-0 bg-white py-2 pl-10 pr-10 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
         >
         <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
@@ -109,93 +110,3 @@
         </div>
     </div>
 </div>
-
-<script>
-/**
- * Search Component
- *
- * Provides global search functionality with:
- * - Debounced API calls
- * - Keyboard navigation
- * - "/" global shortcut to focus
- */
-function searchComponent() {
-    return {
-        query: '',
-        open: false,
-        loading: false,
-        selectedIndex: -1,
-        results: {
-            tasks: [],
-            projects: [],
-            tags: []
-        },
-
-        async search() {
-            if (this.query.length < 2) {
-                this.results = { tasks: [], projects: [], tags: [] };
-                return;
-            }
-
-            this.loading = true;
-            this.open = true;
-
-            try {
-                const response = await fetch(`/api/v1/search?q=${encodeURIComponent(this.query)}&highlight=true&limit=5`);
-                if (response.ok) {
-                    const data = await response.json();
-                    if (data.success) {
-                        this.results = {
-                            tasks: data.data.tasks || [],
-                            projects: data.data.projects || [],
-                            tags: data.data.tags || []
-                        };
-                    }
-                }
-            } catch (error) {
-                console.error('Search failed:', error);
-            } finally {
-                this.loading = false;
-            }
-        },
-
-        navigateDown() {
-            const total = this.results.tasks.length + this.results.projects.length + this.results.tags.length;
-            if (this.selectedIndex < total - 1) {
-                this.selectedIndex++;
-            }
-        },
-
-        navigateUp() {
-            if (this.selectedIndex > 0) {
-                this.selectedIndex--;
-            }
-        },
-
-        selectCurrent() {
-            if (this.selectedIndex < 0) return;
-
-            const taskCount = this.results.tasks.length;
-            const projectCount = this.results.projects.length;
-
-            if (this.selectedIndex < taskCount) {
-                window.location.href = '/tasks/' + this.results.tasks[this.selectedIndex].id;
-            } else if (this.selectedIndex < taskCount + projectCount) {
-                const projectIndex = this.selectedIndex - taskCount;
-                window.location.href = '/projects/' + this.results.projects[projectIndex].id;
-            } else {
-                const tagIndex = this.selectedIndex - taskCount - projectCount;
-                window.location.href = '/tasks?tagIds[]=' + this.results.tags[tagIndex].id;
-            }
-        },
-
-        close() {
-            this.open = false;
-            this.selectedIndex = -1;
-        }
-    };
-}
-
-// Make available globally
-window.searchComponent = searchComponent;
-</script>
