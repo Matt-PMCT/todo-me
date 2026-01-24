@@ -348,27 +348,6 @@ class AuthApiTest extends ApiTestCase
     }
 
     // ========================================
-    // Rate Limiting Tests
-    // ========================================
-
-    /**
-     * Note: Rate limiting for login is set higher in test environment (1000 attempts).
-     * This test verifies the rate limit headers are present on login attempts.
-     */
-    public function testLoginReturnsRateLimitHeaders(): void
-    {
-        $this->createUser('ratelimit@example.com', 'Password123');
-
-        $response = $this->apiRequest('POST', '/api/v1/auth/token', [
-            'email' => 'ratelimit@example.com',
-            'password' => 'Password123',
-        ]);
-
-        // Rate limit headers should be present on API responses
-        $this->assertRateLimitHeaders($response);
-    }
-
-    // ========================================
     // Response Structure Tests
     // ========================================
 

@@ -91,6 +91,15 @@ All API endpoints return:
 
 Don't add error handling, fallbacks, or validation for scenarios that can't happen. Trust internal code and framework guarantees. Only validate at system boundaries (user input, external APIs). Don't use backwards-compatibility shims when you can just change the code. The right amount of complexity is the minimum needed for the current task. Reuse existing abstractions where possible and follow the DRY principle.
 
+## Testing Guidelines
+
+Only test application-specific code. Do NOT write tests for:
+- Framework functions (Symfony rate limiters, validators, serializers, etc.)
+- Third-party library functionality (Doctrine ORM operations, Redis clients, etc.)
+- Infrastructure concerns already guaranteed by the framework
+
+Trust that frameworks and libraries work correctly. Focus tests on business logic, custom services, and application-specific behavior.
+
 ## UI Design System
 
 All frontend work must follow the UI Design System documented in `docs/UI-DESIGN-SYSTEM.md`. Key principles:

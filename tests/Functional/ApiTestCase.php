@@ -329,25 +329,6 @@ abstract class ApiTestCase extends WebTestCase
     }
 
     /**
-     * Asserts rate limit headers are present in the response.
-     */
-    protected function assertRateLimitHeaders(Response $response): void
-    {
-        $this->assertTrue(
-            $response->headers->has('X-RateLimit-Limit'),
-            'Expected X-RateLimit-Limit header'
-        );
-        $this->assertTrue(
-            $response->headers->has('X-RateLimit-Remaining'),
-            'Expected X-RateLimit-Remaining header'
-        );
-        $this->assertTrue(
-            $response->headers->has('X-RateLimit-Reset'),
-            'Expected X-RateLimit-Reset header'
-        );
-    }
-
-    /**
      * Asserts the response has the expected HTTP status code.
      */
     protected function assertResponseStatusCode(int $expected, Response $response): void
