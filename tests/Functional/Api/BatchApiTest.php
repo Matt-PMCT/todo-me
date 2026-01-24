@@ -356,6 +356,55 @@ class BatchApiTest extends ApiTestCase
         $this->assertArrayHasKey('undoToken', $data);
     }
 
+    public function testBatchUndoDeletesCreatedTasks(): void
+    {
+        $user = $this->createUser('batch-undo-delete@example.com', 'Password123');
+
+        // Create 2 tasks via batch
+        $response = $this->authenticatedApiRequest(
+            $user,
+            'POST',
+            '/api/v1/tasks/batch',
+            [
+                'operations' => [
+                    ['action' => 'create', 'data' => ['title' => 'Undo Task 1']],
+                    ['action' => 'create', 'data' => ['title' => 'Undo Task 2']],
+                ],
+            ]
+        );
+
+        $this->assertResponseStatusCode(Response::HTTP_OK, $response);
+
+        $data = $this->getResponseData($response);
+        $this->assertTrue($data['success']);
+        $this->assertEquals(2, $data['successfulOperations']);
+        $this->assertArrayHasKey('undoToken', $data);
+        $this->assertNotEmpty($data['undoToken']);
+
+        // Batch response contains taskIds proving tasks were created
+        $undoToken = $data['undoToken'];
+        $taskId1 = $data['results'][0]['taskId'];
+        $taskId2 = $data['results'][1]['taskId'];
+        $this->assertNotEmpty($taskId1);
+        $this->assertNotEmpty($taskId2);
+
+        // Call undo to delete the created tasks
+        $response = $this->authenticatedApiRequest(
+            $user,
+            'POST',
+            "/api/v1/tasks/batch/undo/{$undoToken}"
+        );
+
+        $this->assertResponseStatusCode(Response::HTTP_OK, $response);
+
+        // Verify both tasks are deleted (they would exist if undo didn't work)
+        $response = $this->authenticatedApiRequest($user, 'GET', "/api/v1/tasks/{$taskId1}");
+        $this->assertResponseStatusCode(Response::HTTP_NOT_FOUND, $response);
+
+        $response = $this->authenticatedApiRequest($user, 'GET', "/api/v1/tasks/{$taskId2}");
+        $this->assertResponseStatusCode(Response::HTTP_NOT_FOUND, $response);
+    }
+
     // ========================================
     // Validation Tests
     // ========================================

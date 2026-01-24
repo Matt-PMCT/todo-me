@@ -39,7 +39,7 @@ final class SearchController extends AbstractController
         summary: 'Global search',
         description: 'Search across tasks, projects, and tags. Tasks use full-text search, projects and tags use ILIKE.',
         parameters: [
-            new OA\Parameter(name: 'q', in: 'query', required: true, description: 'Search query', schema: new OA\Schema(type: 'string', minLength: 1, maxLength: 200)),
+            new OA\Parameter(name: 'q', in: 'query', required: true, description: 'Search query', schema: new OA\Schema(type: 'string', minLength: 2, maxLength: 200)),
             new OA\Parameter(name: 'type', in: 'query', description: 'Filter by entity type', schema: new OA\Schema(type: 'string', enum: ['all', 'tasks', 'projects', 'tags'], default: 'all')),
             new OA\Parameter(name: 'page', in: 'query', description: 'Page number', schema: new OA\Schema(type: 'integer', minimum: 1, default: 1)),
             new OA\Parameter(name: 'limit', in: 'query', description: 'Items per page', schema: new OA\Schema(type: 'integer', minimum: 1, maximum: 100, default: 20)),

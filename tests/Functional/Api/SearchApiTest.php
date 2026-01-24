@@ -283,6 +283,30 @@ class SearchApiTest extends ApiTestCase
         $this->assertErrorCode($response, 'VALIDATION_ERROR');
     }
 
+    public function testSearchQueryMinLength(): void
+    {
+        $user = $this->createUser('search-minlen@example.com', 'Password123');
+
+        // Single character query should fail (minimum is 2)
+        $response = $this->authenticatedApiRequest(
+            $user,
+            'GET',
+            '/api/v1/search?q=a'
+        );
+
+        $this->assertResponseStatusCode(Response::HTTP_UNPROCESSABLE_ENTITY, $response);
+        $this->assertErrorCode($response, 'VALIDATION_ERROR');
+
+        // Two character query should succeed
+        $response = $this->authenticatedApiRequest(
+            $user,
+            'GET',
+            '/api/v1/search?q=ab'
+        );
+
+        $this->assertResponseStatusCode(Response::HTTP_OK, $response);
+    }
+
     // ========================================
     // Authentication Tests
     // ========================================
