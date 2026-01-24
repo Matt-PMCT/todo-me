@@ -9,7 +9,7 @@ use App\Entity\User;
 use App\Enum\UndoAction;
 use App\Exception\EntityNotFoundException;
 use App\Exception\InvalidStateException;
-use App\Exception\ValidationException;
+use App\Exception\InvalidUndoTokenException;
 use App\Repository\TaskRepository;
 use App\ValueObject\UndoToken;
 use Doctrine\ORM\EntityManagerInterface;
@@ -22,6 +22,8 @@ use Doctrine\ORM\EntityManagerInterface;
  */
 final class TaskUndoService
 {
+    private const ENTITY_TYPE = 'task';
+
     public function __construct(
         private readonly UndoService $undoService,
         private readonly TaskRepository $taskRepository,
@@ -54,7 +56,7 @@ final class TaskUndoService
         $undoToken = $this->undoService->createUndoToken(
             userId: $ownerId,
             action: UndoAction::UPDATE->value,
-            entityType: 'task',
+            entityType: self::ENTITY_TYPE,
             entityId: $taskId,
             previousState: $previousState,
         );
@@ -87,7 +89,7 @@ final class TaskUndoService
         return $this->undoService->createUndoToken(
             userId: $ownerId,
             action: UndoAction::DELETE->value,
-            entityType: 'task',
+            entityType: self::ENTITY_TYPE,
             entityId: $taskId,
             previousState: $previousState,
         );
@@ -116,7 +118,7 @@ final class TaskUndoService
         $undoToken = $this->undoService->createUndoToken(
             userId: $ownerId,
             action: UndoAction::STATUS_CHANGE->value,
-            entityType: 'task',
+            entityType: self::ENTITY_TYPE,
             entityId: $taskId,
             previousState: $previousState,
         );
@@ -130,7 +132,7 @@ final class TaskUndoService
      * @param User $user The user performing the undo
      * @param string $token The undo token
      * @return Task The restored/updated task
-     * @throws ValidationException If the token is invalid or expired
+     * @throws InvalidUndoTokenException If the token is invalid or expired
      * @throws EntityNotFoundException If the task no longer exists (for update operations)
      */
     public function undo(User $user, string $token): Task
@@ -138,17 +140,17 @@ final class TaskUndoService
         $undoToken = $this->undoService->consumeUndoToken($user->getId(), $token);
 
         if ($undoToken === null) {
-            throw ValidationException::forField('token', 'Invalid or expired undo token');
+            throw InvalidUndoTokenException::expired();
         }
 
-        if ($undoToken->entityType !== 'task') {
-            throw ValidationException::forField('token', 'Token is not for a task');
+        if ($undoToken->entityType !== self::ENTITY_TYPE) {
+            throw InvalidUndoTokenException::wrongEntityType(self::ENTITY_TYPE, $undoToken->entityType);
         }
 
         return match ($undoToken->action) {
             UndoAction::DELETE->value => $this->performUndoDelete($user, $undoToken),
             UndoAction::UPDATE->value, UndoAction::STATUS_CHANGE->value => $this->performUndoUpdate($undoToken),
-            default => throw ValidationException::forField('token', 'Unknown undo action type'),
+            default => throw InvalidUndoTokenException::unknownAction($undoToken->action),
         };
     }
 
@@ -158,22 +160,22 @@ final class TaskUndoService
      * @param User $user The user performing the undo
      * @param string $token The undo token
      * @return Task The restored task
-     * @throws ValidationException If the token is invalid or expired
+     * @throws InvalidUndoTokenException If the token is invalid or expired
      */
     public function undoDelete(User $user, string $token): Task
     {
         $undoToken = $this->undoService->consumeUndoToken($user->getId(), $token);
 
         if ($undoToken === null) {
-            throw ValidationException::forField('token', 'Invalid or expired undo token');
+            throw InvalidUndoTokenException::expired();
+        }
+
+        if ($undoToken->entityType !== self::ENTITY_TYPE) {
+            throw InvalidUndoTokenException::wrongEntityType(self::ENTITY_TYPE, $undoToken->entityType);
         }
 
         if ($undoToken->action !== UndoAction::DELETE->value) {
-            throw ValidationException::forField('token', 'Token is not for a delete operation');
-        }
-
-        if ($undoToken->entityType !== 'task') {
-            throw ValidationException::forField('token', 'Token is not for a task');
+            throw InvalidUndoTokenException::wrongActionType('delete');
         }
 
         return $this->performUndoDelete($user, $undoToken);
@@ -185,7 +187,7 @@ final class TaskUndoService
      * @param User $user The user performing the undo
      * @param string $token The undo token
      * @return Task The restored task
-     * @throws ValidationException If the token is invalid or expired
+     * @throws InvalidUndoTokenException If the token is invalid or expired
      * @throws EntityNotFoundException If the task no longer exists
      */
     public function undoUpdate(User $user, string $token): Task
@@ -193,15 +195,15 @@ final class TaskUndoService
         $undoToken = $this->undoService->consumeUndoToken($user->getId(), $token);
 
         if ($undoToken === null) {
-            throw ValidationException::forField('token', 'Invalid or expired undo token');
+            throw InvalidUndoTokenException::expired();
+        }
+
+        if ($undoToken->entityType !== self::ENTITY_TYPE) {
+            throw InvalidUndoTokenException::wrongEntityType(self::ENTITY_TYPE, $undoToken->entityType);
         }
 
         if (!in_array($undoToken->action, [UndoAction::UPDATE->value, UndoAction::STATUS_CHANGE->value], true)) {
-            throw ValidationException::forField('token', 'Token is not for an update operation');
-        }
-
-        if ($undoToken->entityType !== 'task') {
-            throw ValidationException::forField('token', 'Token is not for a task');
+            throw InvalidUndoTokenException::wrongActionType('update');
         }
 
         return $this->performUndoUpdate($undoToken);
