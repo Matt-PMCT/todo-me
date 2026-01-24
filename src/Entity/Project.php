@@ -6,6 +6,7 @@ namespace App\Entity;
 
 use App\Exception\ProjectCannotBeOwnParentException;
 use App\Exception\ProjectCircularReferenceException;
+use App\Exception\ProjectHierarchyTooDeepException;
 use App\Interface\UserOwnedInterface;
 use App\Repository\ProjectRepository;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -23,6 +24,8 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\HasLifecycleCallbacks]
 class Project implements UserOwnedInterface
 {
+    public const MAX_HIERARCHY_DEPTH = 50;
+
     #[ORM\Id]
     #[ORM\Column(type: 'guid')]
     #[ORM\GeneratedValue(strategy: 'CUSTOM')]
@@ -320,6 +323,17 @@ class Project implements UserOwnedInterface
 
         if ($this->getId() !== null && $parent->isDescendantOf($this)) {
             throw ProjectCircularReferenceException::create($this->getId() ?? '', $parent->getId() ?? '');
+        }
+
+        // Validate parent has the same owner
+        if ($parent->getOwner() !== $this->getOwner()) {
+            throw new \InvalidArgumentException('Parent project must have the same owner');
+        }
+
+        // Check depth limit
+        $newDepth = $parent->getDepth() + 1;
+        if ($newDepth >= self::MAX_HIERARCHY_DEPTH) {
+            throw ProjectHierarchyTooDeepException::create($this->getId() ?? '', self::MAX_HIERARCHY_DEPTH);
         }
 
         $this->parent = $parent;
