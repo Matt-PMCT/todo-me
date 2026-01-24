@@ -1,13 +1,91 @@
 # Phase 5: Recurring Tasks
 
 ## Overview
-**Duration**: Week 5  
+**Duration**: Week 5
 **Goal**: Implement the complete recurring task system including recurrence rule parsing, absolute vs relative recurrence, task instance generation on completion, and the original_task_id chain tracking.
+
+**Last Updated**: 2026-01-24 (Updated for Phase 1-3 architecture changes)
 
 ## Prerequisites
 - Phases 1-4 completed
 - Date parsing working
 - Task completion working
+
+---
+
+## Architecture Context (IMPORTANT - Read Before Implementation)
+
+This plan has been updated to account for architecture changes that occurred during Phases 1-3. Implementers MUST be aware of the following:
+
+### Critical Discovery: Recurrence Fields Were Removed
+
+During Phase 2 cleanup (Issue 4.2.6), the recurrence properties were **removed** from the Task entity because they weren't implemented. Phase 5 must:
+
+1. **Re-add recurrence fields** to Task entity via new migration
+2. **Re-create `InvalidRecurrenceException`** (was deleted in Phase 2)
+3. **Create exception mapper** for `InvalidRecurrenceException`
+
+### Current Service Architecture (Post-Phase 2 Refactoring)
+
+The service layer has been split for single responsibility. Follow these patterns:
+
+```
+src/Service/
+├── TaskService.php           # Core CRUD operations only
+├── TaskStateService.php      # State serialization for undo
+├── TaskUndoService.php       # Undo token creation and restoration
+├── UndoService.php           # Redis-based undo token storage (shared)
+└── Parser/                   # Natural language parsing (follow this pattern)
+    ├── NaturalLanguageParserService.php
+    ├── DateParserService.php
+    └── ...
+```
+
+### Key Patterns to Follow
+
+| Pattern | Location | Notes |
+|---------|----------|-------|
+| State Serialization | `TaskStateService.serializeTaskState()` | Extend for recurrence fields |
+| State Restoration | `Task.restoreFromState()` | Use this for undo, not reflection |
+| Undo Token Creation | `TaskUndoService.createUndoToken()` | Returns `UndoToken\|null` |
+| Undo Consumption | `UndoService.consumeUndoToken()` | Atomic via Lua script |
+| Exception Mapping | `ExceptionMapperRegistry` | Auto-discovery with `#[AutoconfigureTag]` |
+| Ownership Check | `OwnershipChecker` | Use on all mutations |
+| DTO Validation | Symfony Validator constraints | In constructor properties |
+
+### Existing Field Available for Reuse
+
+The `originalTask` relationship already exists in Task entity and can be used for recurring chain tracking:
+
+```php
+// Already exists in Task.php:
+#[ORM\ManyToOne(targetEntity: Task::class)]
+#[ORM\JoinColumn(name: 'original_task_id', nullable: true)]
+private ?Task $originalTask = null;
+```
+
+---
+
+## Pre-Implementation: Database Migration Required
+
+Before starting Sub-Phase 5.1, create a migration to add recurrence fields:
+
+```php
+// migrations/Version20260124XXXXXX.php
+
+public function up(Schema $schema): void
+{
+    $this->addSql('ALTER TABLE tasks ADD is_recurring BOOLEAN NOT NULL DEFAULT FALSE');
+    $this->addSql('ALTER TABLE tasks ADD recurrence_rule TEXT DEFAULT NULL');
+    $this->addSql('ALTER TABLE tasks ADD recurrence_type VARCHAR(20) DEFAULT NULL');
+    $this->addSql('ALTER TABLE tasks ADD recurrence_end_date DATE DEFAULT NULL');
+
+    // Add index for efficient filtering
+    $this->addSql('CREATE INDEX idx_tasks_owner_recurring ON tasks (owner_id, is_recurring)');
+}
+```
+
+Also update `Task.restoreFromState()` to handle recurrence fields for undo operations.
 
 ---
 
@@ -244,12 +322,27 @@ Create a parser that converts natural language recurrence patterns into structur
 ```
 src/Service/Recurrence/
 ├── RecurrenceRuleParser.php
-├── RecurrenceRule.php
-└── InvalidRecurrenceException.php
+├── RecurrenceRule.php              # Value object (immutable, like UndoToken)
+└── RecurrenceParseResult.php       # Optional: result with warnings
+
+src/Exception/
+└── InvalidRecurrenceException.php  # Re-create (was deleted in Phase 2)
+
+src/EventListener/ExceptionMapper/Domain/
+└── InvalidRecurrenceExceptionMapper.php  # Required for API error responses
 
 tests/Unit/Service/Recurrence/
-└── RecurrenceRuleParserTest.php
+├── RecurrenceRuleParserTest.php
+└── RecurrenceRuleTest.php
+
+tests/Unit/Exception/
+└── InvalidRecurrenceExceptionTest.php
+
+tests/Unit/EventListener/ExceptionMapper/Domain/
+└── InvalidRecurrenceExceptionMapperTest.php
 ```
+
+**Note on InvalidRecurrenceException**: This exception was deleted during Phase 2 cleanup. It must be re-created following the existing exception pattern (extending `BadRequestHttpException`) with an exception mapper that implements `ExceptionMapperInterface` and uses `#[AutoconfigureTag('app.exception_mapper')]` for auto-discovery.
 
 ---
 
@@ -296,10 +389,29 @@ Implement the distinction between absolute ("every") and relative ("every!") rec
 
 - [ ] **5.2.3** Store type in database
   ```php
-  // Task entity fields:
-  - is_recurring: bool
-  - recurrence_rule: string (original text - ALWAYS PRESERVED)
-  - recurrence_type: 'absolute'|'relative'|null
+  // Task entity fields (must be RE-ADDED - see Architecture Context):
+  - is_recurring: bool (default false)
+  - recurrence_rule: ?string (original text - ALWAYS PRESERVED)
+  - recurrence_type: ?string ('absolute'|'relative')
+  - recurrence_end_date: ?DateTimeImmutable
+
+  // Also update Task::restoreFromState() for undo support:
+  public function restoreFromState(array $state): void
+  {
+      // ... existing fields ...
+      if (array_key_exists('isRecurring', $state)) {
+          $this->isRecurring = $state['isRecurring'];
+      }
+      if (array_key_exists('recurrenceRule', $state)) {
+          $this->recurrenceRule = $state['recurrenceRule'];
+      }
+      if (array_key_exists('recurrenceType', $state)) {
+          $this->recurrenceType = $state['recurrenceType'];
+      }
+      if (array_key_exists('recurrenceEndDate', $state)) {
+          $this->recurrenceEndDate = $state['recurrenceEndDate'];
+      }
+  }
   ```
 
 - [ ] **5.2.4** Create RecurrenceType enum
@@ -463,9 +575,26 @@ tests/Unit/Service/Recurrence/
 ### Objective
 Implement the logic that creates a new task instance when a recurring task is completed.
 
+### Architecture Note
+Follow the existing service patterns:
+- Use `TaskStateService` for serializing task state before mutations
+- Use `TaskUndoService` for creating undo tokens
+- Add `RecurrenceRuleParser` and `NextDateCalculator` as dependencies to `TaskService`
+
 ### Tasks
 
-- [ ] **5.4.1** Update TaskService.updateStatus()
+- [ ] **5.4.0** Add dependencies to TaskService
+  ```php
+  // src/Service/TaskService.php - UPDATE constructor:
+
+  public function __construct(
+      // ... existing dependencies ...
+      private readonly RecurrenceRuleParser $recurrenceRuleParser,
+      private readonly NextDateCalculator $nextDateCalculator,
+  ) {}
+  ```
+
+- [ ] **5.4.1** Update TaskService.changeStatus() (note: method is changeStatus, not updateStatus)
   ```php
   // src/Service/TaskService.php
   
@@ -487,82 +616,98 @@ Implement the logic that creates a new task instance when a recurring task is co
 
 - [ ] **5.4.2** Implement completeRecurringTask()
   ```php
-  private function completeRecurringTask(Task $task): TaskStatusResult
+  // Follow the existing pattern from TaskService methods
+  private function completeRecurringTask(Task $task, User $user): TaskStatusResult
   {
-      // 1. Mark current task as completed
+      $this->ownershipChecker->checkOwnership($task);
+
+      // 1. Serialize state BEFORE mutation (for undo support)
+      $previousState = $this->taskStateService->serializeTaskState($task);
+
+      // 2. Mark current task as completed
       $task->setStatus('completed');
       $task->setCompletedAt(new DateTimeImmutable());
-      
-      // 2. Parse the recurrence rule
+
+      // 3. Parse the recurrence rule
       $rule = $this->recurrenceRuleParser->parse($task->getRecurrenceRule());
-      
-      // 3. Calculate next due date
-      $referenceDate = $task->getRecurrenceType() === 'absolute' 
-          ? $task->getDueDate() 
-          : new DateTimeImmutable(); // completion time
-      
+
+      // 4. Calculate next due date
+      $referenceDate = $task->getRecurrenceType() === 'absolute'
+          ? ($task->getDueDate() ?? new DateTimeImmutable())
+          : new DateTimeImmutable(); // completion time for relative
+
+      $userTimezone = $user->getTimezone() ?? 'UTC';
       $nextDate = $this->nextDateCalculator->calculate(
           $rule,
           $referenceDate,
-          $this->getUserTimezone($task->getUser())
+          $userTimezone
       );
-      
-      // 4. Check if should create next instance (end date check)
-      if (!$this->nextDateCalculator->shouldCreateNextInstance($rule, $nextDate)) {
-          // End date reached, no more instances
-          return new TaskStatusResult($task, null, $undoToken);
+
+      // 5. Check if should create next instance (end date check)
+      $nextTask = null;
+      if ($this->nextDateCalculator->shouldCreateNextInstance($rule, $nextDate)) {
+          $nextTask = $this->createNextRecurringInstance($task, $nextDate, $rule);
       }
-      
-      // 5. Create new task instance
-      $nextTask = $this->createNextRecurringInstance($task, $nextDate, $rule);
-      
+
+      // 6. Create undo token (following TaskUndoService pattern)
+      $undoToken = $this->taskUndoService->createUndoToken(
+          UndoAction::STATUS_CHANGE,
+          $task,
+          $previousState
+      );
+
+      $this->entityManager->flush();
+
       return new TaskStatusResult($task, $nextTask, $undoToken);
   }
   ```
 
 - [ ] **5.4.3** Implement createNextRecurringInstance()
   ```php
+  // Note: Use actual entity method names (getOwner not getUser, etc.)
   private function createNextRecurringInstance(
-      Task $completedTask, 
-      DateTimeImmutable $nextDueDate,
+      Task $completedTask,
+      \DateTimeImmutable $nextDueDate,
       RecurrenceRule $rule
-  ): Task
-  {
+  ): Task {
       $nextTask = new Task();
-      
-      // Copy properties
-      $nextTask->setUser($completedTask->getUser());
+
+      // Copy properties (use correct method names from Task entity)
+      $nextTask->setOwner($completedTask->getOwner());
       $nextTask->setTitle($completedTask->getTitle());
       $nextTask->setDescription($completedTask->getDescription());
       $nextTask->setProject($completedTask->getProject());
       $nextTask->setPriority($completedTask->getPriority());
+      $nextTask->setStatus('pending');
+
+      // Set recurrence properties
       $nextTask->setIsRecurring(true);
       $nextTask->setRecurrenceRule($completedTask->getRecurrenceRule());
       $nextTask->setRecurrenceType($completedTask->getRecurrenceType());
       $nextTask->setRecurrenceEndDate($completedTask->getRecurrenceEndDate());
-      
+
       // Set due date
       $nextTask->setDueDate($nextDueDate);
-      if ($rule->getTime()) {
-          $nextTask->setDueTime($rule->getTime());
+      if ($rule->time !== null) {
+          $nextTask->setDueTime(new \DateTimeImmutable($rule->time));
       }
-      
-      // Set original_task_id for chain tracking
-      if ($completedTask->getOriginalTaskId() === null) {
+
+      // Set original_task_id for chain tracking (uses existing relationship)
+      if ($completedTask->getOriginalTask() === null) {
           // This is the first task being completed
-          $nextTask->setOriginalTaskId($completedTask->getId());
+          $nextTask->setOriginalTask($completedTask);
       } else {
           // This is a recurrence, copy the original
-          $nextTask->setOriginalTaskId($completedTask->getOriginalTaskId());
+          $nextTask->setOriginalTask($completedTask->getOriginalTask());
       }
-      
+
       // Copy tags
       foreach ($completedTask->getTags() as $tag) {
           $nextTask->addTag($tag);
       }
-      
+
       $this->entityManager->persist($nextTask);
-      
+
       return $nextTask;
   }
   ```
@@ -570,14 +715,34 @@ Implement the logic that creates a new task instance when a recurring task is co
 - [ ] **5.4.4** Create TaskStatusResult DTO
   ```php
   // src/DTO/TaskStatusResult.php
-  
-  class TaskStatusResult
+  // Follow existing DTO patterns (readonly, toArray method)
+
+  namespace App\DTO;
+
+  use App\Entity\Task;
+  use App\ValueObject\UndoToken;
+
+  final readonly class TaskStatusResult
   {
       public function __construct(
-          public readonly Task $task,
-          public readonly ?Task $nextTask,
-          public readonly ?UndoToken $undoToken
+          public Task $task,
+          public ?Task $nextTask = null,
+          public ?UndoToken $undoToken = null,
       ) {}
+
+      public function toArray(): array
+      {
+          $data = TaskResponse::fromEntity(
+              $this->task,
+              $this->undoToken?->token
+          )->toArray();
+
+          if ($this->nextTask !== null) {
+              $data['nextTask'] = TaskResponse::fromEntity($this->nextTask)->toArray();
+          }
+
+          return $data;
+      }
   }
   ```
 
@@ -616,9 +781,33 @@ Implement the logic that creates a new task instance when a recurring task is co
 
 ### Files to Create/Update
 ```
-src/Service/TaskService.php (updated)
+src/Service/TaskService.php (updated - add recurrence dependencies and methods)
+src/Service/TaskStateService.php (updated - serialize recurrence fields)
 src/DTO/TaskStatusResult.php (new)
+src/DTO/CreateTaskRequest.php (updated - add recurrence fields)
+src/DTO/UpdateTaskRequest.php (updated - add recurrence fields)
+src/DTO/TaskResponse.php (updated - add recurrence fields)
 src/Controller/Api/TaskController.php (updated)
+
+tests/Unit/DTO/TaskStatusResultTest.php (new)
+```
+
+**DTO Updates Required:**
+
+```php
+// src/DTO/CreateTaskRequest.php - ADD:
+#[Assert\Type('boolean')]
+public readonly bool $isRecurring = false,
+
+#[Assert\Type('string')]
+#[Assert\Length(max: 1000)]
+public readonly ?string $recurrenceRule = null,
+
+// src/DTO/TaskResponse.php - ADD to fromEntity():
+isRecurring: $task->isRecurring(),
+recurrenceRule: $task->getRecurrenceRule(),
+recurrenceType: $task->getRecurrenceType(),
+recurrenceEndDate: $task->getRecurrenceEndDate()?->format('Y-m-d'),
 ```
 
 ---
@@ -657,15 +846,38 @@ Implement the original_task_id chain for tracking all instances of a recurring t
 - [ ] **5.5.3** Create chain query in repository
   ```php
   // src/Repository/TaskRepository.php
-  
-  public function findRecurringChain(int $originalTaskId): array
+  // IMPORTANT: Include ownership validation in all queries
+
+  /**
+   * Find all tasks in a recurring chain (original + all recurrences).
+   */
+  public function findRecurringChain(User $owner, string $originalTaskId): array
   {
       return $this->createQueryBuilder('t')
-          ->where('t.originalTask = :id OR t.id = :id')
+          ->where('t.owner = :owner')
+          ->andWhere('t.originalTask = :id OR t.id = :id')
+          ->setParameter('owner', $owner)
           ->setParameter('id', $originalTaskId)
           ->orderBy('t.createdAt', 'ASC')
           ->getQuery()
           ->getResult();
+  }
+
+  /**
+   * Count completed instances in a recurring chain.
+   */
+  public function countCompletedInChain(User $owner, string $originalTaskId): int
+  {
+      return (int) $this->createQueryBuilder('t')
+          ->select('COUNT(t.id)')
+          ->where('t.owner = :owner')
+          ->andWhere('t.originalTask = :id OR t.id = :id')
+          ->andWhere('t.status = :status')
+          ->setParameter('owner', $owner)
+          ->setParameter('id', $originalTaskId)
+          ->setParameter('status', 'completed')
+          ->getQuery()
+          ->getSingleScalarResult();
   }
   ```
 
@@ -1060,12 +1272,20 @@ tests/Functional/Api/
 
 At the end of Phase 5, the following should be complete:
 
+### Database & Entity (Pre-requisites)
+- [ ] Task entity has recurrence properties re-added
+- [ ] Migration runs successfully
+- [ ] RecurrenceType enum created
+- [ ] Index on owner_id + is_recurring exists
+- [ ] `Task.restoreFromState()` handles recurrence fields
+
 ### Parser
 - [ ] Recurrence rule parser handles all patterns (daily, weekly, monthly, yearly)
 - [ ] Parser supports both 12-hour and 24-hour time formats
 - [ ] Parser is lenient with case, abbreviations, whitespace
 - [ ] Multiple days with time supported ("every Mon, Wed at 2pm")
 - [ ] Original text always preserved in storage
+- [ ] InvalidRecurrenceException re-created with exception mapper
 
 ### Recurrence Types
 - [ ] Absolute recurrence calculates from schedule
@@ -1077,6 +1297,19 @@ At the end of Phase 5, the following should be complete:
 - [ ] Last day of month (-1) works correctly
 - [ ] Timezone handling correct
 - [ ] DST transitions handled
+- [ ] End date respected
+
+### Service Layer Integration
+- [ ] TaskStateService serializes recurrence fields
+- [ ] TaskService has RecurrenceRuleParser and NextDateCalculator dependencies
+- [ ] Undo token creation follows TaskUndoService pattern
+- [ ] OwnershipChecker used on all mutations
+
+### DTOs Updated
+- [ ] CreateTaskRequest has recurrence fields
+- [ ] UpdateTaskRequest has recurrence fields
+- [ ] TaskResponse includes recurrence fields
+- [ ] TaskStatusResult DTO created
 
 ### Task Completion
 - [ ] Completing recurring task creates new instance
@@ -1091,8 +1324,51 @@ At the end of Phase 5, the following should be complete:
 - [ ] Invalid patterns rejected with helpful messages
 - [ ] Unsupported patterns (hourly, ordinal) have clear errors
 - [ ] Invalid dates (Feb 30) caught
+- [ ] InvalidRecurrenceExceptionMapper returns proper API error format
 
 ### API & Queries
-- [ ] Recurring history queryable
-- [ ] Comprehensive tests passing
-- [ ] API documentation updated
+- [ ] Status change returns nextTask for recurring tasks
+- [ ] complete-forever endpoint works
+- [ ] recurring-history endpoint returns chain with ownership validation
+- [ ] Filter by is_recurring works
+- [ ] Filter by original_task_id works
+- [ ] All endpoints validate ownership
+
+### UI (per UI-PHASE-MODIFICATIONS.md)
+- [ ] Recurring indicator displays with tooltip
+- [ ] Edit form includes recurrence field
+- [ ] Complete forever option in menu
+
+### Testing
+- [ ] Parser unit tests comprehensive (30+ tests)
+- [ ] Calculator unit tests complete (15+ tests)
+- [ ] Integration tests passing (15+ tests)
+- [ ] Exception mapper tested
+- [ ] All tests passing
+
+---
+
+## Architecture Alignment Summary
+
+When implementing Phase 5, ensure alignment with these patterns established in Phases 1-3:
+
+| Aspect | Pattern to Follow | Example Location |
+|--------|-------------------|------------------|
+| Service delegation | TaskService → TaskStateService, TaskUndoService | `src/Service/TaskService.php` |
+| State serialization | `serializeTaskState()` returns array | `src/Service/TaskStateService.php` |
+| State restoration | `Task.restoreFromState()` | `src/Entity/Task.php` |
+| Undo token creation | `createUndoToken(UndoAction, entity, state)` | `src/Service/TaskUndoService.php` |
+| Exception mapping | `#[AutoconfigureTag('app.exception_mapper')]` | `src/EventListener/ExceptionMapper/Domain/` |
+| DTO validation | Symfony constraints in constructor | `src/DTO/CreateTaskRequest.php` |
+| DTO serialization | `toArray()` and `fromEntity()` | `src/DTO/TaskResponse.php` |
+| Ownership validation | `OwnershipChecker->checkOwnership()` | All service methods |
+| API responses | `ResponseFormatter->success()` | All controller methods |
+
+---
+
+## Document History
+
+| Version | Date | Changes |
+|---------|------|---------|
+| 1.0 | Initial | Original plan |
+| 2.0 | 2026-01-24 | Updated for Phase 1-3 architecture changes: service refactoring, removed recurrence fields, exception mapper registry, DTO patterns, ownership validation |
