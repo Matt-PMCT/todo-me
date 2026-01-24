@@ -97,13 +97,23 @@ class LoginRequestTest extends DtoTestCase
         $this->assertHasViolation($violations, 'password');
     }
 
-    public function testBlankPasswordViolation(): void
+    /**
+     * Whitespace-only passwords are allowed.
+     *
+     * Unlike email (which uses trim normalizer), we intentionally do NOT trim passwords
+     * because some users/password generators create passwords with spaces. A password
+     * of "   " is unusual but technically valid - we preserve password integrity.
+     *
+     * See LoginRequest.php for the full decision documentation (2026-01-24).
+     */
+    public function testWhitespaceOnlyPasswordIsAllowed(): void
     {
         $dto = new LoginRequest(email: 'user@example.com', password: '   ');
 
         $violations = $this->validate($dto);
 
-        $this->assertHasViolation($violations, 'password');
+        // Whitespace-only password should pass validation - we don't trim passwords
+        $this->assertNoViolationFor($violations, 'password');
     }
 
     public function testBothFieldsEmptyViolations(): void
