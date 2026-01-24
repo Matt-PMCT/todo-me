@@ -8,7 +8,6 @@ use App\DTO\CreateProjectRequest;
 use App\DTO\UpdateProjectRequest;
 use App\Entity\Project;
 use App\Entity\User;
-use App\Enum\UndoAction;
 use App\Exception\EntityNotFoundException;
 use App\Exception\InvalidStateException;
 use App\Repository\ProjectRepository;
@@ -20,14 +19,13 @@ use Doctrine\ORM\EntityManagerInterface;
  */
 final class ProjectService
 {
-    private const ENTITY_TYPE = 'project';
-
     public function __construct(
         private readonly ProjectRepository $projectRepository,
         private readonly EntityManagerInterface $entityManager,
-        private readonly UndoService $undoService,
         private readonly ValidationHelper $validationHelper,
         private readonly OwnershipChecker $ownershipChecker,
+        private readonly ProjectStateService $projectStateService,
+        private readonly ProjectUndoService $projectUndoService,
     ) {
     }
 
@@ -63,28 +61,11 @@ final class ProjectService
     {
         $this->validationHelper->validate($dto);
 
-        // Validate required IDs for undo token creation
-        $ownerId = $project->getOwner()?->getId();
-        $projectId = $project->getId();
-
-        if ($ownerId === null) {
-            throw InvalidStateException::missingOwner('Project');
-        }
-        if ($projectId === null) {
-            throw InvalidStateException::missingRequiredId('Project');
-        }
-
         // Store previous state for undo
-        $previousState = $this->serializeProjectState($project);
+        $previousState = $this->projectStateService->serializeProjectState($project);
 
         // Create undo token
-        $undoToken = $this->undoService->createUndoToken(
-            userId: $ownerId,
-            action: UndoAction::UPDATE->value,
-            entityType: self::ENTITY_TYPE,
-            entityId: $projectId,
-            previousState: $previousState,
-        );
+        $undoToken = $this->projectUndoService->createUpdateUndoToken($project, $previousState);
 
         // Apply updates
         if ($dto->name !== null) {
@@ -104,15 +85,6 @@ final class ProjectService
     }
 
     /**
-     * Delete a project.
-     *
-     * WARNING: This will CASCADE DELETE all tasks associated with this project.
-     * The tasks cannot be recovered with the undo operation.
-     *
-     * @param Project $project The project to delete
-     * @return UndoToken|null The undo token for restoring the project (NOT its tasks)
-     */
-    /**
      * Soft-delete a project.
      *
      * Sets deletedAt timestamp instead of actually removing the project.
@@ -124,27 +96,7 @@ final class ProjectService
      */
     public function delete(Project $project): ?UndoToken
     {
-        // Validate required IDs for undo token creation
-        $ownerId = $project->getOwner()?->getId();
-        $projectId = $project->getId();
-
-        if ($ownerId === null) {
-            throw InvalidStateException::missingOwner('Project');
-        }
-        if ($projectId === null) {
-            throw InvalidStateException::missingRequiredId('Project');
-        }
-
-        // Store previous state for undo
-        $previousState = $this->serializeProjectState($project);
-
-        $undoToken = $this->undoService->createUndoToken(
-            userId: $ownerId,
-            action: UndoAction::DELETE->value,
-            entityType: self::ENTITY_TYPE,
-            entityId: $projectId,
-            previousState: $previousState,
-        );
+        $undoToken = $this->projectUndoService->createDeleteUndoToken($project);
 
         // Soft delete instead of hard delete
         $project->softDelete();
@@ -163,29 +115,9 @@ final class ProjectService
      */
     public function archive(Project $project): array
     {
-        // Validate required IDs for undo token creation
-        $ownerId = $project->getOwner()?->getId();
-        $projectId = $project->getId();
+        $previousState = $this->projectStateService->serializeArchiveState($project);
 
-        if ($ownerId === null) {
-            throw InvalidStateException::missingOwner('Project');
-        }
-        if ($projectId === null) {
-            throw InvalidStateException::missingRequiredId('Project');
-        }
-
-        $previousState = [
-            'isArchived' => $project->isArchived(),
-            'archivedAt' => $project->getArchivedAt()?->format(\DateTimeInterface::ATOM),
-        ];
-
-        $undoToken = $this->undoService->createUndoToken(
-            userId: $ownerId,
-            action: UndoAction::ARCHIVE->value,
-            entityType: self::ENTITY_TYPE,
-            entityId: $projectId,
-            previousState: $previousState,
-        );
+        $undoToken = $this->projectUndoService->createArchiveUndoToken($project, $previousState);
 
         $project->setIsArchived(true);
         $project->setArchivedAt(new \DateTimeImmutable());
@@ -205,29 +137,9 @@ final class ProjectService
      */
     public function unarchive(Project $project): array
     {
-        // Validate required IDs for undo token creation
-        $ownerId = $project->getOwner()?->getId();
-        $projectId = $project->getId();
+        $previousState = $this->projectStateService->serializeArchiveState($project);
 
-        if ($ownerId === null) {
-            throw InvalidStateException::missingOwner('Project');
-        }
-        if ($projectId === null) {
-            throw InvalidStateException::missingRequiredId('Project');
-        }
-
-        $previousState = [
-            'isArchived' => $project->isArchived(),
-            'archivedAt' => $project->getArchivedAt()?->format(\DateTimeInterface::ATOM),
-        ];
-
-        $undoToken = $this->undoService->createUndoToken(
-            userId: $ownerId,
-            action: UndoAction::ARCHIVE->value,
-            entityType: self::ENTITY_TYPE,
-            entityId: $projectId,
-            previousState: $previousState,
-        );
+        $undoToken = $this->projectUndoService->createArchiveUndoToken($project, $previousState);
 
         $project->setIsArchived(false);
         $project->setArchivedAt(null);
@@ -249,21 +161,7 @@ final class ProjectService
      */
     public function undoArchive(User $user, string $token): Project
     {
-        $undoToken = $this->undoService->consumeUndoToken($user->getId() ?? '', $token);
-
-        if ($undoToken === null) {
-            throw new \InvalidArgumentException('Invalid or expired undo token');
-        }
-
-        if ($undoToken->action !== UndoAction::ARCHIVE->value) {
-            throw new \InvalidArgumentException('Invalid undo token type for archive operation');
-        }
-
-        $project = $this->findByIdOrFail($undoToken->entityId, $user);
-        $this->applyStateToProject($project, $undoToken->previousState);
-        $this->entityManager->flush();
-
-        return $project;
+        return $this->projectUndoService->undoArchive($user, $token);
     }
 
     /**
@@ -279,32 +177,7 @@ final class ProjectService
      */
     public function undoDelete(User $user, string $token): Project
     {
-        $undoToken = $this->undoService->consumeUndoToken($user->getId() ?? '', $token);
-
-        if ($undoToken === null) {
-            throw new \InvalidArgumentException('Invalid or expired undo token');
-        }
-
-        if ($undoToken->action !== UndoAction::DELETE->value) {
-            throw new \InvalidArgumentException('Invalid undo token type for delete operation');
-        }
-
-        // Find the soft-deleted project (include deleted in search)
-        $project = $this->projectRepository->findOneByOwnerAndId(
-            $user,
-            $undoToken->entityId,
-            includeDeleted: true
-        );
-
-        if ($project === null) {
-            throw EntityNotFoundException::project($undoToken->entityId);
-        }
-
-        // Restore the project
-        $project->restore();
-        $this->entityManager->flush();
-
-        return $project;
+        return $this->projectUndoService->undoDelete($user, $token);
     }
 
     /**
@@ -317,21 +190,7 @@ final class ProjectService
      */
     public function undoUpdate(User $user, string $token): Project
     {
-        $undoToken = $this->undoService->consumeUndoToken($user->getId() ?? '', $token);
-
-        if ($undoToken === null) {
-            throw new \InvalidArgumentException('Invalid or expired undo token');
-        }
-
-        if ($undoToken->action !== UndoAction::UPDATE->value) {
-            throw new \InvalidArgumentException('Invalid undo token type for update operation');
-        }
-
-        $project = $this->findByIdOrFail($undoToken->entityId, $user);
-        $this->applyStateToProject($project, $undoToken->previousState);
-        $this->entityManager->flush();
-
-        return $project;
+        return $this->projectUndoService->undoUpdate($user, $token);
     }
 
     /**
@@ -344,94 +203,11 @@ final class ProjectService
      * @param User $user The user performing the undo
      * @param string $token The undo token
      * @return array{project: Project, action: string, message: string, warning: string|null}
-     * @throws \InvalidArgumentException If the token is invalid or expired
      * @throws EntityNotFoundException If the project no longer exists (for non-delete operations)
      */
     public function undo(User $user, string $token): array
     {
-        // Atomically consume the token first to prevent race conditions
-        $undoToken = $this->undoService->consumeUndoToken($user->getId() ?? '', $token);
-
-        if ($undoToken === null) {
-            throw new \InvalidArgumentException('Invalid or expired undo token');
-        }
-
-        // Validate entity type after consumption
-        // Note: Token is already consumed and cannot be reused
-        if ($undoToken->entityType !== self::ENTITY_TYPE) {
-            throw new \InvalidArgumentException('This undo token is not for a project');
-        }
-
-        $warning = null;
-
-        switch ($undoToken->action) {
-            case UndoAction::UPDATE->value:
-                $project = $this->performUndoExisting($user, $undoToken);
-                $message = 'Update operation undone successfully';
-                break;
-
-            case UndoAction::ARCHIVE->value:
-                $project = $this->performUndoExisting($user, $undoToken);
-                $wasArchived = array_key_exists('isArchived', $undoToken->previousState)
-                    ? $undoToken->previousState['isArchived']
-                    : false;
-                $message = $wasArchived
-                    ? 'Project archived again (undo of unarchive)'
-                    : 'Project unarchived (undo of archive)';
-                break;
-
-            case UndoAction::DELETE->value:
-                $project = $this->performUndoDelete($user, $undoToken);
-                $message = 'Delete operation undone successfully. Project and all associated tasks have been restored.';
-                break;
-
-            default:
-                throw new \InvalidArgumentException('Unknown undo action type: ' . $undoToken->action);
-        }
-
-        return [
-            'project' => $project,
-            'action' => $undoToken->action,
-            'message' => $message,
-            'warning' => $warning,
-        ];
-    }
-
-    /**
-     * Perform undo on an existing project (update or archive operations).
-     */
-    private function performUndoExisting(User $user, UndoToken $undoToken): Project
-    {
-        $project = $this->findByIdOrFail($undoToken->entityId, $user);
-        $this->applyStateToProject($project, $undoToken->previousState);
-        $this->entityManager->flush();
-
-        return $project;
-    }
-
-    /**
-     * Perform the actual delete undo using a consumed token.
-     *
-     * Restores a soft-deleted project by clearing its deletedAt timestamp.
-     */
-    private function performUndoDelete(User $user, UndoToken $undoToken): Project
-    {
-        // Find the soft-deleted project
-        $project = $this->projectRepository->findOneByOwnerAndId(
-            $user,
-            $undoToken->entityId,
-            includeDeleted: true
-        );
-
-        if ($project === null) {
-            throw EntityNotFoundException::project($undoToken->entityId);
-        }
-
-        // Restore the project
-        $project->restore();
-        $this->entityManager->flush();
-
-        return $project;
+        return $this->projectUndoService->undo($user, $token);
     }
 
     /**
@@ -465,58 +241,5 @@ final class ProjectService
             'total' => $this->projectRepository->countTasksByProject($project),
             'completed' => $this->projectRepository->countCompletedTasksByProject($project),
         ];
-    }
-
-    /**
-     * Serialize project state for undo operations.
-     *
-     * @param Project $project The project to serialize
-     * @return array<string, mixed>
-     */
-    private function serializeProjectState(Project $project): array
-    {
-        return [
-            'name' => $project->getName(),
-            'description' => $project->getDescription(),
-            'isArchived' => $project->isArchived(),
-            'deletedAt' => $project->getDeletedAt()?->format(\DateTimeInterface::ATOM),
-        ];
-    }
-
-    /**
-     * Apply a serialized state to an existing project.
-     *
-     * @param Project $project The project to update
-     * @param array<string, mixed> $state The state to apply
-     */
-    private function applyStateToProject(Project $project, array $state): void
-    {
-        if (array_key_exists('name', $state)) {
-            $project->setName($state['name']);
-        }
-
-        if (array_key_exists('description', $state)) {
-            $project->setDescription($state['description']);
-        }
-
-        if (array_key_exists('isArchived', $state)) {
-            $project->setIsArchived($state['isArchived']);
-        }
-
-        if (array_key_exists('archivedAt', $state)) {
-            $project->setArchivedAt(
-                $state['archivedAt'] !== null
-                    ? new \DateTimeImmutable($state['archivedAt'])
-                    : null
-            );
-        }
-
-        if (array_key_exists('deletedAt', $state)) {
-            $project->setDeletedAt(
-                $state['deletedAt'] !== null
-                    ? new \DateTimeImmutable($state['deletedAt'])
-                    : null
-            );
-        }
     }
 }
