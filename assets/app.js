@@ -6,4 +6,8 @@
  */
 import './styles/app.css';
 
-console.log('This log comes from assets/app.js - welcome to AssetMapper! 🎉');
+// Import project tree components
+import './js/project-tree.js';
+import './js/drag-drop.js';
+
+console.log('This log comes from assets/app.js - welcome to AssetMapper!');

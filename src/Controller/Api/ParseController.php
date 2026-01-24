@@ -9,6 +9,7 @@ use App\DTO\ParseResponse;
 use App\Entity\User;
 use App\Service\Parser\NaturalLanguageParserService;
 use App\Service\ResponseFormatter;
+use App\Service\ValidationHelper;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -26,6 +27,7 @@ final class ParseController extends AbstractController
     public function __construct(
         private readonly NaturalLanguageParserService $parserService,
         private readonly ResponseFormatter $responseFormatter,
+        private readonly ValidationHelper $validationHelper,
     ) {
     }
 
@@ -42,7 +44,7 @@ final class ParseController extends AbstractController
         /** @var User $user */
         $user = $this->getUser();
 
-        $data = json_decode($request->getContent(), true) ?? [];
+        $data = $this->validationHelper->decodeJsonBody($request);
 
         try {
             $dto = ParseRequest::fromArray($data);

@@ -21,8 +21,10 @@ use Doctrine\Persistence\ManagerRegistry;
  */
 class TaskRepository extends ServiceEntityRepository
 {
-    public function __construct(ManagerRegistry $registry)
-    {
+    public function __construct(
+        ManagerRegistry $registry,
+        private readonly string $searchLocale = 'english',
+    ) {
         parent::__construct($registry, Task::class);
     }
 
@@ -257,13 +259,14 @@ class TaskRepository extends ServiceEntityRepository
             SELECT t.id
             FROM tasks t
             WHERE t.owner_id = :owner_id
-            AND t.search_vector @@ plainto_tsquery('english', :query)
-            ORDER BY ts_rank(t.search_vector, plainto_tsquery('english', :query)) DESC
+            AND t.search_vector @@ plainto_tsquery(:locale, :query)
+            ORDER BY ts_rank(t.search_vector, plainto_tsquery(:locale, :query)) DESC
         ";
 
         $result = $conn->executeQuery($sql, [
             'owner_id' => $owner->getId(),
             'query' => $query,
+            'locale' => $this->searchLocale,
         ]);
 
         $ids = array_column($result->fetchAllAssociative(), 'id');
@@ -398,5 +401,53 @@ class TaskRepository extends ServiceEntityRepository
         if ($flush) {
             $this->getEntityManager()->flush();
         }
+    }
+
+    /**
+     * Find tasks by project, optionally including tasks from child projects.
+     *
+     * @param Project $project The parent project
+     * @param bool $includeChildren Whether to include tasks from child projects
+     * @param bool $includeArchivedProjects Whether to include tasks from archived child projects
+     * @param string|null $status Optional status filter
+     * @return Task[]
+     */
+    public function findByProjectWithChildren(
+        Project $project,
+        bool $includeChildren = false,
+        bool $includeArchivedProjects = false,
+        ?string $status = null
+    ): array {
+        if (!$includeChildren) {
+            return $this->findByProject($project, $status);
+        }
+
+        // Get descendant project IDs using the ProjectRepository
+        /** @var ProjectRepository $projectRepository */
+        $projectRepository = $this->getEntityManager()->getRepository(Project::class);
+        $descendantIds = $projectRepository->getDescendantIds($project);
+
+        // Include the parent project itself
+        $projectIds = array_merge([$project->getId()], $descendantIds);
+
+        // Build query
+        $qb = $this->createQueryBuilder('t')
+            ->leftJoin('t.project', 'p')
+            ->where('t.project IN (:projectIds)')
+            ->setParameter('projectIds', $projectIds)
+            ->orderBy('t.position', 'ASC')
+            ->addOrderBy('t.priority', 'DESC');
+
+        if ($status !== null) {
+            $qb->andWhere('t.status = :status')
+                ->setParameter('status', $status);
+        }
+
+        if (!$includeArchivedProjects) {
+            $qb->andWhere('p.isArchived = :archived')
+                ->setParameter('archived', false);
+        }
+
+        return $qb->getQuery()->getResult();
     }
 }

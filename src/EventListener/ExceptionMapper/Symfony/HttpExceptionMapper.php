@@ -54,6 +54,11 @@ final class HttpExceptionMapper implements ExceptionMapperInterface
 
     private function resolveErrorCode(HttpExceptionInterface $exception, int $statusCode): string
     {
+        // Check if the exception has a custom errorCode property (from domain exceptions)
+        if (property_exists($exception, 'errorCode') && is_string($exception->errorCode)) {
+            return $exception->errorCode;
+        }
+
         return match (true) {
             $exception instanceof NotFoundHttpException => 'NOT_FOUND',
             $exception instanceof UnauthorizedHttpException => 'UNAUTHORIZED',

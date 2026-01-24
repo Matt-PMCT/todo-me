@@ -34,17 +34,16 @@ class TaskListController extends AbstractController
         /** @var User $user */
         $user = $this->getUser();
 
-        // Get filter parameters
-        $filters = [];
-        if ($status = $request->query->get('status')) {
-            $filters['status'] = $status;
-        }
-        if ($priority = $request->query->get('priority')) {
-            $filters['priority'] = (int) $priority;
-        }
-        if ($projectId = $request->query->get('projectId')) {
-            $filters['projectId'] = $projectId;
-        }
+        // Get filter parameters - always provide all keys for template
+        $status = $request->query->get('status');
+        $priority = $request->query->get('priority');
+        $projectId = $request->query->get('projectId');
+
+        $filters = [
+            'status' => $status ?: null,
+            'priority' => $priority ? (int) $priority : null,
+            'projectId' => $projectId ?: null,
+        ];
 
         // Get tasks with filters
         $queryBuilder = $this->taskRepository->createFilteredQueryBuilder($user, $filters);

@@ -123,13 +123,17 @@ abstract class ApiTestCase extends WebTestCase
         User $owner,
         string $name = 'Test Project',
         ?string $description = null,
-        bool $isArchived = false
+        bool $isArchived = false,
+        ?Project $parent = null
     ): Project {
         $project = new Project();
         $project->setOwner($owner);
         $project->setName($name);
         $project->setDescription($description);
         $project->setIsArchived($isArchived);
+        if ($parent !== null) {
+            $project->setParent($parent);
+        }
 
         $this->entityManager->persist($project);
         $this->entityManager->flush();

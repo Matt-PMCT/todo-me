@@ -106,8 +106,9 @@ final class ApiLogger
      */
     public function logWarning(string $message, array $context = []): void
     {
-        $context['request_id'] = $this->getRequestId();
-        $this->apiLogger->warning($message, $context);
+        $this->apiLogger->warning($message, array_merge($context, [
+            'request_id' => $this->getRequestId(),
+        ]));
     }
 
     /**
@@ -118,8 +119,9 @@ final class ApiLogger
      */
     public function logInfo(string $message, array $context = []): void
     {
-        $context['request_id'] = $this->getRequestId();
-        $this->apiLogger->info($message, $context);
+        $this->apiLogger->info($message, array_merge($context, [
+            'request_id' => $this->getRequestId(),
+        ]));
     }
 
     /**
@@ -130,8 +132,9 @@ final class ApiLogger
      */
     public function logDebug(string $message, array $context = []): void
     {
-        $context['request_id'] = $this->getRequestId();
-        $this->apiLogger->debug($message, $context);
+        $this->apiLogger->debug($message, array_merge($context, [
+            'request_id' => $this->getRequestId(),
+        ]));
     }
 
     /**
