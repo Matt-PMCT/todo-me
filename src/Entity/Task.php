@@ -23,7 +23,6 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\Index(columns: ['owner_id', 'status'], name: 'idx_tasks_owner_status')]
 #[ORM\Index(columns: ['parent_task_id'], name: 'idx_tasks_parent')]
 #[ORM\Index(columns: ['original_task_id'], name: 'idx_tasks_original')]
-#[ORM\Index(columns: ['is_recurring'], name: 'idx_tasks_recurring')]
 #[ORM\HasLifecycleCallbacks]
 class Task implements UserOwnedInterface
 {
@@ -67,18 +66,6 @@ class Task implements UserOwnedInterface
 
     #[ORM\Column(type: Types::INTEGER, options: ['default' => 0])]
     private int $position = 0;
-
-    #[ORM\Column(type: Types::BOOLEAN, name: 'is_recurring', options: ['default' => false])]
-    private bool $isRecurring = false;
-
-    #[ORM\Column(type: Types::STRING, length: 255, nullable: true, name: 'recurrence_rule')]
-    private ?string $recurrenceRule = null;
-
-    #[ORM\Column(type: Types::STRING, length: 20, nullable: true, name: 'recurrence_type')]
-    private ?string $recurrenceType = null;
-
-    #[ORM\Column(type: Types::DATE_IMMUTABLE, nullable: true, name: 'recurrence_end_date')]
-    private ?\DateTimeImmutable $recurrenceEndDate = null;
 
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE, name: 'created_at')]
     private \DateTimeImmutable $createdAt;
@@ -352,54 +339,6 @@ class Task implements UserOwnedInterface
     public function setDueTime(?\DateTimeImmutable $dueTime): static
     {
         $this->dueTime = $dueTime;
-
-        return $this;
-    }
-
-    public function isRecurring(): bool
-    {
-        return $this->isRecurring;
-    }
-
-    public function setIsRecurring(bool $isRecurring): static
-    {
-        $this->isRecurring = $isRecurring;
-
-        return $this;
-    }
-
-    public function getRecurrenceRule(): ?string
-    {
-        return $this->recurrenceRule;
-    }
-
-    public function setRecurrenceRule(?string $recurrenceRule): static
-    {
-        $this->recurrenceRule = $recurrenceRule;
-
-        return $this;
-    }
-
-    public function getRecurrenceType(): ?string
-    {
-        return $this->recurrenceType;
-    }
-
-    public function setRecurrenceType(?string $recurrenceType): static
-    {
-        $this->recurrenceType = $recurrenceType;
-
-        return $this;
-    }
-
-    public function getRecurrenceEndDate(): ?\DateTimeImmutable
-    {
-        return $this->recurrenceEndDate;
-    }
-
-    public function setRecurrenceEndDate(?\DateTimeImmutable $recurrenceEndDate): static
-    {
-        $this->recurrenceEndDate = $recurrenceEndDate;
 
         return $this;
     }

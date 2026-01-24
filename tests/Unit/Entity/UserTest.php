@@ -223,13 +223,13 @@ class UserTest extends UnitTestCase
 
     public function testEraseCredentialsDoesNotThrow(): void
     {
+        $this->expectNotToPerformAssertions();
+
         $user = new User();
 
         // eraseCredentials is called by Symfony after authentication
         // It should not throw and should clear any temporary sensitive data
         $user->eraseCredentials();
-
-        $this->assertTrue(true);
     }
 
     public function testEraseCredentialsPreservesPasswordHash(): void
