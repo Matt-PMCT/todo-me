@@ -133,6 +133,46 @@ class ProjectRepository extends ServiceEntityRepository
     }
 
     /**
+     * Find archived projects by owner with pagination support.
+     *
+     * @param User $owner The project owner
+     * @param int $page The page number (1-indexed)
+     * @param int $limit Items per page
+     * @return array{projects: Project[], total: int}
+     */
+    public function findArchivedByOwnerPaginated(
+        User $owner,
+        int $page,
+        int $limit
+    ): array {
+        $qb = $this->createQueryBuilder('p')
+            ->where('p.owner = :owner')
+            ->andWhere('p.isArchived = :archived')
+            ->andWhere('p.deletedAt IS NULL')
+            ->setParameter('owner', $owner)
+            ->setParameter('archived', true)
+            ->orderBy('p.updatedAt', 'DESC');
+
+        // Get total count
+        $countQb = clone $qb;
+        $countQb->resetDQLPart('orderBy');
+        $total = (int) $countQb->select('COUNT(p.id)')->getQuery()->getSingleScalarResult();
+
+        // Get paginated results
+        $offset = ($page - 1) * $limit;
+        $projects = $qb
+            ->setFirstResult($offset)
+            ->setMaxResults($limit)
+            ->getQuery()
+            ->getResult();
+
+        return [
+            'projects' => $projects,
+            'total' => $total,
+        ];
+    }
+
+    /**
      * Find a project by owner and ID.
      *
      * @param User $owner The project owner
@@ -415,14 +455,20 @@ class ProjectRepository extends ServiceEntityRepository
     {
         $conn = $this->getEntityManager()->getConnection();
 
+        // Set statement timeout to prevent runaway recursive queries (5 seconds)
+        $conn->executeStatement('SET LOCAL statement_timeout = 5000');
+
         $sql = "WITH RECURSIVE descendants AS (
-            SELECT id FROM projects WHERE parent_id = :projectId AND deleted_at IS NULL
+            SELECT id FROM projects WHERE parent_id = :projectId AND owner_id = :ownerId AND deleted_at IS NULL
             UNION ALL
             SELECT p.id FROM projects p
-            INNER JOIN descendants d ON p.parent_id = d.id WHERE p.deleted_at IS NULL
+            INNER JOIN descendants d ON p.parent_id = d.id WHERE p.owner_id = :ownerId AND p.deleted_at IS NULL
         ) SELECT id FROM descendants";
 
-        $result = $conn->executeQuery($sql, ['projectId' => $project->getId()]);
+        $result = $conn->executeQuery($sql, [
+            'projectId' => $project->getId(),
+            'ownerId' => $project->getOwner()?->getId(),
+        ]);
 
         return array_column($result->fetchAllAssociative(), 'id');
     }
@@ -440,6 +486,9 @@ class ProjectRepository extends ServiceEntityRepository
         }
 
         $conn = $this->getEntityManager()->getConnection();
+
+        // Set statement timeout to prevent runaway recursive queries (5 seconds)
+        $conn->executeStatement('SET LOCAL statement_timeout = 5000');
 
         $sql = "WITH RECURSIVE ancestors AS (
             SELECT id, parent_id FROM projects WHERE id = :projectId AND deleted_at IS NULL
@@ -594,8 +643,10 @@ class ProjectRepository extends ServiceEntityRepository
 
         return $this->createQueryBuilder('p')
             ->where('p.id IN (:ids)')
+            ->andWhere('p.owner = :owner')
             ->andWhere('p.deletedAt IS NULL')
             ->setParameter('ids', $descendantIds)
+            ->setParameter('owner', $project->getOwner())
             ->orderBy('p.position', 'ASC')
             ->addOrderBy('p.id', 'ASC')
             ->getQuery()

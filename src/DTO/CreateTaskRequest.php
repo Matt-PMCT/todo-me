@@ -13,7 +13,7 @@ use Symfony\Component\Validator\Constraints as Assert;
 final class CreateTaskRequest
 {
     public function __construct(
-        #[Assert\NotBlank(message: 'Title is required')]
+        #[Assert\NotBlank(message: 'Title is required', normalizer: 'trim')]
         #[Assert\Length(
             max: 500,
             maxMessage: 'Title must be at most {{ limit }} characters'
