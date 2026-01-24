@@ -1,0 +1,103 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Overdue - Todo App{% endblock %}
+
+{% block use_sidebar %}true{% endblock %}
+
+{% block body %}
+<div class="py-10">
+    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        {# Page header #}
+        <div class="sm:flex sm:items-center sm:justify-between">
+            <div>
+                <h1 class="text-2xl font-bold leading-7 text-red-600 sm:truncate sm:text-3xl sm:tracking-tight flex items-center gap-3">
+                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    Overdue
+                </h1>
+                <p class="mt-1 text-sm text-gray-500">
+                    {% if tasks|length > 0 %}
+                        {{ tasks|length }} task{% if tasks|length != 1 %}s{% endif %} past due
+                    {% else %}
+                        No overdue tasks
+                    {% endif %}
+                </p>
+            </div>
+        </div>
+
+        {# Task sections grouped by severity #}
+        <div class="mt-6">
+            {% if tasks|length > 0 %}
+                <div class="space-y-8">
+                    {# High severity first (most urgent) #}
+                    {% if groupedTasks.high is defined and groupedTasks.high.tasks|length > 0 %}
+                        <div>
+                            <h2 class="text-lg font-semibold text-red-600 mb-4 flex items-center gap-2">
+                                <span class="w-3 h-3 rounded-full bg-red-500"></span>
+                                {{ groupedTasks.high.label }}
+                                <span class="text-sm font-normal text-red-500">({{ groupedTasks.high.tasks|length }})</span>
+                            </h2>
+                            <div class="space-y-3">
+                                {% for task in groupedTasks.high.tasks %}
+                                    {% set overdueInfo = overdueService.getOverdueDisplayInfo(task) %}
+                                    <div class="border-l-4 border-l-red-500">
+                                        {{ include('task/_task_item.html.twig', {task: task, overdueInfo: overdueInfo}) }}
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    {% endif %}
+
+                    {# Medium severity #}
+                    {% if groupedTasks.medium is defined and groupedTasks.medium.tasks|length > 0 %}
+                        <div>
+                            <h2 class="text-lg font-semibold text-orange-600 mb-4 flex items-center gap-2">
+                                <span class="w-3 h-3 rounded-full bg-orange-500"></span>
+                                {{ groupedTasks.medium.label }}
+                                <span class="text-sm font-normal text-orange-500">({{ groupedTasks.medium.tasks|length }})</span>
+                            </h2>
+                            <div class="space-y-3">
+                                {% for task in groupedTasks.medium.tasks %}
+                                    {% set overdueInfo = overdueService.getOverdueDisplayInfo(task) %}
+                                    <div class="border-l-4 border-l-orange-500">
+                                        {{ include('task/_task_item.html.twig', {task: task, overdueInfo: overdueInfo}) }}
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    {% endif %}
+
+                    {# Low severity #}
+                    {% if groupedTasks.low is defined and groupedTasks.low.tasks|length > 0 %}
+                        <div>
+                            <h2 class="text-lg font-semibold text-yellow-600 mb-4 flex items-center gap-2">
+                                <span class="w-3 h-3 rounded-full bg-yellow-500"></span>
+                                {{ groupedTasks.low.label }}
+                                <span class="text-sm font-normal text-yellow-500">({{ groupedTasks.low.tasks|length }})</span>
+                            </h2>
+                            <div class="space-y-3">
+                                {% for task in groupedTasks.low.tasks %}
+                                    {% set overdueInfo = overdueService.getOverdueDisplayInfo(task) %}
+                                    <div class="border-l-4 border-l-yellow-500">
+                                        {{ include('task/_task_item.html.twig', {task: task, overdueInfo: overdueInfo}) }}
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+            {% else %}
+                {# Empty state - all caught up! #}
+                <div class="text-center py-12 bg-white rounded-lg shadow">
+                    <svg class="mx-auto h-12 w-12 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    <h3 class="mt-2 text-sm font-semibold text-gray-900">No overdue tasks!</h3>
+                    <p class="mt-1 text-sm text-gray-500">You're all caught up. Great job!</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

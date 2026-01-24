@@ -1,0 +1,88 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Today - Todo App{% endblock %}
+
+{% block use_sidebar %}true{% endblock %}
+
+{% block body %}
+<div class="py-10">
+    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        {# Page header #}
+        <div class="sm:flex sm:items-center sm:justify-between">
+            <div>
+                <h1 class="text-2xl font-bold leading-7 text-gray-900 sm:truncate sm:text-3xl sm:tracking-tight">
+                    Today
+                </h1>
+                <p class="mt-1 text-sm text-gray-500">
+                    {{ "now"|date("F j, Y") }}
+                    {% if tasks|length > 0 %}
+                        - {{ tasks|length }} task{% if tasks|length != 1 %}s{% endif %}
+                    {% endif %}
+                </p>
+            </div>
+        </div>
+
+        {# Task sections #}
+        <div class="mt-6">
+            {% if tasks|length > 0 %}
+                {# Show overdue section first if there are overdue tasks #}
+                {% if groupedTasks.overdue is defined and groupedTasks.overdue.tasks|length > 0 %}
+                    <div class="mb-8">
+                        <h2 class="text-lg font-semibold text-red-600 mb-4 flex items-center gap-2">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            Overdue
+                            <span class="text-sm font-normal text-red-500">({{ groupedTasks.overdue.tasks|length }})</span>
+                        </h2>
+                        <div class="space-y-3">
+                            {% for task in groupedTasks.overdue.tasks %}
+                                {% set overdueInfo = overdueService.getOverdueDisplayInfo(task) %}
+                                <div class="border-l-4 {{ overdueInfo.borderClass }}">
+                                    {{ include('task/_task_item.html.twig', {task: task, overdueInfo: overdueInfo}) }}
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                {% endif %}
+
+                {# Today's tasks #}
+                {% if groupedTasks.today is defined and groupedTasks.today.tasks|length > 0 %}
+                    <div class="mb-8">
+                        <h2 class="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                            <svg class="w-5 h-5 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                            </svg>
+                            Due Today
+                            <span class="text-sm font-normal text-gray-500">({{ groupedTasks.today.tasks|length }})</span>
+                        </h2>
+                        <div class="space-y-3">
+                            {% for task in groupedTasks.today.tasks %}
+                                {{ include('task/_task_item.html.twig', {task: task}) }}
+                            {% endfor %}
+                        </div>
+                    </div>
+                {% endif %}
+
+                {# Empty state if no tasks in either group (shouldn't happen but handle edge case) #}
+                {% if (groupedTasks.overdue is not defined or groupedTasks.overdue.tasks|length == 0) and
+                      (groupedTasks.today is not defined or groupedTasks.today.tasks|length == 0) %}
+                    {{ include('task/_empty_state.html.twig', {
+                        message: 'No tasks due today',
+                        icon: 'calendar'
+                    }) }}
+                {% endif %}
+            {% else %}
+                {# Empty state #}
+                <div class="text-center py-12 bg-white rounded-lg shadow">
+                    <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    <h3 class="mt-2 text-sm font-semibold text-gray-900">All caught up!</h3>
+                    <p class="mt-1 text-sm text-gray-500">No tasks due today. Enjoy your day!</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

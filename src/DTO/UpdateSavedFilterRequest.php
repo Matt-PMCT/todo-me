@@ -1,0 +1,37 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\DTO;
+
+use Symfony\Component\Validator\Constraints as Assert;
+
+/**
+ * Request DTO for updating an existing saved filter.
+ */
+final class UpdateSavedFilterRequest
+{
+    public function __construct(
+        #[Assert\Length(max: 100, maxMessage: 'Name must be at most {{ limit }} characters')]
+        public readonly ?string $name = null,
+
+        public readonly ?array $criteria = null,
+
+        public readonly ?bool $isDefault = null,
+    ) {
+    }
+
+    /**
+     * Creates an UpdateSavedFilterRequest from an array.
+     *
+     * @param array<string, mixed> $data
+     */
+    public static function fromArray(array $data): self
+    {
+        return new self(
+            name: isset($data['name']) ? (string) $data['name'] : null,
+            criteria: isset($data['criteria']) && is_array($data['criteria']) ? $data['criteria'] : null,
+            isDefault: isset($data['isDefault']) ? (bool) $data['isDefault'] : null,
+        );
+    }
+}

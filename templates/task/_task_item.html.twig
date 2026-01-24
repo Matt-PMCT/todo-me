@@ -1,7 +1,7 @@
 {# Task item partial - reusable component for task display #}
 {# Expects: task (Task entity) #}
 
-<div class="bg-white shadow rounded-lg p-4 hover:shadow-md transition-shadow duration-200" x-data="{ showDeleteModal: false }">
+<div class="bg-white shadow rounded-lg p-4 hover:shadow-md transition-shadow duration-200 {% if overdueInfo is defined and overdueInfo.isOverdue %}{{ overdueInfo.borderClass }}{% elseif task.isOverdue %}border-l-4 border-l-red-500{% endif %}" x-data="{ showDeleteModal: false }">
     <div class="flex items-start justify-between">
         <div class="flex-1 min-w-0">
             {# Task title and status #}

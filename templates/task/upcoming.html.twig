@@ -1,0 +1,72 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Upcoming - Todo App{% endblock %}
+
+{% block use_sidebar %}true{% endblock %}
+
+{% block body %}
+<div class="py-10">
+    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        {# Page header #}
+        <div class="sm:flex sm:items-center sm:justify-between">
+            <div>
+                <h1 class="text-2xl font-bold leading-7 text-gray-900 sm:truncate sm:text-3xl sm:tracking-tight">
+                    Upcoming
+                </h1>
+                <p class="mt-1 text-sm text-gray-500">
+                    Tasks due in the next 14 days
+                    {% if tasks|length > 0 %}
+                        - {{ tasks|length }} task{% if tasks|length != 1 %}s{% endif %}
+                    {% endif %}
+                </p>
+            </div>
+        </div>
+
+        {# Task sections grouped by time period #}
+        <div class="mt-6">
+            {% if tasks|length > 0 %}
+                <div class="space-y-8" x-data="{ collapsed: {} }">
+                    {# Iterate through time period groups in order #}
+                    {% set groupOrder = ['tomorrow', 'this_week', 'next_week', 'later'] %}
+                    {% for groupKey in groupOrder %}
+                        {% if groupedTasks[groupKey] is defined and groupedTasks[groupKey].tasks|length > 0 %}
+                            <div>
+                                <button @click="collapsed['{{ groupKey }}'] = !collapsed['{{ groupKey }}']"
+                                        class="w-full flex items-center justify-between text-left">
+                                    <h2 class="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                                        {{ groupedTasks[groupKey].label }}
+                                        <span class="text-sm font-normal text-gray-500">({{ groupedTasks[groupKey].tasks|length }})</span>
+                                    </h2>
+                                    <svg class="w-5 h-5 text-gray-400 transform transition-transform"
+                                         :class="{ 'rotate-180': collapsed['{{ groupKey }}'] }"
+                                         fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                    </svg>
+                                </button>
+                                <div x-show="!collapsed['{{ groupKey }}']"
+                                     x-transition:enter="transition ease-out duration-100"
+                                     x-transition:enter-start="opacity-0"
+                                     x-transition:enter-end="opacity-100"
+                                     class="mt-4 space-y-3">
+                                    {% for task in groupedTasks[groupKey].tasks %}
+                                        {{ include('task/_task_item.html.twig', {task: task}) }}
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            {% else %}
+                {# Empty state #}
+                <div class="text-center py-12 bg-white rounded-lg shadow">
+                    <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                    </svg>
+                    <h3 class="mt-2 text-sm font-semibold text-gray-900">No upcoming tasks</h3>
+                    <p class="mt-1 text-sm text-gray-500">No tasks due in the next 14 days.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

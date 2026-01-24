@@ -1,0 +1,52 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Completed - Todo App{% endblock %}
+
+{% block use_sidebar %}true{% endblock %}
+
+{% block body %}
+<div class="py-10">
+    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        {# Page header #}
+        <div class="sm:flex sm:items-center sm:justify-between">
+            <div>
+                <h1 class="text-2xl font-bold leading-7 text-gray-900 sm:truncate sm:text-3xl sm:tracking-tight flex items-center gap-3">
+                    <svg class="w-8 h-8 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    Completed
+                </h1>
+                <p class="mt-1 text-sm text-gray-500">
+                    {% if tasks|length > 0 %}
+                        {{ tasks|length }} recently completed task{% if tasks|length != 1 %}s{% endif %}
+                    {% else %}
+                        No completed tasks yet
+                    {% endif %}
+                </p>
+            </div>
+        </div>
+
+        {# Task list #}
+        <div class="mt-6">
+            {% if tasks|length > 0 %}
+                <div class="space-y-3">
+                    {% for task in tasks %}
+                        <div class="opacity-75">
+                            {{ include('task/_task_item.html.twig', {task: task}) }}
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                {# Empty state #}
+                <div class="text-center py-12 bg-white rounded-lg shadow">
+                    <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path>
+                    </svg>
+                    <h3 class="mt-2 text-sm font-semibold text-gray-900">No completed tasks</h3>
+                    <p class="mt-1 text-sm text-gray-500">Complete some tasks to see them here.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

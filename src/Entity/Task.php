@@ -40,6 +40,10 @@ class Task implements UserOwnedInterface
     public const PRIORITY_MAX = 4;
     public const PRIORITY_DEFAULT = 2;
 
+    public const OVERDUE_SEVERITY_LOW = 'low';
+    public const OVERDUE_SEVERITY_MEDIUM = 'medium';
+    public const OVERDUE_SEVERITY_HIGH = 'high';
+
     #[ORM\Id]
     #[ORM\Column(type: 'guid')]
     #[ORM\GeneratedValue(strategy: 'CUSTOM')]
@@ -329,6 +333,50 @@ class Task implements UserOwnedInterface
         }
 
         return $this->dueDate < new \DateTimeImmutable('today');
+    }
+
+    /**
+     * Returns the number of days the task is overdue.
+     *
+     * @return int|null Number of days overdue, or null if not overdue
+     */
+    public function getOverdueDays(): ?int
+    {
+        if ($this->dueDate === null || $this->isCompleted()) {
+            return null;
+        }
+
+        $today = new \DateTimeImmutable('today');
+
+        if ($this->dueDate >= $today) {
+            return null;
+        }
+
+        return (int) $this->dueDate->diff($today)->days;
+    }
+
+    /**
+     * Returns the severity level based on how many days overdue.
+     *
+     * @return string|null Severity level (low, medium, high), or null if not overdue
+     */
+    public function getOverdueSeverity(): ?string
+    {
+        $days = $this->getOverdueDays();
+
+        if ($days === null) {
+            return null;
+        }
+
+        if ($days <= 2) {
+            return self::OVERDUE_SEVERITY_LOW;
+        }
+
+        if ($days <= 7) {
+            return self::OVERDUE_SEVERITY_MEDIUM;
+        }
+
+        return self::OVERDUE_SEVERITY_HIGH;
     }
 
     public function getDueTime(): ?\DateTimeImmutable
