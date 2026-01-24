@@ -333,6 +333,7 @@ final class TaskController extends AbstractController
 
     /**
      * Change task status.
+     * For recurring tasks that are completed, returns the next instance.
      */
     #[Route('/{id}/status', name: 'change_status', methods: ['PATCH'], requirements: ['id' => '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}'])]
     public function changeStatus(Request $request, string $id): JsonResponse
@@ -350,9 +351,51 @@ final class TaskController extends AbstractController
 
         $result = $this->taskService->changeStatus($task, $data['status']);
 
-        $response = TaskResponse::fromTask($result['task'], $result['undoToken']);
+        return $this->responseFormatter->success($result->toArray());
+    }
 
-        return $this->responseFormatter->success($response->toArray());
+    /**
+     * Complete a recurring task permanently (stop recurrence).
+     */
+    #[Route('/{id}/complete-forever', name: 'complete_forever', methods: ['POST'], requirements: ['id' => '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}'])]
+    public function completeForever(string $id): JsonResponse
+    {
+        /** @var User $user */
+        $user = $this->getUser();
+
+        $task = $this->taskService->findByIdOrFail($id, $user);
+
+        $result = $this->taskService->completeForever($task);
+
+        return $this->responseFormatter->success($result->toArray());
+    }
+
+    /**
+     * Get recurring task history (all instances in the chain).
+     */
+    #[Route('/{id}/recurring-history', name: 'recurring_history', methods: ['GET'], requirements: ['id' => '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}'])]
+    public function recurringHistory(string $id): JsonResponse
+    {
+        /** @var User $user */
+        $user = $this->getUser();
+
+        $task = $this->taskService->findByIdOrFail($id, $user);
+
+        // Determine the original task ID for the chain
+        $originalTaskId = $task->getOriginalTask()?->getId() ?? $task->getId();
+
+        $tasks = $this->taskRepository->findRecurringChain($user, $originalTaskId);
+
+        $taskResponses = array_map(
+            fn($t) => TaskResponse::fromTask($t)->toArray(),
+            $tasks
+        );
+
+        return $this->responseFormatter->success([
+            'tasks' => $taskResponses,
+            'totalCount' => count($tasks),
+            'completedCount' => count(array_filter($tasks, fn($t) => $t->isCompleted())),
+        ]);
     }
 
     /**

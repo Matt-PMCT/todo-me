@@ -23,6 +23,7 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\Index(columns: ['owner_id', 'status'], name: 'idx_tasks_owner_status')]
 #[ORM\Index(columns: ['parent_task_id'], name: 'idx_tasks_parent')]
 #[ORM\Index(columns: ['original_task_id'], name: 'idx_tasks_original')]
+#[ORM\Index(columns: ['owner_id', 'is_recurring'], name: 'idx_tasks_owner_recurring')]
 #[ORM\HasLifecycleCallbacks]
 class Task implements UserOwnedInterface
 {
@@ -101,6 +102,18 @@ class Task implements UserOwnedInterface
     #[ORM\ManyToOne(targetEntity: Task::class)]
     #[ORM\JoinColumn(name: 'original_task_id', nullable: true, onDelete: 'SET NULL')]
     private ?Task $originalTask = null;
+
+    #[ORM\Column(type: Types::BOOLEAN, name: 'is_recurring', options: ['default' => false])]
+    private bool $isRecurring = false;
+
+    #[ORM\Column(type: Types::TEXT, name: 'recurrence_rule', nullable: true)]
+    private ?string $recurrenceRule = null;
+
+    #[ORM\Column(type: Types::STRING, length: 20, name: 'recurrence_type', nullable: true)]
+    private ?string $recurrenceType = null;
+
+    #[ORM\Column(type: Types::DATE_IMMUTABLE, name: 'recurrence_end_date', nullable: true)]
+    private ?\DateTimeImmutable $recurrenceEndDate = null;
 
     /**
      * @var Collection<int, Tag>
@@ -444,6 +457,54 @@ class Task implements UserOwnedInterface
         return $this;
     }
 
+    public function isRecurring(): bool
+    {
+        return $this->isRecurring;
+    }
+
+    public function setIsRecurring(bool $isRecurring): static
+    {
+        $this->isRecurring = $isRecurring;
+
+        return $this;
+    }
+
+    public function getRecurrenceRule(): ?string
+    {
+        return $this->recurrenceRule;
+    }
+
+    public function setRecurrenceRule(?string $recurrenceRule): static
+    {
+        $this->recurrenceRule = $recurrenceRule;
+
+        return $this;
+    }
+
+    public function getRecurrenceType(): ?string
+    {
+        return $this->recurrenceType;
+    }
+
+    public function setRecurrenceType(?string $recurrenceType): static
+    {
+        $this->recurrenceType = $recurrenceType;
+
+        return $this;
+    }
+
+    public function getRecurrenceEndDate(): ?\DateTimeImmutable
+    {
+        return $this->recurrenceEndDate;
+    }
+
+    public function setRecurrenceEndDate(?\DateTimeImmutable $recurrenceEndDate): static
+    {
+        $this->recurrenceEndDate = $recurrenceEndDate;
+
+        return $this;
+    }
+
     /**
      * Restores task state from a serialized undo state array.
      *
@@ -502,6 +563,24 @@ class Task implements UserOwnedInterface
         if (array_key_exists('completedAt', $state)) {
             $this->completedAt = $state['completedAt'] !== null
                 ? new \DateTimeImmutable($state['completedAt'])
+                : null;
+        }
+
+        if (array_key_exists('isRecurring', $state)) {
+            $this->isRecurring = (bool) $state['isRecurring'];
+        }
+
+        if (array_key_exists('recurrenceRule', $state)) {
+            $this->recurrenceRule = $state['recurrenceRule'];
+        }
+
+        if (array_key_exists('recurrenceType', $state)) {
+            $this->recurrenceType = $state['recurrenceType'];
+        }
+
+        if (array_key_exists('recurrenceEndDate', $state)) {
+            $this->recurrenceEndDate = $state['recurrenceEndDate'] !== null
+                ? new \DateTimeImmutable($state['recurrenceEndDate'])
                 : null;
         }
     }
