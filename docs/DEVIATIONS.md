@@ -125,3 +125,78 @@ Our error codes follow a consistent naming pattern:
 ```
 GET /api/v1/tasks?page=2&per_page=20
 ```
+
+## 8. Phase 4: Views & Filtering API
+
+### Query Parameter Naming Convention
+
+**Standard Convention:** Some APIs use singular parameter names (e.g., `project_id`, `tag_id`) with comma-separated values.
+
+**Our Choice:** We use plural parameter names with array notation for multi-value filters.
+
+| Parameter | Purpose | Example |
+|-----------|---------|---------|
+| `project_ids[]` | Filter by multiple projects | `?project_ids[]=uuid1&project_ids[]=uuid2` |
+| `tag_ids[]` | Filter by multiple tags | `?tag_ids[]=uuid1&tag_ids[]=uuid2` |
+| `statuses[]` | Filter by multiple statuses | `?statuses[]=pending&statuses[]=in_progress` |
+| `tag_mode` | Tag filter logic: `any` (OR) or `all` (AND) | `?tag_mode=all` |
+| `priority_min` | Minimum priority (inclusive) | `?priority_min=2` |
+| `priority_max` | Maximum priority (inclusive) | `?priority_max=4` |
+| `sort` | Sort field | `?sort=due_date` |
+| `direction` | Sort direction: `asc` or `desc` | `?direction=desc` |
+
+**Reason:** Array notation is clearer for multi-value parameters and works naturally with HTML form submissions.
+
+### Specialized View Endpoints
+
+| Endpoint | Purpose |
+|----------|---------|
+| `GET /api/v1/views/today` | Tasks due today |
+| `GET /api/v1/views/upcoming` | Tasks due in the next 7 days |
+| `GET /api/v1/views/overdue` | Overdue tasks with severity levels |
+| `GET /api/v1/views/inbox` | Tasks without a project |
+
+**Note:** These endpoints return the same `TaskListResponse` structure as the main `/api/v1/tasks` endpoint for consistency.
+
+### SavedFilter Entity
+
+SavedFilters allow users to save and reuse filter configurations.
+
+**API Endpoints:**
+```
+GET    /api/v1/saved-filters          # List all saved filters
+POST   /api/v1/saved-filters          # Create a new saved filter
+GET    /api/v1/saved-filters/{id}     # Get a specific saved filter
+PUT    /api/v1/saved-filters/{id}     # Update a saved filter
+DELETE /api/v1/saved-filters/{id}     # Delete a saved filter
+```
+
+**Color Validation:**
+- Colors must be valid 6-character hex codes (e.g., `#FF5733`)
+- Format: `#` followed by exactly 6 hexadecimal characters (0-9, A-F, case-insensitive)
+- The color field is optional; if omitted, the UI uses a default color
+
+**Criteria Field:**
+The `criteria` field stores filter configuration as a JSON object:
+```json
+{
+  "criteria": {
+    "statuses": ["pending", "in_progress"],
+    "priority_min": 2,
+    "tag_ids": ["uuid1", "uuid2"],
+    "tag_mode": "all"
+  }
+}
+```
+
+### Overdue Task Severity Levels
+
+Overdue tasks include a `severity` field based on how overdue they are:
+
+| Days Overdue | Severity |
+|--------------|----------|
+| 0-2 days | `low` |
+| 3-7 days | `medium` |
+| 8+ days | `high` |
+
+This enables UI differentiation (e.g., color coding) based on urgency.

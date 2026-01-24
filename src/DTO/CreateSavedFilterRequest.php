@@ -25,7 +25,7 @@ final class CreateSavedFilterRequest
         public readonly ?string $icon = null,
 
         #[Assert\Length(max: 7, maxMessage: 'Color must be at most {{ limit }} characters')]
-        #[Assert\Regex(pattern: '/^#[0-9A-Fa-f]{6}$/', message: 'Color must be a valid hex color (e.g., #FF5733)', groups: ['color_format'])]
+        #[Assert\Regex(pattern: '/^#[0-9A-Fa-f]{6}$/', message: 'Color must be a valid hex color (e.g., #FF5733)')]
         public readonly ?string $color = null,
     ) {
     }
