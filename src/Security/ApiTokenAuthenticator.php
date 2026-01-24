@@ -108,7 +108,7 @@ final class ApiTokenAuthenticator extends AbstractAuthenticator
 
                 $this->apiLogger->logInfo('User authenticated successfully', [
                     'user_id' => $user->getId(),
-                    'email' => $user->getEmail(),
+                    'email_hash' => ApiLogger::hashEmail($user->getEmail()),
                 ]);
 
                 return $user;
