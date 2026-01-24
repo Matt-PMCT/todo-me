@@ -470,10 +470,11 @@ Reduce to 24-48 hours for sensitive applications, or 30 days maximum.
 
 ---
 
-### 3.4 Email Addresses Logged in Plain Text
+### 3.4 Email Addresses Logged in Plain Text ✅ FIXED
 
 **Category:** Data Safety
-**Files:** `src/Service/ApiLogger.php`, `src/Controller/Api/AuthController.php`
+**Files:** `src/Service/ApiLogger.php`, `src/Controller/Api/AuthController.php`, `src/Security/ApiTokenAuthenticator.php`
+**Status:** RESOLVED (2026-01-24)
 
 #### Issue
 Email addresses logged on authentication events, exposing PII if logs are compromised.
@@ -483,6 +484,30 @@ Hash or truncate emails in log context:
 ```php
 'email_hash' => substr(hash('sha256', $email), 0, 16)
 ```
+
+#### Resolution
+All email logging has been updated to use hashed email addresses instead of plain text:
+
+1. **Added `ApiLogger::hashEmail()` static method** (`src/Service/ApiLogger.php:178-190`):
+   - Returns a 16-character truncated SHA-256 hash
+   - Allows correlation of log entries without exposing full email
+   - Consistent output for same input enables tracking user activity
+
+2. **Updated AuthController.php** - 9 logging calls updated:
+   - Registration validation failed
+   - Registration attempt for existing email
+   - User registered successfully
+   - Registration exception caught
+   - Login rate limit exceeded
+   - Login attempt for non-existent user
+   - Login attempt with invalid password
+   - User logged in successfully
+   - User logged out (token revoked)
+
+3. **Updated ApiTokenAuthenticator.php** - 1 logging call updated:
+   - User authenticated successfully
+
+All log entries now use `'email_hash' => ApiLogger::hashEmail($email)` instead of exposing plain text email addresses.
 
 ---
 
