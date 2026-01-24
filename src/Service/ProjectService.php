@@ -207,7 +207,9 @@ final class ProjectService
         $project = $this->findByIdOrFail($undoToken->entityId, $user);
 
         // Restore previous archived state
-        $wasArchived = $undoToken->previousState['isArchived'] ?? false;
+        $wasArchived = array_key_exists('isArchived', $undoToken->previousState)
+            ? $undoToken->previousState['isArchived']
+            : false;
         $project->setIsArchived($wasArchived);
 
         $this->entityManager->flush();
@@ -242,9 +244,9 @@ final class ProjectService
 
         $project = new Project();
         $project->setOwner($user);
-        $project->setName($state['name'] ?? '');
-        $project->setDescription($state['description'] ?? null);
-        $project->setIsArchived($state['isArchived'] ?? false);
+        $project->setName(array_key_exists('name', $state) ? $state['name'] : '');
+        $project->setDescription(array_key_exists('description', $state) ? $state['description'] : null);
+        $project->setIsArchived(array_key_exists('isArchived', $state) ? $state['isArchived'] : false);
 
         // Note: The original ID, createdAt, and tasks are NOT restored.
         // The project will get a new ID and createdAt timestamp.
@@ -279,7 +281,7 @@ final class ProjectService
         // Restore previous state
         $state = $undoToken->previousState;
 
-        if (isset($state['name'])) {
+        if (array_key_exists('name', $state)) {
             $project->setName($state['name']);
         }
 
@@ -335,7 +337,9 @@ final class ProjectService
 
             case UndoAction::ARCHIVE->value:
                 $project = $this->performUndoArchive($user, $consumedToken);
-                $wasArchived = $consumedToken->previousState['isArchived'] ?? false;
+                $wasArchived = array_key_exists('isArchived', $consumedToken->previousState)
+                    ? $consumedToken->previousState['isArchived']
+                    : false;
                 $message = $wasArchived
                     ? 'Project archived again (undo of unarchive)'
                     : 'Project unarchived (undo of archive)';
@@ -368,7 +372,7 @@ final class ProjectService
 
         $state = $undoToken->previousState;
 
-        if (isset($state['name'])) {
+        if (array_key_exists('name', $state)) {
             $project->setName($state['name']);
         }
 
@@ -388,10 +392,14 @@ final class ProjectService
     {
         $project = $this->findByIdOrFail($undoToken->entityId, $user);
 
-        $wasArchived = $undoToken->previousState['isArchived'] ?? false;
+        $wasArchived = array_key_exists('isArchived', $undoToken->previousState)
+            ? $undoToken->previousState['isArchived']
+            : false;
         $project->setIsArchived($wasArchived);
 
-        $archivedAtStr = $undoToken->previousState['archivedAt'] ?? null;
+        $archivedAtStr = array_key_exists('archivedAt', $undoToken->previousState)
+            ? $undoToken->previousState['archivedAt']
+            : null;
         $project->setArchivedAt($archivedAtStr !== null ? new \DateTimeImmutable($archivedAtStr) : null);
 
         $this->entityManager->flush();
@@ -408,9 +416,9 @@ final class ProjectService
 
         $project = new Project();
         $project->setOwner($user);
-        $project->setName($state['name'] ?? '');
-        $project->setDescription($state['description'] ?? null);
-        $project->setIsArchived($state['isArchived'] ?? false);
+        $project->setName(array_key_exists('name', $state) ? $state['name'] : '');
+        $project->setDescription(array_key_exists('description', $state) ? $state['description'] : null);
+        $project->setIsArchived(array_key_exists('isArchived', $state) ? $state['isArchived'] : false);
 
         $this->projectRepository->save($project, true);
 

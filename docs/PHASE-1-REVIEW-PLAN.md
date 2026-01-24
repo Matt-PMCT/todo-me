@@ -468,10 +468,11 @@ Add `: array` return type to all DTO `toArray()` methods.
 
 ---
 
-### 3.6 Inconsistent Array Access Patterns
+### 3.6 Inconsistent Array Access Patterns ✅ FIXED
 
 **Category:** Code Quality
 **File:** `src/Service/ProjectService.php:210, 245-247, 282-287`
+**Status:** RESOLVED (2026-01-24)
 
 #### Issue
 Inconsistent use of `isset()`, `array_key_exists()`, and null-coalescing:
@@ -483,6 +484,20 @@ if (array_key_exists('description', $state)) { ... }  // array_key_exists
 
 #### Remediation
 Standardize on `array_key_exists()` for explicit null handling throughout.
+
+#### Resolution
+All array access patterns in `ProjectService.php` have been standardized to use `array_key_exists()`:
+- Conditional checks now use `if (array_key_exists('key', $array))`
+- Value access with defaults now uses `array_key_exists('key', $array) ? $array['key'] : default`
+
+This ensures consistent, explicit null handling across all undo operations including:
+- `undoArchive()` - lines 210-212
+- `undoDelete()` - lines 247-249
+- `undoUpdate()` - lines 284-290
+- `undo()` switch statement - lines 340-342
+- `performUndoUpdate()` - lines 375-381
+- `performUndoArchive()` - lines 395-402
+- `performUndoDelete()` - lines 419-421
 
 ---
 
