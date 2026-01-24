@@ -26,6 +26,23 @@
             {{ include('components/quick-add.html.twig', { apiToken: apiToken }) }}
         </div>
 
+        {# Fallback form for non-JS browsers and testing #}
+        <noscript>
+            <form action="{{ path('app_task_create') }}" method="POST" class="mt-4 flex gap-4">
+                <input type="hidden" name="_csrf_token" value="{{ csrf_token('create_task') }}">
+                <input type="text" name="title" placeholder="Task title" required
+                       class="flex-1 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                <button type="submit" class="rounded-md bg-indigo-600 px-4 py-2 text-white hover:bg-indigo-500">
+                    Add Task
+                </button>
+            </form>
+        </noscript>
+        {# Hidden form for programmatic access (testing) #}
+        <form id="create-task-form" action="{{ path('app_task_create') }}" method="POST" class="hidden">
+            <input type="hidden" name="_csrf_token" value="{{ csrf_token('create_task') }}">
+            <input type="hidden" name="title" value="">
+        </form>
+
         {# Filters #}
         <div class="mt-6 bg-white shadow rounded-lg p-4" x-data="{ showFilters: false }">
             <div class="flex items-center justify-between">

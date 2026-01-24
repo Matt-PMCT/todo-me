@@ -6,7 +6,8 @@
 parameters:
     redis_url: '%env(REDIS_URL)%'
     api_token_ttl_hours: '%env(int:API_TOKEN_TTL_HOURS)%'
-    search_locale: '%env(default:english:SEARCH_LOCALE)%'
+    search_locale_default: 'english'
+    search_locale: '%env(default:search_locale_default:SEARCH_LOCALE)%'
 
 services:
     # default configuration for services in this file
@@ -64,3 +65,7 @@ services:
     App\Repository\TaskRepository:
         arguments:
             $searchLocale: '%search_locale%'
+
+    # Alias for FormLoginAuthenticator to enable autowiring
+    Symfony\Component\Security\Http\Authenticator\FormLoginAuthenticator:
+        alias: 'security.authenticator.form_login.main'

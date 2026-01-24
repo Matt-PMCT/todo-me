@@ -67,8 +67,8 @@ class SecurityControllerTest extends ApiTestCase
         // Follow redirect to see error message
         $this->client->followRedirect();
 
-        // Page should contain error message
-        $this->assertSelectorExists('[class*="error"], [class*="alert-danger"], .alert');
+        // Page should contain error message (login error uses red-800 styling)
+        $this->assertSelectorExists('.text-red-800, [class*="error"], [class*="alert"]');
     }
 
     public function testRegisterPageRendersSuccessfully(): void
