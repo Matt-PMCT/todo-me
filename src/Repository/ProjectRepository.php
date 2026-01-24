@@ -211,7 +211,10 @@ class ProjectRepository extends ServiceEntityRepository
     }
 
     /**
-     * Get task counts for multiple projects in a single query.
+     * Get task counts for multiple projects in a single optimized query.
+     *
+     * Uses conditional aggregation to get both total and completed counts
+     * in a single database query, reducing the number of queries from 2 to 1.
      *
      * @param Project[] $projects
      * @return array<string, array{total: int, completed: int}>
@@ -224,42 +227,34 @@ class ProjectRepository extends ServiceEntityRepository
 
         $projectIds = array_map(fn(Project $p) => $p->getId(), $projects);
 
-        // Get total counts
-        $totalCounts = $this->getEntityManager()
+        // Single query with conditional aggregation
+        $results = $this->getEntityManager()
             ->createQueryBuilder()
-            ->select('IDENTITY(t.project) as projectId, COUNT(t.id) as taskCount')
+            ->select(
+                'IDENTITY(t.project) as projectId',
+                'COUNT(t.id) as total',
+                'SUM(CASE WHEN t.status = :completed THEN 1 ELSE 0 END) as completedCount'
+            )
             ->from(Task::class, 't')
             ->where('t.project IN (:projects)')
             ->setParameter('projects', $projectIds)
+            ->setParameter('completed', Task::STATUS_COMPLETED)
             ->groupBy('t.project')
             ->getQuery()
             ->getResult();
 
-        // Get completed counts
-        $completedCounts = $this->getEntityManager()
-            ->createQueryBuilder()
-            ->select('IDENTITY(t.project) as projectId, COUNT(t.id) as taskCount')
-            ->from(Task::class, 't')
-            ->where('t.project IN (:projects)')
-            ->andWhere('t.status = :status')
-            ->setParameter('projects', $projectIds)
-            ->setParameter('status', Task::STATUS_COMPLETED)
-            ->groupBy('t.project')
-            ->getQuery()
-            ->getResult();
-
-        // Build result array
+        // Build result array with defaults
         $result = [];
         foreach ($projectIds as $projectId) {
             $result[$projectId] = ['total' => 0, 'completed' => 0];
         }
 
-        foreach ($totalCounts as $row) {
-            $result[$row['projectId']]['total'] = (int) $row['taskCount'];
-        }
-
-        foreach ($completedCounts as $row) {
-            $result[$row['projectId']]['completed'] = (int) $row['taskCount'];
+        // Populate from query results
+        foreach ($results as $row) {
+            $result[$row['projectId']] = [
+                'total' => (int) $row['total'],
+                'completed' => (int) $row['completedCount'],
+            ];
         }
 
         return $result;

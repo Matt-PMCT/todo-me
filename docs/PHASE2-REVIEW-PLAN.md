@@ -684,17 +684,17 @@ The codebase demonstrates excellent adoption of modern PHP and Symfony patterns 
 
 ### Priority 4: LOW (Backlog)
 
-| Issue | Description | Effort |
-|-------|-------------|--------|
-| 4.2.2 | Undo pattern consolidation | 4-8 hours |
-| 4.2.3 | Exception type standardization | 2-4 hours |
-| 4.2.6 | Remove/implement recurrence | 4-16 hours |
-| 4.2.7 | Query optimization | 2-4 hours |
-| 5.3.4 | Fix useless assertions | 1-2 hours |
-| 5.3.5 | Reduce heavy mocking | 4-8 hours |
-| 5.3.6 | Add edge case tests | 8-16 hours |
-| 6.2.1 | Add static analysis | 4-8 hours |
-| 6.2.2 | Add API documentation | 8-16 hours |
+| Issue | Description | Effort | Status |
+|-------|-------------|--------|--------|
+| 4.2.2 | Undo pattern consolidation | 4-8 hours | **FIXED** - Created ProjectStateService, ProjectUndoService; refactored ProjectService to delegate |
+| 4.2.3 | Exception type standardization | 2-4 hours | **FIXED** - Created InvalidUndoTokenException with factory methods; updated TaskUndoService and ProjectUndoService |
+| 4.2.6 | Remove/implement recurrence | 4-16 hours | |
+| 4.2.7 | Query optimization | 2-4 hours | **FIXED** - Combined 2 queries into 1 using conditional SUM in getTaskCountsForProjects |
+| 5.3.4 | Fix useless assertions | 1-2 hours | |
+| 5.3.5 | Reduce heavy mocking | 4-8 hours | |
+| 5.3.6 | Add edge case tests | 8-16 hours | |
+| 6.2.1 | Add static analysis | 4-8 hours | |
+| 6.2.2 | Add API documentation | 8-16 hours | |
 
 ---
 
@@ -707,10 +707,10 @@ The codebase demonstrates excellent adoption of modern PHP and Symfony patterns 
 | Secret Disclosure | 10/10 | SECURE | |
 | Security | 9/10 | EXCELLENT | Issues 2.2.1, 2.2.4, 2.2.6 fixed |
 | User Data Safety | 8/10 | GOOD | Issues 3.2.1, 3.2.2, 3.2.3, 3.2.5 fixed |
-| Code Quality | 8.5/10 | GOOD | Issue 4.2.1 fixed - TaskService split into focused services |
+| Code Quality | 9/10 | EXCELLENT | Issues 4.2.1, 4.2.2, 4.2.3, 4.2.7 fixed - Service layer fully refactored with proper undo pattern consolidation, standardized exceptions, and optimized queries |
 | Testing | 9/10 | EXCELLENT | Issues 5.2.3, 5.3.1, 5.3.2, 5.3.3 fixed |
 | Best Practices | 8.5/10 | GOOD | |
-| **OVERALL** | **8.8/10** | **EXCELLENT** | Priority 1, 2, and 3 issues resolved |
+| **OVERALL** | **9.0/10** | **EXCELLENT** | Priority 1, 2, 3, and select Priority 4 issues resolved |
 
 ### Phase 2 Feature Completion
 
@@ -730,7 +730,8 @@ The codebase demonstrates excellent adoption of modern PHP and Symfony patterns 
 - **No Critical Vulnerabilities** - System is production-ready
 - **All Priority 1-3 Security Issues Resolved** - CORS documented, Docker hardened
 - **All Priority 1-3 Data Safety Issues Resolved** - Undo system hardened with ownership validation
-- **Performance Issues Resolved** - N+1 query fixed with batch loading
+- **Performance Issues Resolved** - N+1 query fixed with batch loading, getTaskCountsForProjects optimized from 2 queries to 1
+- **Code Quality Improved** - Undo pattern consolidated (ProjectStateService, ProjectUndoService), exception types standardized (InvalidUndoTokenException)
 - **Test Coverage Excellent** - All critical security and service layers tested, DTO validation covered
 
 ---
@@ -762,7 +763,11 @@ The codebase demonstrates excellent adoption of modern PHP and Symfony patterns 
 - ~~`tests/Unit/EventListener/ExceptionMapper/Symfony/AccessDeniedExceptionMapperTest.php`~~ **CREATED**
 - ~~`tests/Unit/EventListener/ExceptionMapper/Symfony/AuthenticationExceptionMapperTest.php`~~ **CREATED**
 - ~~`tests/Unit/Service/TaskStateServiceTest.php`~~ **CREATED**
-- ~~`tests/Unit/Service/TaskUndoServiceTest.php`~~ **CREATED**
+- ~~`tests/Unit/Service/TaskUndoServiceTest.php`~~ **CREATED** - Updated to use InvalidUndoTokenException
+- ~~`tests/Unit/Service/ProjectStateServiceTest.php`~~ **CREATED** (Issue 4.2.2)
+- ~~`tests/Unit/Service/ProjectUndoServiceTest.php`~~ **CREATED** (Issue 4.2.2)
+- ~~`tests/Unit/Exception/InvalidUndoTokenExceptionTest.php`~~ **CREATED** (Issue 4.2.3)
+- ~~`tests/Unit/EventListener/ExceptionMapper/Domain/InvalidUndoTokenExceptionMapperTest.php`~~ **CREATED** (Issue 4.2.3)
 - ~~`tests/Functional/Api/AuthorizationEdgeCasesTest.php`~~ **CREATED**
 - ~~`tests/Functional/Api/ValidationEdgeCasesTest.php`~~ **CREATED**
 - ~~`tests/Functional/Security/CorsConfigurationTest.php`~~ **CREATED**
