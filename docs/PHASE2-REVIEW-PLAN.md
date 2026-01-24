@@ -86,10 +86,13 @@ No secret disclosure vulnerabilities were identified:
 #### Issue 2.2.1: Information Disclosure in Authentication Errors
 **Severity:** MEDIUM
 **Location:** `src/Security/ApiTokenAuthenticator.php:305-306`
+**Status:** FIXED (2026-01-24)
 
 **Description:** The authenticator returns different error messages for "Invalid API token" vs "API token has expired", allowing attackers to enumerate valid tokens by observing different error responses.
 
 **Proposed Solution:** Return a generic "Authentication failed" message for all authentication errors. Log the specific failure reason server-side for debugging but do not expose it to clients.
+
+**Resolution:** Added `AUTH_FAILED_MESSAGE` constant and updated both invalid token and expired token error messages to use the generic message. Specific failure reasons are still logged server-side for debugging.
 
 ---
 
@@ -177,6 +180,7 @@ No secret disclosure vulnerabilities were identified:
 #### Issue 3.2.1: Missing Ownership Validation in Undo Restore
 **Severity:** MEDIUM
 **Location:** `src/Service/TaskService.php:711-727`
+**Status:** FIXED (2026-01-24)
 
 **Description:** When restoring task state via undo operations, project and tag relationships are restored without re-validating that they belong to the same user:
 
@@ -188,21 +192,27 @@ $task->setProject($project);
 
 **Proposed Solution:** Use `findOneByOwnerAndId()` instead of `find()` when restoring related entities. Validate ownership of projects, tags, and parent tasks during undo state restoration.
 
+**Resolution:** Updated `applyStateToTask()` method to use `findOneByOwnerAndId()` for both projects and tags. If the project/tag doesn't exist or doesn't belong to the user, it's silently skipped (safe degradation).
+
 ---
 
 #### Issue 3.2.2: Reflection Bypasses Setter Validation
 **Severity:** MEDIUM
 **Location:** `src/Service/TaskService.php:686-690`
+**Status:** FIXED (2026-01-24)
 
 **Description:** Uses `ReflectionClass` to bypass setter validation when restoring task status during undo operations. This circumvents business logic in `setStatus()` setter and may skip `completedAt` timestamp logic.
 
 **Proposed Solution:** Create a dedicated `restoreFromState()` method on Task entity that handles restoration with appropriate validation. Alternatively, create `setStatusDirect()` method with clear documentation of when to use it.
+
+**Resolution:** Added `restoreFromState(array $state)` method to Task entity that directly sets properties with validation but without triggering side effects. The method is marked as `@internal` for undo operations only. Updated `TaskService::applyStateToTask()` to use this method.
 
 ---
 
 #### Issue 3.2.3: Cascade Delete Causes Silent Data Loss
 **Severity:** MEDIUM
 **Location:** `src/Service/ProjectService.php:103-121`
+**Status:** FIXED (2026-01-24)
 
 **Description:** Deleting a project silently cascades delete to ALL associated tasks. The undo system does NOT restore deleted tasks - it creates a NEW project with new UUID. Users may not realize deleting a project permanently destroys all tasks.
 
@@ -211,6 +221,14 @@ $task->setProject($project);
 2. Require explicit confirmation or task migration before project deletion
 3. Add frontend warning dialog explaining task deletion consequences
 4. Consider implementing task orphaning instead of deletion
+
+**Resolution:** Implemented soft delete for projects:
+- Added `deletedAt` field to Project entity with `isDeleted()`, `softDelete()`, and `restore()` methods
+- Created database migration `Version20260124000002` for the new column and index
+- Updated ProjectRepository to exclude deleted projects by default with `includeDeleted` parameter
+- Updated `ProjectService::delete()` to use soft delete instead of hard delete
+- Updated `ProjectService::undoDelete()` to restore soft-deleted projects (preserving original ID and tasks)
+- All repository queries now exclude soft-deleted projects by default
 
 ---
 
@@ -227,6 +245,7 @@ $task->setProject($project);
 #### Issue 3.2.5: Null Safety in Undo Token Creation
 **Severity:** MEDIUM
 **Location:** `src/Service/ProjectService.php:70, 73, 111, 139`
+**Status:** FIXED (2026-01-24)
 
 **Description:** Undo token creation uses empty string fallback for null UUIDs:
 ```php
@@ -235,6 +254,8 @@ entityId: $project->getId() ?? '',
 ```
 
 **Proposed Solution:** Throw exception if required IDs are null rather than creating invalid undo tokens. Add explicit guard clauses before undo token creation.
+
+**Resolution:** Created `InvalidStateException` class with static factory methods `missingRequiredId()` and `missingOwner()`. Added explicit null checks in ProjectService (`update`, `delete`, `archive`, `unarchive`) and TaskService (`reschedule`, `update`, `delete`, `changeStatus`) that throw the exception if owner ID or entity ID is null.
 
 ---
 
@@ -407,6 +428,7 @@ SELECT IDENTITY(t.project),
 #### Issue 5.2.3: Repositories Not Tested
 **Severity:** HIGH
 **Location:** `src/Repository/*.php`
+**Status:** FIXED (2026-01-24)
 
 **Description:** Query building logic in TaskRepository, ProjectRepository, UserRepository, and TagRepository has zero unit/integration tests. Complex queries (filters, full-text search, pagination) are not verified.
 
@@ -416,6 +438,12 @@ SELECT IDENTITY(t.project),
 - Pagination edge cases (page 0, page > max)
 - Date range filtering
 - Owner scoping
+
+**Resolution:** Created comprehensive integration test suite:
+- `tests/Integration/IntegrationTestCase.php` - Base class with transaction isolation and helper methods
+- `tests/Integration/Repository/TaskRepositoryTest.php` - 25+ tests covering owner scoping, filters, search, pagination, reorder
+- `tests/Integration/Repository/ProjectRepositoryTest.php` - 25+ tests covering owner scoping, archive/delete filtering, search, path lookup, task counts
+- `tests/Integration/Repository/TagRepositoryTest.php` - 15+ tests covering owner scoping, case-insensitive search, prefix search
 
 ---
 
@@ -621,14 +649,14 @@ The codebase demonstrates excellent adoption of modern PHP and Symfony patterns 
 
 ### Priority 2: HIGH (This Sprint)
 
-| Issue | Description | Effort |
-|-------|-------------|--------|
-| 3.2.1 | Undo restore ownership validation | 4-6 hours |
-| 3.2.2 | Replace reflection with proper methods | 2-4 hours |
-| 3.2.3 | Implement project soft delete | 8-12 hours |
-| 3.2.5 | Null safety in undo tokens | 2-4 hours |
-| 5.2.3 | Repository integration tests | 8-16 hours |
-| 2.2.1 | Generic auth error messages | 2-4 hours |
+| Issue | Description | Effort | Status |
+|-------|-------------|--------|--------|
+| 3.2.1 | Undo restore ownership validation | 4-6 hours | **FIXED** |
+| 3.2.2 | Replace reflection with proper methods | 2-4 hours | **FIXED** |
+| 3.2.3 | Implement project soft delete | 8-12 hours | **FIXED** |
+| 3.2.5 | Null safety in undo tokens | 2-4 hours | **FIXED** |
+| 5.2.3 | Repository integration tests | 8-16 hours | **FIXED** |
+| 2.2.1 | Generic auth error messages | 2-4 hours | **FIXED** |
 
 ### Priority 3: MEDIUM (Next Sprint)
 
@@ -661,15 +689,15 @@ The codebase demonstrates excellent adoption of modern PHP and Symfony patterns 
 
 ### Overall Assessment
 
-| Category | Score | Status |
-|----------|-------|--------|
-| Secret Disclosure | 10/10 | SECURE |
-| Security | 7/10 | NEEDS ATTENTION |
-| User Data Safety | 6/10 | NEEDS ATTENTION |
-| Code Quality | 7/10 | NEEDS ATTENTION |
-| Testing | 6/10 | NEEDS ATTENTION |
-| Best Practices | 8.5/10 | GOOD |
-| **OVERALL** | **7.4/10** | **ACCEPTABLE** |
+| Category | Score | Status | Notes |
+|----------|-------|--------|-------|
+| Secret Disclosure | 10/10 | SECURE | |
+| Security | 8/10 | GOOD | Issue 2.2.1 fixed |
+| User Data Safety | 8/10 | GOOD | Issues 3.2.1, 3.2.2, 3.2.3, 3.2.5 fixed |
+| Code Quality | 7/10 | NEEDS ATTENTION | |
+| Testing | 7.5/10 | GOOD | Issue 5.2.3 fixed |
+| Best Practices | 8.5/10 | GOOD | |
+| **OVERALL** | **8.2/10** | **GOOD** | Priority 2 issues resolved |
 
 ### Phase 2 Feature Completion
 

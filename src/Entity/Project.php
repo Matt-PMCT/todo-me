@@ -17,6 +17,7 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\Index(columns: ['is_archived'], name: 'idx_projects_archived')]
 #[ORM\Index(columns: ['parent_id'], name: 'idx_projects_parent')]
 #[ORM\Index(columns: ['position'], name: 'idx_projects_position')]
+#[ORM\Index(columns: ['deleted_at'], name: 'idx_projects_deleted_at')]
 #[ORM\HasLifecycleCallbacks]
 class Project implements UserOwnedInterface
 {
@@ -46,6 +47,9 @@ class Project implements UserOwnedInterface
 
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true, name: 'archived_at')]
     private ?\DateTimeImmutable $archivedAt = null;
+
+    #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true, name: 'deleted_at')]
+    private ?\DateTimeImmutable $deletedAt = null;
 
     #[ORM\Column(type: Types::BOOLEAN, name: 'show_children_tasks', options: ['default' => true])]
     private bool $showChildrenTasks = true;
@@ -240,6 +244,46 @@ class Project implements UserOwnedInterface
     public function setArchivedAt(?\DateTimeImmutable $archivedAt): static
     {
         $this->archivedAt = $archivedAt;
+
+        return $this;
+    }
+
+    public function getDeletedAt(): ?\DateTimeImmutable
+    {
+        return $this->deletedAt;
+    }
+
+    public function setDeletedAt(?\DateTimeImmutable $deletedAt): static
+    {
+        $this->deletedAt = $deletedAt;
+
+        return $this;
+    }
+
+    /**
+     * Check if this project has been soft-deleted.
+     */
+    public function isDeleted(): bool
+    {
+        return $this->deletedAt !== null;
+    }
+
+    /**
+     * Soft-delete this project by setting the deletedAt timestamp.
+     */
+    public function softDelete(): static
+    {
+        $this->deletedAt = new \DateTimeImmutable();
+
+        return $this;
+    }
+
+    /**
+     * Restore a soft-deleted project by clearing the deletedAt timestamp.
+     */
+    public function restore(): static
+    {
+        $this->deletedAt = null;
 
         return $this;
     }

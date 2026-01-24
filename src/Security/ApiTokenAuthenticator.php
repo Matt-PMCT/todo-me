@@ -30,6 +30,12 @@ final class ApiTokenAuthenticator extends AbstractAuthenticator
     private const API_KEY_HEADER = 'X-API-Key';
 
     /**
+     * Generic authentication error message to prevent token enumeration.
+     * Specific failure reasons are logged server-side but not exposed to clients.
+     */
+    private const AUTH_FAILED_MESSAGE = 'Authentication failed';
+
+    /**
      * Public routes that don't require authentication.
      */
     private const PUBLIC_ROUTES = [
@@ -92,7 +98,8 @@ final class ApiTokenAuthenticator extends AbstractAuthenticator
                         'ip' => $request->getClientIp(),
                     ]);
 
-                    throw new CustomUserMessageAuthenticationException('Invalid API token');
+                    // Use generic message to prevent token enumeration
+                    throw new CustomUserMessageAuthenticationException(self::AUTH_FAILED_MESSAGE);
                 }
 
                 // Check if token is expired
@@ -103,7 +110,8 @@ final class ApiTokenAuthenticator extends AbstractAuthenticator
                         'user_id' => $user->getId(),
                     ]);
 
-                    throw new CustomUserMessageAuthenticationException('API token has expired. Use /api/v1/auth/refresh to get a new token.');
+                    // Use generic message to prevent token enumeration
+                    throw new CustomUserMessageAuthenticationException(self::AUTH_FAILED_MESSAGE);
                 }
 
                 $this->apiLogger->logInfo('User authenticated successfully', [
