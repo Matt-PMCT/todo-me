@@ -335,14 +335,25 @@ class TaskRepository extends ServiceEntityRepository
      */
     public function reorderTasks(User $owner, array $taskIds): void
     {
+        if (empty($taskIds)) {
+            return;
+        }
+
         $em = $this->getEntityManager();
 
-        foreach ($taskIds as $position => $taskId) {
-            $task = $this->findOneByOwnerAndId($owner, $taskId);
+        // Single batch query to fetch all tasks
+        $tasks = $this->findByOwnerAndIds($owner, $taskIds);
 
-            if ($task !== null) {
-                $task->setPosition($position);
-                $em->persist($task);
+        // Index tasks by ID for O(1) lookup
+        $taskMap = [];
+        foreach ($tasks as $task) {
+            $taskMap[$task->getId()] = $task;
+        }
+
+        // Update positions based on the provided order
+        foreach ($taskIds as $position => $taskId) {
+            if (isset($taskMap[$taskId])) {
+                $taskMap[$taskId]->setPosition($position);
             }
         }
 

@@ -11,6 +11,13 @@
 
 This document presents a comprehensive review of the Phase 2 (Natural Language Parsing) implementation in the todo-me application. The review covers code quality, testing coverage, security vulnerabilities, user data safety, and adherence to best practices.
 
+### Remediation Status (Updated: 2026-01-24)
+
+**Priority 1 CRITICAL Issues - ALL RESOLVED:**
+- **Issue 4.1.1 (N+1 Query):** Fixed in `TaskRepository::reorderTasks()` - now uses batch query
+- **Issue 5.2.1 (ApiTokenAuthenticator tests):** Added 29 comprehensive unit tests
+- **Issue 5.2.2 (OwnershipChecker tests):** Added 18 comprehensive unit tests
+
 ### Key Findings Summary
 
 | Category | Status | Critical Issues | Total Issues |
@@ -18,11 +25,11 @@ This document presents a comprehensive review of the Phase 2 (Natural Language P
 | Secret Disclosure | SECURE | 0 | 0 |
 | Security Vulnerabilities | NEEDS ATTENTION | 0 | 6 |
 | User Data Safety | NEEDS ATTENTION | 0 | 5 |
-| Code Quality | NEEDS ATTENTION | 1 | 10 |
-| Testing Coverage | NEEDS ATTENTION | 3 | 15 |
+| Code Quality | RESOLVED | ~~1~~ 0 | 10 |
+| Testing Coverage | IMPROVED | ~~3~~ 0 | 15 |
 | Best Practices | GOOD | 0 | 8 |
 
-**Overall Risk Level:** MEDIUM - No critical vulnerabilities, but several medium-severity issues require remediation before production release.
+**Overall Risk Level:** MEDIUM - No critical vulnerabilities, but several medium-severity issues require remediation before production release. All Priority 1 CRITICAL issues have been resolved.
 
 ---
 
@@ -242,22 +249,18 @@ entityId: $project->getId() ?? '',
 
 ### 4.1 Critical Code Quality Issues
 
-#### Issue 4.1.1: N+1 Query in reorderTasks
+#### Issue 4.1.1: N+1 Query in reorderTasks - **FIXED**
 **Severity:** HIGH
 **Location:** `src/Repository/TaskRepository.php:336-350`
+**Status:** **RESOLVED** (2026-01-24)
 
-**Description:** The `reorderTasks()` method executes N+1 queries - one for each task in the reorder list:
-```php
-foreach ($taskIds as $position => $taskId) {
-    $task = $this->findOneByOwnerAndId($owner, $taskId);  // N queries!
-    // ...
-}
-```
+**Description:** The `reorderTasks()` method executed N+1 queries - one for each task in the reorder list.
 
-**Proposed Solution:** Replace with batch query and bulk update:
-1. Fetch all tasks in single query using `WHERE id IN (:ids)`
-2. Update positions in memory
-3. Use single batch update or `doctrine.flush()` once
+**Solution Applied:** Refactored to use batch query via existing `findByOwnerAndIds()` method:
+1. Early return for empty taskIds array
+2. Single batch query using `WHERE id IN (:ids)` via `findByOwnerAndIds()`
+3. Hash map for O(1) task lookup by ID
+4. Single `flush()` for all position updates
 
 ---
 
@@ -375,32 +378,34 @@ SELECT IDENTITY(t.project),
 
 ### 5.2 Critical Testing Gaps
 
-#### Issue 5.2.1: ApiTokenAuthenticator Not Tested
+#### Issue 5.2.1: ApiTokenAuthenticator Not Tested - **FIXED**
 **Severity:** HIGH
 **Location:** `src/Security/ApiTokenAuthenticator.php`
+**Status:** **RESOLVED** (2026-01-24)
 
-**Description:** Custom authentication logic has zero unit tests. Token validation paths, public route bypasses, and error handling are not directly verified.
+**Description:** Custom authentication logic had zero unit tests.
 
-**Proposed Solution:** Create `tests/Unit/Security/ApiTokenAuthenticatorTest.php` covering:
-- Bearer token validation (valid, invalid, expired)
-- X-API-Key header support
-- Public route bypasses
-- Invalid token format handling
-- Missing token handling
+**Solution Applied:** Created `tests/Unit/Security/ApiTokenAuthenticatorTest.php` with 29 test cases covering:
+- `supports()` method: non-API routes, public routes (register, token, refresh), protected routes with Bearer/X-API-Key
+- `authenticate()` method: valid tokens (Bearer, X-API-Key, precedence), invalid tokens, expired tokens, missing tokens
+- `onAuthenticationSuccess()` and `onAuthenticationFailure()` response handling
+- Logging verification for all authentication scenarios
+- Edge cases for various HTTP methods and API paths
 
 ---
 
-#### Issue 5.2.2: OwnershipChecker Not Directly Tested
+#### Issue 5.2.2: OwnershipChecker Not Directly Tested - **FIXED**
 **Severity:** HIGH
 **Location:** `src/Service/OwnershipChecker.php`
+**Status:** **RESOLVED** (2026-01-24)
 
-**Description:** Multi-tenant access control service only tested via mocks in other tests. Direct behavior not validated.
+**Description:** Multi-tenant access control service was only tested via mocks in other tests.
 
-**Proposed Solution:** Create `tests/Unit/Service/OwnershipCheckerTest.php` covering:
-- `isOwner()` with null owner
-- `ensureAuthenticated()` with non-User principal
-- `getCurrentUser()` null case
-- Edge cases for ownership verification
+**Solution Applied:** Created `tests/Unit/Service/OwnershipCheckerTest.php` with 18 test cases covering:
+- `isOwner()`: valid owner, non-owner, null owner, different entity types, same ID comparison
+- `ensureAuthenticated()`: authenticated user, unauthenticated, non-User principal
+- `getCurrentUser()`: authenticated, unauthenticated, non-User principal
+- `checkOwnership()`: valid owner, non-owner (ForbiddenException), unauthenticated (UnauthorizedException), entity type names in exceptions
 
 ---
 
@@ -611,13 +616,13 @@ The codebase demonstrates excellent adoption of modern PHP and Symfony patterns 
 
 ## Part 7: Prioritized Remediation Plan
 
-### Priority 1: CRITICAL (Immediate)
+### Priority 1: CRITICAL (Immediate) - RESOLVED
 
-| Issue | Description | Effort |
-|-------|-------------|--------|
-| 4.1.1 | N+1 Query in reorderTasks | 2-4 hours |
-| 5.2.1 | ApiTokenAuthenticator tests | 4-6 hours |
-| 5.2.2 | OwnershipChecker tests | 2-4 hours |
+| Issue | Description | Effort | Status |
+|-------|-------------|--------|--------|
+| 4.1.1 | N+1 Query in reorderTasks | 2-4 hours | **FIXED** - Refactored to use batch query via `findByOwnerAndIds()` |
+| 5.2.1 | ApiTokenAuthenticator tests | 4-6 hours | **FIXED** - Created comprehensive unit tests (29 test cases) |
+| 5.2.2 | OwnershipChecker tests | 2-4 hours | **FIXED** - Created comprehensive unit tests (18 test cases) |
 
 ### Priority 2: HIGH (This Sprint)
 
@@ -707,8 +712,8 @@ The codebase demonstrates excellent adoption of modern PHP and Symfony patterns 
 - `src/Repository/TaskRepository.php` - N+1 fix
 
 ### Test Files to Create
-- `tests/Unit/Security/ApiTokenAuthenticatorTest.php`
-- `tests/Unit/Service/OwnershipCheckerTest.php`
+- ~~`tests/Unit/Security/ApiTokenAuthenticatorTest.php`~~ **CREATED** (29 tests)
+- ~~`tests/Unit/Service/OwnershipCheckerTest.php`~~ **CREATED** (18 tests)
 - `tests/Integration/Repository/TaskRepositoryTest.php`
 - `tests/Integration/Repository/ProjectRepositoryTest.php`
 - `tests/Integration/Repository/UserRepositoryTest.php`
