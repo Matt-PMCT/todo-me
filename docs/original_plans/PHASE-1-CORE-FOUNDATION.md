@@ -1386,7 +1386,6 @@ postcss.config.js
 // tests/Functional/Api/AuthApiTest.php
 - testTokenGeneration()
 - testInvalidCredentials()
-- testInvalidCredentialsRateLimited() // Verify 429 after 5 attempts
 - testTokenRevocation()
 - testProtectedEndpointWithoutToken()
 - testProtectedEndpointWithValidToken()
@@ -1415,10 +1414,6 @@ postcss.config.js
 - testArchiveProject()
 - testUnarchiveProject()
 - testGetProjectListExcludesArchived() // Verify default excludes archived
-
-// tests/Functional/Api/RateLimitApiTest.php
-- testRateLimitHeadersPresent() // Verify X-RateLimit-* headers
-- testRateLimitExceeded() // Verify 429 response
 
 // tests/Unit/Service/TaskServiceTest.php
 - testCreateWithValidData()

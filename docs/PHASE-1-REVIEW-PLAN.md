@@ -465,28 +465,7 @@ Between peek and consume, token could be consumed by concurrent request.
 
 ## 3. MEDIUM PRIORITY ISSUES
 
-### 3.1 Rate Limiting Not Testable ✅ FIXED
-
-**Category:** Testing
-**File:** `config/packages/rate_limiter.yaml`, `config/packages/framework.yaml`
-**Status:** RESOLVED (2026-01-24)
-
-#### Issue
-Rate limits set to 100,000/hour in test environment - impossible to verify 429 responses.
-
-#### Resolution
-Updated `when@test` sections in both configuration files with low limits:
-- Login: 3 requests/minute
-- API: 5 requests/minute
-- Registration: 3 requests/minute
-- Anonymous API: 5 requests/minute
-- Authenticated API: 5 requests/minute
-
-This enables proper testing of 429 Too Many Requests responses.
-
----
-
-### 3.2 Session SameSite=Lax ✅ FIXED
+### 3.1 Session SameSite=Lax ✅ FIXED
 
 **Category:** Security
 **File:** `config/packages/framework.yaml:9`
@@ -503,7 +482,7 @@ cookie_samesite: strict
 
 ---
 
-### 3.3 Remember-Me Cookie 7-Day Lifetime ✅ FIXED
+### 3.2 Remember-Me Cookie 7-Day Lifetime ✅ FIXED
 
 **Category:** Data Safety
 **File:** `config/packages/security.yaml:49`
@@ -520,7 +499,7 @@ lifetime: 172800  # 48 hours
 
 ---
 
-### 3.4 Email Addresses Logged in Plain Text ✅ FIXED
+### 3.3 Email Addresses Logged in Plain Text ✅ FIXED
 
 **Category:** Data Safety
 **Files:** `src/Service/ApiLogger.php`, `src/Controller/Api/AuthController.php`, `src/Security/ApiTokenAuthenticator.php`
@@ -561,7 +540,7 @@ All log entries now use `'email_hash' => ApiLogger::hashEmail($email)` instead o
 
 ---
 
-### 3.5 Missing DTO Return Type Hints ✅ FIXED
+### 3.4 Missing DTO Return Type Hints ✅ FIXED
 
 **Category:** Code Quality
 **Files:** `src/DTO/*.php`
@@ -588,7 +567,7 @@ No action required.
 
 ---
 
-### 3.6 Inconsistent Array Access Patterns ✅ FIXED
+### 3.5 Inconsistent Array Access Patterns ✅ FIXED
 
 **Category:** Code Quality
 **File:** `src/Service/ProjectService.php:210, 245-247, 282-287`
@@ -621,7 +600,7 @@ This ensures consistent, explicit null handling across all undo operations inclu
 
 ---
 
-### 3.7 No Registration Rate Limiting ✅ FIXED
+### 3.6 No Registration Rate Limiting ✅ FIXED
 
 **Category:** Security
 **Files:** `config/packages/rate_limiter.yaml`, `config/services.yaml`, `src/Controller/Api/AuthController.php`
@@ -654,7 +633,7 @@ No rate limiting on registration endpoint - could allow spam account creation.
 
 ---
 
-### 3.8 Code Duplication in Undo Helpers
+### 3.7 Code Duplication in Undo Helpers
 
 **Category:** Architecture
 **File:** `src/Service/ProjectService.php:365-418`

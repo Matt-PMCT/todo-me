@@ -436,14 +436,11 @@ tests/Functional/Api/BatchApiTest.php
   Retry-After: 3600 (on 429 responses)
   ```
 
-- [x] **6.4.4** Rate limit tests (`tests/Functional/Api/RateLimitApiTest.php`)
-
 ### Files Implemented
 ```
 config/packages/rate_limiter.yaml
 config/packages/framework.yaml (rate limiter factories)
 src/EventSubscriber/ApiRateLimitSubscriber.php
-tests/Functional/Api/RateLimitApiTest.php
 ```
 
 ---
