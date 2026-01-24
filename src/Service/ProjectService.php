@@ -205,11 +205,7 @@ final class ProjectService
         }
 
         $project = $this->findByIdOrFail($undoToken->entityId, $user);
-
-        // Restore previous archived state
-        $wasArchived = $undoToken->previousState['isArchived'] ?? false;
-        $project->setIsArchived($wasArchived);
-
+        $this->applyStateToProject($project, $undoToken->previousState);
         $this->entityManager->flush();
 
         return $project;
@@ -237,18 +233,11 @@ final class ProjectService
             throw new \InvalidArgumentException('Invalid undo token type for delete operation');
         }
 
-        // Restore the project from the previous state
-        $state = $undoToken->previousState;
-
-        $project = new Project();
-        $project->setOwner($user);
-        $project->setName($state['name'] ?? '');
-        $project->setDescription($state['description'] ?? null);
-        $project->setIsArchived($state['isArchived'] ?? false);
-
         // Note: The original ID, createdAt, and tasks are NOT restored.
         // The project will get a new ID and createdAt timestamp.
-
+        $project = new Project();
+        $project->setOwner($user);
+        $this->applyStateToProject($project, $undoToken->previousState);
         $this->projectRepository->save($project, true);
 
         return $project;
@@ -275,18 +264,7 @@ final class ProjectService
         }
 
         $project = $this->findByIdOrFail($undoToken->entityId, $user);
-
-        // Restore previous state
-        $state = $undoToken->previousState;
-
-        if (isset($state['name'])) {
-            $project->setName($state['name']);
-        }
-
-        if (array_key_exists('description', $state)) {
-            $project->setDescription($state['description']);
-        }
-
+        $this->applyStateToProject($project, $undoToken->previousState);
         $this->entityManager->flush();
 
         return $project;
@@ -329,12 +307,12 @@ final class ProjectService
 
         switch ($consumedToken->action) {
             case UndoAction::UPDATE->value:
-                $project = $this->performUndoUpdate($user, $consumedToken);
+                $project = $this->performUndoExisting($user, $consumedToken);
                 $message = 'Update operation undone successfully';
                 break;
 
             case UndoAction::ARCHIVE->value:
-                $project = $this->performUndoArchive($user, $consumedToken);
+                $project = $this->performUndoExisting($user, $consumedToken);
                 $wasArchived = $consumedToken->previousState['isArchived'] ?? false;
                 $message = $wasArchived
                     ? 'Project archived again (undo of unarchive)'
@@ -360,40 +338,12 @@ final class ProjectService
     }
 
     /**
-     * Perform the actual update undo using a consumed token.
+     * Perform undo on an existing project (update or archive operations).
      */
-    private function performUndoUpdate(User $user, \App\ValueObject\UndoToken $undoToken): Project
+    private function performUndoExisting(User $user, UndoToken $undoToken): Project
     {
         $project = $this->findByIdOrFail($undoToken->entityId, $user);
-
-        $state = $undoToken->previousState;
-
-        if (isset($state['name'])) {
-            $project->setName($state['name']);
-        }
-
-        if (array_key_exists('description', $state)) {
-            $project->setDescription($state['description']);
-        }
-
-        $this->entityManager->flush();
-
-        return $project;
-    }
-
-    /**
-     * Perform the actual archive undo using a consumed token.
-     */
-    private function performUndoArchive(User $user, \App\ValueObject\UndoToken $undoToken): Project
-    {
-        $project = $this->findByIdOrFail($undoToken->entityId, $user);
-
-        $wasArchived = $undoToken->previousState['isArchived'] ?? false;
-        $project->setIsArchived($wasArchived);
-
-        $archivedAtStr = $undoToken->previousState['archivedAt'] ?? null;
-        $project->setArchivedAt($archivedAtStr !== null ? new \DateTimeImmutable($archivedAtStr) : null);
-
+        $this->applyStateToProject($project, $undoToken->previousState);
         $this->entityManager->flush();
 
         return $project;
@@ -402,16 +352,11 @@ final class ProjectService
     /**
      * Perform the actual delete undo using a consumed token.
      */
-    private function performUndoDelete(User $user, \App\ValueObject\UndoToken $undoToken): Project
+    private function performUndoDelete(User $user, UndoToken $undoToken): Project
     {
-        $state = $undoToken->previousState;
-
         $project = new Project();
         $project->setOwner($user);
-        $project->setName($state['name'] ?? '');
-        $project->setDescription($state['description'] ?? null);
-        $project->setIsArchived($state['isArchived'] ?? false);
-
+        $this->applyStateToProject($project, $undoToken->previousState);
         $this->projectRepository->save($project, true);
 
         return $project;
@@ -463,5 +408,34 @@ final class ProjectService
             'description' => $project->getDescription(),
             'isArchived' => $project->isArchived(),
         ];
+    }
+
+    /**
+     * Apply a serialized state to an existing project.
+     *
+     * @param Project $project The project to update
+     * @param array<string, mixed> $state The state to apply
+     */
+    private function applyStateToProject(Project $project, array $state): void
+    {
+        if (array_key_exists('name', $state)) {
+            $project->setName($state['name']);
+        }
+
+        if (array_key_exists('description', $state)) {
+            $project->setDescription($state['description']);
+        }
+
+        if (array_key_exists('isArchived', $state)) {
+            $project->setIsArchived($state['isArchived']);
+        }
+
+        if (array_key_exists('archivedAt', $state)) {
+            $project->setArchivedAt(
+                $state['archivedAt'] !== null
+                    ? new \DateTimeImmutable($state['archivedAt'])
+                    : null
+            );
+        }
     }
 }
