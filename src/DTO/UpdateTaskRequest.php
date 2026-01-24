@@ -66,6 +66,25 @@ final class UpdateTaskRequest
          * Flag to indicate if due date should be cleared (set to null).
          */
         public readonly bool $clearDueDate = false,
+
+        /**
+         * Whether this task recurs.
+         */
+        public readonly ?bool $isRecurring = null,
+
+        /**
+         * The recurrence rule in natural language.
+         */
+        #[Assert\Length(
+            max: 500,
+            maxMessage: 'Recurrence rule must be at most {{ limit }} characters'
+        )]
+        public readonly ?string $recurrenceRule = null,
+
+        /**
+         * Flag to indicate if recurrence should be cleared.
+         */
+        public readonly bool $clearRecurrence = false,
     ) {
     }
 
@@ -89,6 +108,9 @@ final class UpdateTaskRequest
             clearDescription: (bool) ($data['clearDescription'] ?? false),
             clearProject: (bool) ($data['clearProject'] ?? false),
             clearDueDate: (bool) ($data['clearDueDate'] ?? false),
+            isRecurring: isset($data['isRecurring']) ? (bool) $data['isRecurring'] : null,
+            recurrenceRule: isset($data['recurrenceRule']) ? (string) $data['recurrenceRule'] : null,
+            clearRecurrence: (bool) ($data['clearRecurrence'] ?? false),
         );
     }
 
@@ -106,6 +128,9 @@ final class UpdateTaskRequest
             || $this->tagIds !== null
             || $this->clearDescription
             || $this->clearProject
-            || $this->clearDueDate;
+            || $this->clearDueDate
+            || $this->isRecurring !== null
+            || $this->recurrenceRule !== null
+            || $this->clearRecurrence;
     }
 }

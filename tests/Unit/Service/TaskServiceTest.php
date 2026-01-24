@@ -16,6 +16,8 @@ use App\Repository\ProjectRepository;
 use App\Repository\TagRepository;
 use App\Repository\TaskRepository;
 use App\Service\Parser\NaturalLanguageParserService;
+use App\Service\Recurrence\NextDateCalculator;
+use App\Service\Recurrence\RecurrenceRuleParser;
 use App\Service\TaskService;
 use App\Service\ValidationHelper;
 use App\Tests\Unit\UnitTestCase;
@@ -42,6 +44,8 @@ class TaskServiceTest extends UnitTestCase
     private NaturalLanguageParserService&MockObject $naturalLanguageParser;
     private TaskStateServiceInterface&MockObject $taskStateService;
     private TaskUndoServiceInterface&MockObject $taskUndoService;
+    private RecurrenceRuleParser $recurrenceRuleParser;
+    private NextDateCalculator $nextDateCalculator;
     private TaskService $taskService;
 
     protected function setUp(): void
@@ -71,6 +75,10 @@ class TaskServiceTest extends UnitTestCase
         $this->taskStateService = $this->createMock(TaskStateServiceInterface::class);
         $this->taskUndoService = $this->createMock(TaskUndoServiceInterface::class);
 
+        // Recurrence services - use real instances (they have no external dependencies)
+        $this->recurrenceRuleParser = new RecurrenceRuleParser();
+        $this->nextDateCalculator = new NextDateCalculator();
+
         $this->taskService = new TaskService(
             $this->taskRepository,
             $this->projectRepository,
@@ -81,6 +89,8 @@ class TaskServiceTest extends UnitTestCase
             $this->naturalLanguageParser,
             $this->taskStateService,
             $this->taskUndoService,
+            $this->recurrenceRuleParser,
+            $this->nextDateCalculator,
         );
     }
 
@@ -405,7 +415,7 @@ class TaskServiceTest extends UnitTestCase
         // Real validation helper is used - will validate the status
         $result = $this->taskService->changeStatus($task, Task::STATUS_COMPLETED);
 
-        $this->assertEquals(Task::STATUS_COMPLETED, $result['task']->getStatus());
+        $this->assertEquals(Task::STATUS_COMPLETED, $result->task->getStatus());
     }
 
     public function testChangeStatusCreatesUndoToken(): void
@@ -427,8 +437,8 @@ class TaskServiceTest extends UnitTestCase
 
         $result = $this->taskService->changeStatus($task, Task::STATUS_COMPLETED);
 
-        $this->assertArrayHasKey('undoToken', $result);
-        $this->assertEquals('undo-token-status', $result['undoToken']);
+        $this->assertNotNull($result->undoToken);
+        $this->assertEquals('undo-token-status', $result->undoToken);
     }
 
     public function testChangeStatusSetsCompletedAtWhenChangingToCompleted(): void
@@ -442,8 +452,8 @@ class TaskServiceTest extends UnitTestCase
 
         $result = $this->taskService->changeStatus($task, Task::STATUS_COMPLETED);
 
-        $this->assertEquals(Task::STATUS_COMPLETED, $result['task']->getStatus());
-        $this->assertNotNull($result['task']->getCompletedAt());
+        $this->assertEquals(Task::STATUS_COMPLETED, $result->task->getStatus());
+        $this->assertNotNull($result->task->getCompletedAt());
     }
 
     // ========================================

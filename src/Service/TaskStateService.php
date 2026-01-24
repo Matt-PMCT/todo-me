@@ -51,6 +51,11 @@ final class TaskStateService implements TaskStateServiceInterface
             'tagIds' => $tagIds,
             'completedAt' => $task->getCompletedAt()?->format(\DateTimeInterface::RFC3339),
             'createdAt' => $task->getCreatedAt()->format(\DateTimeInterface::RFC3339),
+            'isRecurring' => $task->isRecurring(),
+            'recurrenceRule' => $task->getRecurrenceRule(),
+            'recurrenceType' => $task->getRecurrenceType(),
+            'recurrenceEndDate' => $task->getRecurrenceEndDate()?->format('Y-m-d'),
+            'originalTaskId' => $task->getOriginalTask()?->getId(),
         ];
     }
 
