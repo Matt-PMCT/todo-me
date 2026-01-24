@@ -10,6 +10,7 @@ enum UndoAction: string
     case UPDATE = 'update';
     case STATUS_CHANGE = 'status_change';
     case ARCHIVE = 'archive';
+    case BATCH = 'batch';
 
     /**
      * Get a human-readable label for the action.
@@ -21,6 +22,7 @@ enum UndoAction: string
             self::UPDATE => 'Update',
             self::STATUS_CHANGE => 'Status Change',
             self::ARCHIVE => 'Archive',
+            self::BATCH => 'Batch',
         };
     }
 

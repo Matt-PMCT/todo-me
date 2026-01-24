@@ -118,4 +118,25 @@ class TagRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
     }
+
+    /**
+     * Search tags by name (case-insensitive ILIKE search).
+     *
+     * @param User $owner The tag owner
+     * @param string $query The search query
+     * @param int $limit Maximum number of results
+     * @return Tag[] Matching tags
+     */
+    public function searchByName(User $owner, string $query, int $limit = 20): array
+    {
+        return $this->createQueryBuilder('t')
+            ->where('t.owner = :owner')
+            ->andWhere('LOWER(t.name) LIKE LOWER(:query)')
+            ->setParameter('owner', $owner)
+            ->setParameter('query', '%' . $query . '%')
+            ->orderBy('t.name', 'ASC')
+            ->setMaxResults($limit)
+            ->getQuery()
+            ->getResult();
+    }
 }

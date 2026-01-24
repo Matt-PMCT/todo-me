@@ -422,6 +422,30 @@ class ProjectRepository extends ServiceEntityRepository
     }
 
     /**
+     * Search projects by name (case-insensitive ILIKE search).
+     *
+     * @param User $owner The project owner
+     * @param string $query The search query
+     * @param int $limit Maximum number of results
+     * @return Project[] Matching projects
+     */
+    public function searchByName(User $owner, string $query, int $limit = 20): array
+    {
+        return $this->createQueryBuilder('p')
+            ->where('p.owner = :owner')
+            ->andWhere('LOWER(p.name) LIKE LOWER(:query) OR LOWER(p.description) LIKE LOWER(:query)')
+            ->andWhere('p.isArchived = :archived')
+            ->andWhere('p.deletedAt IS NULL')
+            ->setParameter('owner', $owner)
+            ->setParameter('query', '%' . $query . '%')
+            ->setParameter('archived', false)
+            ->orderBy('p.name', 'ASC')
+            ->setMaxResults($limit)
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
      * Get the project tree for a user.
      *
      * @param User $user The project owner

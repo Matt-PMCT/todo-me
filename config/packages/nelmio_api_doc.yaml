@@ -1,0 +1,108 @@
+nelmio_api_doc:
+    documentation:
+        info:
+            title: Todo-Me API
+            description: REST API for Todo-Me task management application
+            version: '1.0.0'
+        servers:
+            - url: /api/v1
+              description: API v1
+        components:
+            securitySchemes:
+                bearer:
+                    type: http
+                    scheme: bearer
+                    description: 'Enter your API token without the "Bearer" prefix'
+                apiKey:
+                    type: apiKey
+                    in: header
+                    name: X-API-Key
+                    description: 'Alternative: Use X-API-Key header'
+            schemas:
+                ApiResponse:
+                    type: object
+                    required: [success, data, error, meta]
+                    properties:
+                        success:
+                            type: boolean
+                            example: true
+                        data:
+                            type: object
+                            nullable: true
+                        error:
+                            type: object
+                            nullable: true
+                            properties:
+                                code:
+                                    type: string
+                                    example: VALIDATION_ERROR
+                                message:
+                                    type: string
+                                    example: Validation failed
+                                details:
+                                    type: object
+                                    nullable: true
+                        meta:
+                            type: object
+                            properties:
+                                requestId:
+                                    type: string
+                                    format: uuid
+                                timestamp:
+                                    type: string
+                                    format: date-time
+                SearchResult:
+                    type: object
+                    properties:
+                        tasks:
+                            type: array
+                            items:
+                                type: object
+                        projects:
+                            type: array
+                            items:
+                                type: object
+                        tags:
+                            type: array
+                            items:
+                                type: object
+                        meta:
+                            type: object
+                BatchOperation:
+                    type: object
+                    required: [action]
+                    properties:
+                        action:
+                            type: string
+                            enum: [create, update, delete, complete, reschedule]
+                        taskId:
+                            type: string
+                            format: uuid
+                        data:
+                            type: object
+                BatchResult:
+                    type: object
+                    properties:
+                        success:
+                            type: boolean
+                        totalOperations:
+                            type: integer
+                        successfulOperations:
+                            type: integer
+                        failedOperations:
+                            type: integer
+                        results:
+                            type: array
+                            items:
+                                type: object
+                        undoToken:
+                            type: string
+                            nullable: true
+        security:
+            - bearer: []
+            - apiKey: []
+    areas:
+        default:
+            path_patterns:
+                - ^/api/v1
+            disable_default_routes: true
