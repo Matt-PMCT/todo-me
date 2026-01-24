@@ -746,18 +746,21 @@ Implement real-time parsing feedback in the Quick Add UI.
 - [ ] **2.7.2** Implement inline highlighting
   ```javascript
   // Visual feedback for parsed elements
-  
-  Highlight types:
-  - Date: light blue background
-  - Project: colored chip matching project color
-  - Tag: gray chip
-  - Priority: priority icon/badge
-  - Invalid: red underline (for failed parses)
-  
+  // Reference: docs/UI-DESIGN-SYSTEM.md Section 6.2
+
+  Highlight types and styling (Tailwind classes):
+  - Date:     bg-blue-100 text-blue-700 rounded px-1
+  - Project:  bg-{project-color}-100 text-{project-color}-700 rounded-full px-2 py-0.5
+  - Tag:      bg-gray-100 text-gray-700 rounded-full px-2 py-0.5
+  - Priority: bg-yellow-100 text-yellow-700 rounded px-1
+  - Invalid:  border-b-2 border-red-400 (underline style, NOT background)
+
   Implementation:
   - Use contenteditable div or overlay technique
   - Position highlights based on character offsets
-  - Show warnings in tooltip or below input
+  - Show warnings in tooltip or below input (text-xs text-red-500)
+  - Valid highlights get colored appropriately
+  - Invalid highlights use red underline to indicate parse failure
   ```
 
 - [ ] **2.7.3** Implement project autocomplete dropdown
@@ -767,6 +770,16 @@ Implement real-time parsing feedback in the Quick Add UI.
   - Filter as they type
   - Allow selection via click or Enter
   - Insert selected project as chip
+
+  // AUTOCOMPLETE DROPDOWN STYLING (per UI-DESIGN-SYSTEM.md):
+  // - Position: absolute, z-10, below input
+  // - Container: rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5
+  // - Items: px-4 py-2 text-sm text-gray-700 hover:bg-gray-100
+  // - Selected/focused: bg-indigo-50 text-indigo-700
+  // - Project color indicator: w-3 h-3 rounded-full inline-block mr-2
+  // - Hierarchy indent: pl-4 per nesting level
+  // - Max height: max-h-60 overflow-y-auto
+  // - Alpine.js: x-show with x-transition for smooth open/close
   ```
 
 - [ ] **2.7.4** Implement tag autocomplete dropdown
@@ -790,12 +803,24 @@ Implement real-time parsing feedback in the Quick Add UI.
 - [ ] **2.7.6** Create Quick Add Twig template
   ```twig
   {# templates/components/quick-add.html.twig #}
-  
+
   - Input field with placeholder
   - Autocomplete dropdown container
   - Parsed metadata display area
   - Submit button
   - Keyboard shortcut hint
+
+  {# QUICK ADD STYLING (per UI-DESIGN-SYSTEM.md Section 6.2): #}
+  {# - Container: bg-white shadow rounded-lg p-4 (card pattern) #}
+  {# - Input: text-base (larger than standard for prominence) #}
+  {#   w-full border-0 focus:ring-0 placeholder:text-gray-400 #}
+  {# - Placeholder text: "What needs to be done?" #}
+  {# - Button: Primary button style (bg-indigo-600 hover:bg-indigo-700 #}
+  {#   text-white font-semibold py-2 px-4 rounded-md) #}
+  {#   inline-flex items-center with plus icon (w-5 h-5 mr-1) #}
+  {# - Keyboard hint: text-xs text-gray-400 mt-2 #}
+  {#   "Press Enter to add, Esc to clear" #}
+  {# - Alpine.js: x-data for form state, @keydown handlers #}
   ```
 
 - [ ] **2.7.7** Implement click-to-remove for parsed elements
@@ -807,6 +832,15 @@ Implement real-time parsing feedback in the Quick Add UI.
   - Click on priority → remove priority
   - Update input text accordingly
   ```
+
+- [ ] **2.7.8** Apply UI Design System standards to Quick Add
+  - Reference `docs/UI-DESIGN-SYSTEM.md` for all styling decisions
+  - Use established color tokens (Section 2)
+  - Follow component specifications (Section 5)
+  - Implement proper transitions (Section 9)
+  - Verify accessibility compliance (Section 10)
+  - Ensure WCAG 2.1 AA contrast ratios
+  - Test keyboard navigation for all interactive elements
 
 ### Completion Criteria
 - [ ] Real-time highlighting as user types

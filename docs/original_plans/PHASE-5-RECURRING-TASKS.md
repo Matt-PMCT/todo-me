@@ -863,6 +863,66 @@ src/Service/TaskService.php (updated)
 
 ---
 
+## Sub-Phase 5.7.5: Recurring Task UI Indicator
+
+### Objective
+Add visual indicator for recurring tasks in the task list UI.
+
+### Visual Specification (per UI-DESIGN-SYSTEM.md)
+
+```twig
+{# RECURRING TASK INDICATOR: #}
+{# - Icon: arrow-path (Heroicons), w-4 h-4 text-gray-400 #}
+{# - Position: in metadata row, after priority stars #}
+{# - Hover: text-gray-600 transition-colors #}
+{# - Tooltip: shows recurrence_rule text (e.g., "every Monday at 2pm") #}
+{#   Use title attribute or Alpine.js tooltip component #}
+{# - When editing: show editable recurrence field with placeholder examples #}
+
+{# Example implementation in task item: #}
+<div class="task-metadata flex items-center gap-2 text-sm text-gray-500">
+    {# Priority stars #}
+    {% if task.priority > 0 %}
+        <span class="priority-stars">{{ '★'|repeat(task.priority) }}</span>
+    {% endif %}
+
+    {# Recurring indicator #}
+    {% if task.isRecurring %}
+        <span class="inline-flex items-center" title="{{ task.recurrenceRule }}">
+            <svg class="w-4 h-4 text-gray-400 hover:text-gray-600 transition-colors"
+                 fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                {# arrow-path icon #}
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+            </svg>
+        </span>
+    {% endif %}
+
+    {# Due date #}
+    {% if task.dueDate %}
+        <span class="{% if task.isOverdue %}text-red-600{% endif %}">
+            {{ task.dueDate|date('M j') }}
+        </span>
+    {% endif %}
+</div>
+
+{# Edit mode recurrence field: #}
+<div x-show="editing" class="mt-2">
+    <label class="text-xs font-medium text-gray-500 mb-1 block">Recurrence</label>
+    <input type="text"
+           x-model="recurrenceRule"
+           placeholder="e.g., every Monday, every 2 weeks, every month on the 15th"
+           class="w-full rounded-md border-gray-300 shadow-sm text-sm
+                  focus:border-indigo-500 focus:ring-indigo-500
+                  placeholder:text-gray-400">
+    <p class="text-xs text-gray-400 mt-1">
+        Examples: "every day", "every Monday at 2pm", "every! 3 days" (relative to completion)
+    </p>
+</div>
+```
+
+---
+
 ## Sub-Phase 5.8: Recurring Task Tests
 
 ### Objective
