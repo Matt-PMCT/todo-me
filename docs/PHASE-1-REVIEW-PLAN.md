@@ -542,6 +542,7 @@ registration:
 
 **Category:** Architecture
 **File:** `src/Service/ProjectService.php:365-418`
+**Status:** ✅ FIXED
 
 #### Issue
 Three `performUndo*` methods have significant duplication:
@@ -551,6 +552,22 @@ Three `performUndo*` methods have significant duplication:
 
 #### Remediation
 Create shared `AbstractUndoHandler` or use template method pattern.
+
+#### Resolution
+Implemented a centralized `applyStateToProject()` helper method following the established pattern from `TaskService.applyStateToTask()`. Changes made:
+
+1. **Added `applyStateToProject()` method** - Centralized state application logic handling `name`, `description`, `isArchived`, and `archivedAt` fields with consistent `array_key_exists()` checks
+
+2. **Merged `performUndoUpdate()` and `performUndoArchive()` into `performUndoExisting()`** - Since both methods became identical after refactoring, they were consolidated into a single method
+
+3. **Refactored `performUndoDelete()`** - Now uses the shared helper for state application
+
+4. **Updated public `undoArchive()`, `undoUpdate()`, and `undoDelete()` methods** - Also refactored to use the centralized helper for consistency
+
+**Before:** ~54 lines of duplicated logic across 6 methods
+**After:** ~22 lines in helper + 4 simplified methods
+
+All 30 existing unit tests pass, confirming the refactoring maintains behavioral correctness.
 
 ---
 
