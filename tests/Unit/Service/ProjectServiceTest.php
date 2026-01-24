@@ -10,12 +10,18 @@ use App\Entity\Project;
 use App\Entity\User;
 use App\Enum\UndoAction;
 use App\Exception\EntityNotFoundException;
+use App\Exception\InvalidUndoTokenException;
+use App\Interface\OwnershipCheckerInterface;
 use App\Repository\ProjectRepository;
-use App\Service\OwnershipChecker;
+use App\Service\ProjectCacheService;
 use App\Service\ProjectService;
+use App\Service\ProjectStateService;
+use App\Service\ProjectUndoService;
 use App\Service\UndoService;
 use App\Service\ValidationHelper;
 use App\Tests\Unit\UnitTestCase;
+use App\Transformer\ProjectTreeTransformer;
+use Symfony\Contracts\Cache\CacheInterface;
 use App\ValueObject\UndoToken;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -26,7 +32,12 @@ class ProjectServiceTest extends UnitTestCase
     private EntityManagerInterface&MockObject $entityManager;
     private UndoService&MockObject $undoService;
     private ValidationHelper&MockObject $validationHelper;
-    private OwnershipChecker&MockObject $ownershipChecker;
+    private OwnershipCheckerInterface&MockObject $ownershipChecker;
+    private CacheInterface&MockObject $cache;
+    private ProjectStateService $projectStateService;
+    private ProjectUndoService $projectUndoService;
+    private ProjectCacheService $projectCacheService;
+    private ProjectTreeTransformer $projectTreeTransformer;
     private ProjectService $projectService;
 
     protected function setUp(): void
@@ -37,14 +48,33 @@ class ProjectServiceTest extends UnitTestCase
         $this->entityManager = $this->createMock(EntityManagerInterface::class);
         $this->undoService = $this->createMock(UndoService::class);
         $this->validationHelper = $this->createMock(ValidationHelper::class);
-        $this->ownershipChecker = $this->createMock(OwnershipChecker::class);
+        $this->ownershipChecker = $this->createMock(OwnershipCheckerInterface::class);
+
+        // Use actual services - ProjectStateService, ProjectUndoService, ProjectCacheService and ProjectTreeTransformer are final
+        $this->cache = $this->createMock(CacheInterface::class);
+        $this->projectCacheService = new ProjectCacheService($this->cache);
+        $this->projectTreeTransformer = new ProjectTreeTransformer();
+
+        // Create ProjectStateService with the mocked repository
+        $this->projectStateService = new ProjectStateService($this->projectRepository);
+
+        // Create ProjectUndoService with mocked dependencies
+        $this->projectUndoService = new ProjectUndoService(
+            $this->undoService,
+            $this->projectRepository,
+            $this->projectStateService,
+            $this->entityManager,
+        );
 
         $this->projectService = new ProjectService(
             $this->projectRepository,
             $this->entityManager,
-            $this->undoService,
             $this->validationHelper,
             $this->ownershipChecker,
+            $this->projectStateService,
+            $this->projectUndoService,
+            $this->projectCacheService,
+            $this->projectTreeTransformer,
         );
     }
 
@@ -232,34 +262,41 @@ class ProjectServiceTest extends UnitTestCase
             )
             ->willReturn($undoToken);
 
-        $this->projectRepository->expects($this->once())
-            ->method('remove')
-            ->with($project, true);
+        $this->entityManager->expects($this->once())
+            ->method('flush');
+
+        // Cache invalidation calls delete on the underlying cache for all variants
+        $this->cache->expects($this->exactly(4))
+            ->method('delete');
 
         $result = $this->projectService->delete($project);
 
         $this->assertSame($undoToken, $result);
     }
 
-    public function testDeleteProjectRemovesFromDatabase(): void
+    public function testDeleteProjectSoftDeletesProject(): void
     {
         $user = $this->createUserWithId();
         $project = $this->createProjectWithId('project-123', $user);
 
-        $this->undoService->method('createUndoToken');
+        $this->assertFalse($project->isDeleted());
 
-        $this->projectRepository->expects($this->once())
-            ->method('remove')
-            ->with($project, true);
+        $this->undoService->method('createUndoToken');
+        $this->entityManager->expects($this->once())
+            ->method('flush');
+        $this->cache->method('delete'); // Cache invalidation
 
         $this->projectService->delete($project);
+
+        $this->assertTrue($project->isDeleted());
+        $this->assertNotNull($project->getDeletedAt());
     }
 
     /**
      * Note: Cascade deletion of tasks is handled by Doctrine ORM mapping.
      * The service only stores the project state for undo, not its tasks.
      */
-    public function testDeleteProjectStoresOnlyProjectStateForUndo(): void
+    public function testDeleteProjectStoresProjectStateForUndo(): void
     {
         $user = $this->createUserWithId();
         $project = $this->createProjectWithId('project-123', $user, 'Test Project');
@@ -274,14 +311,21 @@ class ProjectServiceTest extends UnitTestCase
                 return UndoToken::create($action, $entityType, $entityId, $previousState, $userId);
             });
 
-        $this->projectRepository->method('remove');
+        $this->entityManager->method('flush');
+        $this->cache->method('delete'); // Cache invalidation
 
         $this->projectService->delete($project);
 
+        // Verify all serialized state fields
         $this->assertArrayHasKey('name', $capturedPreviousState);
         $this->assertArrayHasKey('description', $capturedPreviousState);
         $this->assertArrayHasKey('isArchived', $capturedPreviousState);
+        $this->assertArrayHasKey('deletedAt', $capturedPreviousState);
+        $this->assertArrayHasKey('parentId', $capturedPreviousState);
+        $this->assertArrayHasKey('position', $capturedPreviousState);
+        $this->assertArrayHasKey('showChildrenTasks', $capturedPreviousState);
         $this->assertEquals('Test Project', $capturedPreviousState['name']);
+        $this->assertEquals('Test Description', $capturedPreviousState['description']);
     }
 
     // ========================================
@@ -437,7 +481,7 @@ class ProjectServiceTest extends UnitTestCase
             ->with('user-123', 'invalid-token')
             ->willReturn(null);
 
-        $this->expectException(\InvalidArgumentException::class);
+        $this->expectException(InvalidUndoTokenException::class);
         $this->projectService->undoArchive($user, 'invalid-token');
     }
 
@@ -458,7 +502,7 @@ class ProjectServiceTest extends UnitTestCase
             ->with('user-123', $undoToken->token)
             ->willReturn($undoToken);
 
-        $this->expectException(\InvalidArgumentException::class);
+        $this->expectException(InvalidUndoTokenException::class);
         $this->projectService->undoArchive($user, $undoToken->token);
     }
 
@@ -470,6 +514,12 @@ class ProjectServiceTest extends UnitTestCase
     {
         $user = $this->createUserWithId();
 
+        // Create a soft-deleted project
+        $project = $this->createProjectWithId('project-123', $user, 'Deleted Project');
+        $project->setDescription('Project description');
+        $project->softDelete();
+        $this->assertTrue($project->isDeleted());
+
         $undoToken = UndoToken::create(
             action: UndoAction::DELETE->value,
             entityType: 'project',
@@ -478,6 +528,10 @@ class ProjectServiceTest extends UnitTestCase
                 'name' => 'Deleted Project',
                 'description' => 'Project description',
                 'isArchived' => false,
+                'deletedAt' => null,
+                'parentId' => null,
+                'position' => 0,
+                'showChildrenTasks' => true,
             ],
             userId: 'user-123',
         );
@@ -488,15 +542,19 @@ class ProjectServiceTest extends UnitTestCase
             ->willReturn($undoToken);
 
         $this->projectRepository->expects($this->once())
-            ->method('save')
-            ->with($this->isInstanceOf(Project::class), true);
+            ->method('findOneByOwnerAndId')
+            ->with($user, 'project-123', includeDeleted: true)
+            ->willReturn($project);
 
-        $project = $this->projectService->undoDelete($user, $undoToken->token);
+        $this->entityManager->expects($this->once())
+            ->method('flush');
 
-        $this->assertEquals('Deleted Project', $project->getName());
-        $this->assertEquals('Project description', $project->getDescription());
-        $this->assertFalse($project->isArchived());
-        $this->assertSame($user, $project->getOwner());
+        $result = $this->projectService->undoDelete($user, $undoToken->token);
+
+        $this->assertFalse($result->isDeleted());
+        $this->assertEquals('Deleted Project', $result->getName());
+        $this->assertEquals('Project description', $result->getDescription());
+        $this->assertSame($user, $result->getOwner());
     }
 
     public function testUndoDeleteWithInvalidTokenThrowsException(): void
@@ -508,7 +566,7 @@ class ProjectServiceTest extends UnitTestCase
             ->with('user-123', 'invalid-token')
             ->willReturn(null);
 
-        $this->expectException(\InvalidArgumentException::class);
+        $this->expectException(InvalidUndoTokenException::class);
         $this->projectService->undoDelete($user, 'invalid-token');
     }
 
@@ -529,7 +587,7 @@ class ProjectServiceTest extends UnitTestCase
             ->with('user-123', $undoToken->token)
             ->willReturn($undoToken);
 
-        $this->expectException(\InvalidArgumentException::class);
+        $this->expectException(InvalidUndoTokenException::class);
         $this->projectService->undoDelete($user, $undoToken->token);
     }
 
@@ -673,6 +731,10 @@ class ProjectServiceTest extends UnitTestCase
     {
         $user = $this->createUserWithId();
 
+        // Create a soft-deleted project
+        $project = $this->createProjectWithId('project-123', $user, 'Deleted Project');
+        $project->softDelete();
+
         $undoToken = UndoToken::create(
             action: UndoAction::DELETE->value,
             entityType: 'project',
@@ -681,6 +743,10 @@ class ProjectServiceTest extends UnitTestCase
                 'name' => 'Deleted Project',
                 'description' => null,
                 'isArchived' => false,
+                'deletedAt' => null,
+                'parentId' => null,
+                'position' => 0,
+                'showChildrenTasks' => true,
             ],
             userId: 'user-123',
         );
@@ -692,14 +758,18 @@ class ProjectServiceTest extends UnitTestCase
             ->willReturn($undoToken);
 
         $this->projectRepository->expects($this->once())
-            ->method('save')
-            ->with($this->isInstanceOf(Project::class), true);
+            ->method('findOneByOwnerAndId')
+            ->with($user, 'project-123', includeDeleted: true)
+            ->willReturn($project);
+
+        $this->entityManager->method('flush');
 
         $result = $this->projectService->undo($user, $undoToken->token);
 
         $this->assertEquals('Deleted Project', $result['project']->getName());
         $this->assertEquals(UndoAction::DELETE->value, $result['action']);
-        $this->assertNotNull($result['warning']);
+        // No warning with soft-delete restoration since tasks remain associated
+        $this->assertNull($result['warning']);
     }
 
     public function testUndoWithInvalidTokenThrowsException(): void
@@ -712,7 +782,7 @@ class ProjectServiceTest extends UnitTestCase
             ->with('user-123', 'invalid')
             ->willReturn(null);
 
-        $this->expectException(\InvalidArgumentException::class);
+        $this->expectException(InvalidUndoTokenException::class);
         $this->projectService->undo($user, 'invalid');
     }
 
@@ -735,7 +805,7 @@ class ProjectServiceTest extends UnitTestCase
             ->with('user-123', $undoToken->token)
             ->willReturn($undoToken);
 
-        $this->expectException(\InvalidArgumentException::class);
+        $this->expectException(InvalidUndoTokenException::class);
         $this->projectService->undo($user, $undoToken->token);
     }
 

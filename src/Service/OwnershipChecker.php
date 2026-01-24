@@ -7,6 +7,7 @@ namespace App\Service;
 use App\Entity\User;
 use App\Exception\ForbiddenException;
 use App\Exception\UnauthorizedException;
+use App\Interface\OwnershipCheckerInterface;
 use App\Interface\UserOwnedInterface;
 use Symfony\Bundle\SecurityBundle\Security;
 
@@ -16,7 +17,7 @@ use Symfony\Bundle\SecurityBundle\Security;
  * Provides methods to verify that the current authenticated user
  * owns a specific entity.
  */
-class OwnershipChecker
+final class OwnershipChecker implements OwnershipCheckerInterface
 {
     public function __construct(
         private Security $security,

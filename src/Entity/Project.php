@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Entity;
 
+use App\Exception\ProjectCannotBeOwnParentException;
+use App\Exception\ProjectCircularReferenceException;
 use App\Interface\UserOwnedInterface;
 use App\Repository\ProjectRepository;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -307,6 +309,19 @@ class Project implements UserOwnedInterface
 
     public function setParent(?Project $parent): static
     {
+        if ($parent === null) {
+            $this->parent = null;
+            return $this;
+        }
+
+        if ($parent->getId() !== null && $parent->getId() === $this->getId()) {
+            throw ProjectCannotBeOwnParentException::create($this->getId() ?? '');
+        }
+
+        if ($this->getId() !== null && $parent->isDescendantOf($this)) {
+            throw ProjectCircularReferenceException::create($this->getId() ?? '', $parent->getId() ?? '');
+        }
+
         $this->parent = $parent;
 
         return $this;
@@ -358,5 +373,128 @@ class Project implements UserOwnedInterface
         }
 
         return implode('/', $parts);
+    }
+
+    /**
+     * Get the depth of this project in the hierarchy.
+     *
+     * Root projects (no parent) have depth 0.
+     */
+    public function getDepth(): int
+    {
+        $depth = 0;
+        $current = $this->parent;
+
+        while ($current !== null) {
+            $depth++;
+            $current = $current->getParent();
+        }
+
+        return $depth;
+    }
+
+    /**
+     * Get all ancestors of this project from root to immediate parent.
+     *
+     * @return Project[]
+     */
+    public function getAncestors(): array
+    {
+        $ancestors = [];
+        $current = $this->parent;
+
+        while ($current !== null) {
+            array_unshift($ancestors, $current);
+            $current = $current->getParent();
+        }
+
+        return $ancestors;
+    }
+
+    /**
+     * Get the path of project names from root to this project.
+     *
+     * @return string[]
+     */
+    public function getPath(): array
+    {
+        $path = [];
+        $current = $this;
+
+        while ($current !== null) {
+            array_unshift($path, $current->getName());
+            $current = $current->getParent();
+        }
+
+        return $path;
+    }
+
+    /**
+     * Check if this project is a descendant of the given ancestor.
+     */
+    public function isDescendantOf(Project $ancestor): bool
+    {
+        $current = $this->parent;
+
+        while ($current !== null) {
+            if ($current->getId() === $ancestor->getId()) {
+                return true;
+            }
+            $current = $current->getParent();
+        }
+
+        return false;
+    }
+
+    /**
+     * Check if this project is an ancestor of the given descendant.
+     */
+    public function isAncestorOf(Project $descendant): bool
+    {
+        return $descendant->isDescendantOf($this);
+    }
+
+    /**
+     * Get all descendants of this project recursively.
+     *
+     * @return Project[]
+     */
+    public function getAllDescendants(): array
+    {
+        $descendants = [];
+
+        foreach ($this->children as $child) {
+            $descendants[] = $child;
+            $descendants = array_merge($descendants, $child->getAllDescendants());
+        }
+
+        return $descendants;
+    }
+
+    /**
+     * Get the path with full details for each ancestor.
+     *
+     * @return array<array{id: string|null, name: string, isArchived: bool}>
+     */
+    public function getPathDetails(): array
+    {
+        $path = [];
+        $ancestors = $this->getAncestors();
+
+        foreach ($ancestors as $ancestor) {
+            $path[] = [
+                'id' => $ancestor->getId(),
+                'name' => $ancestor->getName(),
+                'isArchived' => $ancestor->isArchived(),
+            ];
+        }
+
+        $path[] = [
+            'id' => $this->getId(),
+            'name' => $this->getName(),
+            'isArchived' => $this->isArchived(),
+        ];
+
+        return $path;
     }
 }

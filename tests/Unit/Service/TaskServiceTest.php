@@ -12,7 +12,7 @@ use App\Exception\ForbiddenException;
 use App\Repository\ProjectRepository;
 use App\Repository\TagRepository;
 use App\Repository\TaskRepository;
-use App\Service\OwnershipChecker;
+use App\Interface\OwnershipCheckerInterface;
 use App\Service\Parser\NaturalLanguageParserService;
 use App\Service\TaskService;
 use App\Service\TaskStateService;
@@ -38,7 +38,7 @@ class TaskServiceTest extends UnitTestCase
     private TagRepository&MockObject $tagRepository;
     private EntityManagerInterface&MockObject $entityManager;
     private ValidationHelper $validationHelper;
-    private OwnershipChecker&MockObject $ownershipChecker;
+    private OwnershipCheckerInterface&MockObject $ownershipChecker;
     private NaturalLanguageParserService&MockObject $naturalLanguageParser;
     private TaskStateService&MockObject $taskStateService;
     private TaskUndoService&MockObject $taskUndoService;
@@ -62,7 +62,7 @@ class TaskServiceTest extends UnitTestCase
         $this->validationHelper = new ValidationHelper($validator);
 
         // OwnershipChecker requires Security which needs request context - keep mocked
-        $this->ownershipChecker = $this->createMock(OwnershipChecker::class);
+        $this->ownershipChecker = $this->createMock(OwnershipCheckerInterface::class);
 
         // NaturalLanguageParser has complex dependencies - keep mocked
         $this->naturalLanguageParser = $this->createMock(NaturalLanguageParserService::class);

@@ -118,7 +118,7 @@ final class TaskController extends AbstractController
         /** @var User $user */
         $user = $this->getUser();
 
-        $data = json_decode($request->getContent(), true) ?? [];
+        $data = $this->validationHelper->decodeJsonBody($request);
 
         // Check if natural language parsing is requested
         if ($request->query->getBoolean('parse_natural_language')) {
@@ -168,7 +168,7 @@ final class TaskController extends AbstractController
 
         $task = $this->taskService->findByIdOrFail($id, $user);
 
-        $data = json_decode($request->getContent(), true) ?? [];
+        $data = $this->validationHelper->decodeJsonBody($request);
         $dto = UpdateTaskRequest::fromArray($data);
 
         $result = $this->taskService->update($task, $dto);
@@ -213,7 +213,7 @@ final class TaskController extends AbstractController
 
         $task = $this->taskService->findByIdOrFail($id, $user);
 
-        $data = json_decode($request->getContent(), true) ?? [];
+        $data = $this->validationHelper->decodeJsonBody($request);
 
         if (!isset($data['status'])) {
             throw ValidationException::forField('status', 'Status is required');
@@ -240,7 +240,7 @@ final class TaskController extends AbstractController
 
         $task = $this->taskService->findByIdOrFail($id, $user);
 
-        $data = json_decode($request->getContent(), true) ?? [];
+        $data = $this->validationHelper->decodeJsonBody($request);
 
         if (!isset($data['due_date'])) {
             throw ValidationException::forField('due_date', 'due_date is required');
@@ -262,7 +262,7 @@ final class TaskController extends AbstractController
         /** @var User $user */
         $user = $this->getUser();
 
-        $data = json_decode($request->getContent(), true) ?? [];
+        $data = $this->validationHelper->decodeJsonBody($request);
 
         if (!isset($data['taskIds']) || !is_array($data['taskIds'])) {
             throw ValidationException::forField('taskIds', 'Task IDs array is required');
