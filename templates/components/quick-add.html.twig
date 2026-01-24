@@ -5,6 +5,25 @@
      x-data="quickAdd('{{ apiToken|default('')|e('js') }}')"
      @keydown.escape="clearInput()">
 
+    {# Recurrence toggle and input #}
+    <div class="mb-3 flex items-center gap-4">
+        <label class="inline-flex items-center gap-2 text-sm text-gray-600 cursor-pointer">
+            <input type="checkbox"
+                   x-model="isRecurring"
+                   class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-600">
+            <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+            </svg>
+            <span>Recurring</span>
+        </label>
+        <div x-show="isRecurring" x-cloak x-transition class="flex-1">
+            <input type="text"
+                   x-model="recurrenceRule"
+                   placeholder="e.g., every day, every Monday, every 2 weeks, every! 3 days"
+                   class="block w-full rounded-md border-0 py-1.5 px-3 text-sm text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600">
+        </div>
+    </div>
+
     {# Input container with highlight overlay #}
     <div class="relative flex gap-4">
         <div class="flex-1 relative">
@@ -217,6 +236,8 @@ function quickAdd(apiToken) {
         successMessage: '',
         parseTimeout: null,
         hasErrors: false,
+        isRecurring: false,
+        recurrenceRule: '',
 
         init() {
             this.$watch('inputText', () => {
@@ -488,13 +509,21 @@ function quickAdd(apiToken) {
             try {
                 if (this.apiToken) {
                     // Use API endpoint for natural language task creation
+                    const requestBody = { input_text: this.inputText };
+
+                    // Add recurrence if enabled
+                    if (this.isRecurring && this.recurrenceRule.trim()) {
+                        requestBody.isRecurring = true;
+                        requestBody.recurrenceRule = this.recurrenceRule.trim();
+                    }
+
                     const response = await fetch('/api/v1/tasks?parse_natural_language=true', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
                             'Authorization': 'Bearer ' + this.apiToken
                         },
-                        body: JSON.stringify({ input_text: this.inputText })
+                        body: JSON.stringify(requestBody)
                     });
 
                     const result = await response.json();
@@ -550,6 +579,8 @@ function quickAdd(apiToken) {
             this.autocompleteItems = [];
             this.errorMessage = '';
             this.hasErrors = false;
+            this.isRecurring = false;
+            this.recurrenceRule = '';
             this.$refs.input.focus();
         }
     };

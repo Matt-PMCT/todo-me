@@ -172,6 +172,11 @@ final class TaskService
             $task->setPriority(Task::PRIORITY_DEFAULT);
         }
 
+        // Handle recurrence
+        if ($dto->isRecurring && $dto->recurrenceRule !== null) {
+            $this->applyRecurrence($task, $dto->recurrenceRule);
+        }
+
         // Set position
         $maxPosition = $this->taskRepository->getMaxPosition($user, $project);
         $task->setPosition($maxPosition + 1);
