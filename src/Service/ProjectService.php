@@ -10,6 +10,7 @@ use App\Entity\Project;
 use App\Entity\User;
 use App\Enum\UndoAction;
 use App\Exception\EntityNotFoundException;
+use App\Exception\InvalidStateException;
 use App\Repository\ProjectRepository;
 use App\ValueObject\UndoToken;
 use Doctrine\ORM\EntityManagerInterface;
@@ -62,15 +63,26 @@ final class ProjectService
     {
         $this->validationHelper->validate($dto);
 
+        // Validate required IDs for undo token creation
+        $ownerId = $project->getOwner()?->getId();
+        $projectId = $project->getId();
+
+        if ($ownerId === null) {
+            throw InvalidStateException::missingOwner('Project');
+        }
+        if ($projectId === null) {
+            throw InvalidStateException::missingRequiredId('Project');
+        }
+
         // Store previous state for undo
         $previousState = $this->serializeProjectState($project);
 
         // Create undo token
         $undoToken = $this->undoService->createUndoToken(
-            userId: $project->getOwner()?->getId() ?? '',
+            userId: $ownerId,
             action: UndoAction::UPDATE->value,
             entityType: self::ENTITY_TYPE,
-            entityId: $project->getId() ?? '',
+            entityId: $projectId,
             previousState: $previousState,
         );
 
@@ -100,22 +112,43 @@ final class ProjectService
      * @param Project $project The project to delete
      * @return UndoToken|null The undo token for restoring the project (NOT its tasks)
      */
+    /**
+     * Soft-delete a project.
+     *
+     * Sets deletedAt timestamp instead of actually removing the project.
+     * Tasks remain associated but the project is hidden from normal queries.
+     * Use undoDelete() to restore the project.
+     *
+     * @param Project $project The project to delete
+     * @return UndoToken|null The undo token for restoring the project
+     */
     public function delete(Project $project): ?UndoToken
     {
+        // Validate required IDs for undo token creation
+        $ownerId = $project->getOwner()?->getId();
+        $projectId = $project->getId();
+
+        if ($ownerId === null) {
+            throw InvalidStateException::missingOwner('Project');
+        }
+        if ($projectId === null) {
+            throw InvalidStateException::missingRequiredId('Project');
+        }
+
         // Store previous state for undo
-        // Note: We only store the project state, not the tasks.
-        // Tasks will be permanently deleted and cannot be recovered via undo.
         $previousState = $this->serializeProjectState($project);
 
         $undoToken = $this->undoService->createUndoToken(
-            userId: $project->getOwner()?->getId() ?? '',
+            userId: $ownerId,
             action: UndoAction::DELETE->value,
             entityType: self::ENTITY_TYPE,
-            entityId: $project->getId() ?? '',
+            entityId: $projectId,
             previousState: $previousState,
         );
 
-        $this->projectRepository->remove($project, true);
+        // Soft delete instead of hard delete
+        $project->softDelete();
+        $this->entityManager->flush();
 
         return $undoToken;
     }
@@ -130,16 +163,27 @@ final class ProjectService
      */
     public function archive(Project $project): array
     {
+        // Validate required IDs for undo token creation
+        $ownerId = $project->getOwner()?->getId();
+        $projectId = $project->getId();
+
+        if ($ownerId === null) {
+            throw InvalidStateException::missingOwner('Project');
+        }
+        if ($projectId === null) {
+            throw InvalidStateException::missingRequiredId('Project');
+        }
+
         $previousState = [
             'isArchived' => $project->isArchived(),
             'archivedAt' => $project->getArchivedAt()?->format(\DateTimeInterface::ATOM),
         ];
 
         $undoToken = $this->undoService->createUndoToken(
-            userId: $project->getOwner()?->getId() ?? '',
+            userId: $ownerId,
             action: UndoAction::ARCHIVE->value,
             entityType: self::ENTITY_TYPE,
-            entityId: $project->getId() ?? '',
+            entityId: $projectId,
             previousState: $previousState,
         );
 
@@ -161,16 +205,27 @@ final class ProjectService
      */
     public function unarchive(Project $project): array
     {
+        // Validate required IDs for undo token creation
+        $ownerId = $project->getOwner()?->getId();
+        $projectId = $project->getId();
+
+        if ($ownerId === null) {
+            throw InvalidStateException::missingOwner('Project');
+        }
+        if ($projectId === null) {
+            throw InvalidStateException::missingRequiredId('Project');
+        }
+
         $previousState = [
             'isArchived' => $project->isArchived(),
             'archivedAt' => $project->getArchivedAt()?->format(\DateTimeInterface::ATOM),
         ];
 
         $undoToken = $this->undoService->createUndoToken(
-            userId: $project->getOwner()?->getId() ?? '',
+            userId: $ownerId,
             action: UndoAction::ARCHIVE->value,
             entityType: self::ENTITY_TYPE,
-            entityId: $project->getId() ?? '',
+            entityId: $projectId,
             previousState: $previousState,
         );
 
@@ -212,14 +267,15 @@ final class ProjectService
     }
 
     /**
-     * Undo a delete operation.
+     * Undo a delete operation (restore soft-deleted project).
      *
-     * LIMITATION: This only restores the project itself, NOT its tasks.
-     * Tasks that were cascade-deleted when the project was deleted are permanently lost.
+     * Since we now use soft delete, this restores the original project
+     * with its original ID and all associated tasks intact.
      *
      * @param User $user The user performing the undo
      * @param string $token The undo token
      * @return Project The restored project
+     * @throws EntityNotFoundException If the project was permanently deleted
      */
     public function undoDelete(User $user, string $token): Project
     {
@@ -233,12 +289,20 @@ final class ProjectService
             throw new \InvalidArgumentException('Invalid undo token type for delete operation');
         }
 
-        // Note: The original ID, createdAt, and tasks are NOT restored.
-        // The project will get a new ID and createdAt timestamp.
-        $project = new Project();
-        $project->setOwner($user);
-        $this->applyStateToProject($project, $undoToken->previousState);
-        $this->projectRepository->save($project, true);
+        // Find the soft-deleted project (include deleted in search)
+        $project = $this->projectRepository->findOneByOwnerAndId(
+            $user,
+            $undoToken->entityId,
+            includeDeleted: true
+        );
+
+        if ($project === null) {
+            throw EntityNotFoundException::project($undoToken->entityId);
+        }
+
+        // Restore the project
+        $project->restore();
+        $this->entityManager->flush();
 
         return $project;
     }
@@ -318,8 +382,7 @@ final class ProjectService
 
             case UndoAction::DELETE->value:
                 $project = $this->performUndoDelete($user, $undoToken);
-                $message = 'Delete operation undone successfully. Note: Previously associated tasks were not restored.';
-                $warning = 'Tasks that were deleted with the project have been permanently lost';
+                $message = 'Delete operation undone successfully. Project and all associated tasks have been restored.';
                 break;
 
             default:
@@ -348,13 +411,25 @@ final class ProjectService
 
     /**
      * Perform the actual delete undo using a consumed token.
+     *
+     * Restores a soft-deleted project by clearing its deletedAt timestamp.
      */
     private function performUndoDelete(User $user, UndoToken $undoToken): Project
     {
-        $project = new Project();
-        $project->setOwner($user);
-        $this->applyStateToProject($project, $undoToken->previousState);
-        $this->projectRepository->save($project, true);
+        // Find the soft-deleted project
+        $project = $this->projectRepository->findOneByOwnerAndId(
+            $user,
+            $undoToken->entityId,
+            includeDeleted: true
+        );
+
+        if ($project === null) {
+            throw EntityNotFoundException::project($undoToken->entityId);
+        }
+
+        // Restore the project
+        $project->restore();
+        $this->entityManager->flush();
 
         return $project;
     }
@@ -404,6 +479,7 @@ final class ProjectService
             'name' => $project->getName(),
             'description' => $project->getDescription(),
             'isArchived' => $project->isArchived(),
+            'deletedAt' => $project->getDeletedAt()?->format(\DateTimeInterface::ATOM),
         ];
     }
 
@@ -431,6 +507,14 @@ final class ProjectService
             $project->setArchivedAt(
                 $state['archivedAt'] !== null
                     ? new \DateTimeImmutable($state['archivedAt'])
+                    : null
+            );
+        }
+
+        if (array_key_exists('deletedAt', $state)) {
+            $project->setDeletedAt(
+                $state['deletedAt'] !== null
+                    ? new \DateTimeImmutable($state['deletedAt'])
                     : null
             );
         }
