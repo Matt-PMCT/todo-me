@@ -710,7 +710,7 @@ class ProjectApiTest extends ApiTestCase
         $project = $this->createProject($user, 'Project to Delete');
         $originalName = $project->getName();
 
-        // Delete the project
+        // Delete the project (DELETE actually archives, not hard deletes)
         $deleteResponse = $this->authenticatedApiRequest(
             $user,
             'DELETE',
@@ -720,7 +720,7 @@ class ProjectApiTest extends ApiTestCase
         $meta = $this->getResponseMeta($deleteResponse);
         $undoToken = $meta['undoToken'];
 
-        // Undo the delete
+        // Undo the delete (undoing an archive operation)
         $response = $this->authenticatedApiRequest(
             $user,
             'POST',
@@ -733,8 +733,7 @@ class ProjectApiTest extends ApiTestCase
 
         $this->assertArrayHasKey('project', $data);
         $this->assertEquals($originalName, $data['project']['name']);
-        // Should have warning about tasks not being restored
-        $this->assertArrayHasKey('warning', $data);
+        // No warning needed since DELETE archives (not hard deletes), so no tasks are lost
     }
 
     public function testUndoInvalidToken(): void

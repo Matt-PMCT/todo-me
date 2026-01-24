@@ -38,6 +38,8 @@ final class ProjectListResponse
                 'page' => $page,
                 'limit' => $limit,
                 'totalPages' => $totalPages,
+                'hasNextPage' => $page < $totalPages,
+                'hasPreviousPage' => $page > 1,
             ],
         );
     }

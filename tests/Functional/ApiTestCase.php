@@ -34,6 +34,8 @@ abstract class ApiTestCase extends WebTestCase
         parent::setUp();
 
         $this->client = static::createClient();
+        // Disable kernel reboot between requests to maintain database transaction
+        $this->client->disableReboot();
         $this->entityManager = static::getContainer()->get(EntityManagerInterface::class);
 
         // Begin transaction for test isolation

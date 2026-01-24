@@ -139,7 +139,7 @@ final class ApiRateLimitSubscriber implements EventSubscriberInterface
         // Check for API key in X-API-Key header
         $apiKey = $request->headers->get('X-API-Key');
         if ($apiKey !== null && !empty($apiKey)) {
-            return 'key_' . hash('sha256', $apiKey);
+            return 'token_' . hash('sha256', $apiKey);
         }
 
         // Fall back to IP address

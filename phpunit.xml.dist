@@ -6,11 +6,11 @@
          backupGlobals="false"
          colors="true"
          bootstrap="tests/bootstrap.php"
-         convertDeprecationsToExceptions="false"
          executionOrder="depends,defects"
          beStrictAboutOutputDuringTests="true"
          failOnRisky="true"
          failOnWarning="true"
+         displayDetailsOnTestsThatTriggerDeprecations="false"
 >
     <php>
         <ini name="display_errors" value="1" />
@@ -36,15 +36,15 @@
         </testsuite>
     </testsuites>
 
-    <coverage>
+    <source>
         <include>
             <directory suffix=".php">src</directory>
         </include>
         <exclude>
             <directory suffix=".php">src/DataFixtures</directory>
-            <directory suffix=".php">src/Kernel.php</directory>
+            <file>src/Kernel.php</file>
         </exclude>
-    </coverage>
+    </source>
 
     <extensions>
         <bootstrap class="Symfony\Bridge\PhpUnit\SymfonyExtension">

@@ -51,7 +51,7 @@ final class PaginationHelper
      * @param int $total Total number of items
      * @param int $page Current page number (1-indexed)
      * @param int $limit Items per page
-     * @return array{total: int, page: int, limit: int, totalPages: int}
+     * @return array{total: int, page: int, limit: int, totalPages: int, hasNextPage: bool, hasPreviousPage: bool}
      */
     public function calculateMeta(int $total, int $page = self::DEFAULT_PAGE, int $limit = self::DEFAULT_LIMIT): array
     {
@@ -65,6 +65,8 @@ final class PaginationHelper
             'page' => $page,
             'limit' => $limit,
             'totalPages' => $totalPages,
+            'hasNextPage' => $page < $totalPages,
+            'hasPreviousPage' => $page > 1,
         ];
     }
 

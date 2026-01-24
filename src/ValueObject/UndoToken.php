@@ -99,6 +99,13 @@ final readonly class UndoToken
      */
     public static function fromArray(array $data): self
     {
+        $requiredKeys = ['token', 'action', 'entityType', 'entityId', 'previousState', 'createdAt', 'expiresAt'];
+        foreach ($requiredKeys as $key) {
+            if (!array_key_exists($key, $data)) {
+                throw new \InvalidArgumentException(sprintf('Missing required key "%s" in undo token data', $key));
+            }
+        }
+
         return new self(
             token: $data['token'],
             action: $data['action'],
