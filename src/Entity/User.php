@@ -41,6 +41,12 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(type: Types::STRING, length: 255, unique: true, nullable: true, name: 'api_token')]
     private ?string $apiToken = null;
 
+    #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true, name: 'api_token_issued_at')]
+    private ?\DateTimeImmutable $apiTokenIssuedAt = null;
+
+    #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true, name: 'api_token_expires_at')]
+    private ?\DateTimeImmutable $apiTokenExpiresAt = null;
+
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE, name: 'created_at')]
     private \DateTimeImmutable $createdAt;
 
@@ -140,7 +146,49 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     {
         $this->apiToken = $apiToken;
 
+        // Clear expiration when token is revoked
+        if ($apiToken === null) {
+            $this->apiTokenIssuedAt = null;
+            $this->apiTokenExpiresAt = null;
+        }
+
         return $this;
+    }
+
+    public function getApiTokenIssuedAt(): ?\DateTimeImmutable
+    {
+        return $this->apiTokenIssuedAt;
+    }
+
+    public function setApiTokenIssuedAt(?\DateTimeImmutable $apiTokenIssuedAt): static
+    {
+        $this->apiTokenIssuedAt = $apiTokenIssuedAt;
+
+        return $this;
+    }
+
+    public function getApiTokenExpiresAt(): ?\DateTimeImmutable
+    {
+        return $this->apiTokenExpiresAt;
+    }
+
+    public function setApiTokenExpiresAt(?\DateTimeImmutable $apiTokenExpiresAt): static
+    {
+        $this->apiTokenExpiresAt = $apiTokenExpiresAt;
+
+        return $this;
+    }
+
+    /**
+     * Checks if the API token has expired.
+     */
+    public function isApiTokenExpired(): bool
+    {
+        if ($this->apiTokenExpiresAt === null) {
+            return true; // No expiration set means expired
+        }
+
+        return $this->apiTokenExpiresAt < new \DateTimeImmutable();
     }
 
     public function getCreatedAt(): \DateTimeImmutable
