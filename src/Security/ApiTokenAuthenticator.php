@@ -35,6 +35,7 @@ final class ApiTokenAuthenticator extends AbstractAuthenticator
     private const PUBLIC_ROUTES = [
         '/api/v1/auth/register',
         '/api/v1/auth/token',
+        '/api/v1/auth/refresh',
     ];
 
     public function __construct(
@@ -82,7 +83,8 @@ final class ApiTokenAuthenticator extends AbstractAuthenticator
 
         return new SelfValidatingPassport(
             new UserBadge($token, function (string $token) use ($request) {
-                $user = $this->userService->findByApiToken($token);
+                // First check if token exists (ignoring expiration)
+                $user = $this->userService->findByApiTokenIgnoreExpiration($token);
 
                 if ($user === null) {
                     $this->apiLogger->logWarning('Authentication attempt with invalid token', [
@@ -91,6 +93,17 @@ final class ApiTokenAuthenticator extends AbstractAuthenticator
                     ]);
 
                     throw new CustomUserMessageAuthenticationException('Invalid API token');
+                }
+
+                // Check if token is expired
+                if ($user->isApiTokenExpired()) {
+                    $this->apiLogger->logWarning('Authentication attempt with expired token', [
+                        'uri' => $request->getRequestUri(),
+                        'ip' => $request->getClientIp(),
+                        'user_id' => $user->getId(),
+                    ]);
+
+                    throw new CustomUserMessageAuthenticationException('API token has expired. Use /api/v1/auth/refresh to get a new token.');
                 }
 
                 $this->apiLogger->logInfo('User authenticated successfully', [
