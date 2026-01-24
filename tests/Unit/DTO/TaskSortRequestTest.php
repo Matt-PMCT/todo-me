@@ -40,7 +40,7 @@ class TaskSortRequestTest extends TestCase
 
     public function testFromRequestParsesAllValidSortFields(): void
     {
-        $validFields = ['due_date', 'priority', 'created_at', 'updated_at', 'title', 'position'];
+        $validFields = ['due_date', 'priority', 'created_at', 'updated_at', 'completed_at', 'title', 'position'];
 
         foreach ($validFields as $field) {
             $request = new Request(['sort' => $field]);
@@ -167,6 +167,13 @@ class TaskSortRequestTest extends TestCase
         $this->assertEquals('t.updatedAt', $dto->getDqlField());
     }
 
+    public function testGetDqlFieldReturnsCompletedAtMapping(): void
+    {
+        $dto = new TaskSortRequest(field: 'completed_at');
+
+        $this->assertEquals('t.completedAt', $dto->getDqlField());
+    }
+
     public function testGetDqlFieldReturnsTitleMapping(): void
     {
         $dto = new TaskSortRequest(field: 'title');
@@ -219,6 +226,13 @@ class TaskSortRequestTest extends TestCase
         $dto = new TaskSortRequest(field: 'updated_at');
 
         $this->assertFalse($dto->isNullsLastField());
+    }
+
+    public function testIsNullsLastFieldReturnsTrueForCompletedAt(): void
+    {
+        $dto = new TaskSortRequest(field: 'completed_at');
+
+        $this->assertTrue($dto->isNullsLastField());
     }
 
     public function testIsNullsLastFieldReturnsFalseForTitle(): void

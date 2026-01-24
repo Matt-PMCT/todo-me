@@ -45,6 +45,8 @@ final class SavedFilterService
         $filter->setOwner($user);
         $filter->setName($dto->name);
         $filter->setCriteria($dto->criteria);
+        $filter->setIcon($dto->icon);
+        $filter->setColor($dto->color);
 
         // Set position to max + 1
         $maxPosition = $this->repository->getMaxPosition($user);
@@ -88,6 +90,14 @@ final class SavedFilterService
             } else {
                 $filter->setIsDefault(false);
             }
+        }
+
+        if ($dto->icon !== null) {
+            $filter->setIcon($dto->icon);
+        }
+
+        if ($dto->color !== null) {
+            $filter->setColor($dto->color);
         }
 
         $this->entityManager->flush();

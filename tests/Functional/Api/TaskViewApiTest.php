@@ -462,12 +462,12 @@ class TaskViewApiTest extends ApiTestCase
     {
         $user = $this->createUser('completed-default-limit@example.com', 'Password123');
 
-        // Create 60 completed tasks
-        for ($i = 1; $i <= 60; $i++) {
+        // Create 30 completed tasks
+        for ($i = 1; $i <= 30; $i++) {
             $this->createTask($user, "Completed task $i", null, Task::STATUS_COMPLETED);
         }
 
-        // Request without limit - should default to 50
+        // Request without limit - should default to 20 (standard pagination)
         $response = $this->authenticatedApiRequest(
             $user,
             'GET',
@@ -478,45 +478,33 @@ class TaskViewApiTest extends ApiTestCase
 
         $data = $this->getResponseData($response);
 
-        $this->assertCount(50, $data['items']);
+        $this->assertCount(20, $data['items']);
+        $this->assertEquals(30, $data['meta']['total']);
+        $this->assertEquals(2, $data['meta']['totalPages']);
     }
 
-    public function testCompletedViewInvalidLimitDefaultsToFifty(): void
+    public function testCompletedViewPaginationWithPage(): void
     {
-        $user = $this->createUser('completed-invalid-limit@example.com', 'Password123');
+        $user = $this->createUser('completed-pagination-page@example.com', 'Password123');
 
-        // Create 60 completed tasks
-        for ($i = 1; $i <= 60; $i++) {
+        // Create 30 completed tasks
+        for ($i = 1; $i <= 30; $i++) {
             $this->createTask($user, "Completed task $i", null, Task::STATUS_COMPLETED);
         }
 
-        // Invalid limit (negative)
+        // Request page 2
         $response = $this->authenticatedApiRequest(
             $user,
             'GET',
-            '/api/v1/tasks/completed?limit=-10'
+            '/api/v1/tasks/completed?page=2&limit=10'
         );
 
         $this->assertResponseStatusCode(Response::HTTP_OK, $response);
 
         $data = $this->getResponseData($response);
 
-        // Should default to 50
-        $this->assertCount(50, $data['items']);
-
-        // Invalid limit (too large)
-        $response = $this->authenticatedApiRequest(
-            $user,
-            'GET',
-            '/api/v1/tasks/completed?limit=500'
-        );
-
-        $this->assertResponseStatusCode(Response::HTTP_OK, $response);
-
-        $data = $this->getResponseData($response);
-
-        // Should default to 50
-        $this->assertCount(50, $data['items']);
+        $this->assertCount(10, $data['items']);
+        $this->assertEquals(2, $data['meta']['page']);
     }
 
     public function testCompletedViewEmpty(): void
@@ -537,6 +525,222 @@ class TaskViewApiTest extends ApiTestCase
 
         $this->assertArrayHasKey('items', $data);
         $this->assertEmpty($data['items']);
+    }
+
+    // ========================================
+    // Pagination Meta Tests
+    // ========================================
+
+    public function testTodayViewIncludesPaginationMeta(): void
+    {
+        $user = $this->createUser('today-meta@example.com', 'Password123');
+
+        $today = new \DateTimeImmutable('today');
+        $this->createTask($user, 'Task due today', null, Task::STATUS_PENDING, 2, null, $today);
+
+        $response = $this->authenticatedApiRequest(
+            $user,
+            'GET',
+            '/api/v1/tasks/today'
+        );
+
+        $this->assertResponseStatusCode(Response::HTTP_OK, $response);
+
+        $data = $this->getResponseData($response);
+
+        $this->assertArrayHasKey('meta', $data);
+        $this->assertArrayHasKey('total', $data['meta']);
+        $this->assertArrayHasKey('page', $data['meta']);
+        $this->assertArrayHasKey('limit', $data['meta']);
+        $this->assertArrayHasKey('totalPages', $data['meta']);
+    }
+
+    public function testUpcomingViewIncludesPaginationMeta(): void
+    {
+        $user = $this->createUser('upcoming-meta@example.com', 'Password123');
+
+        $tomorrow = new \DateTimeImmutable('tomorrow');
+        $this->createTask($user, 'Task due tomorrow', null, Task::STATUS_PENDING, 2, null, $tomorrow);
+
+        $response = $this->authenticatedApiRequest(
+            $user,
+            'GET',
+            '/api/v1/tasks/upcoming'
+        );
+
+        $this->assertResponseStatusCode(Response::HTTP_OK, $response);
+
+        $data = $this->getResponseData($response);
+
+        $this->assertArrayHasKey('meta', $data);
+        $this->assertArrayHasKey('total', $data['meta']);
+    }
+
+    public function testOverdueViewIncludesPaginationMeta(): void
+    {
+        $user = $this->createUser('overdue-meta@example.com', 'Password123');
+
+        $yesterday = new \DateTimeImmutable('yesterday');
+        $this->createTask($user, 'Overdue task', null, Task::STATUS_PENDING, 2, null, $yesterday);
+
+        $response = $this->authenticatedApiRequest(
+            $user,
+            'GET',
+            '/api/v1/tasks/overdue'
+        );
+
+        $this->assertResponseStatusCode(Response::HTTP_OK, $response);
+
+        $data = $this->getResponseData($response);
+
+        $this->assertArrayHasKey('meta', $data);
+        $this->assertArrayHasKey('total', $data['meta']);
+    }
+
+    public function testNoDateViewIncludesPaginationMeta(): void
+    {
+        $user = $this->createUser('no-date-meta@example.com', 'Password123');
+
+        $this->createTask($user, 'Task without due date');
+
+        $response = $this->authenticatedApiRequest(
+            $user,
+            'GET',
+            '/api/v1/tasks/no-date'
+        );
+
+        $this->assertResponseStatusCode(Response::HTTP_OK, $response);
+
+        $data = $this->getResponseData($response);
+
+        $this->assertArrayHasKey('meta', $data);
+        $this->assertArrayHasKey('total', $data['meta']);
+    }
+
+    public function testCompletedViewIncludesPaginationMeta(): void
+    {
+        $user = $this->createUser('completed-meta@example.com', 'Password123');
+
+        $this->createTask($user, 'Completed task', null, Task::STATUS_COMPLETED);
+
+        $response = $this->authenticatedApiRequest(
+            $user,
+            'GET',
+            '/api/v1/tasks/completed'
+        );
+
+        $this->assertResponseStatusCode(Response::HTTP_OK, $response);
+
+        $data = $this->getResponseData($response);
+
+        $this->assertArrayHasKey('meta', $data);
+        $this->assertArrayHasKey('total', $data['meta']);
+    }
+
+    // ========================================
+    // Pagination Parameters Tests
+    // ========================================
+
+    public function testTodayViewSupportsPaginationParams(): void
+    {
+        $user = $this->createUser('today-pagination@example.com', 'Password123');
+
+        $today = new \DateTimeImmutable('today');
+        for ($i = 1; $i <= 25; $i++) {
+            $this->createTask($user, "Today task $i", null, Task::STATUS_PENDING, 2, null, $today);
+        }
+
+        // Request first page with limit 10
+        $response = $this->authenticatedApiRequest(
+            $user,
+            'GET',
+            '/api/v1/tasks/today?page=1&limit=10'
+        );
+
+        $this->assertResponseStatusCode(Response::HTTP_OK, $response);
+
+        $data = $this->getResponseData($response);
+
+        $this->assertCount(10, $data['items']);
+        $this->assertEquals(25, $data['meta']['total']);
+        $this->assertEquals(1, $data['meta']['page']);
+        $this->assertEquals(10, $data['meta']['limit']);
+        $this->assertEquals(3, $data['meta']['totalPages']);
+    }
+
+    public function testOverdueViewSupportsPaginationParams(): void
+    {
+        $user = $this->createUser('overdue-pagination@example.com', 'Password123');
+
+        $yesterday = new \DateTimeImmutable('yesterday');
+        for ($i = 1; $i <= 15; $i++) {
+            $this->createTask($user, "Overdue task $i", null, Task::STATUS_PENDING, 2, null, $yesterday);
+        }
+
+        $response = $this->authenticatedApiRequest(
+            $user,
+            'GET',
+            '/api/v1/tasks/overdue?page=2&limit=5'
+        );
+
+        $this->assertResponseStatusCode(Response::HTTP_OK, $response);
+
+        $data = $this->getResponseData($response);
+
+        $this->assertCount(5, $data['items']);
+        $this->assertEquals(15, $data['meta']['total']);
+        $this->assertEquals(2, $data['meta']['page']);
+    }
+
+    // ========================================
+    // Sort Override Tests
+    // ========================================
+
+    public function testTodayViewSupportsSortOverride(): void
+    {
+        $user = $this->createUser('today-sort@example.com', 'Password123');
+
+        $today = new \DateTimeImmutable('today');
+        $this->createTask($user, 'High priority', null, Task::STATUS_PENDING, 4, null, $today);
+        $this->createTask($user, 'Low priority', null, Task::STATUS_PENDING, 1, null, $today);
+        $this->createTask($user, 'Medium priority', null, Task::STATUS_PENDING, 2, null, $today);
+
+        $response = $this->authenticatedApiRequest(
+            $user,
+            'GET',
+            '/api/v1/tasks/today?sort=priority&direction=DESC'
+        );
+
+        $this->assertResponseStatusCode(Response::HTTP_OK, $response);
+
+        $data = $this->getResponseData($response);
+
+        $this->assertEquals('High priority', $data['items'][0]['title']);
+        $this->assertEquals('Medium priority', $data['items'][1]['title']);
+        $this->assertEquals('Low priority', $data['items'][2]['title']);
+    }
+
+    public function testCompletedViewSupportsSortByCompletedAt(): void
+    {
+        $user = $this->createUser('completed-sort@example.com', 'Password123');
+
+        $this->createTask($user, 'Completed task A', null, Task::STATUS_COMPLETED, 2);
+        $this->createTask($user, 'Completed task B', null, Task::STATUS_COMPLETED, 2);
+        $this->createTask($user, 'Completed task C', null, Task::STATUS_COMPLETED, 2);
+
+        // Default sort should be completed_at DESC
+        $response = $this->authenticatedApiRequest(
+            $user,
+            'GET',
+            '/api/v1/tasks/completed'
+        );
+
+        $this->assertResponseStatusCode(Response::HTTP_OK, $response);
+
+        $data = $this->getResponseData($response);
+
+        $this->assertCount(3, $data['items']);
+        $this->assertArrayHasKey('meta', $data);
     }
 
     // ========================================

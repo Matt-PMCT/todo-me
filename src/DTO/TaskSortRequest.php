@@ -17,6 +17,7 @@ final class TaskSortRequest
         'priority',
         'created_at',
         'updated_at',
+        'completed_at',
         'title',
         'position',
     ];
@@ -26,6 +27,7 @@ final class TaskSortRequest
         'priority' => 't.priority',
         'created_at' => 't.createdAt',
         'updated_at' => 't.updatedAt',
+        'completed_at' => 't.completedAt',
         'title' => 't.title',
         'position' => 't.position',
     ];
@@ -85,6 +87,6 @@ final class TaskSortRequest
      */
     public function isNullsLastField(): bool
     {
-        return $this->field === 'due_date';
+        return $this->field === 'due_date' || $this->field === 'completed_at';
     }
 }

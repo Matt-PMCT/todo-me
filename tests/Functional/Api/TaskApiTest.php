@@ -159,7 +159,7 @@ class TaskApiTest extends ApiTestCase
         $response = $this->authenticatedApiRequest(
             $user,
             'GET',
-            '/api/v1/tasks?priority=4'
+            '/api/v1/tasks?priority_min=4&priority_max=4'
         );
 
         $this->assertResponseStatusCode(Response::HTTP_OK, $response);
@@ -181,7 +181,7 @@ class TaskApiTest extends ApiTestCase
         $response = $this->authenticatedApiRequest(
             $user,
             'GET',
-            '/api/v1/tasks?projectId=' . $project->getId()
+            '/api/v1/tasks?project_ids=' . $project->getId()
         );
 
         $this->assertResponseStatusCode(Response::HTTP_OK, $response);
