@@ -114,7 +114,7 @@ class ProjectApiTest extends ApiTestCase
     {
         $user = $this->createUser('list-archived@example.com', 'Password123');
 
-        $this->createProject($user, 'Active Project', null, false);
+        $this->createProject($user, 'Active Project');
         $this->createProject($user, 'Archived Project', null, true);
 
         $response = $this->authenticatedApiRequest(
@@ -135,7 +135,7 @@ class ProjectApiTest extends ApiTestCase
     {
         $user = $this->createUser('list-include-archived@example.com', 'Password123');
 
-        $this->createProject($user, 'Active Project', null, false);
+        $this->createProject($user, 'Active Project');
         $this->createProject($user, 'Archived Project', null, true);
 
         $response = $this->authenticatedApiRequest(

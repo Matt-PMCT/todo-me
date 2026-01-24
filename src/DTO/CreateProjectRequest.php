@@ -24,6 +24,9 @@ final class CreateProjectRequest
             maxMessage: 'Description cannot be longer than {{ limit }} characters'
         )]
         public readonly ?string $description = null,
+
+        #[Assert\Uuid(message: 'Parent ID must be a valid UUID')]
+        public readonly ?string $parentId = null,
     ) {
     }
 
@@ -37,6 +40,7 @@ final class CreateProjectRequest
         return new self(
             name: (string) ($data['name'] ?? ''),
             description: isset($data['description']) ? (string) $data['description'] : null,
+            parentId: isset($data['parentId']) && $data['parentId'] !== '' ? (string) $data['parentId'] : null,
         );
     }
 }

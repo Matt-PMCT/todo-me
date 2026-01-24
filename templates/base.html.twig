@@ -173,7 +173,22 @@
 
         <!-- Main content -->
         <main>
+            {% if app.user and block('use_sidebar') is defined and block('use_sidebar')|trim == 'true' %}
+            <div class="flex">
+                {% block sidebar %}
+                    {% include 'partials/sidebar.html.twig' with {
+                        projects: sidebar_projects|default([]),
+                        selectedProjectId: selected_project_id|default(null),
+                        tags: sidebar_tags|default([])
+                    } %}
+                {% endblock %}
+                <div class="flex-1 min-w-0">
+                    {% block body %}{% endblock %}
+                </div>
+            </div>
+            {% else %}
             {% block body %}{% endblock %}
+            {% endif %}
         </main>
 
         <!-- Footer -->
