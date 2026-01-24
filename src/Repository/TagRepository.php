@@ -79,4 +79,43 @@ class TagRepository extends ServiceEntityRepository
             $this->getEntityManager()->flush();
         }
     }
+
+    /**
+     * Find a tag by name (case-insensitive).
+     *
+     * @param User $owner The tag owner
+     * @param string $name The tag name to search for
+     * @return Tag|null The tag if found, null otherwise
+     */
+    public function findByNameInsensitive(User $owner, string $name): ?Tag
+    {
+        return $this->createQueryBuilder('t')
+            ->where('t.owner = :owner')
+            ->andWhere('LOWER(t.name) = LOWER(:name)')
+            ->setParameter('owner', $owner)
+            ->setParameter('name', $name)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
+
+    /**
+     * Search tags by name prefix for autocomplete.
+     *
+     * @param User $owner The tag owner
+     * @param string $prefix The name prefix to search for
+     * @param int $limit Maximum number of results to return
+     * @return Tag[]
+     */
+    public function searchByPrefix(User $owner, string $prefix, int $limit = 10): array
+    {
+        return $this->createQueryBuilder('t')
+            ->where('t.owner = :owner')
+            ->andWhere('LOWER(t.name) LIKE LOWER(:prefix)')
+            ->setParameter('owner', $owner)
+            ->setParameter('prefix', $prefix . '%')
+            ->orderBy('t.name', 'ASC')
+            ->setMaxResults($limit)
+            ->getQuery()
+            ->getResult();
+    }
 }

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Controller\Api;
 
 use App\DTO\CreateTaskRequest;
+use App\DTO\NaturalLanguageTaskRequest;
 use App\DTO\TaskListResponse;
 use App\DTO\TaskResponse;
 use App\DTO\UpdateTaskRequest;
@@ -107,6 +108,9 @@ final class TaskController extends AbstractController
 
     /**
      * Create a new task.
+     *
+     * Standard mode: POST /api/v1/tasks with {title, description, status, priority, dueDate, projectId, tagIds}
+     * Natural language mode: POST /api/v1/tasks?parse_natural_language=true with {input_text}
      */
     #[Route('', name: 'create', methods: ['POST'])]
     public function create(Request $request): JsonResponse
@@ -115,6 +119,20 @@ final class TaskController extends AbstractController
         $user = $this->getUser();
 
         $data = json_decode($request->getContent(), true) ?? [];
+
+        // Check if natural language parsing is requested
+        if ($request->query->getBoolean('parse_natural_language')) {
+            try {
+                $dto = NaturalLanguageTaskRequest::fromArray($data);
+            } catch (\InvalidArgumentException $e) {
+                throw ValidationException::forField('input_text', $e->getMessage());
+            }
+            $result = $this->taskService->createFromNaturalLanguage($user, $dto);
+
+            return $this->responseFormatter->created($result->toArray());
+        }
+
+        // Standard creation mode
         $dto = CreateTaskRequest::fromArray($data);
 
         $task = $this->taskService->create($user, $dto);
@@ -202,6 +220,33 @@ final class TaskController extends AbstractController
         }
 
         $result = $this->taskService->changeStatus($task, $data['status']);
+
+        $response = TaskResponse::fromTask($result['task'], $result['undoToken']);
+
+        return $this->responseFormatter->success($response->toArray());
+    }
+
+    /**
+     * Reschedule a task using natural language or ISO date.
+     *
+     * PATCH /api/v1/tasks/{id}/reschedule
+     * Body: { "due_date": "next Monday" } or { "due_date": "2026-01-27" }
+     */
+    #[Route('/{id}/reschedule', name: 'reschedule', methods: ['PATCH'], requirements: ['id' => '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}'])]
+    public function reschedule(Request $request, string $id): JsonResponse
+    {
+        /** @var User $user */
+        $user = $this->getUser();
+
+        $task = $this->taskService->findByIdOrFail($id, $user);
+
+        $data = json_decode($request->getContent(), true) ?? [];
+
+        if (!isset($data['due_date'])) {
+            throw ValidationException::forField('due_date', 'due_date is required');
+        }
+
+        $result = $this->taskService->reschedule($task, $data['due_date'], $user);
 
         $response = TaskResponse::fromTask($result['task'], $result['undoToken']);
 
