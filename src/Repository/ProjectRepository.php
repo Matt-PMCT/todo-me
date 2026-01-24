@@ -380,4 +380,225 @@ class ProjectRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
     }
+
+    /**
+     * Get the project tree for a user.
+     *
+     * @param User $user The project owner
+     * @param bool $includeArchived Whether to include archived projects
+     * @return Project[] All projects for the user (flat array)
+     */
+    public function getTreeByUser(User $user, bool $includeArchived = false): array
+    {
+        $qb = $this->createQueryBuilder('p')
+            ->where('p.owner = :owner')
+            ->andWhere('p.deletedAt IS NULL')
+            ->setParameter('owner', $user)
+            ->orderBy('p.position', 'ASC')
+            ->addOrderBy('p.id', 'ASC');
+
+        if (!$includeArchived) {
+            $qb->andWhere('p.isArchived = :archived')
+                ->setParameter('archived', false);
+        }
+
+        return $qb->getQuery()->getResult();
+    }
+
+    /**
+     * Get all descendant IDs of a project using a recursive CTE.
+     *
+     * @param Project $project The parent project
+     * @return string[] Array of descendant project IDs
+     */
+    public function getDescendantIds(Project $project): array
+    {
+        $conn = $this->getEntityManager()->getConnection();
+
+        $sql = "WITH RECURSIVE descendants AS (
+            SELECT id FROM projects WHERE parent_id = :projectId AND deleted_at IS NULL
+            UNION ALL
+            SELECT p.id FROM projects p
+            INNER JOIN descendants d ON p.parent_id = d.id WHERE p.deleted_at IS NULL
+        ) SELECT id FROM descendants";
+
+        $result = $conn->executeQuery($sql, ['projectId' => $project->getId()]);
+
+        return array_column($result->fetchAllAssociative(), 'id');
+    }
+
+    /**
+     * Get all ancestor IDs of a project using a recursive CTE.
+     *
+     * @param Project $project The project
+     * @return string[] Array of ancestor project IDs (from root to immediate parent)
+     */
+    public function getAncestorIds(Project $project): array
+    {
+        if ($project->getParent() === null) {
+            return [];
+        }
+
+        $conn = $this->getEntityManager()->getConnection();
+
+        $sql = "WITH RECURSIVE ancestors AS (
+            SELECT id, parent_id FROM projects WHERE id = :projectId AND deleted_at IS NULL
+            UNION ALL
+            SELECT p.id, p.parent_id FROM projects p
+            INNER JOIN ancestors a ON p.id = a.parent_id WHERE p.deleted_at IS NULL
+        ) SELECT id FROM ancestors WHERE id != :projectId ORDER BY id";
+
+        $result = $conn->executeQuery($sql, ['projectId' => $project->getId()]);
+
+        return array_column($result->fetchAllAssociative(), 'id');
+    }
+
+    /**
+     * Get the project tree with task counts for a user.
+     *
+     * @param User $user The project owner
+     * @param bool $includeArchived Whether to include archived projects
+     * @return array<string, array{total: int, completed: int}> Task counts indexed by project ID
+     */
+    public function getTreeWithTaskCounts(User $user, bool $includeArchived = false): array
+    {
+        $projects = $this->getTreeByUser($user, $includeArchived);
+
+        return $this->getTaskCountsForProjects($projects);
+    }
+
+    /**
+     * Normalize positions for projects within a parent (make them sequential 0, 1, 2...).
+     *
+     * @param User $user The project owner
+     * @param string|null $parentId The parent project ID (null for root projects)
+     */
+    public function normalizePositions(User $user, ?string $parentId): void
+    {
+        $qb = $this->createQueryBuilder('p')
+            ->where('p.owner = :owner')
+            ->andWhere('p.deletedAt IS NULL')
+            ->setParameter('owner', $user)
+            ->orderBy('p.position', 'ASC')
+            ->addOrderBy('p.id', 'ASC');
+
+        if ($parentId === null) {
+            $qb->andWhere('p.parent IS NULL');
+        } else {
+            $qb->andWhere('p.parent = :parentId')
+                ->setParameter('parentId', $parentId);
+        }
+
+        $projects = $qb->getQuery()->getResult();
+
+        $position = 0;
+        foreach ($projects as $project) {
+            if ($project->getPosition() !== $position) {
+                $project->setPosition($position);
+            }
+            $position++;
+        }
+
+        $this->getEntityManager()->flush();
+    }
+
+    /**
+     * Find root projects (no parent) for a user.
+     *
+     * @param User $user The project owner
+     * @param bool $includeArchived Whether to include archived projects
+     * @return Project[]
+     */
+    public function findRootsByOwner(User $user, bool $includeArchived = false): array
+    {
+        $qb = $this->createQueryBuilder('p')
+            ->where('p.owner = :owner')
+            ->andWhere('p.parent IS NULL')
+            ->andWhere('p.deletedAt IS NULL')
+            ->setParameter('owner', $user)
+            ->orderBy('p.position', 'ASC')
+            ->addOrderBy('p.id', 'ASC');
+
+        if (!$includeArchived) {
+            $qb->andWhere('p.isArchived = :archived')
+                ->setParameter('archived', false);
+        }
+
+        return $qb->getQuery()->getResult();
+    }
+
+    /**
+     * Get the maximum position value for projects within a parent.
+     *
+     * @param User $user The project owner
+     * @param string|null $parentId The parent project ID (null for root projects)
+     * @return int The maximum position, or -1 if no projects exist
+     */
+    public function getMaxPositionInParent(User $user, ?string $parentId): int
+    {
+        $qb = $this->createQueryBuilder('p')
+            ->select('MAX(p.position)')
+            ->where('p.owner = :owner')
+            ->andWhere('p.deletedAt IS NULL')
+            ->setParameter('owner', $user);
+
+        if ($parentId === null) {
+            $qb->andWhere('p.parent IS NULL');
+        } else {
+            $qb->andWhere('p.parent = :parentId')
+                ->setParameter('parentId', $parentId);
+        }
+
+        $result = $qb->getQuery()->getSingleScalarResult();
+
+        return $result !== null ? (int) $result : -1;
+    }
+
+    /**
+     * Find children of a project.
+     *
+     * @param Project $parent The parent project
+     * @param bool $includeArchived Whether to include archived projects
+     * @return Project[]
+     */
+    public function findChildrenByParent(Project $parent, bool $includeArchived = false): array
+    {
+        $qb = $this->createQueryBuilder('p')
+            ->where('p.parent = :parent')
+            ->andWhere('p.deletedAt IS NULL')
+            ->setParameter('parent', $parent)
+            ->orderBy('p.position', 'ASC')
+            ->addOrderBy('p.id', 'ASC');
+
+        if (!$includeArchived) {
+            $qb->andWhere('p.isArchived = :archived')
+                ->setParameter('archived', false);
+        }
+
+        return $qb->getQuery()->getResult();
+    }
+
+    /**
+     * Get all descendants as Project entities.
+     *
+     * @param Project $project The parent project
+     * @return Project[]
+     */
+    public function findAllDescendants(Project $project): array
+    {
+        $descendantIds = $this->getDescendantIds($project);
+
+        if (empty($descendantIds)) {
+            return [];
+        }
+
+        return $this->createQueryBuilder('p')
+            ->where('p.id IN (:ids)')
+            ->andWhere('p.deletedAt IS NULL')
+            ->setParameter('ids', $descendantIds)
+            ->orderBy('p.position', 'ASC')
+            ->addOrderBy('p.id', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
 }

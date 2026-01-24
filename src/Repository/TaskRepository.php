@@ -402,4 +402,52 @@ class TaskRepository extends ServiceEntityRepository
             $this->getEntityManager()->flush();
         }
     }
+
+    /**
+     * Find tasks by project, optionally including tasks from child projects.
+     *
+     * @param Project $project The parent project
+     * @param bool $includeChildren Whether to include tasks from child projects
+     * @param bool $includeArchivedProjects Whether to include tasks from archived child projects
+     * @param string|null $status Optional status filter
+     * @return Task[]
+     */
+    public function findByProjectWithChildren(
+        Project $project,
+        bool $includeChildren = false,
+        bool $includeArchivedProjects = false,
+        ?string $status = null
+    ): array {
+        if (!$includeChildren) {
+            return $this->findByProject($project, $status);
+        }
+
+        // Get descendant project IDs using the ProjectRepository
+        /** @var ProjectRepository $projectRepository */
+        $projectRepository = $this->getEntityManager()->getRepository(Project::class);
+        $descendantIds = $projectRepository->getDescendantIds($project);
+
+        // Include the parent project itself
+        $projectIds = array_merge([$project->getId()], $descendantIds);
+
+        // Build query
+        $qb = $this->createQueryBuilder('t')
+            ->leftJoin('t.project', 'p')
+            ->where('t.project IN (:projectIds)')
+            ->setParameter('projectIds', $projectIds)
+            ->orderBy('t.position', 'ASC')
+            ->addOrderBy('t.priority', 'DESC');
+
+        if ($status !== null) {
+            $qb->andWhere('t.status = :status')
+                ->setParameter('status', $status);
+        }
+
+        if (!$includeArchivedProjects) {
+            $qb->andWhere('p.isArchived = :archived')
+                ->setParameter('archived', false);
+        }
+
+        return $qb->getQuery()->getResult();
+    }
 }

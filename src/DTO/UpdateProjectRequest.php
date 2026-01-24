@@ -12,6 +12,11 @@ use Symfony\Component\Validator\Constraints as Assert;
  */
 final class UpdateProjectRequest
 {
+    /**
+     * @param string|null $name Project name
+     * @param string|null $description Project description
+     * @param string|null|false $parentId Parent ID (null = move to root, false = not specified)
+     */
     public function __construct(
         #[Assert\Length(
             max: 100,
@@ -24,6 +29,8 @@ final class UpdateProjectRequest
             maxMessage: 'Description cannot be longer than {{ limit }} characters'
         )]
         public readonly ?string $description = null,
+
+        public readonly string|null|false $parentId = false,
     ) {
     }
 
@@ -34,11 +41,19 @@ final class UpdateProjectRequest
      */
     public static function fromArray(array $data): self
     {
+        $parentId = false;
+        if (array_key_exists('parentId', $data)) {
+            $parentId = $data['parentId'] !== null && $data['parentId'] !== ''
+                ? (string) $data['parentId']
+                : null;
+        }
+
         return new self(
             name: isset($data['name']) ? (string) $data['name'] : null,
             description: array_key_exists('description', $data)
                 ? ($data['description'] !== null ? (string) $data['description'] : null)
                 : null,
+            parentId: $parentId,
         );
     }
 
@@ -47,6 +62,14 @@ final class UpdateProjectRequest
      */
     public function hasChanges(): bool
     {
-        return $this->name !== null || $this->description !== null;
+        return $this->name !== null || $this->description !== null || $this->parentId !== false;
+    }
+
+    /**
+     * Check if parentId was explicitly provided in the request.
+     */
+    public function hasParentIdChange(): bool
+    {
+        return $this->parentId !== false;
     }
 }

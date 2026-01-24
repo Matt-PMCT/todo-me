@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Service;
 
 use App\Entity\Project;
+use App\Repository\ProjectRepository;
 
 /**
  * Service for project state serialization and deserialization.
@@ -16,6 +17,10 @@ use App\Entity\Project;
  */
 final class ProjectStateService
 {
+    public function __construct(
+        private readonly ProjectRepository $projectRepository,
+    ) {
+    }
     /**
      * Serializes a project state for undo operations.
      *
@@ -30,6 +35,10 @@ final class ProjectStateService
             'isArchived' => $project->isArchived(),
             'archivedAt' => $project->getArchivedAt()?->format(\DateTimeInterface::ATOM),
             'deletedAt' => $project->getDeletedAt()?->format(\DateTimeInterface::ATOM),
+            // Phase 3 additions:
+            'parentId' => $project->getParent()?->getId(),
+            'position' => $project->getPosition(),
+            'showChildrenTasks' => $project->isShowChildrenTasks(),
         ];
     }
 
@@ -81,6 +90,26 @@ final class ProjectStateService
                     ? new \DateTimeImmutable($state['deletedAt'])
                     : null
             );
+        }
+
+        // Phase 3 additions:
+        if (array_key_exists('parentId', $state)) {
+            if ($state['parentId'] === null) {
+                $project->setParent(null);
+            } else {
+                $parent = $this->projectRepository->find($state['parentId']);
+                if ($parent !== null) {
+                    $project->setParent($parent);
+                }
+            }
+        }
+
+        if (array_key_exists('position', $state)) {
+            $project->setPosition($state['position']);
+        }
+
+        if (array_key_exists('showChildrenTasks', $state)) {
+            $project->setShowChildrenTasks($state['showChildrenTasks']);
         }
     }
 }

@@ -5,13 +5,20 @@ declare(strict_types=1);
 namespace App\Service;
 
 use App\DTO\CreateProjectRequest;
+use App\DTO\MoveProjectRequest;
+use App\DTO\ProjectSettingsRequest;
 use App\DTO\UpdateProjectRequest;
 use App\Entity\Project;
 use App\Entity\User;
 use App\Exception\EntityNotFoundException;
 use App\Exception\InvalidStateException;
+use App\Exception\ProjectMoveToArchivedException;
+use App\Exception\ProjectMoveToDescendantException;
+use App\Exception\ProjectParentNotFoundException;
+use App\Exception\ProjectParentNotOwnedException;
 use App\Interface\OwnershipCheckerInterface;
 use App\Repository\ProjectRepository;
+use App\Transformer\ProjectTreeTransformer;
 use App\ValueObject\UndoToken;
 use Doctrine\ORM\EntityManagerInterface;
 
@@ -27,6 +34,8 @@ final class ProjectService
         private readonly OwnershipCheckerInterface $ownershipChecker,
         private readonly ProjectStateService $projectStateService,
         private readonly ProjectUndoService $projectUndoService,
+        private readonly ProjectCacheService $projectCacheService,
+        private readonly ProjectTreeTransformer $projectTreeTransformer,
     ) {
     }
 
@@ -46,7 +55,21 @@ final class ProjectService
         $project->setName($dto->name);
         $project->setDescription($dto->description);
 
+        // Handle parent assignment
+        if ($dto->parentId !== null) {
+            $parent = $this->validateAndGetParent($user, $dto->parentId);
+            $project->setParent($parent);
+        }
+
+        // Set position at end of siblings
+        $parentId = $dto->parentId;
+        $maxPosition = $this->projectRepository->getMaxPositionInParent($user, $parentId);
+        $project->setPosition($maxPosition + 1);
+
         $this->projectRepository->save($project, true);
+
+        // Invalidate cache
+        $this->projectCacheService->invalidate($user->getId() ?? '');
 
         return $project;
     }
@@ -61,6 +84,18 @@ final class ProjectService
     public function update(Project $project, UpdateProjectRequest $dto): array
     {
         $this->validationHelper->validate($dto);
+
+        // Validate required IDs for undo token creation
+        $ownerId = $project->getOwner()?->getId();
+        $projectId = $project->getId();
+        $user = $project->getOwner();
+
+        if ($ownerId === null || $user === null) {
+            throw InvalidStateException::missingOwner('Project');
+        }
+        if ($projectId === null) {
+            throw InvalidStateException::missingRequiredId('Project');
+        }
 
         // Store previous state for undo
         $previousState = $this->projectStateService->serializeProjectState($project);
@@ -77,7 +112,34 @@ final class ProjectService
             $project->setDescription($dto->description);
         }
 
+        // Handle parent change
+        if ($dto->hasParentIdChange()) {
+            $oldParentId = $project->getParent()?->getId();
+            $newParentId = $dto->parentId;
+
+            if ($newParentId === null) {
+                // Move to root
+                $project->setParent(null);
+            } else {
+                // Move to new parent
+                $parent = $this->validateAndGetParent($user, $newParentId, $project);
+                $project->setParent($parent);
+            }
+
+            // Set position at end of new sibling list
+            $maxPosition = $this->projectRepository->getMaxPositionInParent($user, $newParentId);
+            $project->setPosition($maxPosition + 1);
+
+            // Normalize positions in old parent
+            if ($oldParentId !== $newParentId) {
+                $this->projectRepository->normalizePositions($user, $oldParentId);
+            }
+        }
+
         $this->entityManager->flush();
+
+        // Invalidate cache
+        $this->projectCacheService->invalidate($ownerId);
 
         return [
             'project' => $project,
@@ -97,11 +159,19 @@ final class ProjectService
      */
     public function delete(Project $project): ?UndoToken
     {
+        $ownerId = $project->getOwner()?->getId();
+        if ($ownerId === null) {
+            throw InvalidStateException::missingOwner('Project');
+        }
+
         $undoToken = $this->projectUndoService->createDeleteUndoToken($project);
 
         // Soft delete instead of hard delete
         $project->softDelete();
         $this->entityManager->flush();
+
+        // Invalidate cache
+        $this->projectCacheService->invalidate($ownerId);
 
         return $undoToken;
     }
@@ -116,6 +186,11 @@ final class ProjectService
      */
     public function archive(Project $project): array
     {
+        $ownerId = $project->getOwner()?->getId();
+        if ($ownerId === null) {
+            throw InvalidStateException::missingOwner('Project');
+        }
+
         $previousState = $this->projectStateService->serializeArchiveState($project);
 
         $undoToken = $this->projectUndoService->createArchiveUndoToken($project, $previousState);
@@ -123,6 +198,9 @@ final class ProjectService
         $project->setIsArchived(true);
         $project->setArchivedAt(new \DateTimeImmutable());
         $this->entityManager->flush();
+
+        // Invalidate cache
+        $this->projectCacheService->invalidate($ownerId);
 
         return [
             'project' => $project,
@@ -138,6 +216,11 @@ final class ProjectService
      */
     public function unarchive(Project $project): array
     {
+        $ownerId = $project->getOwner()?->getId();
+        if ($ownerId === null) {
+            throw InvalidStateException::missingOwner('Project');
+        }
+
         $previousState = $this->projectStateService->serializeArchiveState($project);
 
         $undoToken = $this->projectUndoService->createArchiveUndoToken($project, $previousState);
@@ -145,6 +228,9 @@ final class ProjectService
         $project->setIsArchived(false);
         $project->setArchivedAt(null);
         $this->entityManager->flush();
+
+        // Invalidate cache
+        $this->projectCacheService->invalidate($ownerId);
 
         return [
             'project' => $project,
@@ -242,5 +328,357 @@ final class ProjectService
             'total' => $this->projectRepository->countTasksByProject($project),
             'completed' => $this->projectRepository->countCompletedTasksByProject($project),
         ];
+    }
+
+    /**
+     * Move a project to a new parent.
+     *
+     * @param Project $project The project to move
+     * @param MoveProjectRequest $dto The move request
+     * @return array{project: Project, undoToken: UndoToken|null}
+     */
+    public function move(Project $project, MoveProjectRequest $dto): array
+    {
+        $this->validationHelper->validate($dto);
+
+        $ownerId = $project->getOwner()?->getId();
+        $user = $project->getOwner();
+
+        if ($ownerId === null || $user === null) {
+            throw InvalidStateException::missingOwner('Project');
+        }
+
+        // Store previous state for undo
+        $previousState = $this->projectStateService->serializeProjectState($project);
+
+        // Create undo token
+        $undoToken = $this->projectUndoService->createUpdateUndoToken($project, $previousState);
+
+        $oldParentId = $project->getParent()?->getId();
+
+        if ($dto->parentId === null) {
+            // Move to root
+            $project->setParent(null);
+        } else {
+            // Move to new parent
+            $newParent = $this->validateAndGetParent($user, $dto->parentId, $project);
+            $project->setParent($newParent);
+        }
+
+        // Set position
+        if ($dto->position !== null) {
+            $project->setPosition($dto->position);
+        } else {
+            $maxPosition = $this->projectRepository->getMaxPositionInParent($user, $dto->parentId);
+            $project->setPosition($maxPosition + 1);
+        }
+
+        $this->entityManager->flush();
+
+        // Normalize positions in old parent
+        if ($oldParentId !== $dto->parentId) {
+            $this->projectRepository->normalizePositions($user, $oldParentId);
+        }
+
+        // Invalidate cache
+        $this->projectCacheService->invalidate($ownerId);
+
+        return [
+            'project' => $project,
+            'undoToken' => $undoToken,
+        ];
+    }
+
+    /**
+     * Reorder a project within its current parent.
+     *
+     * @param Project $project The project to reorder
+     * @param int $newPosition The new position
+     * @return array{project: Project, undoToken: UndoToken|null}
+     */
+    public function reorder(Project $project, int $newPosition): array
+    {
+        $ownerId = $project->getOwner()?->getId();
+        $user = $project->getOwner();
+
+        if ($ownerId === null || $user === null) {
+            throw InvalidStateException::missingOwner('Project');
+        }
+
+        $previousState = $this->projectStateService->serializeProjectState($project);
+
+        $undoToken = $this->projectUndoService->createUpdateUndoToken($project, $previousState);
+
+        $project->setPosition($newPosition);
+        $this->entityManager->flush();
+
+        // Normalize positions
+        $parentId = $project->getParent()?->getId();
+        $this->projectRepository->normalizePositions($user, $parentId);
+
+        // Invalidate cache
+        $this->projectCacheService->invalidate($ownerId);
+
+        return [
+            'project' => $project,
+            'undoToken' => $undoToken,
+        ];
+    }
+
+    /**
+     * Batch reorder projects within a parent.
+     *
+     * @param User $user The user
+     * @param string|null $parentId The parent project ID (null for root)
+     * @param string[] $projectIds The project IDs in desired order
+     */
+    public function batchReorder(User $user, ?string $parentId, array $projectIds): void
+    {
+        $ownerId = $user->getId();
+        if ($ownerId === null) {
+            throw InvalidStateException::missingRequiredId('User');
+        }
+
+        // Validate all projects belong to user and have the correct parent
+        foreach ($projectIds as $position => $projectId) {
+            $project = $this->projectRepository->findOneByOwnerAndId($user, $projectId);
+
+            if ($project === null) {
+                throw EntityNotFoundException::project($projectId);
+            }
+
+            $actualParentId = $project->getParent()?->getId();
+            if ($actualParentId !== $parentId) {
+                throw new \InvalidArgumentException(
+                    sprintf('Project %s does not have parent %s', $projectId, $parentId ?? 'root')
+                );
+            }
+
+            $project->setPosition($position);
+        }
+
+        $this->entityManager->flush();
+
+        // Invalidate cache
+        $this->projectCacheService->invalidate($ownerId);
+    }
+
+    /**
+     * Update project settings.
+     *
+     * @param Project $project The project to update
+     * @param ProjectSettingsRequest $dto The settings
+     * @return Project The updated project
+     */
+    public function updateSettings(Project $project, ProjectSettingsRequest $dto): Project
+    {
+        $this->validationHelper->validate($dto);
+
+        $ownerId = $project->getOwner()?->getId();
+        if ($ownerId === null) {
+            throw InvalidStateException::missingOwner('Project');
+        }
+
+        if ($dto->showChildrenTasks !== null) {
+            $project->setShowChildrenTasks($dto->showChildrenTasks);
+        }
+
+        $this->entityManager->flush();
+
+        // Invalidate cache
+        $this->projectCacheService->invalidate($ownerId);
+
+        return $project;
+    }
+
+    /**
+     * Get the project tree for a user.
+     *
+     * @param User $user The user
+     * @param bool $includeArchived Whether to include archived projects
+     * @param bool $includeTaskCounts Whether to include task counts
+     * @return array The tree structure
+     */
+    public function getTree(User $user, bool $includeArchived = false, bool $includeTaskCounts = false): array
+    {
+        $userId = $user->getId();
+        if ($userId === null) {
+            throw InvalidStateException::missingRequiredId('User');
+        }
+
+        // Try cache first
+        $cached = $this->projectCacheService->get($userId, $includeArchived, $includeTaskCounts);
+        if ($cached !== null) {
+            return $cached;
+        }
+
+        // Build tree
+        $projects = $this->projectRepository->getTreeByUser($user, $includeArchived);
+
+        $taskCounts = [];
+        if ($includeTaskCounts) {
+            $taskCounts = $this->projectRepository->getTaskCountsForProjects($projects);
+        }
+
+        $tree = $this->projectTreeTransformer->transformToTree($projects, $taskCounts);
+
+        // Cache result
+        $this->projectCacheService->set($userId, $includeArchived, $includeTaskCounts, $tree);
+
+        return $tree;
+    }
+
+    /**
+     * Archive a project with options for handling children.
+     *
+     * @param Project $project The project to archive
+     * @param bool $cascade Archive all descendants
+     * @param bool $promoteChildren Move children to the project's parent
+     * @return array{project: Project, undoToken: UndoToken|null, affectedProjects: array}
+     */
+    public function archiveWithOptions(Project $project, bool $cascade = false, bool $promoteChildren = false): array
+    {
+        $ownerId = $project->getOwner()?->getId();
+
+        if ($ownerId === null) {
+            throw InvalidStateException::missingOwner('Project');
+        }
+
+        $previousState = $this->projectStateService->serializeArchiveState($project);
+
+        $undoToken = $this->projectUndoService->createArchiveUndoToken($project, $previousState);
+
+        $affectedProjects = [];
+
+        if ($cascade) {
+            // Archive all descendants
+            $descendants = $this->projectRepository->findAllDescendants($project);
+            foreach ($descendants as $descendant) {
+                if (!$descendant->isArchived()) {
+                    $descendant->setIsArchived(true);
+                    $descendant->setArchivedAt(new \DateTimeImmutable());
+                    $affectedProjects[] = $descendant->getId();
+                }
+            }
+        } elseif ($promoteChildren) {
+            // Move children to this project's parent
+            $parentProject = $project->getParent();
+            $children = $this->projectRepository->findChildrenByParent($project, true);
+            foreach ($children as $child) {
+                $child->setParent($parentProject);
+                $affectedProjects[] = $child->getId();
+            }
+        }
+
+        $project->setIsArchived(true);
+        $project->setArchivedAt(new \DateTimeImmutable());
+
+        $this->entityManager->flush();
+
+        // Invalidate cache
+        $this->projectCacheService->invalidate($ownerId);
+
+        return [
+            'project' => $project,
+            'undoToken' => $undoToken,
+            'affectedProjects' => $affectedProjects,
+        ];
+    }
+
+    /**
+     * Unarchive a project with options for handling children.
+     *
+     * @param Project $project The project to unarchive
+     * @param bool $cascade Unarchive all descendants
+     * @return array{project: Project, undoToken: UndoToken|null, affectedProjects: array}
+     */
+    public function unarchiveWithOptions(Project $project, bool $cascade = false): array
+    {
+        $ownerId = $project->getOwner()?->getId();
+
+        if ($ownerId === null) {
+            throw InvalidStateException::missingOwner('Project');
+        }
+
+        $previousState = $this->projectStateService->serializeArchiveState($project);
+
+        $undoToken = $this->projectUndoService->createArchiveUndoToken($project, $previousState);
+
+        $affectedProjects = [];
+
+        if ($cascade) {
+            // Unarchive all descendants
+            $descendants = $this->projectRepository->findAllDescendants($project);
+            foreach ($descendants as $descendant) {
+                if ($descendant->isArchived()) {
+                    $descendant->setIsArchived(false);
+                    $descendant->setArchivedAt(null);
+                    $affectedProjects[] = $descendant->getId();
+                }
+            }
+        }
+
+        $project->setIsArchived(false);
+        $project->setArchivedAt(null);
+
+        $this->entityManager->flush();
+
+        // Invalidate cache
+        $this->projectCacheService->invalidate($ownerId);
+
+        return [
+            'project' => $project,
+            'undoToken' => $undoToken,
+            'affectedProjects' => $affectedProjects,
+        ];
+    }
+
+    /**
+     * Get archived projects for a user.
+     *
+     * @param User $user The user
+     * @return Project[] The archived projects
+     */
+    public function getArchivedProjects(User $user): array
+    {
+        return $this->projectRepository->findArchivedByOwner($user);
+    }
+
+    /**
+     * Validate and get a parent project.
+     *
+     * @param User $user The user
+     * @param string $parentId The parent ID to validate
+     * @param Project|null $project The project being moved (to check for circular refs)
+     * @return Project The validated parent project
+     */
+    private function validateAndGetParent(User $user, string $parentId, ?Project $project = null): Project
+    {
+        $parent = $this->projectRepository->find($parentId);
+
+        if ($parent === null || $parent->isDeleted()) {
+            throw ProjectParentNotFoundException::create($parentId);
+        }
+
+        if ($parent->getOwner()?->getId() !== $user->getId()) {
+            throw ProjectParentNotOwnedException::create($parentId);
+        }
+
+        if ($parent->isArchived()) {
+            throw ProjectMoveToArchivedException::create($project?->getId() ?? '', $parentId);
+        }
+
+        // Check for circular reference if we're moving an existing project
+        if ($project !== null && $project->getId() !== null) {
+            if ($parent->getId() === $project->getId()) {
+                throw ProjectMoveToDescendantException::create($project->getId(), $parentId);
+            }
+
+            if ($parent->isDescendantOf($project)) {
+                throw ProjectMoveToDescendantException::create($project->getId(), $parentId);
+            }
+        }
+
+        return $parent;
     }
 }

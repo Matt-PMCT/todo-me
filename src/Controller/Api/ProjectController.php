@@ -5,11 +5,15 @@ declare(strict_types=1);
 namespace App\Controller\Api;
 
 use App\DTO\CreateProjectRequest;
+use App\DTO\MoveProjectRequest;
 use App\DTO\ProjectListResponse;
 use App\DTO\ProjectResponse;
+use App\DTO\ProjectSettingsRequest;
+use App\DTO\ReorderProjectsRequest;
 use App\DTO\UpdateProjectRequest;
 use App\Entity\User;
 use App\Repository\ProjectRepository;
+use App\Repository\TaskRepository;
 use App\Service\ProjectService;
 use App\Service\ResponseFormatter;
 use App\Service\ValidationHelper;
@@ -31,6 +35,7 @@ final class ProjectController extends AbstractController
     public function __construct(
         private readonly ProjectService $projectService,
         private readonly ProjectRepository $projectRepository,
+        private readonly TaskRepository $taskRepository,
         private readonly ResponseFormatter $responseFormatter,
         private readonly ValidationHelper $validationHelper,
     ) {
@@ -206,16 +211,23 @@ final class ProjectController extends AbstractController
      * Archived projects are hidden from the default project list but can still be
      * accessed by ID. Tasks in archived projects are not deleted.
      *
+     * Query Parameters:
+     * - cascade: Archive all descendant projects (default: false)
+     * - promote_children: Move children to parent before archiving (default: false)
+     *
      * Returns the archived project with an undoToken.
      */
     #[Route('/{id}/archive', name: 'archive', methods: ['PATCH'], requirements: ['id' => '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}'])]
-    public function archive(string $id): JsonResponse
+    public function archive(string $id, Request $request): JsonResponse
     {
         /** @var User $user */
         $user = $this->getUser();
 
+        $cascade = $request->query->getBoolean('cascade', false);
+        $promoteChildren = $request->query->getBoolean('promote_children', false);
+
         $project = $this->projectService->findByIdOrFail($id, $user);
-        $result = $this->projectService->archive($project);
+        $result = $this->projectService->archiveWithOptions($project, $cascade, $promoteChildren);
         $taskCounts = $this->projectService->getTaskCounts($result['project']);
 
         $response = ProjectResponse::fromEntity(
@@ -230,22 +242,31 @@ final class ProjectController extends AbstractController
             $meta['undoExpiresIn'] = $result['undoToken']->getRemainingSeconds();
         }
 
+        if (!empty($result['affectedProjects'])) {
+            $meta['affectedProjects'] = $result['affectedProjects'];
+        }
+
         return $this->responseFormatter->success($response->toArray(), 200, $meta);
     }
 
     /**
      * Unarchive a project.
      *
+     * Query Parameters:
+     * - cascade: Unarchive all descendant projects (default: false)
+     *
      * Returns the unarchived project with an undoToken.
      */
     #[Route('/{id}/unarchive', name: 'unarchive', methods: ['PATCH'], requirements: ['id' => '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}'])]
-    public function unarchive(string $id): JsonResponse
+    public function unarchive(string $id, Request $request): JsonResponse
     {
         /** @var User $user */
         $user = $this->getUser();
 
+        $cascade = $request->query->getBoolean('cascade', false);
+
         $project = $this->projectService->findByIdOrFail($id, $user);
-        $result = $this->projectService->unarchive($project);
+        $result = $this->projectService->unarchiveWithOptions($project, $cascade);
         $taskCounts = $this->projectService->getTaskCounts($result['project']);
 
         $response = ProjectResponse::fromEntity(
@@ -258,6 +279,10 @@ final class ProjectController extends AbstractController
         if ($result['undoToken'] !== null) {
             $meta['undoToken'] = $result['undoToken']->token;
             $meta['undoExpiresIn'] = $result['undoToken']->getRemainingSeconds();
+        }
+
+        if (!empty($result['affectedProjects'])) {
+            $meta['affectedProjects'] = $result['affectedProjects'];
         }
 
         return $this->responseFormatter->success($response->toArray(), 200, $meta);
@@ -299,5 +324,194 @@ final class ProjectController extends AbstractController
         }
 
         return $this->responseFormatter->success($data);
+    }
+
+    /**
+     * Get the project tree for the authenticated user.
+     *
+     * Query Parameters:
+     * - include_archived: Include archived projects (default: false)
+     * - include_task_counts: Include task counts (default: true)
+     */
+    #[Route('/tree', name: 'tree', methods: ['GET'])]
+    public function tree(Request $request): JsonResponse
+    {
+        /** @var User $user */
+        $user = $this->getUser();
+
+        $includeArchived = $request->query->getBoolean('include_archived', false);
+        $includeTaskCounts = $request->query->getBoolean('include_task_counts', true);
+
+        $tree = $this->projectService->getTree($user, $includeArchived, $includeTaskCounts);
+
+        return $this->responseFormatter->success(['projects' => $tree]);
+    }
+
+    /**
+     * Get tasks for a project, optionally including child projects' tasks.
+     *
+     * Query Parameters:
+     * - include_children: Include tasks from child projects (default: uses project's showChildrenTasks setting)
+     * - include_archived_projects: Include tasks from archived child projects (default: false)
+     * - status: Filter by task status (optional)
+     */
+    #[Route('/{id}/tasks', name: 'project_tasks', methods: ['GET'], requirements: ['id' => '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}'])]
+    public function projectTasks(string $id, Request $request): JsonResponse
+    {
+        /** @var User $user */
+        $user = $this->getUser();
+
+        $project = $this->projectService->findByIdOrFail($id, $user);
+
+        // Use project's showChildrenTasks setting as default
+        $includeChildren = $request->query->has('include_children')
+            ? $request->query->getBoolean('include_children')
+            : $project->isShowChildrenTasks();
+        $includeArchivedProjects = $request->query->getBoolean('include_archived_projects', false);
+        $status = $request->query->get('status');
+
+        $tasks = $this->taskRepository->findByProjectWithChildren(
+            $project,
+            $includeChildren,
+            $includeArchivedProjects,
+            $status
+        );
+
+        $taskData = array_map(fn($task) => [
+            'id' => $task->getId(),
+            'title' => $task->getTitle(),
+            'description' => $task->getDescription(),
+            'status' => $task->getStatus(),
+            'priority' => $task->getPriority(),
+            'dueDate' => $task->getDueDate()?->format(\DateTimeInterface::RFC3339),
+            'projectId' => $task->getProject()?->getId(),
+            'projectName' => $task->getProject()?->getName(),
+            'createdAt' => $task->getCreatedAt()->format(\DateTimeInterface::RFC3339),
+            'updatedAt' => $task->getUpdatedAt()->format(\DateTimeInterface::RFC3339),
+        ], $tasks);
+
+        return $this->responseFormatter->success([
+            'tasks' => $taskData,
+            'total' => count($tasks),
+        ]);
+    }
+
+    /**
+     * Update project settings.
+     *
+     * Body:
+     * - showChildrenTasks: Whether to show children's tasks (boolean)
+     */
+    #[Route('/{id}/settings', name: 'settings', methods: ['PATCH'], requirements: ['id' => '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}'])]
+    public function settings(string $id, Request $request): JsonResponse
+    {
+        /** @var User $user */
+        $user = $this->getUser();
+
+        $project = $this->projectService->findByIdOrFail($id, $user);
+
+        $data = $this->validationHelper->decodeJsonBody($request);
+        $dto = ProjectSettingsRequest::fromArray($data);
+
+        $project = $this->projectService->updateSettings($project, $dto);
+        $taskCounts = $this->projectService->getTaskCounts($project);
+
+        $response = ProjectResponse::fromEntity(
+            $project,
+            $taskCounts['total'],
+            $taskCounts['completed'],
+        );
+
+        return $this->responseFormatter->success($response->toArray());
+    }
+
+    /**
+     * Move a project to a new parent.
+     *
+     * Body:
+     * - parentId: New parent project ID (null for root)
+     * - position: New position within siblings (optional)
+     */
+    #[Route('/{id}/move', name: 'move', methods: ['POST'], requirements: ['id' => '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}'])]
+    public function move(string $id, Request $request): JsonResponse
+    {
+        /** @var User $user */
+        $user = $this->getUser();
+
+        $project = $this->projectService->findByIdOrFail($id, $user);
+
+        $data = $this->validationHelper->decodeJsonBody($request);
+        $dto = MoveProjectRequest::fromArray($data);
+
+        $result = $this->projectService->move($project, $dto);
+        $taskCounts = $this->projectService->getTaskCounts($result['project']);
+
+        $response = ProjectResponse::fromEntity(
+            $result['project'],
+            $taskCounts['total'],
+            $taskCounts['completed'],
+        );
+
+        $meta = [];
+        if ($result['undoToken'] !== null) {
+            $meta['undoToken'] = $result['undoToken']->token;
+            $meta['undoExpiresIn'] = $result['undoToken']->getRemainingSeconds();
+        }
+
+        return $this->responseFormatter->success($response->toArray(), 200, $meta);
+    }
+
+    /**
+     * Reorder projects within a parent.
+     *
+     * Body:
+     * - parentId: Parent project ID (null for root projects)
+     * - projectIds: Array of project IDs in desired order
+     */
+    #[Route('/reorder', name: 'reorder', methods: ['POST'])]
+    public function reorder(Request $request): JsonResponse
+    {
+        /** @var User $user */
+        $user = $this->getUser();
+
+        $data = $this->validationHelper->decodeJsonBody($request);
+        $dto = ReorderProjectsRequest::fromArray($data);
+
+        $this->projectService->batchReorder($user, $dto->parentId, $dto->projectIds);
+
+        return $this->responseFormatter->success(['message' => 'Projects reordered successfully']);
+    }
+
+    /**
+     * List archived projects.
+     */
+    #[Route('/archived', name: 'archived_list', methods: ['GET'])]
+    public function archivedList(): JsonResponse
+    {
+        /** @var User $user */
+        $user = $this->getUser();
+
+        $projects = $this->projectService->getArchivedProjects($user);
+
+        // Get task counts for all projects
+        $taskCounts = $this->projectRepository->getTaskCountsForProjects($projects);
+
+        // Build response items
+        $items = [];
+        foreach ($projects as $project) {
+            $projectId = $project->getId() ?? '';
+            $counts = $taskCounts[$projectId] ?? ['total' => 0, 'completed' => 0];
+
+            $items[] = ProjectResponse::fromEntity(
+                $project,
+                $counts['total'],
+                $counts['completed'],
+            )->toArray();
+        }
+
+        return $this->responseFormatter->success([
+            'projects' => $items,
+            'total' => count($items),
+        ]);
     }
 }
