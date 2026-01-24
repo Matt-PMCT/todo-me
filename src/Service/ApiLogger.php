@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Service;
 
 use App\EventListener\RequestIdListener;
+use App\Interface\ApiLoggerInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
@@ -18,7 +19,7 @@ use Symfony\Component\HttpFoundation\Response;
  * - Timing information
  * - Structured logging format
  */
-final class ApiLogger
+final class ApiLogger implements ApiLoggerInterface
 {
     private ?float $requestStartTime = null;
 

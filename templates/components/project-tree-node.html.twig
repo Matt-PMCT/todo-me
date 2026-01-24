@@ -105,7 +105,8 @@
         </div>
     </div>
 
-    {# Children - Recursive #}
+    {# Children - Recursive with depth limit to prevent Twig compilation issues #}
+    {% if depth < 10 %}
     <div x-show="project.children && project.children.length > 0 && !isCollapsed(project.id)"
          x-transition:enter="transition ease-out duration-100"
          x-transition:enter-start="opacity-0 transform -translate-y-1"
@@ -119,4 +120,5 @@
             </div>
         </template>
     </div>
+    {% endif %}
 </div>

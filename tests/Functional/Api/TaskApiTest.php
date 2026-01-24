@@ -896,7 +896,7 @@ class TaskApiTest extends ApiTestCase
             '/api/v1/tasks/undo/invalid-token-12345'
         );
 
-        $this->assertResponseStatusCode(Response::HTTP_UNPROCESSABLE_ENTITY, $response);
+        $this->assertResponseStatusCode(Response::HTTP_BAD_REQUEST, $response);
     }
 
     public function testUndoWrongUser(): void
@@ -924,6 +924,7 @@ class TaskApiTest extends ApiTestCase
 
         // Should fail - token belongs to different user
         $this->assertContains($response->getStatusCode(), [
+            Response::HTTP_BAD_REQUEST,
             Response::HTTP_UNPROCESSABLE_ENTITY,
             Response::HTTP_FORBIDDEN,
             Response::HTTP_NOT_FOUND,

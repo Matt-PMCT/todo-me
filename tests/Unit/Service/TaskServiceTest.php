@@ -9,14 +9,14 @@ use App\DTO\UpdateTaskRequest;
 use App\Entity\Task;
 use App\Exception\EntityNotFoundException;
 use App\Exception\ForbiddenException;
+use App\Interface\OwnershipCheckerInterface;
+use App\Interface\TaskStateServiceInterface;
+use App\Interface\TaskUndoServiceInterface;
 use App\Repository\ProjectRepository;
 use App\Repository\TagRepository;
 use App\Repository\TaskRepository;
-use App\Interface\OwnershipCheckerInterface;
 use App\Service\Parser\NaturalLanguageParserService;
 use App\Service\TaskService;
-use App\Service\TaskStateService;
-use App\Service\TaskUndoService;
 use App\Service\ValidationHelper;
 use App\Tests\Unit\UnitTestCase;
 use App\ValueObject\UndoToken;
@@ -40,8 +40,8 @@ class TaskServiceTest extends UnitTestCase
     private ValidationHelper $validationHelper;
     private OwnershipCheckerInterface&MockObject $ownershipChecker;
     private NaturalLanguageParserService&MockObject $naturalLanguageParser;
-    private TaskStateService&MockObject $taskStateService;
-    private TaskUndoService&MockObject $taskUndoService;
+    private TaskStateServiceInterface&MockObject $taskStateService;
+    private TaskUndoServiceInterface&MockObject $taskUndoService;
     private TaskService $taskService;
 
     protected function setUp(): void
@@ -67,9 +67,9 @@ class TaskServiceTest extends UnitTestCase
         // NaturalLanguageParser has complex dependencies - keep mocked
         $this->naturalLanguageParser = $this->createMock(NaturalLanguageParserService::class);
 
-        // TaskStateService and TaskUndoService are tested separately - mock them
-        $this->taskStateService = $this->createMock(TaskStateService::class);
-        $this->taskUndoService = $this->createMock(TaskUndoService::class);
+        // Mock interfaces for final services (TaskStateService and TaskUndoService)
+        $this->taskStateService = $this->createMock(TaskStateServiceInterface::class);
+        $this->taskUndoService = $this->createMock(TaskUndoServiceInterface::class);
 
         $this->taskService = new TaskService(
             $this->taskRepository,
@@ -120,7 +120,8 @@ class TaskServiceTest extends UnitTestCase
     public function testCreateTaskWithAllFields(): void
     {
         $user = $this->createUserWithId();
-        $project = $this->createProjectWithId('project-123', $user);
+        $projectId = $this->generateUuid();
+        $project = $this->createProjectWithId($projectId, $user);
 
         $dto = new CreateTaskRequest(
             title: 'Full Task',
@@ -128,12 +129,12 @@ class TaskServiceTest extends UnitTestCase
             status: Task::STATUS_IN_PROGRESS,
             priority: 4,
             dueDate: '2024-12-31',
-            projectId: 'project-123',
+            projectId: $projectId,
         );
 
         $this->projectRepository->expects($this->once())
             ->method('find')
-            ->with('project-123')
+            ->with($projectId)
             ->willReturn($project);
 
         $this->ownershipChecker->expects($this->once())
@@ -165,14 +166,15 @@ class TaskServiceTest extends UnitTestCase
     public function testCreateTaskWithNonExistentProjectThrowsException(): void
     {
         $user = $this->createUserWithId();
+        $nonExistentId = $this->generateUuid();
         $dto = new CreateTaskRequest(
             title: 'Task',
-            projectId: 'non-existent-project',
+            projectId: $nonExistentId,
         );
 
         $this->projectRepository->expects($this->once())
             ->method('find')
-            ->with('non-existent-project')
+            ->with($nonExistentId)
             ->willReturn(null);
 
         $this->expectException(EntityNotFoundException::class);
@@ -183,16 +185,17 @@ class TaskServiceTest extends UnitTestCase
     {
         $user = $this->createUserWithId();
         $otherUser = $this->createUserWithId('other-user', 'other@example.com');
-        $project = $this->createProjectWithId('project-123', $otherUser);
+        $projectId = $this->generateUuid();
+        $project = $this->createProjectWithId($projectId, $otherUser);
 
         $dto = new CreateTaskRequest(
             title: 'Task',
-            projectId: 'project-123',
+            projectId: $projectId,
         );
 
         $this->projectRepository->expects($this->once())
             ->method('find')
-            ->with('project-123')
+            ->with($projectId)
             ->willReturn($project);
 
         $this->ownershipChecker->expects($this->once())

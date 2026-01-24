@@ -4,8 +4,9 @@ declare(strict_types=1);
 
 namespace App\Security;
 
+use App\Interface\ApiLoggerInterface;
+use App\Interface\UserServiceInterface;
 use App\Service\ApiLogger;
-use App\Service\UserService;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -45,8 +46,8 @@ final class ApiTokenAuthenticator extends AbstractAuthenticator
     ];
 
     public function __construct(
-        private readonly UserService $userService,
-        private readonly ApiLogger $apiLogger,
+        private readonly UserServiceInterface $userService,
+        private readonly ApiLoggerInterface $apiLogger,
     ) {
     }
 

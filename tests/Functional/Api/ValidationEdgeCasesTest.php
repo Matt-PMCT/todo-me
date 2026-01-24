@@ -50,7 +50,7 @@ class ValidationEdgeCasesTest extends ApiTestCase
         $this->assertErrorCode($response, 'VALIDATION_ERROR');
 
         $error = $this->getResponseError($response);
-        $this->assertArrayHasKey('title', $error['details']['fields'] ?? []);
+        $this->assertArrayHasKey('title', $error['details']['errors'] ?? []);
     }
 
     public function testCreateTaskWithWhitespaceOnlyTitle(): void

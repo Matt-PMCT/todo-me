@@ -10,9 +10,9 @@ use App\Enum\UndoAction;
 use App\Exception\EntityNotFoundException;
 use App\Exception\InvalidStateException;
 use App\Exception\InvalidUndoTokenException;
+use App\Interface\OwnershipCheckerInterface;
+use App\Interface\TaskStateServiceInterface;
 use App\Repository\TaskRepository;
-use App\Service\OwnershipChecker;
-use App\Service\TaskStateService;
 use App\Service\TaskUndoService;
 use App\Service\UndoService;
 use App\Tests\Unit\UnitTestCase;
@@ -25,17 +25,17 @@ class TaskUndoServiceTest extends UnitTestCase
     private TaskUndoService $service;
     private UndoService&MockObject $undoService;
     private TaskRepository&MockObject $taskRepository;
-    private TaskStateService&MockObject $taskStateService;
+    private TaskStateServiceInterface&MockObject $taskStateService;
     private EntityManagerInterface&MockObject $entityManager;
-    private OwnershipChecker&MockObject $ownershipChecker;
+    private OwnershipCheckerInterface&MockObject $ownershipChecker;
 
     protected function setUp(): void
     {
         $this->undoService = $this->createMock(UndoService::class);
         $this->taskRepository = $this->createMock(TaskRepository::class);
-        $this->taskStateService = $this->createMock(TaskStateService::class);
+        $this->taskStateService = $this->createMock(TaskStateServiceInterface::class);
         $this->entityManager = $this->createMock(EntityManagerInterface::class);
-        $this->ownershipChecker = $this->createMock(OwnershipChecker::class);
+        $this->ownershipChecker = $this->createMock(OwnershipCheckerInterface::class);
 
         $this->service = new TaskUndoService(
             $this->undoService,
@@ -52,15 +52,16 @@ class TaskUndoServiceTest extends UnitTestCase
         $task = $this->createTaskWithId('task-123', $user);
         $previousState = ['title' => 'Old Title'];
 
-        $undoToken = new UndoToken(
-            token: 'undo-token-123',
-            userId: 'user-123',
-            action: UndoAction::UPDATE->value,
-            entityType: 'task',
-            entityId: 'task-123',
-            previousState: $previousState,
-            expiresAt: new \DateTimeImmutable('+60 seconds'),
-        );
+        $undoToken = UndoToken::fromArray([
+            'token' => 'undo-token-123',
+            'userId' => 'user-123',
+            'action' => UndoAction::UPDATE->value,
+            'entityType' => 'task',
+            'entityId' => 'task-123',
+            'previousState' => $previousState,
+            'createdAt' => (new \DateTimeImmutable())->format(\DateTimeImmutable::ATOM),
+            'expiresAt' => (new \DateTimeImmutable('+60 seconds'))->format(\DateTimeImmutable::ATOM),
+        ]);
 
         $this->undoService
             ->expects($this->once())
@@ -97,15 +98,16 @@ class TaskUndoServiceTest extends UnitTestCase
         $task = $this->createTaskWithId('task-123', $user);
         $serializedState = ['title' => 'Test Task'];
 
-        $undoToken = new UndoToken(
-            token: 'undo-token-123',
-            userId: 'user-123',
-            action: UndoAction::DELETE->value,
-            entityType: 'task',
-            entityId: 'task-123',
-            previousState: $serializedState,
-            expiresAt: new \DateTimeImmutable('+60 seconds'),
-        );
+        $undoToken = UndoToken::fromArray([
+            'token' => 'undo-token-123',
+            'userId' => 'user-123',
+            'action' => UndoAction::DELETE->value,
+            'entityType' => 'task',
+            'entityId' => 'task-123',
+            'previousState' => $serializedState,
+            'createdAt' => (new \DateTimeImmutable())->format(\DateTimeImmutable::ATOM),
+            'expiresAt' => (new \DateTimeImmutable('+60 seconds'))->format(\DateTimeImmutable::ATOM),
+        ]);
 
         $this->taskStateService
             ->expects($this->once())
@@ -129,15 +131,16 @@ class TaskUndoServiceTest extends UnitTestCase
         $task = $this->createTaskWithId('task-123', $user);
         $previousState = ['status' => Task::STATUS_PENDING];
 
-        $undoToken = new UndoToken(
-            token: 'undo-token-123',
-            userId: 'user-123',
-            action: UndoAction::STATUS_CHANGE->value,
-            entityType: 'task',
-            entityId: 'task-123',
-            previousState: $previousState,
-            expiresAt: new \DateTimeImmutable('+60 seconds'),
-        );
+        $undoToken = UndoToken::fromArray([
+            'token' => 'undo-token-123',
+            'userId' => 'user-123',
+            'action' => UndoAction::STATUS_CHANGE->value,
+            'entityType' => 'task',
+            'entityId' => 'task-123',
+            'previousState' => $previousState,
+            'createdAt' => (new \DateTimeImmutable())->format(\DateTimeImmutable::ATOM),
+            'expiresAt' => (new \DateTimeImmutable('+60 seconds'))->format(\DateTimeImmutable::ATOM),
+        ]);
 
         $this->undoService
             ->expects($this->once())
@@ -176,15 +179,16 @@ class TaskUndoServiceTest extends UnitTestCase
     {
         $user = $this->createUserWithId('user-123');
 
-        $undoToken = new UndoToken(
-            token: 'token-123',
-            userId: 'user-123',
-            action: UndoAction::DELETE->value,
-            entityType: 'project', // Not a task
-            entityId: 'project-123',
-            previousState: [],
-            expiresAt: new \DateTimeImmutable('+60 seconds'),
-        );
+        $undoToken = UndoToken::fromArray([
+            'token' => 'token-123',
+            'userId' => 'user-123',
+            'action' => UndoAction::DELETE->value,
+            'entityType' => 'project', // Not a task
+            'entityId' => 'project-123',
+            'previousState' => [],
+            'createdAt' => (new \DateTimeImmutable())->format(\DateTimeImmutable::ATOM),
+            'expiresAt' => (new \DateTimeImmutable('+60 seconds'))->format(\DateTimeImmutable::ATOM),
+        ]);
 
         $this->undoService
             ->expects($this->once())
@@ -203,15 +207,16 @@ class TaskUndoServiceTest extends UnitTestCase
         $previousState = ['title' => 'Deleted Task'];
         $restoredTask = $this->createTaskWithId('task-123', $user, 'Deleted Task');
 
-        $undoToken = new UndoToken(
-            token: 'token-123',
-            userId: 'user-123',
-            action: UndoAction::DELETE->value,
-            entityType: 'task',
-            entityId: 'task-123',
-            previousState: $previousState,
-            expiresAt: new \DateTimeImmutable('+60 seconds'),
-        );
+        $undoToken = UndoToken::fromArray([
+            'token' => 'token-123',
+            'userId' => 'user-123',
+            'action' => UndoAction::DELETE->value,
+            'entityType' => 'task',
+            'entityId' => 'task-123',
+            'previousState' => $previousState,
+            'createdAt' => (new \DateTimeImmutable())->format(\DateTimeImmutable::ATOM),
+            'expiresAt' => (new \DateTimeImmutable('+60 seconds'))->format(\DateTimeImmutable::ATOM),
+        ]);
 
         $this->undoService
             ->expects($this->once())
@@ -244,15 +249,16 @@ class TaskUndoServiceTest extends UnitTestCase
         $task = $this->createTaskWithId('task-123', $user, 'Current Title');
         $previousState = ['title' => 'Previous Title'];
 
-        $undoToken = new UndoToken(
-            token: 'token-123',
-            userId: 'user-123',
-            action: UndoAction::UPDATE->value,
-            entityType: 'task',
-            entityId: 'task-123',
-            previousState: $previousState,
-            expiresAt: new \DateTimeImmutable('+60 seconds'),
-        );
+        $undoToken = UndoToken::fromArray([
+            'token' => 'token-123',
+            'userId' => 'user-123',
+            'action' => UndoAction::UPDATE->value,
+            'entityType' => 'task',
+            'entityId' => 'task-123',
+            'previousState' => $previousState,
+            'createdAt' => (new \DateTimeImmutable())->format(\DateTimeImmutable::ATOM),
+            'expiresAt' => (new \DateTimeImmutable('+60 seconds'))->format(\DateTimeImmutable::ATOM),
+        ]);
 
         $this->undoService
             ->expects($this->once())
@@ -288,15 +294,16 @@ class TaskUndoServiceTest extends UnitTestCase
     {
         $user = $this->createUserWithId('user-123');
 
-        $undoToken = new UndoToken(
-            token: 'token-123',
-            userId: 'user-123',
-            action: UndoAction::UPDATE->value,
-            entityType: 'task',
-            entityId: 'non-existent-task',
-            previousState: [],
-            expiresAt: new \DateTimeImmutable('+60 seconds'),
-        );
+        $undoToken = UndoToken::fromArray([
+            'token' => 'token-123',
+            'userId' => 'user-123',
+            'action' => UndoAction::UPDATE->value,
+            'entityType' => 'task',
+            'entityId' => 'non-existent-task',
+            'previousState' => [],
+            'createdAt' => (new \DateTimeImmutable())->format(\DateTimeImmutable::ATOM),
+            'expiresAt' => (new \DateTimeImmutable('+60 seconds'))->format(\DateTimeImmutable::ATOM),
+        ]);
 
         $this->undoService
             ->expects($this->once())
@@ -318,15 +325,16 @@ class TaskUndoServiceTest extends UnitTestCase
     {
         $user = $this->createUserWithId('user-123');
 
-        $undoToken = new UndoToken(
-            token: 'token-123',
-            userId: 'user-123',
-            action: UndoAction::UPDATE->value, // Not DELETE
-            entityType: 'task',
-            entityId: 'task-123',
-            previousState: [],
-            expiresAt: new \DateTimeImmutable('+60 seconds'),
-        );
+        $undoToken = UndoToken::fromArray([
+            'token' => 'token-123',
+            'userId' => 'user-123',
+            'action' => UndoAction::UPDATE->value, // Not DELETE
+            'entityType' => 'task',
+            'entityId' => 'task-123',
+            'previousState' => [],
+            'createdAt' => (new \DateTimeImmutable())->format(\DateTimeImmutable::ATOM),
+            'expiresAt' => (new \DateTimeImmutable('+60 seconds'))->format(\DateTimeImmutable::ATOM),
+        ]);
 
         $this->undoService
             ->expects($this->once())
@@ -343,15 +351,16 @@ class TaskUndoServiceTest extends UnitTestCase
     {
         $user = $this->createUserWithId('user-123');
 
-        $undoToken = new UndoToken(
-            token: 'token-123',
-            userId: 'user-123',
-            action: UndoAction::DELETE->value, // Not UPDATE
-            entityType: 'task',
-            entityId: 'task-123',
-            previousState: [],
-            expiresAt: new \DateTimeImmutable('+60 seconds'),
-        );
+        $undoToken = UndoToken::fromArray([
+            'token' => 'token-123',
+            'userId' => 'user-123',
+            'action' => UndoAction::DELETE->value, // Not UPDATE
+            'entityType' => 'task',
+            'entityId' => 'task-123',
+            'previousState' => [],
+            'createdAt' => (new \DateTimeImmutable())->format(\DateTimeImmutable::ATOM),
+            'expiresAt' => (new \DateTimeImmutable('+60 seconds'))->format(\DateTimeImmutable::ATOM),
+        ]);
 
         $this->undoService
             ->expects($this->once())
@@ -370,15 +379,16 @@ class TaskUndoServiceTest extends UnitTestCase
         $task = $this->createTaskWithId('task-123', $user);
         $previousState = ['status' => Task::STATUS_PENDING];
 
-        $undoToken = new UndoToken(
-            token: 'token-123',
-            userId: 'user-123',
-            action: UndoAction::STATUS_CHANGE->value,
-            entityType: 'task',
-            entityId: 'task-123',
-            previousState: $previousState,
-            expiresAt: new \DateTimeImmutable('+60 seconds'),
-        );
+        $undoToken = UndoToken::fromArray([
+            'token' => 'token-123',
+            'userId' => 'user-123',
+            'action' => UndoAction::STATUS_CHANGE->value,
+            'entityType' => 'task',
+            'entityId' => 'task-123',
+            'previousState' => $previousState,
+            'createdAt' => (new \DateTimeImmutable())->format(\DateTimeImmutable::ATOM),
+            'expiresAt' => (new \DateTimeImmutable('+60 seconds'))->format(\DateTimeImmutable::ATOM),
+        ]);
 
         $this->undoService
             ->expects($this->once())

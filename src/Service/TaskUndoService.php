@@ -10,6 +10,9 @@ use App\Enum\UndoAction;
 use App\Exception\EntityNotFoundException;
 use App\Exception\InvalidStateException;
 use App\Exception\InvalidUndoTokenException;
+use App\Interface\OwnershipCheckerInterface;
+use App\Interface\TaskStateServiceInterface;
+use App\Interface\TaskUndoServiceInterface;
 use App\Repository\TaskRepository;
 use App\ValueObject\UndoToken;
 use Doctrine\ORM\EntityManagerInterface;
@@ -20,16 +23,16 @@ use Doctrine\ORM\EntityManagerInterface;
  * Handles undo token creation and consumption for task operations,
  * including delete, update, and status change operations.
  */
-final class TaskUndoService
+final class TaskUndoService implements TaskUndoServiceInterface
 {
     private const ENTITY_TYPE = 'task';
 
     public function __construct(
         private readonly UndoService $undoService,
         private readonly TaskRepository $taskRepository,
-        private readonly TaskStateService $taskStateService,
+        private readonly TaskStateServiceInterface $taskStateService,
         private readonly EntityManagerInterface $entityManager,
-        private readonly OwnershipChecker $ownershipChecker,
+        private readonly OwnershipCheckerInterface $ownershipChecker,
     ) {
     }
 

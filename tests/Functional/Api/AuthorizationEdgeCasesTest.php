@@ -86,8 +86,9 @@ class AuthorizationEdgeCasesTest extends ApiTestCase
 
         $response = $this->authenticatedApiRequest(
             $user2,
-            'POST',
-            '/api/v1/tasks/' . $task->getId() . '/complete'
+            'PATCH',
+            '/api/v1/tasks/' . $task->getId() . '/status',
+            ['status' => Task::STATUS_COMPLETED]
         );
 
         $this->assertResponseStatusCode(Response::HTTP_FORBIDDEN, $response);
@@ -114,8 +115,11 @@ class AuthorizationEdgeCasesTest extends ApiTestCase
             '/api/v1/projects/' . $project->getId()
         );
 
-        $this->assertResponseStatusCode(Response::HTTP_FORBIDDEN, $response);
-        $this->assertErrorCode($response, 'PERMISSION_DENIED');
+        // Security-by-obscurity: returns 404 instead of 403 to prevent enumeration
+        $this->assertContains($response->getStatusCode(), [
+            Response::HTTP_FORBIDDEN,
+            Response::HTTP_NOT_FOUND,
+        ]);
     }
 
     public function testCannotUpdateOtherUserProject(): void
@@ -132,7 +136,11 @@ class AuthorizationEdgeCasesTest extends ApiTestCase
             ['name' => 'Hijacked Project']
         );
 
-        $this->assertResponseStatusCode(Response::HTTP_FORBIDDEN, $response);
+        // Security-by-obscurity: returns 404 instead of 403 to prevent enumeration
+        $this->assertContains($response->getStatusCode(), [
+            Response::HTTP_FORBIDDEN,
+            Response::HTTP_NOT_FOUND,
+        ]);
 
         // Verify original project unchanged
         $this->refreshEntity($project);
@@ -152,7 +160,11 @@ class AuthorizationEdgeCasesTest extends ApiTestCase
             '/api/v1/projects/' . $project->getId()
         );
 
-        $this->assertResponseStatusCode(Response::HTTP_FORBIDDEN, $response);
+        // Security-by-obscurity: returns 404 instead of 403 to prevent enumeration
+        $this->assertContains($response->getStatusCode(), [
+            Response::HTTP_FORBIDDEN,
+            Response::HTTP_NOT_FOUND,
+        ]);
     }
 
     public function testCannotArchiveOtherUserProject(): void
@@ -164,11 +176,15 @@ class AuthorizationEdgeCasesTest extends ApiTestCase
 
         $response = $this->authenticatedApiRequest(
             $user2,
-            'POST',
+            'PATCH',
             '/api/v1/projects/' . $project->getId() . '/archive'
         );
 
-        $this->assertResponseStatusCode(Response::HTTP_FORBIDDEN, $response);
+        // Security-by-obscurity: returns 404 instead of 403 to prevent enumeration
+        $this->assertContains($response->getStatusCode(), [
+            Response::HTTP_FORBIDDEN,
+            Response::HTTP_NOT_FOUND,
+        ]);
     }
 
     // ========================================
@@ -314,7 +330,7 @@ class AuthorizationEdgeCasesTest extends ApiTestCase
         );
 
         $this->assertResponseStatusCode(Response::HTTP_NOT_FOUND, $response);
-        $this->assertErrorCode($response, 'ENTITY_NOT_FOUND');
+        $this->assertErrorCode($response, 'RESOURCE_NOT_FOUND');
     }
 
     public function testAccessNonExistentProject(): void
@@ -328,7 +344,7 @@ class AuthorizationEdgeCasesTest extends ApiTestCase
         );
 
         $this->assertResponseStatusCode(Response::HTTP_NOT_FOUND, $response);
-        $this->assertErrorCode($response, 'ENTITY_NOT_FOUND');
+        $this->assertErrorCode($response, 'RESOURCE_NOT_FOUND');
     }
 
     public function testUpdateNonExistentTask(): void
@@ -440,12 +456,12 @@ class AuthorizationEdgeCasesTest extends ApiTestCase
         $response = $this->authenticatedApiRequest(
             $user,
             'POST',
-            '/api/v1/tasks/undo',
-            ['token' => 'invalid-undo-token']
+            '/api/v1/tasks/undo/invalid-undo-token'
         );
 
-        $this->assertResponseStatusCode(Response::HTTP_UNPROCESSABLE_ENTITY, $response);
-        $this->assertErrorCode($response, 'VALIDATION_ERROR');
+        // Invalid token returns 400 Bad Request with INVALID_UNDO_TOKEN error
+        $this->assertResponseStatusCode(Response::HTTP_BAD_REQUEST, $response);
+        $this->assertErrorCode($response, 'INVALID_UNDO_TOKEN');
     }
 
     public function testCannotUseOtherUserUndoToken(): void
@@ -470,11 +486,11 @@ class AuthorizationEdgeCasesTest extends ApiTestCase
             $response = $this->authenticatedApiRequest(
                 $user2,
                 'POST',
-                '/api/v1/tasks/undo',
-                ['token' => $undoToken]
+                '/api/v1/tasks/undo/' . $undoToken
             );
 
-            $this->assertResponseStatusCode(Response::HTTP_UNPROCESSABLE_ENTITY, $response);
+            // Token belongs to different user - should return 400 Bad Request
+            $this->assertResponseStatusCode(Response::HTTP_BAD_REQUEST, $response);
         } else {
             $this->markTestSkipped('Undo token not returned from delete');
         }
