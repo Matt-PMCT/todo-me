@@ -495,24 +495,24 @@ class RecurringTaskApiTest extends ApiTestCase
         $this->assertNull($data['nextTask'] ?? null);
     }
 
-    public function testCompleteForeverNonRecurringTask(): void
+    public function testCompleteForeverOnNonRecurringTaskReturnsError(): void
     {
         $user = $this->createUser('complete-forever-non@example.com', 'Password123');
 
         // Create a regular (non-recurring) task
         $task = $this->createTask($user, 'Regular Task');
 
-        // Complete forever should still work (just completes it)
+        // Complete forever should return an error for non-recurring tasks
         $response = $this->authenticatedApiRequest(
             $user,
             'POST',
             '/api/v1/tasks/' . $task->getId() . '/complete-forever'
         );
 
-        $this->assertResponseStatusCode(Response::HTTP_OK, $response);
+        $this->assertResponseStatusCode(Response::HTTP_BAD_REQUEST, $response);
 
-        $data = $this->getResponseData($response);
-        $this->assertEquals(Task::STATUS_COMPLETED, $data['status']);
+        $data = json_decode($response->getContent(), true);
+        $this->assertEquals('TASK_NOT_RECURRING', $data['error']['code']);
     }
 
     public function testCompleteForeverNotFound(): void

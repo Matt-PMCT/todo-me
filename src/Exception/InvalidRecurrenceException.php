@@ -83,6 +83,18 @@ final class InvalidRecurrenceException extends BadRequestHttpException
     }
 
     /**
+     * Creates an exception when complete-forever is called on a non-recurring task.
+     */
+    public static function taskNotRecurring(): self
+    {
+        return new self(
+            message: 'Cannot use complete-forever on a non-recurring task',
+            pattern: '',
+            errorCode: 'TASK_NOT_RECURRING',
+        );
+    }
+
+    /**
      * Get the invalid pattern that caused the exception.
      */
     public function getPattern(): string
