@@ -80,6 +80,11 @@ final class TaskFilterRequest
         public readonly ?string $search = null,
 
         public readonly bool $includeCompleted = true,
+
+        public readonly ?bool $isRecurring = null,
+
+        #[Assert\Uuid(message: 'Original task ID must be a valid UUID')]
+        public readonly ?string $originalTaskId = null,
     ) {
     }
 
@@ -101,6 +106,8 @@ final class TaskFilterRequest
             hasNoDueDate: self::parseNullableBool($request, 'has_no_due_date'),
             search: self::parseNullableString($request, 'search'),
             includeCompleted: self::parseBool($request, 'include_completed', true),
+            isRecurring: self::parseNullableBool($request, 'is_recurring'),
+            originalTaskId: self::parseNullableString($request, 'original_task_id'),
         );
     }
 

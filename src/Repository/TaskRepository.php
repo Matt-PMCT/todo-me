@@ -491,6 +491,23 @@ class TaskRepository extends ServiceEntityRepository
                 ->setParameter('completedStatus', Task::STATUS_COMPLETED);
         }
 
+        // Apply isRecurring filter
+        if ($filterRequest->isRecurring !== null) {
+            $qb->andWhere('t.isRecurring = :isRecurring')
+                ->setParameter('isRecurring', $filterRequest->isRecurring);
+        }
+
+        // Apply originalTaskId filter (for recurring task chains)
+        if ($filterRequest->originalTaskId !== null) {
+            $qb->andWhere(
+                $qb->expr()->orX(
+                    $qb->expr()->eq('t.id', ':originalTaskId'),
+                    $qb->expr()->eq('t.originalTask', ':originalTaskId')
+                )
+            )
+                ->setParameter('originalTaskId', $filterRequest->originalTaskId);
+        }
+
         // Apply sorting
         $this->applySorting($qb, $sortRequest);
 
