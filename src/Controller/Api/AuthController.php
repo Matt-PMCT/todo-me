@@ -56,7 +56,7 @@ final class AuthController extends AbstractController
             }
 
             $this->apiLogger->logWarning('Registration validation failed', [
-                'email' => $registerRequest->email,
+                'email_hash' => ApiLogger::hashEmail($registerRequest->email),
                 'errors' => $validationErrors,
             ]);
 
@@ -72,7 +72,7 @@ final class AuthController extends AbstractController
         $existingUser = $this->userService->findByEmail($registerRequest->email);
         if ($existingUser !== null) {
             $this->apiLogger->logWarning('Registration attempt for existing email', [
-                'email' => $registerRequest->email,
+                'email_hash' => ApiLogger::hashEmail($registerRequest->email),
             ]);
 
             return $this->responseFormatter->error(
@@ -91,7 +91,7 @@ final class AuthController extends AbstractController
 
             $this->apiLogger->logInfo('User registered successfully', [
                 'user_id' => $user->getId(),
-                'email' => $user->getEmail(),
+                'email_hash' => ApiLogger::hashEmail($user->getEmail()),
             ]);
 
             $userResponse = UserResponse::fromUser($user);
@@ -103,7 +103,7 @@ final class AuthController extends AbstractController
             ]);
         } catch (\Exception $e) {
             $this->apiLogger->logError($e, [
-                'email' => $registerRequest->email,
+                'email_hash' => ApiLogger::hashEmail($registerRequest->email),
             ]);
 
             return $this->responseFormatter->error(
@@ -152,7 +152,7 @@ final class AuthController extends AbstractController
             $retryAfter = $limit->getRetryAfter();
 
             $this->apiLogger->logWarning('Login rate limit exceeded', [
-                'email' => $loginRequest->email,
+                'email_hash' => ApiLogger::hashEmail($loginRequest->email),
                 'ip' => $request->getClientIp(),
                 'retry_after' => $retryAfter->getTimestamp(),
             ]);
@@ -174,7 +174,7 @@ final class AuthController extends AbstractController
         $user = $this->userService->findByEmail($loginRequest->email);
         if ($user === null) {
             $this->apiLogger->logWarning('Login attempt for non-existent user', [
-                'email' => $loginRequest->email,
+                'email_hash' => ApiLogger::hashEmail($loginRequest->email),
                 'ip' => $request->getClientIp(),
             ]);
 
@@ -188,7 +188,7 @@ final class AuthController extends AbstractController
         // Validate password
         if (!$this->userService->validatePassword($user, $loginRequest->password)) {
             $this->apiLogger->logWarning('Login attempt with invalid password', [
-                'email' => $loginRequest->email,
+                'email_hash' => ApiLogger::hashEmail($loginRequest->email),
                 'ip' => $request->getClientIp(),
             ]);
 
@@ -204,7 +204,7 @@ final class AuthController extends AbstractController
 
         $this->apiLogger->logInfo('User logged in successfully', [
             'user_id' => $user->getId(),
-            'email' => $user->getEmail(),
+            'email_hash' => ApiLogger::hashEmail($user->getEmail()),
         ]);
 
         $tokenResponse = new TokenResponse($apiToken);
@@ -235,7 +235,7 @@ final class AuthController extends AbstractController
 
         $this->apiLogger->logInfo('User logged out (token revoked)', [
             'user_id' => $user->getId(),
-            'email' => $user->getEmail(),
+            'email_hash' => ApiLogger::hashEmail($user->getEmail()),
         ]);
 
         return $this->responseFormatter->noContent();
