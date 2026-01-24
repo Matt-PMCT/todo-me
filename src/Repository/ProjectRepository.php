@@ -235,4 +235,103 @@ class ProjectRepository extends ServiceEntityRepository
             $this->getEntityManager()->flush();
         }
     }
+
+    /**
+     * Find a project by name (case-insensitive).
+     *
+     * @param User $owner The project owner
+     * @param string $name The project name to search for
+     * @return Project|null The matching project or null if not found
+     */
+    public function findByNameInsensitive(User $owner, string $name): ?Project
+    {
+        return $this->createQueryBuilder('p')
+            ->where('p.owner = :owner')
+            ->andWhere('LOWER(p.name) = LOWER(:name)')
+            ->andWhere('p.isArchived = :archived')
+            ->setParameter('owner', $owner)
+            ->setParameter('name', $name)
+            ->setParameter('archived', false)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
+
+    /**
+     * Find a project by full path (case-insensitive).
+     *
+     * Path format: "parent/child/grandchild"
+     * This traverses the project hierarchy to find the exact project.
+     *
+     * @param User $owner The project owner
+     * @param string $path The project path (e.g., "work/meetings/standup")
+     * @return Project|null The matching project or null if not found
+     */
+    public function findByPathInsensitive(User $owner, string $path): ?Project
+    {
+        $parts = explode('/', $path);
+
+        if (empty($parts)) {
+            return null;
+        }
+
+        // Start by finding the root project (no parent)
+        $currentProject = $this->createQueryBuilder('p')
+            ->where('p.owner = :owner')
+            ->andWhere('LOWER(p.name) = LOWER(:name)')
+            ->andWhere('p.parent IS NULL')
+            ->andWhere('p.isArchived = :archived')
+            ->setParameter('owner', $owner)
+            ->setParameter('name', $parts[0])
+            ->setParameter('archived', false)
+            ->getQuery()
+            ->getOneOrNullResult();
+
+        if ($currentProject === null) {
+            return null;
+        }
+
+        // Traverse the path
+        for ($i = 1; $i < count($parts); $i++) {
+            $currentProject = $this->createQueryBuilder('p')
+                ->where('p.owner = :owner')
+                ->andWhere('LOWER(p.name) = LOWER(:name)')
+                ->andWhere('p.parent = :parent')
+                ->andWhere('p.isArchived = :archived')
+                ->setParameter('owner', $owner)
+                ->setParameter('name', $parts[$i])
+                ->setParameter('parent', $currentProject)
+                ->setParameter('archived', false)
+                ->getQuery()
+                ->getOneOrNullResult();
+
+            if ($currentProject === null) {
+                return null;
+            }
+        }
+
+        return $currentProject;
+    }
+
+    /**
+     * Search projects by name prefix for autocomplete.
+     *
+     * @param User $owner The project owner
+     * @param string $prefix The name prefix to search for
+     * @param int $limit Maximum number of results
+     * @return Project[] Matching projects
+     */
+    public function searchByNamePrefix(User $owner, string $prefix, int $limit = 10): array
+    {
+        return $this->createQueryBuilder('p')
+            ->where('p.owner = :owner')
+            ->andWhere('LOWER(p.name) LIKE LOWER(:prefix)')
+            ->andWhere('p.isArchived = :archived')
+            ->setParameter('owner', $owner)
+            ->setParameter('prefix', $prefix . '%')
+            ->setParameter('archived', false)
+            ->orderBy('p.name', 'ASC')
+            ->setMaxResults($limit)
+            ->getQuery()
+            ->getResult();
+    }
 }

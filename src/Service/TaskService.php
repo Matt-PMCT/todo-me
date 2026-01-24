@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace App\Service;
 
 use App\DTO\CreateTaskRequest;
+use App\DTO\NaturalLanguageTaskRequest;
+use App\DTO\TaskCreationResult;
 use App\DTO\UpdateTaskRequest;
 use App\Entity\Task;
 use App\Entity\User;
@@ -15,6 +17,7 @@ use App\Exception\ValidationException;
 use App\Repository\ProjectRepository;
 use App\Repository\TagRepository;
 use App\Repository\TaskRepository;
+use App\Service\Parser\NaturalLanguageParserService;
 use App\ValueObject\UndoToken;
 use Doctrine\ORM\EntityManagerInterface;
 
@@ -31,6 +34,7 @@ final class TaskService
         private readonly UndoService $undoService,
         private readonly ValidationHelper $validationHelper,
         private readonly OwnershipChecker $ownershipChecker,
+        private readonly NaturalLanguageParserService $naturalLanguageParser,
     ) {
     }
 
@@ -94,6 +98,152 @@ final class TaskService
         $this->entityManager->flush();
 
         return $task;
+    }
+
+    /**
+     * Creates a task from natural language input.
+     *
+     * @param User $user The task owner
+     * @param NaturalLanguageTaskRequest $dto The natural language input
+     * @return TaskCreationResult The created task with parse result
+     * @throws ValidationException If the title is empty after parsing
+     */
+    public function createFromNaturalLanguage(User $user, NaturalLanguageTaskRequest $dto): TaskCreationResult
+    {
+        // Parse input using NaturalLanguageParserService
+        $parseResult = $this->naturalLanguageParser
+            ->configure($user)
+            ->parse($dto->inputText, $user);
+
+        // Validate that we have a title
+        if (trim($parseResult->title) === '') {
+            throw ValidationException::forField('input_text', 'Task title cannot be empty');
+        }
+
+        // Create task using parsed data
+        $task = new Task();
+        $task->setOwner($user);
+        $task->setTitle($parseResult->title);
+
+        if ($parseResult->dueDate !== null) {
+            $task->setDueDate($parseResult->dueDate);
+        }
+
+        if ($parseResult->dueTime !== null) {
+            $task->setDueTime(new \DateTimeImmutable($parseResult->dueTime));
+        }
+
+        // Handle project (only if found and owned by user)
+        $project = null;
+        if ($parseResult->project !== null) {
+            if ($this->ownershipChecker->isOwner($parseResult->project, $user)) {
+                $project = $parseResult->project;
+                $task->setProject($project);
+            }
+        }
+
+        // Handle tags (all tags from parse result are already owned by user)
+        foreach ($parseResult->tags as $tag) {
+            $task->addTag($tag);
+        }
+
+        // Handle priority
+        if ($parseResult->priority !== null) {
+            $task->setPriority($parseResult->priority);
+        } else {
+            $task->setPriority(Task::PRIORITY_DEFAULT);
+        }
+
+        // Set position
+        $maxPosition = $this->taskRepository->getMaxPosition($user, $project);
+        $task->setPosition($maxPosition + 1);
+
+        $this->entityManager->persist($task);
+        $this->entityManager->flush();
+
+        return new TaskCreationResult(
+            task: $task,
+            parseResult: $parseResult,
+            undoToken: null, // No undo for creates
+        );
+    }
+
+    /**
+     * Reschedule a task using natural language or ISO date.
+     *
+     * @param Task $task The task to reschedule
+     * @param string $dateInput The date input (natural language or ISO format)
+     * @param User $user The user context for date parsing
+     * @return array{task: Task, undoToken: string|null}
+     * @throws ValidationException If the date cannot be parsed
+     */
+    public function reschedule(Task $task, string $dateInput, User $user): array
+    {
+        // Store previous state for undo
+        $previousState = $this->serializeTaskState($task);
+
+        // Try parsing as ISO date first
+        $date = $this->tryParseDueDate($dateInput);
+
+        // If that fails, try natural language
+        if ($date === null) {
+            $this->naturalLanguageParser->configure($user);
+            $parseResult = $this->naturalLanguageParser->parse($dateInput, $user);
+
+            if ($parseResult->dueDate !== null) {
+                $date = $parseResult->dueDate;
+            } else {
+                throw ValidationException::forField('due_date', 'Could not parse date: ' . $dateInput);
+            }
+        }
+
+        $task->setDueDate($date);
+        $this->entityManager->flush();
+
+        // Create undo token
+        $undoToken = $this->undoService->createUndoToken(
+            userId: $task->getOwner()->getId(),
+            action: UndoAction::UPDATE->value,
+            entityType: 'task',
+            entityId: $task->getId(),
+            previousState: $previousState,
+        );
+
+        return [
+            'task' => $task,
+            'undoToken' => $undoToken?->token,
+        ];
+    }
+
+    /**
+     * Try to parse a date string, returning null on failure.
+     *
+     * @param string $dateString ISO 8601 date string
+     * @return \DateTimeImmutable|null
+     */
+    private function tryParseDueDate(string $dateString): ?\DateTimeImmutable
+    {
+        try {
+            // Try parsing as date only (Y-m-d)
+            $date = \DateTimeImmutable::createFromFormat('Y-m-d', $dateString);
+
+            if ($date !== false) {
+                return $date;
+            }
+
+            // Try parsing as ISO 8601 with time
+            $date = new \DateTimeImmutable($dateString);
+
+            // Verify the date is valid by checking if it matches common formats
+            $formatted = $date->format('Y-m-d');
+            if (str_starts_with($dateString, $formatted)) {
+                return $date;
+            }
+
+            return null;
+        } catch (\Exception $e) {
+            return null;
+        }
     }
 
     /**

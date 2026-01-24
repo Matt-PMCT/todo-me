@@ -61,6 +61,7 @@ class TaskListController extends AbstractController
             'projects' => $projects,
             'currentFilters' => $filters,
             'groupByProject' => $groupByProject,
+            'apiToken' => $user->getApiToken(),
         ]);
     }
 
