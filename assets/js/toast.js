@@ -93,7 +93,8 @@ document.addEventListener('alpine:init', () => {
                 if (response.ok) {
                     item.undone = true;
                     item.message = 'Undone!';
-                    setTimeout(() => this.dismiss(id), 1000);
+                    // Reload page after brief delay to show success message
+                    setTimeout(() => window.location.reload(), 500);
                 } else {
                     const data = await response.json();
                     item.message = data.error?.message || 'Undo failed';

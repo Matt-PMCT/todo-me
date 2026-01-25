@@ -44,6 +44,7 @@ class TaskStateServiceTest extends UnitTestCase
         $this->assertSame(Task::PRIORITY_DEFAULT, $state['priority']);
         $this->assertNull($state['description']);
         $this->assertNull($state['dueDate']);
+        $this->assertNull($state['dueTime']);
         $this->assertNull($state['projectId']);
         $this->assertEmpty($state['tagIds']);
     }
@@ -57,6 +58,7 @@ class TaskStateServiceTest extends UnitTestCase
         $task->setPriority(4);
         $task->setPosition(5);
         $task->setDueDate(new \DateTimeImmutable('2024-12-31'));
+        $task->setDueTime(new \DateTimeImmutable('14:30:00'));
         $task->setProject($project);
 
         // Add tags
@@ -82,6 +84,7 @@ class TaskStateServiceTest extends UnitTestCase
         $this->assertSame(4, $state['priority']);
         $this->assertSame(5, $state['position']);
         $this->assertSame('2024-12-31', $state['dueDate']);
+        $this->assertSame('14:30:00', $state['dueTime']);
         $this->assertSame('project-123', $state['projectId']);
         $this->assertContains('tag-1', $state['tagIds']);
         $this->assertContains('tag-2', $state['tagIds']);
@@ -136,6 +139,7 @@ class TaskStateServiceTest extends UnitTestCase
             'priority' => 3,
             'position' => 10,
             'dueDate' => '2024-12-31',
+            'dueTime' => '16:00:00',
             'projectId' => 'project-123',
             'tagIds' => ['tag-1'],
             'createdAt' => '2024-01-01T00:00:00+00:00',
@@ -149,6 +153,8 @@ class TaskStateServiceTest extends UnitTestCase
         $this->assertSame(Task::STATUS_IN_PROGRESS, $task->getStatus());
         $this->assertSame(3, $task->getPriority());
         $this->assertSame(10, $task->getPosition());
+        $this->assertNotNull($task->getDueTime());
+        $this->assertSame('16:00:00', $task->getDueTime()->format('H:i:s'));
         $this->assertSame($project, $task->getProject());
         $this->assertCount(1, $task->getTags());
     }

@@ -46,6 +46,7 @@ final class TaskStateService implements TaskStateServiceInterface
             'status' => $task->getStatus(),
             'priority' => $task->getPriority(),
             'dueDate' => $task->getDueDate()?->format('Y-m-d'),
+            'dueTime' => $task->getDueTime()?->format('H:i:s'),
             'position' => $task->getPosition(),
             'projectId' => $task->getProject()?->getId(),
             'tagIds' => $tagIds,
