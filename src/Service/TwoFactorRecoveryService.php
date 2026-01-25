@@ -8,7 +8,7 @@ use App\Entity\User;
 use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
 
-class TwoFactorRecoveryService
+final class TwoFactorRecoveryService
 {
     private const RECOVERY_TOKEN_TTL = 86400; // 24 hours
     private const RECOVERY_KEY_PREFIX = '2fa_recovery';

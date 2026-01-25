@@ -5,9 +5,10 @@ declare(strict_types=1);
 namespace App\Service;
 
 use App\Entity\User;
+use App\Interface\TotpServiceInterface;
 use OTPHP\TOTP;
 
-class TotpService
+final class TotpService implements TotpServiceInterface
 {
     private const ISSUER = 'TodoMe';
     private const PERIOD = 30;

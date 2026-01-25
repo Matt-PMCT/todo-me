@@ -10,6 +10,7 @@ use App\DTO\LoginRequest;
 use App\DTO\RegisterRequest;
 use App\DTO\ResetPasswordRequest;
 use App\DTO\TokenResponse;
+use App\DTO\TwoFactorChallengeRequest;
 use App\DTO\UserResponse;
 use App\Entity\User;
 use App\Exception\ValidationException;
@@ -327,18 +328,25 @@ final class AuthController extends AbstractController
      */
     private function verify2faChallenge(array $data, Request $request): JsonResponse
     {
-        $challengeToken = (string) ($data['challengeToken'] ?? '');
-        $code = (string) ($data['code'] ?? '');
+        $dto = TwoFactorChallengeRequest::fromArray($data);
 
-        if ($challengeToken === '' || $code === '') {
+        $errors = $this->validator->validate($dto);
+        if (count($errors) > 0) {
+            $validationErrors = [];
+            foreach ($errors as $error) {
+                $field = $error->getPropertyPath();
+                $validationErrors[$field][] = $error->getMessage();
+            }
+
             return $this->responseFormatter->error(
-                'Challenge token and code are required',
+                'Validation failed',
                 'VALIDATION_ERROR',
-                Response::HTTP_UNPROCESSABLE_ENTITY
+                Response::HTTP_UNPROCESSABLE_ENTITY,
+                ['fields' => $validationErrors]
             );
         }
 
-        $user = $this->twoFactorLoginService->verifyChallenge($challengeToken, $code);
+        $user = $this->twoFactorLoginService->verifyChallenge($dto->challengeToken, $dto->code);
         if ($user === null) {
             $this->apiLogger->logWarning('2FA challenge verification failed', [
                 'ip' => $request->getClientIp(),

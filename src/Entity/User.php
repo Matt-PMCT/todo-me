@@ -541,6 +541,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setTwoFactorEnabled(bool $twoFactorEnabled): static
     {
         $this->twoFactorEnabled = $twoFactorEnabled;
+        if ($twoFactorEnabled && $this->twoFactorEnabledAt === null) {
+            $this->twoFactorEnabledAt = new \DateTimeImmutable();
+        }
 
         return $this;
     }

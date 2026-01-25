@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Service;
 
-use App\Service\BackupCodeService;
+use App\Interface\BackupCodeServiceInterface;
+use App\Interface\TotpServiceInterface;
 use App\Service\RedisService;
-use App\Service\TotpService;
 use App\Service\TwoFactorService;
 use App\Tests\Unit\UnitTestCase;
 use Doctrine\ORM\EntityManagerInterface;
@@ -14,8 +14,8 @@ use PHPUnit\Framework\MockObject\MockObject;
 
 class TwoFactorServiceTest extends UnitTestCase
 {
-    private TotpService&MockObject $totpService;
-    private BackupCodeService&MockObject $backupCodeService;
+    private TotpServiceInterface&MockObject $totpService;
+    private BackupCodeServiceInterface&MockObject $backupCodeService;
     private RedisService&MockObject $redisService;
     private EntityManagerInterface&MockObject $entityManager;
     private TwoFactorService $twoFactorService;
@@ -24,8 +24,8 @@ class TwoFactorServiceTest extends UnitTestCase
     {
         parent::setUp();
 
-        $this->totpService = $this->createMock(TotpService::class);
-        $this->backupCodeService = $this->createMock(BackupCodeService::class);
+        $this->totpService = $this->createMock(TotpServiceInterface::class);
+        $this->backupCodeService = $this->createMock(BackupCodeServiceInterface::class);
         $this->redisService = $this->createMock(RedisService::class);
         $this->entityManager = $this->createMock(EntityManagerInterface::class);
 

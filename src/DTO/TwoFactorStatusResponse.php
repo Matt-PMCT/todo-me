@@ -10,11 +10,12 @@ final class TwoFactorStatusResponse
         public readonly bool $enabled,
         public readonly ?string $enabledAt,
         public readonly int $backupCodesRemaining,
+        public readonly ?string $backupCodesGeneratedAt,
     ) {
     }
 
     /**
-     * @param array{enabled: bool, enabledAt: string|null, backupCodesRemaining: int} $data
+     * @param array{enabled: bool, enabledAt: string|null, backupCodesRemaining: int, backupCodesGeneratedAt: string|null} $data
      */
     public static function fromArray(array $data): self
     {
@@ -22,11 +23,12 @@ final class TwoFactorStatusResponse
             enabled: $data['enabled'],
             enabledAt: $data['enabledAt'],
             backupCodesRemaining: $data['backupCodesRemaining'],
+            backupCodesGeneratedAt: $data['backupCodesGeneratedAt'],
         );
     }
 
     /**
-     * @return array{enabled: bool, enabledAt: string|null, backupCodesRemaining: int}
+     * @return array{enabled: bool, enabledAt: string|null, backupCodesRemaining: int, backupCodesGeneratedAt: string|null}
      */
     public function toArray(): array
     {
@@ -34,6 +36,7 @@ final class TwoFactorStatusResponse
             'enabled' => $this->enabled,
             'enabledAt' => $this->enabledAt,
             'backupCodesRemaining' => $this->backupCodesRemaining,
+            'backupCodesGeneratedAt' => $this->backupCodesGeneratedAt,
         ];
     }
 }

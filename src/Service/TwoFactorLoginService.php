@@ -7,7 +7,7 @@ namespace App\Service;
 use App\Entity\User;
 use App\Repository\UserRepository;
 
-class TwoFactorLoginService
+final class TwoFactorLoginService
 {
     private const CHALLENGE_TTL = 300; // 5 minutes
     private const CHALLENGE_KEY_PREFIX = '2fa_challenge';
