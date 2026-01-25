@@ -51,7 +51,7 @@ abstract class IntegrationTestCase extends KernelTestCase
     {
         $user = new User();
         $user->setEmail($email);
-        $user->setUsername(str_replace(['@', '.'], '_', $email) . '_' . substr(md5(uniqid()), 0, 6));
+        $user->setUsername(str_replace(['@', '.'], '_', $email).'_'.substr(md5(uniqid()), 0, 6));
 
         /** @var UserPasswordHasherInterface $passwordHasher */
         $passwordHasher = static::getContainer()->get(UserPasswordHasherInterface::class);

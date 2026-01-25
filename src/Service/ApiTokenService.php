@@ -28,10 +28,11 @@ final class ApiTokenService implements ApiTokenServiceInterface
      *
      * Returns the plain token - it can only be shown once!
      *
-     * @param User $user The token owner
-     * @param string $name User-provided name for the token
-     * @param string[] $scopes Token scopes (default: ['*'] for all access)
+     * @param User                    $user      The token owner
+     * @param string                  $name      User-provided name for the token
+     * @param string[]                $scopes    Token scopes (default: ['*'] for all access)
      * @param \DateTimeImmutable|null $expiresAt Optional expiration date
+     *
      * @return array{token: ApiToken, plainToken: string}
      */
     public function createToken(
@@ -66,7 +67,7 @@ final class ApiTokenService implements ApiTokenServiceInterface
      */
     private function generateToken(): string
     {
-        return 'tm_' . bin2hex(random_bytes(32));
+        return 'tm_'.bin2hex(random_bytes(32));
     }
 
     /**
@@ -83,7 +84,7 @@ final class ApiTokenService implements ApiTokenServiceInterface
      * Revokes (deletes) a token.
      *
      * @throws EntityNotFoundException If token not found
-     * @throws ForbiddenException If user doesn't own the token
+     * @throws ForbiddenException      If user doesn't own the token
      */
     public function revokeToken(User $user, string $tokenId): void
     {
@@ -126,7 +127,7 @@ final class ApiTokenService implements ApiTokenServiceInterface
      * Finds a token by ID and verifies ownership.
      *
      * @throws EntityNotFoundException If token not found
-     * @throws ForbiddenException If user doesn't own the token
+     * @throws ForbiddenException      If user doesn't own the token
      */
     public function findByIdOrFail(string $id, User $user): ApiToken
     {

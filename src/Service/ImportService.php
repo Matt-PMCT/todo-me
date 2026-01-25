@@ -36,8 +36,9 @@ final class ImportService
     /**
      * Import from JSON format (our native export format).
      *
-     * @param User $user The user importing data
+     * @param User                 $user The user importing data
      * @param array<string, mixed> $data The JSON data
+     *
      * @return array{tasks: int, projects: int, tags: int}
      */
     public function importJson(User $user, array $data): array
@@ -45,6 +46,7 @@ final class ImportService
         $stats = ['tasks' => 0, 'projects' => 0, 'tags' => 0];
 
         $this->entityManager->beginTransaction();
+
         try {
             // Build caches for name-based lookups
             $projectCache = []; // name => Project
@@ -56,6 +58,7 @@ final class ImportService
                     if (!is_array($projectData)) {
                         continue;
                     }
+
                     try {
                         $project = $this->importProject($user, $projectData, $projectCache);
                         if ($project !== null) {
@@ -77,6 +80,7 @@ final class ImportService
                     if (!is_array($tagData)) {
                         continue;
                     }
+
                     try {
                         $tag = $this->importTag($user, $tagData, $tagCache);
                         if ($tag !== null) {
@@ -98,6 +102,7 @@ final class ImportService
                     if (!is_array($taskData)) {
                         continue;
                     }
+
                     try {
                         $task = $this->importTask($user, $taskData, $projectCache, $tagCache);
                         if ($task !== null) {
@@ -118,6 +123,7 @@ final class ImportService
             return $stats;
         } catch (\Throwable $e) {
             $this->entityManager->rollback();
+
             throw $e;
         }
     }
@@ -127,8 +133,9 @@ final class ImportService
      *
      * Todoist format: {items: [...], projects: [...], labels: [...]}
      *
-     * @param User $user The user importing data
+     * @param User                 $user The user importing data
      * @param array<string, mixed> $data The Todoist data
+     *
      * @return array{tasks: int, projects: int, tags: int}
      */
     public function importTodoist(User $user, array $data): array
@@ -136,6 +143,7 @@ final class ImportService
         $stats = ['tasks' => 0, 'projects' => 0, 'tags' => 0];
 
         $this->entityManager->beginTransaction();
+
         try {
             // Map Todoist projects (projects array)
             $projectMap = []; // todoist_id => our_project
@@ -145,6 +153,7 @@ final class ImportService
                     if (!is_array($project)) {
                         continue;
                     }
+
                     try {
                         $imported = $this->importTodoistProject($user, $project, $projectNameCache);
                         if ($imported !== null) {
@@ -172,6 +181,7 @@ final class ImportService
                     if (!is_array($label)) {
                         continue;
                     }
+
                     try {
                         $imported = $this->importTodoistLabel($user, $label, $tagCache);
                         if ($imported !== null) {
@@ -197,6 +207,7 @@ final class ImportService
                     if (!is_array($item)) {
                         continue;
                     }
+
                     try {
                         $task = $this->importTodoistItem($user, $item, $projectMap, $tagMap);
                         if ($task !== null) {
@@ -217,6 +228,7 @@ final class ImportService
             return $stats;
         } catch (\Throwable $e) {
             $this->entityManager->rollback();
+
             throw $e;
         }
     }
@@ -226,8 +238,9 @@ final class ImportService
      *
      * Expected headers: title,description,status,priority,dueDate,project,tags
      *
-     * @param User $user The user importing data
+     * @param User   $user       The user importing data
      * @param string $csvContent The CSV content
+     *
      * @return array{tasks: int, projects: int, tags: int}
      */
     public function importCsv(User $user, string $csvContent): array
@@ -248,9 +261,10 @@ final class ImportService
         $headers = str_getcsv($headerLine);
 
         // Normalize headers
-        $headers = array_map(fn($h) => strtolower(trim($h)), $headers);
+        $headers = array_map(fn ($h) => strtolower(trim($h)), $headers);
 
         $this->entityManager->beginTransaction();
+
         try {
             // Build project and tag caches
             $projectCache = []; // name => project
@@ -290,6 +304,7 @@ final class ImportService
             return $stats;
         } catch (\Throwable $e) {
             $this->entityManager->rollback();
+
             throw $e;
         }
     }
@@ -297,9 +312,10 @@ final class ImportService
     /**
      * Import a project from JSON data.
      *
-     * @param User $user The owner
-     * @param array<string, mixed> $data The project data
+     * @param User                   $user         The owner
+     * @param array<string, mixed>   $data         The project data
      * @param array<string, Project> $projectCache Cache of already imported projects
+     *
      * @return Project|null The imported or existing project
      */
     private function importProject(User $user, array $data, array &$projectCache): ?Project
@@ -321,6 +337,7 @@ final class ImportService
         $existing = $this->projectRepository->findByNameInsensitive($user, $name);
         if ($existing !== null) {
             $projectCache[$nameLower] = $existing;
+
             return $existing;
         }
 
@@ -358,9 +375,10 @@ final class ImportService
     /**
      * Import a tag from JSON data.
      *
-     * @param User $user The owner
-     * @param array<string, mixed> $data The tag data
-     * @param array<string, Tag> $tagCache Cache of already imported tags
+     * @param User                 $user     The owner
+     * @param array<string, mixed> $data     The tag data
+     * @param array<string, Tag>   $tagCache Cache of already imported tags
+     *
      * @return Tag|null The imported or existing tag
      */
     private function importTag(User $user, array $data, array &$tagCache): ?Tag
@@ -381,6 +399,7 @@ final class ImportService
         $existing = $this->tagRepository->findByNameInsensitive($user, $name);
         if ($existing !== null) {
             $tagCache[$name] = $existing;
+
             return $existing;
         }
 
@@ -403,10 +422,11 @@ final class ImportService
     /**
      * Import a task from JSON data.
      *
-     * @param User $user The owner
-     * @param array<string, mixed> $data The task data
+     * @param User                   $user         The owner
+     * @param array<string, mixed>   $data         The task data
      * @param array<string, Project> $projectCache Cache of projects by name
-     * @param array<string, Tag> $tagCache Cache of tags by name
+     * @param array<string, Tag>     $tagCache     Cache of tags by name
+     *
      * @return Task|null The imported task
      */
     private function importTask(User $user, array $data, array &$projectCache, array &$tagCache): ?Task
@@ -492,9 +512,10 @@ final class ImportService
     /**
      * Import a Todoist project.
      *
-     * @param User $user The owner
-     * @param array<string, mixed> $data The Todoist project data
+     * @param User                   $user         The owner
+     * @param array<string, mixed>   $data         The Todoist project data
      * @param array<string, Project> $projectCache Cache of projects by name
+     *
      * @return Project|null The imported or existing project
      */
     private function importTodoistProject(User $user, array $data, array &$projectCache): ?Project
@@ -516,6 +537,7 @@ final class ImportService
         $existing = $this->projectRepository->findByNameInsensitive($user, $name);
         if ($existing !== null) {
             $projectCache[$nameLower] = $existing;
+
             return $existing;
         }
 
@@ -546,9 +568,10 @@ final class ImportService
     /**
      * Import a Todoist label as a tag.
      *
-     * @param User $user The owner
-     * @param array<string, mixed> $data The Todoist label data
-     * @param array<string, Tag> $tagCache Cache of tags by name
+     * @param User                 $user     The owner
+     * @param array<string, mixed> $data     The Todoist label data
+     * @param array<string, Tag>   $tagCache Cache of tags by name
+     *
      * @return Tag|null The imported or existing tag
      */
     private function importTodoistLabel(User $user, array $data, array &$tagCache): ?Tag
@@ -569,6 +592,7 @@ final class ImportService
         $existing = $this->tagRepository->findByNameInsensitive($user, $name);
         if ($existing !== null) {
             $tagCache[$name] = $existing;
+
             return $existing;
         }
 
@@ -595,10 +619,11 @@ final class ImportService
     /**
      * Import a Todoist item as a task.
      *
-     * @param User $user The owner
-     * @param array<string, mixed> $item The Todoist item data
+     * @param User                       $user       The owner
+     * @param array<string, mixed>       $item       The Todoist item data
      * @param array<int|string, Project> $projectMap Map of Todoist project IDs to our projects
-     * @param array<string, Tag> $tagMap Map of Todoist label names to our tags
+     * @param array<string, Tag>         $tagMap     Map of Todoist label names to our tags
+     *
      * @return Task|null The imported task
      */
     private function importTodoistItem(User $user, array $item, array $projectMap, array $tagMap): ?Task
@@ -674,11 +699,11 @@ final class ImportService
     /**
      * Import a single CSV row as a task.
      *
-     * @param User $user The owner
-     * @param array<string, string> $data The row data
-     * @param array<string, Project> $projectCache Cache of projects by name
-     * @param array<string, Tag> $tagCache Cache of tags by name
-     * @param array{tasks: int, projects: int, tags: int} $stats Import statistics (modified by reference)
+     * @param User                                        $user         The owner
+     * @param array<string, string>                       $data         The row data
+     * @param array<string, Project>                      $projectCache Cache of projects by name
+     * @param array<string, Tag>                          $tagCache     Cache of tags by name
+     * @param array{tasks: int, projects: int, tags: int} $stats        Import statistics (modified by reference)
      */
     private function importCsvRow(User $user, array $data, array &$projectCache, array &$tagCache, array &$stats): void
     {
@@ -790,6 +815,7 @@ final class ImportService
      * Map Todoist color to hex color.
      *
      * @param mixed $todoistColor Todoist color (name or number)
+     *
      * @return string|null Hex color code or null
      */
     private function mapTodoistColor(mixed $todoistColor): ?string

@@ -18,6 +18,7 @@ final class ParseRequest
      * Creates a ParseRequest from an array.
      *
      * @param array<string, mixed> $data
+     *
      * @throws \InvalidArgumentException
      */
     public static function fromArray(array $data): self

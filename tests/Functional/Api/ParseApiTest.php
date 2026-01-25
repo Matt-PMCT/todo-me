@@ -277,7 +277,7 @@ class ParseApiTest extends ApiTestCase
         $this->assertStringContainsString('Project not found', $data['warnings'][0]);
 
         // Should have highlight with valid: false
-        $projectHighlight = array_filter($data['highlights'], fn($h) => $h['type'] === 'project');
+        $projectHighlight = array_filter($data['highlights'], fn ($h) => $h['type'] === 'project');
         $this->assertCount(1, $projectHighlight);
         $this->assertFalse(array_values($projectHighlight)[0]['valid']);
     }
@@ -305,7 +305,7 @@ class ParseApiTest extends ApiTestCase
         $this->assertStringContainsString('Invalid priority', $data['warnings'][0]);
 
         // Should have highlight with valid: false
-        $priorityHighlight = array_filter($data['highlights'], fn($h) => $h['type'] === 'priority');
+        $priorityHighlight = array_filter($data['highlights'], fn ($h) => $h['type'] === 'priority');
         $this->assertCount(1, $priorityHighlight);
         $this->assertFalse(array_values($priorityHighlight)[0]['valid']);
     }
@@ -330,7 +330,7 @@ class ParseApiTest extends ApiTestCase
 
         // Should have warning about multiple dates
         $this->assertNotEmpty($data['warnings']);
-        $dateWarnings = array_filter($data['warnings'], fn($w) => str_contains($w, 'Multiple dates'));
+        $dateWarnings = array_filter($data['warnings'], fn ($w) => str_contains($w, 'Multiple dates'));
         $this->assertNotEmpty($dateWarnings);
     }
 

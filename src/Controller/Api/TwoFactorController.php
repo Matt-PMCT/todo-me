@@ -13,6 +13,7 @@ use App\Service\TwoFactorRecoveryService;
 use App\Service\TwoFactorService;
 use App\Service\UserService;
 use App\Service\ValidationHelper;
+use OpenApi\Attributes as OA;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -20,6 +21,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
+#[OA\Tag(name: 'Two-Factor Authentication', description: 'Two-factor authentication setup and management')]
 #[Route('/api/v1/2fa', name: 'api_2fa_')]
 final class TwoFactorController extends AbstractController
 {
@@ -37,6 +39,18 @@ final class TwoFactorController extends AbstractController
      * Get 2FA status for the current user.
      */
     #[Route('/status', name: 'status', methods: ['GET'])]
+    #[OA\Get(
+        summary: 'Get 2FA status',
+        description: 'Returns the two-factor authentication status for the authenticated user',
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: '2FA status',
+                content: new OA\JsonContent(ref: '#/components/schemas/ApiResponse')
+            ),
+            new OA\Response(response: 401, description: 'Not authenticated'),
+        ]
+    )]
     public function status(): JsonResponse
     {
         /** @var User $user */
@@ -52,6 +66,19 @@ final class TwoFactorController extends AbstractController
      * Initialize 2FA setup.
      */
     #[Route('/setup', name: 'setup', methods: ['POST'])]
+    #[OA\Post(
+        summary: 'Initialize 2FA setup',
+        description: 'Generates a new TOTP secret and QR code for 2FA setup',
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: '2FA setup data including QR code URI',
+                content: new OA\JsonContent(ref: '#/components/schemas/ApiResponse')
+            ),
+            new OA\Response(response: 400, description: '2FA already enabled'),
+            new OA\Response(response: 401, description: 'Not authenticated'),
+        ]
+    )]
     public function setup(): JsonResponse
     {
         /** @var User $user */
@@ -80,6 +107,30 @@ final class TwoFactorController extends AbstractController
      * Complete 2FA setup by verifying a TOTP code.
      */
     #[Route('/setup/verify', name: 'setup_verify', methods: ['POST'])]
+    #[OA\Post(
+        summary: 'Verify 2FA setup',
+        description: 'Completes 2FA setup by verifying a TOTP code and returns backup codes',
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(
+                required: ['setupToken', 'code'],
+                properties: [
+                    new OA\Property(property: 'setupToken', type: 'string', description: 'Setup token from /setup endpoint'),
+                    new OA\Property(property: 'code', type: 'string', description: '6-digit TOTP code', example: '123456'),
+                ]
+            )
+        ),
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: '2FA enabled with backup codes',
+                content: new OA\JsonContent(ref: '#/components/schemas/ApiResponse')
+            ),
+            new OA\Response(response: 400, description: 'Invalid setup token or code'),
+            new OA\Response(response: 401, description: 'Not authenticated'),
+            new OA\Response(response: 422, description: 'Validation error'),
+        ]
+    )]
     public function setupVerify(Request $request): JsonResponse
     {
         /** @var User $user */
@@ -132,6 +183,29 @@ final class TwoFactorController extends AbstractController
      * Disable 2FA for the current user.
      */
     #[Route('/disable', name: 'disable', methods: ['POST'])]
+    #[OA\Post(
+        summary: 'Disable 2FA',
+        description: 'Disables two-factor authentication for the authenticated user',
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(
+                required: ['password'],
+                properties: [
+                    new OA\Property(property: 'password', type: 'string', description: 'Current account password'),
+                ]
+            )
+        ),
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: '2FA disabled',
+                content: new OA\JsonContent(ref: '#/components/schemas/ApiResponse')
+            ),
+            new OA\Response(response: 400, description: '2FA not enabled or invalid password'),
+            new OA\Response(response: 401, description: 'Not authenticated'),
+            new OA\Response(response: 422, description: 'Password required'),
+        ]
+    )]
     public function disable(Request $request): JsonResponse
     {
         /** @var User $user */
@@ -175,6 +249,29 @@ final class TwoFactorController extends AbstractController
      * Regenerate backup codes.
      */
     #[Route('/backup-codes', name: 'backup_codes', methods: ['POST'])]
+    #[OA\Post(
+        summary: 'Regenerate backup codes',
+        description: 'Generates new backup codes, invalidating any previous codes',
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(
+                required: ['password'],
+                properties: [
+                    new OA\Property(property: 'password', type: 'string', description: 'Current account password'),
+                ]
+            )
+        ),
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: 'New backup codes generated',
+                content: new OA\JsonContent(ref: '#/components/schemas/ApiResponse')
+            ),
+            new OA\Response(response: 400, description: '2FA not enabled or invalid password'),
+            new OA\Response(response: 401, description: 'Not authenticated'),
+            new OA\Response(response: 422, description: 'Password required'),
+        ]
+    )]
     public function regenerateBackupCodes(Request $request): JsonResponse
     {
         /** @var User $user */
@@ -221,6 +318,27 @@ final class TwoFactorController extends AbstractController
      * Always returns success to prevent user enumeration.
      */
     #[Route('/recovery/request', name: 'recovery_request', methods: ['POST'])]
+    #[OA\Post(
+        summary: 'Request 2FA recovery',
+        description: 'Sends a 2FA recovery email to the specified address (always returns success to prevent enumeration)',
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(
+                required: ['email'],
+                properties: [
+                    new OA\Property(property: 'email', type: 'string', format: 'email', description: 'Account email address'),
+                ]
+            )
+        ),
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: 'Recovery email sent (if account exists)',
+                content: new OA\JsonContent(ref: '#/components/schemas/ApiResponse')
+            ),
+            new OA\Response(response: 422, description: 'Email required'),
+        ]
+    )]
     public function recoveryRequest(Request $request): JsonResponse
     {
         $data = $this->validationHelper->decodeJsonBody($request);
@@ -246,6 +364,28 @@ final class TwoFactorController extends AbstractController
      * Complete 2FA recovery by disabling 2FA.
      */
     #[Route('/recovery/complete', name: 'recovery_complete', methods: ['POST'])]
+    #[OA\Post(
+        summary: 'Complete 2FA recovery',
+        description: 'Completes 2FA recovery by disabling 2FA using the recovery token',
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(
+                required: ['token'],
+                properties: [
+                    new OA\Property(property: 'token', type: 'string', description: 'Recovery token from email'),
+                ]
+            )
+        ),
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: '2FA disabled via recovery',
+                content: new OA\JsonContent(ref: '#/components/schemas/ApiResponse')
+            ),
+            new OA\Response(response: 400, description: 'Invalid or expired recovery token'),
+            new OA\Response(response: 422, description: 'Token required'),
+        ]
+    )]
     public function recoveryComplete(Request $request): JsonResponse
     {
         $data = $this->validationHelper->decodeJsonBody($request);

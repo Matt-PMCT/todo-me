@@ -320,6 +320,7 @@ class NaturalLanguageTaskTest extends ApiTestCase
         foreach ($data['parseResult']['highlights'] as $highlight) {
             if ($highlight['type'] === 'date') {
                 $dateHighlight = $highlight;
+
                 break;
             }
         }
@@ -340,7 +341,7 @@ class NaturalLanguageTaskTest extends ApiTestCase
         $response = $this->authenticatedApiRequest(
             $user,
             'PATCH',
-            '/api/v1/tasks/' . $task->getId() . '/reschedule',
+            '/api/v1/tasks/'.$task->getId().'/reschedule',
             ['due_date' => '2026-02-15']
         );
 
@@ -359,7 +360,7 @@ class NaturalLanguageTaskTest extends ApiTestCase
         $response = $this->authenticatedApiRequest(
             $user,
             'PATCH',
-            '/api/v1/tasks/' . $task->getId() . '/reschedule',
+            '/api/v1/tasks/'.$task->getId().'/reschedule',
             ['due_date' => 'tomorrow']
         );
 
@@ -379,7 +380,7 @@ class NaturalLanguageTaskTest extends ApiTestCase
         $response = $this->authenticatedApiRequest(
             $user,
             'PATCH',
-            '/api/v1/tasks/' . $task->getId() . '/reschedule',
+            '/api/v1/tasks/'.$task->getId().'/reschedule',
             ['due_date' => 'next Monday']
         );
 
@@ -401,7 +402,7 @@ class NaturalLanguageTaskTest extends ApiTestCase
         $response = $this->authenticatedApiRequest(
             $user,
             'PATCH',
-            '/api/v1/tasks/' . $task->getId() . '/reschedule',
+            '/api/v1/tasks/'.$task->getId().'/reschedule',
             ['due_date' => 'not a valid date at all xyz']
         );
 
@@ -417,7 +418,7 @@ class NaturalLanguageTaskTest extends ApiTestCase
         $response = $this->authenticatedApiRequest(
             $user,
             'PATCH',
-            '/api/v1/tasks/' . $task->getId() . '/reschedule',
+            '/api/v1/tasks/'.$task->getId().'/reschedule',
             []
         );
 
@@ -432,7 +433,7 @@ class NaturalLanguageTaskTest extends ApiTestCase
         $response = $this->authenticatedApiRequest(
             $user,
             'PATCH',
-            '/api/v1/tasks/' . $task->getId() . '/reschedule',
+            '/api/v1/tasks/'.$task->getId().'/reschedule',
             ['due_date' => 'tomorrow']
         );
 
@@ -454,7 +455,7 @@ class NaturalLanguageTaskTest extends ApiTestCase
         $rescheduleResponse = $this->authenticatedApiRequest(
             $user,
             'PATCH',
-            '/api/v1/tasks/' . $task->getId() . '/reschedule',
+            '/api/v1/tasks/'.$task->getId().'/reschedule',
             ['due_date' => 'tomorrow']
         );
 
@@ -468,7 +469,7 @@ class NaturalLanguageTaskTest extends ApiTestCase
         $undoResponse = $this->authenticatedApiRequest(
             $user,
             'POST',
-            '/api/v1/tasks/undo/' . $undoToken
+            '/api/v1/tasks/undo/'.$undoToken
         );
 
         $this->assertResponseStatusCode(Response::HTTP_OK, $undoResponse);
@@ -515,7 +516,7 @@ class NaturalLanguageTaskTest extends ApiTestCase
 
         $response = $this->apiRequest(
             'PATCH',
-            '/api/v1/tasks/' . $task->getId() . '/reschedule',
+            '/api/v1/tasks/'.$task->getId().'/reschedule',
             ['due_date' => 'tomorrow']
         );
 
@@ -559,7 +560,7 @@ class NaturalLanguageTaskTest extends ApiTestCase
         $response = $this->authenticatedApiRequest(
             $user1,
             'PATCH',
-            '/api/v1/tasks/' . $task->getId() . '/reschedule',
+            '/api/v1/tasks/'.$task->getId().'/reschedule',
             ['due_date' => 'tomorrow']
         );
 
@@ -625,7 +626,7 @@ class NaturalLanguageTaskTest extends ApiTestCase
         $response = $this->authenticatedApiRequest(
             $user,
             'PATCH',
-            '/api/v1/tasks/' . $task->getId() . '/reschedule',
+            '/api/v1/tasks/'.$task->getId().'/reschedule',
             ['due_date' => 'in 3 days']
         );
 
@@ -649,7 +650,7 @@ class NaturalLanguageTaskTest extends ApiTestCase
         $response = $this->authenticatedApiRequest(
             $user,
             'PATCH',
-            '/api/v1/tasks/' . $task->getId() . '/reschedule',
+            '/api/v1/tasks/'.$task->getId().'/reschedule',
             ['due_date' => '2026-03-15']
         );
 

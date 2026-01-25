@@ -13,12 +13,12 @@ use App\DTO\ReorderProjectsRequest;
 use App\DTO\UpdateProjectRequest;
 use App\Entity\User;
 use App\Repository\ProjectRepository;
-use App\ValueObject\UndoToken;
 use App\Repository\TaskRepository;
 use App\Service\PaginationHelper;
 use App\Service\ProjectService;
 use App\Service\ResponseFormatter;
 use App\Service\ValidationHelper;
+use App\ValueObject\UndoToken;
 use OpenApi\Attributes as OA;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -50,6 +50,7 @@ final class ProjectController extends AbstractController
      * Builds undo metadata array from an undo token.
      *
      * @param UndoToken|null $undoToken The undo token, or null if no token was created
+     *
      * @return array<string, mixed> The undo metadata array, empty if no token
      */
     private function buildUndoMeta(?UndoToken $undoToken): array
@@ -422,7 +423,7 @@ final class ProjectController extends AbstractController
             $status
         );
 
-        $taskData = array_map(fn($task) => [
+        $taskData = array_map(fn ($task) => [
             'id' => $task->getId(),
             'title' => $task->getTitle(),
             'description' => $task->getDescription(),

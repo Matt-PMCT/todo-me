@@ -15,7 +15,7 @@ final class InvalidStatusException extends HttpException
     public readonly string $errorCode;
 
     /**
-     * @param string $invalidStatus The invalid status value
+     * @param string        $invalidStatus The invalid status value
      * @param array<string> $validStatuses List of valid status values
      */
     public function __construct(

@@ -32,21 +32,21 @@ final class Version20240101000007 extends AbstractMigration
         ");
 
         // Create trigger for INSERT
-        $this->addSql("
+        $this->addSql('
             CREATE TRIGGER tasks_search_vector_insert
             BEFORE INSERT ON tasks
             FOR EACH ROW
             EXECUTE FUNCTION tasks_search_vector_update()
-        ");
+        ');
 
         // Create trigger for UPDATE (only when title or description changes)
-        $this->addSql("
+        $this->addSql('
             CREATE TRIGGER tasks_search_vector_update
             BEFORE UPDATE ON tasks
             FOR EACH ROW
             WHEN (OLD.title IS DISTINCT FROM NEW.title OR OLD.description IS DISTINCT FROM NEW.description)
             EXECUTE FUNCTION tasks_search_vector_update()
-        ");
+        ');
     }
 
     public function down(Schema $schema): void

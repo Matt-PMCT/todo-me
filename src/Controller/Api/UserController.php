@@ -161,10 +161,10 @@ final class UserController extends AbstractController
                 'createdAt' => $user->getCreatedAt()?->format(\DateTimeInterface::RFC3339),
                 'updatedAt' => $user->getUpdatedAt()?->format(\DateTimeInterface::RFC3339),
             ],
-            'projects' => array_map(fn($p) => $this->serializeProject($p), $projects),
-            'tasks' => array_map(fn($t) => $this->serializeTask($t), $tasks),
-            'tags' => array_map(fn($t) => $this->serializeTag($t), $tags),
-            'savedFilters' => array_map(fn($f) => $this->serializeSavedFilter($f), $savedFilters),
+            'projects' => array_map(fn ($p) => $this->serializeProject($p), $projects),
+            'tasks' => array_map(fn ($t) => $this->serializeTask($t), $tasks),
+            'tags' => array_map(fn ($t) => $this->serializeTag($t), $tags),
+            'savedFilters' => array_map(fn ($f) => $this->serializeSavedFilter($f), $savedFilters),
             'exportedAt' => (new \DateTimeImmutable())->format(\DateTimeInterface::RFC3339),
         ];
 
@@ -248,7 +248,7 @@ final class UserController extends AbstractController
             'dueDate' => $task->getDueDate()?->format(\DateTimeInterface::RFC3339),
             'projectId' => $task->getProject()?->getId(),
             'parentTaskId' => $task->getParentTask()?->getId(),
-            'tagIds' => array_map(fn($t) => $t->getId(), $task->getTags()->toArray()),
+            'tagIds' => array_map(fn ($t) => $t->getId(), $task->getTags()->toArray()),
             'recurrenceRule' => $task->getRecurrenceRule(),
             'recurrenceType' => $task->getRecurrenceType(),
             'completedAt' => $task->getCompletedAt()?->format(\DateTimeInterface::RFC3339),

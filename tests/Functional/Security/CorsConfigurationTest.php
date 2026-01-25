@@ -127,7 +127,7 @@ class CorsConfigurationTest extends ApiTestCase
             [],
             [
                 'HTTP_ORIGIN' => 'http://localhost:3000',
-                'HTTP_AUTHORIZATION' => 'Bearer ' . $user->getApiToken(),
+                'HTTP_AUTHORIZATION' => 'Bearer '.$user->getApiToken(),
                 'CONTENT_TYPE' => 'application/json',
             ]
         );
@@ -152,7 +152,7 @@ class CorsConfigurationTest extends ApiTestCase
             [],
             [
                 'HTTP_ORIGIN' => 'http://localhost:3000',
-                'HTTP_AUTHORIZATION' => 'Bearer ' . $user->getApiToken(),
+                'HTTP_AUTHORIZATION' => 'Bearer '.$user->getApiToken(),
                 'CONTENT_TYPE' => 'application/json',
             ]
         );

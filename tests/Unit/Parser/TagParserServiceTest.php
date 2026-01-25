@@ -63,7 +63,7 @@ class TagParserServiceTest extends UnitTestCase
                     'urgent' => ['tag' => $tag1, 'created' => false],
                     'important' => ['tag' => $tag2, 'created' => true],
                     'today' => ['tag' => $tag3, 'created' => false],
-                    default => throw new \Exception('Unexpected tag name: ' . $name),
+                    default => throw new \Exception('Unexpected tag name: '.$name),
                 };
             });
 
@@ -200,7 +200,7 @@ class TagParserServiceTest extends UnitTestCase
                 return match (strtolower($name)) {
                     'first' => ['tag' => $tag1, 'created' => false],
                     'second' => ['tag' => $tag2, 'created' => false],
-                    default => throw new \Exception('Unexpected tag name: ' . $name),
+                    default => throw new \Exception('Unexpected tag name: '.$name),
                 };
             });
 
@@ -376,7 +376,7 @@ class TagParserServiceTest extends UnitTestCase
                 return match (strtolower($name)) {
                     'work' => ['tag' => $tag1, 'created' => false],
                     'priority' => ['tag' => $tag2, 'created' => true],
-                    default => throw new \Exception('Unexpected tag name: ' . $name),
+                    default => throw new \Exception('Unexpected tag name: '.$name),
                 };
             });
 

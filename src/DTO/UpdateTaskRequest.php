@@ -19,28 +19,23 @@ final class UpdateTaskRequest
             maxMessage: 'Title must be at most {{ limit }} characters'
         )]
         public readonly ?string $title = null,
-
         #[Assert\Length(
             max: 2000,
             maxMessage: 'Description must be at most {{ limit }} characters'
         )]
         public readonly ?string $description = null,
-
         #[Assert\Choice(
             choices: Task::STATUSES,
             message: 'Status must be one of: {{ choices }}'
         )]
         public readonly ?string $status = null,
-
         #[Assert\Range(
             min: Task::PRIORITY_MIN,
             max: Task::PRIORITY_MAX,
             notInRangeMessage: 'Priority must be between {{ min }} and {{ max }}'
         )]
         public readonly ?int $priority = null,
-
         public readonly ?string $dueDate = null,
-
         #[Assert\Uuid(message: 'Project ID must be a valid UUID')]
         public readonly ?string $projectId = null,
 
@@ -48,7 +43,7 @@ final class UpdateTaskRequest
          * @var string[]|null
          */
         #[Assert\All([
-            new Assert\Uuid(message: 'Each tag ID must be a valid UUID')
+            new Assert\Uuid(message: 'Each tag ID must be a valid UUID'),
         ])]
         public readonly ?array $tagIds = null,
 

@@ -138,6 +138,7 @@ final class HealthController extends AbstractController
     {
         try {
             $this->connection->executeQuery('SELECT 1');
+
             return 'healthy';
         } catch (\Throwable) {
             return 'unhealthy';

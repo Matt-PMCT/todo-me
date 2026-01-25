@@ -28,6 +28,7 @@ final class PushNotificationService
      * Send a push notification to all user's subscriptions.
      *
      * @param array<string, mixed> $data
+     *
      * @return int Number of successful deliveries
      */
     public function send(User $user, string $title, ?string $message = null, array $data = []): int

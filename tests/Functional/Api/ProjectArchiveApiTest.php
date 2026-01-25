@@ -23,7 +23,7 @@ class ProjectArchiveApiTest extends ApiTestCase
         $response = $this->authenticatedApiRequest(
             $user,
             'PATCH',
-            '/api/v1/projects/' . $parent->getId() . '/archive?cascade=true'
+            '/api/v1/projects/'.$parent->getId().'/archive?cascade=true'
         );
 
         $this->assertResponseStatusCode(Response::HTTP_OK, $response);
@@ -46,7 +46,7 @@ class ProjectArchiveApiTest extends ApiTestCase
         $response = $this->authenticatedApiRequest(
             $user,
             'PATCH',
-            '/api/v1/projects/' . $parent->getId() . '/archive'
+            '/api/v1/projects/'.$parent->getId().'/archive'
         );
 
         $this->assertResponseStatusCode(Response::HTTP_OK, $response);
@@ -57,7 +57,7 @@ class ProjectArchiveApiTest extends ApiTestCase
         $this->assertFalse(isset($meta['affectedProjects']) && count($meta['affectedProjects']) > 0);
 
         // Verify child is not archived
-        $showResponse = $this->authenticatedApiRequest($user, 'GET', '/api/v1/projects/' . $child->getId());
+        $showResponse = $this->authenticatedApiRequest($user, 'GET', '/api/v1/projects/'.$child->getId());
         $childData = $this->getResponseData($showResponse);
         $this->assertFalse($childData['isArchived']);
     }
@@ -77,7 +77,7 @@ class ProjectArchiveApiTest extends ApiTestCase
         $response = $this->authenticatedApiRequest(
             $user,
             'PATCH',
-            '/api/v1/projects/' . $parent->getId() . '/archive?promote_children=true'
+            '/api/v1/projects/'.$parent->getId().'/archive?promote_children=true'
         );
 
         $this->assertResponseStatusCode(Response::HTTP_OK, $response);
@@ -87,11 +87,11 @@ class ProjectArchiveApiTest extends ApiTestCase
         $this->assertCount(2, $meta['affectedProjects']);
 
         // Verify children are now under grandparent
-        $child1Response = $this->authenticatedApiRequest($user, 'GET', '/api/v1/projects/' . $child1->getId());
+        $child1Response = $this->authenticatedApiRequest($user, 'GET', '/api/v1/projects/'.$child1->getId());
         $child1Data = $this->getResponseData($child1Response);
         $this->assertEquals($grandparent->getId(), $child1Data['parentId']);
 
-        $child2Response = $this->authenticatedApiRequest($user, 'GET', '/api/v1/projects/' . $child2->getId());
+        $child2Response = $this->authenticatedApiRequest($user, 'GET', '/api/v1/projects/'.$child2->getId());
         $child2Data = $this->getResponseData($child2Response);
         $this->assertEquals($grandparent->getId(), $child2Data['parentId']);
     }
@@ -105,13 +105,13 @@ class ProjectArchiveApiTest extends ApiTestCase
         $response = $this->authenticatedApiRequest(
             $user,
             'PATCH',
-            '/api/v1/projects/' . $parent->getId() . '/archive?promote_children=true'
+            '/api/v1/projects/'.$parent->getId().'/archive?promote_children=true'
         );
 
         $this->assertResponseStatusCode(Response::HTTP_OK, $response);
 
         // Verify child is now a root project
-        $childResponse = $this->authenticatedApiRequest($user, 'GET', '/api/v1/projects/' . $child->getId());
+        $childResponse = $this->authenticatedApiRequest($user, 'GET', '/api/v1/projects/'.$child->getId());
         $childData = $this->getResponseData($childResponse);
         $this->assertNull($childData['parentId']);
         $this->assertEquals(0, $childData['depth']);
@@ -131,7 +131,7 @@ class ProjectArchiveApiTest extends ApiTestCase
         $response = $this->authenticatedApiRequest(
             $user,
             'PATCH',
-            '/api/v1/projects/' . $parent->getId() . '/unarchive?cascade=true'
+            '/api/v1/projects/'.$parent->getId().'/unarchive?cascade=true'
         );
 
         $this->assertResponseStatusCode(Response::HTTP_OK, $response);
@@ -143,11 +143,11 @@ class ProjectArchiveApiTest extends ApiTestCase
         $this->assertCount(2, $meta['affectedProjects']);
 
         // Verify descendants are unarchived
-        $childResponse = $this->authenticatedApiRequest($user, 'GET', '/api/v1/projects/' . $child->getId());
+        $childResponse = $this->authenticatedApiRequest($user, 'GET', '/api/v1/projects/'.$child->getId());
         $childData = $this->getResponseData($childResponse);
         $this->assertFalse($childData['isArchived']);
 
-        $grandchildResponse = $this->authenticatedApiRequest($user, 'GET', '/api/v1/projects/' . $grandchild->getId());
+        $grandchildResponse = $this->authenticatedApiRequest($user, 'GET', '/api/v1/projects/'.$grandchild->getId());
         $grandchildData = $this->getResponseData($grandchildResponse);
         $this->assertFalse($grandchildData['isArchived']);
     }
@@ -161,7 +161,7 @@ class ProjectArchiveApiTest extends ApiTestCase
         $response = $this->authenticatedApiRequest(
             $user,
             'PATCH',
-            '/api/v1/projects/' . $parent->getId() . '/unarchive'
+            '/api/v1/projects/'.$parent->getId().'/unarchive'
         );
 
         $this->assertResponseStatusCode(Response::HTTP_OK, $response);
@@ -190,7 +190,7 @@ class ProjectArchiveApiTest extends ApiTestCase
         $response = $this->authenticatedApiRequest(
             $user,
             'PATCH',
-            '/api/v1/projects/' . $project->getId() . '/archive'
+            '/api/v1/projects/'.$project->getId().'/archive'
         );
 
         $this->assertResponseStatusCode(Response::HTTP_OK, $response);
@@ -208,7 +208,7 @@ class ProjectArchiveApiTest extends ApiTestCase
         $response = $this->authenticatedApiRequest(
             $user,
             'PATCH',
-            '/api/v1/projects/' . $project->getId() . '/unarchive'
+            '/api/v1/projects/'.$project->getId().'/unarchive'
         );
 
         $this->assertResponseStatusCode(Response::HTTP_OK, $response);
@@ -228,7 +228,7 @@ class ProjectArchiveApiTest extends ApiTestCase
         $parent = $this->createProject($user, 'Parent', null, false, $grandparent);
         $child = $this->createProject($user, 'Child', null, false, $parent);
 
-        $response = $this->authenticatedApiRequest($user, 'GET', '/api/v1/projects/' . $child->getId());
+        $response = $this->authenticatedApiRequest($user, 'GET', '/api/v1/projects/'.$child->getId());
 
         $this->assertResponseStatusCode(Response::HTTP_OK, $response);
         $data = $this->getResponseData($response);
@@ -260,7 +260,7 @@ class ProjectArchiveApiTest extends ApiTestCase
         $response = $this->authenticatedApiRequest(
             $user,
             'POST',
-            '/api/v1/projects/' . $project->getId() . '/move',
+            '/api/v1/projects/'.$project->getId().'/move',
             ['parentId' => $archivedParent->getId()]
         );
 

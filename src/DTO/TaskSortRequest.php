@@ -38,7 +38,6 @@ final class TaskSortRequest
             message: 'Sort field must be one of: {{ choices }}'
         )]
         public readonly string $field = 'position',
-
         #[Assert\Choice(
             choices: ['ASC', 'DESC'],
             message: 'Sort direction must be ASC or DESC'

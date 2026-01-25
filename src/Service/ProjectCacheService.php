@@ -7,7 +7,6 @@ namespace App\Service;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Cache\Adapter\AdapterInterface;
 use Symfony\Contracts\Cache\CacheInterface;
-use Symfony\Contracts\Cache\ItemInterface;
 
 /**
  * Cache service for project tree data.
@@ -26,9 +25,10 @@ final class ProjectCacheService
     /**
      * Build a cache key for the project tree.
      *
-     * @param string $userId The user ID
-     * @param bool $includeArchived Whether archived projects are included
-     * @param bool $includeTaskCounts Whether task counts are included
+     * @param string $userId            The user ID
+     * @param bool   $includeArchived   Whether archived projects are included
+     * @param bool   $includeTaskCounts Whether task counts are included
+     *
      * @return string The cache key
      */
     public function buildKey(string $userId, bool $includeArchived, bool $includeTaskCounts): string
@@ -45,9 +45,10 @@ final class ProjectCacheService
     /**
      * Get cached project tree data.
      *
-     * @param string $userId The user ID
-     * @param bool $includeArchived Whether archived projects are included
-     * @param bool $includeTaskCounts Whether task counts are included
+     * @param string $userId            The user ID
+     * @param bool   $includeArchived   Whether archived projects are included
+     * @param bool   $includeTaskCounts Whether task counts are included
+     *
      * @return array|null The cached tree data or null if not cached
      */
     public function get(string $userId, bool $includeArchived, bool $includeTaskCounts): ?array
@@ -79,10 +80,10 @@ final class ProjectCacheService
     /**
      * Set cached project tree data.
      *
-     * @param string $userId The user ID
-     * @param bool $includeArchived Whether archived projects are included
-     * @param bool $includeTaskCounts Whether task counts are included
-     * @param array $tree The tree data to cache
+     * @param string $userId            The user ID
+     * @param bool   $includeArchived   Whether archived projects are included
+     * @param bool   $includeTaskCounts Whether task counts are included
+     * @param array  $tree              The tree data to cache
      */
     public function set(string $userId, bool $includeArchived, bool $includeTaskCounts, array $tree): void
     {

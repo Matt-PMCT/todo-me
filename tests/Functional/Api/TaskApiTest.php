@@ -181,7 +181,7 @@ class TaskApiTest extends ApiTestCase
         $response = $this->authenticatedApiRequest(
             $user,
             'GET',
-            '/api/v1/tasks?project_ids=' . $project->getId()
+            '/api/v1/tasks?project_ids='.$project->getId()
         );
 
         $this->assertResponseStatusCode(Response::HTTP_OK, $response);
@@ -467,7 +467,7 @@ class TaskApiTest extends ApiTestCase
         $response = $this->authenticatedApiRequest(
             $user,
             'GET',
-            '/api/v1/tasks/' . $task->getId()
+            '/api/v1/tasks/'.$task->getId()
         );
 
         $this->assertResponseStatusCode(Response::HTTP_OK, $response);
@@ -502,7 +502,7 @@ class TaskApiTest extends ApiTestCase
         $response = $this->authenticatedApiRequest(
             $user1,
             'GET',
-            '/api/v1/tasks/' . $task->getId()
+            '/api/v1/tasks/'.$task->getId()
         );
 
         // Should return 404 or 403 (depending on implementation)
@@ -524,7 +524,7 @@ class TaskApiTest extends ApiTestCase
         $response = $this->authenticatedApiRequest(
             $user,
             'PUT',
-            '/api/v1/tasks/' . $task->getId(),
+            '/api/v1/tasks/'.$task->getId(),
             [
                 'title' => 'Updated Title',
                 'description' => 'Updated Description',
@@ -550,7 +550,7 @@ class TaskApiTest extends ApiTestCase
         $response = $this->authenticatedApiRequest(
             $user,
             'PUT',
-            '/api/v1/tasks/' . $task->getId(),
+            '/api/v1/tasks/'.$task->getId(),
             ['title' => 'Only Title Updated']
         );
 
@@ -572,7 +572,7 @@ class TaskApiTest extends ApiTestCase
         $response = $this->authenticatedApiRequest(
             $user,
             'PUT',
-            '/api/v1/tasks/' . $task->getId(),
+            '/api/v1/tasks/'.$task->getId(),
             ['title' => str_repeat('a', 501)]
         );
 
@@ -588,7 +588,7 @@ class TaskApiTest extends ApiTestCase
         $response = $this->authenticatedApiRequest(
             $user,
             'PUT',
-            '/api/v1/tasks/' . $task->getId(),
+            '/api/v1/tasks/'.$task->getId(),
             ['title' => 'Updated Title']
         );
 
@@ -608,7 +608,7 @@ class TaskApiTest extends ApiTestCase
         $response = $this->authenticatedApiRequest(
             $user,
             'PUT',
-            '/api/v1/tasks/' . $task->getId(),
+            '/api/v1/tasks/'.$task->getId(),
             ['status' => 'not_a_real_status']
         );
 
@@ -624,7 +624,7 @@ class TaskApiTest extends ApiTestCase
         $response = $this->authenticatedApiRequest(
             $user,
             'PUT',
-            '/api/v1/tasks/' . $task->getId(),
+            '/api/v1/tasks/'.$task->getId(),
             ['priority' => 5]  // 5 is invalid since range is now 0-4
         );
 
@@ -645,7 +645,7 @@ class TaskApiTest extends ApiTestCase
         $response = $this->authenticatedApiRequest(
             $user,
             'DELETE',
-            '/api/v1/tasks/' . $taskId
+            '/api/v1/tasks/'.$taskId
         );
 
         $this->assertResponseStatusCode(Response::HTTP_OK, $response);
@@ -679,7 +679,7 @@ class TaskApiTest extends ApiTestCase
         $response = $this->authenticatedApiRequest(
             $user1,
             'DELETE',
-            '/api/v1/tasks/' . $task->getId()
+            '/api/v1/tasks/'.$task->getId()
         );
 
         $this->assertContains($response->getStatusCode(), [
@@ -700,7 +700,7 @@ class TaskApiTest extends ApiTestCase
         $response = $this->authenticatedApiRequest(
             $user,
             'PATCH',
-            '/api/v1/tasks/' . $task->getId() . '/status',
+            '/api/v1/tasks/'.$task->getId().'/status',
             ['status' => Task::STATUS_IN_PROGRESS]
         );
 
@@ -719,7 +719,7 @@ class TaskApiTest extends ApiTestCase
         $response = $this->authenticatedApiRequest(
             $user,
             'PATCH',
-            '/api/v1/tasks/' . $task->getId() . '/status',
+            '/api/v1/tasks/'.$task->getId().'/status',
             ['status' => Task::STATUS_COMPLETED]
         );
 
@@ -740,7 +740,7 @@ class TaskApiTest extends ApiTestCase
         $response = $this->authenticatedApiRequest(
             $user,
             'PATCH',
-            '/api/v1/tasks/' . $task->getId() . '/status',
+            '/api/v1/tasks/'.$task->getId().'/status',
             ['status' => Task::STATUS_COMPLETED]
         );
 
@@ -759,7 +759,7 @@ class TaskApiTest extends ApiTestCase
         $response = $this->authenticatedApiRequest(
             $user,
             'PATCH',
-            '/api/v1/tasks/' . $task->getId() . '/status',
+            '/api/v1/tasks/'.$task->getId().'/status',
             ['status' => Task::STATUS_PENDING]
         );
 
@@ -780,7 +780,7 @@ class TaskApiTest extends ApiTestCase
         $response = $this->authenticatedApiRequest(
             $user,
             'PATCH',
-            '/api/v1/tasks/' . $task->getId() . '/status',
+            '/api/v1/tasks/'.$task->getId().'/status',
             ['status' => 'invalid']
         );
 
@@ -796,7 +796,7 @@ class TaskApiTest extends ApiTestCase
         $response = $this->authenticatedApiRequest(
             $user,
             'PATCH',
-            '/api/v1/tasks/' . $task->getId() . '/status',
+            '/api/v1/tasks/'.$task->getId().'/status',
             []
         );
 
@@ -811,7 +811,7 @@ class TaskApiTest extends ApiTestCase
         $response = $this->authenticatedApiRequest(
             $user,
             'PATCH',
-            '/api/v1/tasks/' . $task->getId() . '/status',
+            '/api/v1/tasks/'.$task->getId().'/status',
             ['status' => Task::STATUS_COMPLETED]
         );
 
@@ -836,7 +836,7 @@ class TaskApiTest extends ApiTestCase
         $deleteResponse = $this->authenticatedApiRequest(
             $user,
             'DELETE',
-            '/api/v1/tasks/' . $task->getId()
+            '/api/v1/tasks/'.$task->getId()
         );
 
         $deleteData = $this->getResponseData($deleteResponse);
@@ -846,7 +846,7 @@ class TaskApiTest extends ApiTestCase
         $response = $this->authenticatedApiRequest(
             $user,
             'POST',
-            '/api/v1/tasks/undo/' . $undoToken
+            '/api/v1/tasks/undo/'.$undoToken
         );
 
         $this->assertResponseStatusCode(Response::HTTP_OK, $response);
@@ -865,7 +865,7 @@ class TaskApiTest extends ApiTestCase
         $updateResponse = $this->authenticatedApiRequest(
             $user,
             'PUT',
-            '/api/v1/tasks/' . $task->getId(),
+            '/api/v1/tasks/'.$task->getId(),
             ['title' => 'New Title']
         );
 
@@ -876,7 +876,7 @@ class TaskApiTest extends ApiTestCase
         $response = $this->authenticatedApiRequest(
             $user,
             'POST',
-            '/api/v1/tasks/undo/' . $undoToken
+            '/api/v1/tasks/undo/'.$undoToken
         );
 
         $this->assertResponseStatusCode(Response::HTTP_OK, $response);
@@ -909,7 +909,7 @@ class TaskApiTest extends ApiTestCase
         $deleteResponse = $this->authenticatedApiRequest(
             $user1,
             'DELETE',
-            '/api/v1/tasks/' . $task->getId()
+            '/api/v1/tasks/'.$task->getId()
         );
 
         $deleteData = $this->getResponseData($deleteResponse);
@@ -919,7 +919,7 @@ class TaskApiTest extends ApiTestCase
         $response = $this->authenticatedApiRequest(
             $user2,
             'POST',
-            '/api/v1/tasks/undo/' . $undoToken
+            '/api/v1/tasks/undo/'.$undoToken
         );
 
         // Should fail - token belongs to different user
@@ -1011,7 +1011,7 @@ class TaskApiTest extends ApiTestCase
         $response = $this->authenticatedApiRequest(
             $user,
             'GET',
-            '/api/v1/tasks/' . $task->getId()
+            '/api/v1/tasks/'.$task->getId()
         );
 
         $this->assertResponseStatusCode(Response::HTTP_OK, $response);

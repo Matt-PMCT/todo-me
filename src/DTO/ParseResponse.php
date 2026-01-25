@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\DTO;
 
-use App\Entity\Project;
 use App\ValueObject\ParseHighlight;
 use App\ValueObject\TaskParseResult;
 
@@ -17,15 +16,15 @@ use App\ValueObject\TaskParseResult;
 final class ParseResponse
 {
     /**
-     * @param string $title The extracted title
-     * @param string|null $dueDate ISO date string or null
-     * @param string|null $dueTime Time string or null
-     * @param bool $hasTime Whether the parsed date includes a time component
-     * @param array{id: string, name: string, fullPath: string, color: string}|null $project
-     * @param array<array{id: string, name: string, color: string}> $tags
-     * @param int|null $priority Priority 0-4 or null
+     * @param string                                                                                                    $title      The extracted title
+     * @param string|null                                                                                               $dueDate    ISO date string or null
+     * @param string|null                                                                                               $dueTime    Time string or null
+     * @param bool                                                                                                      $hasTime    Whether the parsed date includes a time component
+     * @param array{id: string, name: string, fullPath: string, color: string}|null                                     $project
+     * @param array<array{id: string, name: string, color: string}>                                                     $tags
+     * @param int|null                                                                                                  $priority   Priority 0-4 or null
      * @param array<array{type: string, text: string, startPosition: int, endPosition: int, value: mixed, valid: bool}> $highlights
-     * @param string[] $warnings
+     * @param string[]                                                                                                  $warnings
      */
     public function __construct(
         public readonly string $title,
@@ -56,7 +55,7 @@ final class ParseResponse
         }
 
         $tags = array_map(
-            fn($tag) => [
+            fn ($tag) => [
                 'id' => $tag->getId(),
                 'name' => $tag->getName(),
                 'color' => $tag->getColor(),
@@ -65,7 +64,7 @@ final class ParseResponse
         );
 
         $highlights = array_map(
-            fn(ParseHighlight $h) => $h->toArray(),
+            fn (ParseHighlight $h) => $h->toArray(),
             $result->highlights
         );
 

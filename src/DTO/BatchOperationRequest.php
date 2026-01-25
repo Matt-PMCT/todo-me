@@ -41,6 +41,7 @@ final class BatchOperationRequest
 
         /**
          * Operation data - required for create, update, reschedule actions.
+         *
          * @var array<string, mixed>
          */
         public readonly array $data = [],
@@ -79,7 +80,7 @@ final class BatchOperationRequest
         ];
 
         if (in_array($this->action, $actionsRequiringTaskId, true) && $this->taskId === null) {
-            $errors['taskId'] = 'Task ID is required for ' . $this->action . ' action';
+            $errors['taskId'] = 'Task ID is required for '.$this->action.' action';
         }
 
         // Actions that require data

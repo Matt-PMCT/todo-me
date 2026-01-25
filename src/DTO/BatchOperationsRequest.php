@@ -38,7 +38,7 @@ final class BatchOperationsRequest
      * Creates a BatchOperationsRequest from an array.
      *
      * @param array<string, mixed> $data
-     * @param bool $atomic Whether to run atomically
+     * @param bool                 $atomic Whether to run atomically
      */
     public static function fromArray(array $data, bool $atomic = false): self
     {

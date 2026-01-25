@@ -60,7 +60,7 @@ final class InvalidRecurrenceException extends BadRequestHttpException
     {
         $message = sprintf('Unsupported recurrence pattern: "%s"', $pattern);
         if ($reason !== '') {
-            $message .= '. ' . $reason;
+            $message .= '. '.$reason;
         }
 
         return new self(

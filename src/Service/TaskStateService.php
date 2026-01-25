@@ -30,6 +30,7 @@ final class TaskStateService implements TaskStateServiceInterface
      * Serializes a task state for undo operations.
      *
      * @param Task $task The task to serialize
+     *
      * @return array<string, mixed> The serialized state
      */
     public function serializeTaskState(Task $task): array
@@ -64,6 +65,7 @@ final class TaskStateService implements TaskStateServiceInterface
      * Serializes only the status-related state for status change undo.
      *
      * @param Task $task The task
+     *
      * @return array<string, mixed> The status-related state
      */
     public function serializeStatusState(Task $task): array
@@ -80,8 +82,9 @@ final class TaskStateService implements TaskStateServiceInterface
      * Creates a new Task entity with all properties set from the state.
      * Used when undoing delete operations.
      *
-     * @param User $user The task owner
+     * @param User                 $user  The task owner
      * @param array<string, mixed> $state The serialized state
+     *
      * @return Task The restored task
      */
     public function restoreTaskFromState(User $user, array $state): Task
@@ -110,7 +113,7 @@ final class TaskStateService implements TaskStateServiceInterface
      * side effects like auto-setting completedAt. Handles related entities
      * (project, tags) separately with ownership validation.
      *
-     * @param Task $task The task to update
+     * @param Task                 $task  The task to update
      * @param array<string, mixed> $state The state to apply
      */
     public function applyStateToTask(Task $task, array $state): void

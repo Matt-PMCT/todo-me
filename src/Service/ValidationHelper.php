@@ -201,7 +201,7 @@ class ValidationHelper
     /**
      * Validates that a user owns the given project.
      *
-     * @param User $user The user to check
+     * @param User         $user    The user to check
      * @param Project|null $project The project to validate
      *
      * @throws ForbiddenException If the user does not own the project
@@ -220,7 +220,7 @@ class ValidationHelper
     /**
      * Validates that a user owns the given resource.
      *
-     * @param User $user The user to check
+     * @param User               $user     The user to check
      * @param UserOwnedInterface $resource The resource to validate
      *
      * @throws ForbiddenException If the user does not own the resource
@@ -239,9 +239,9 @@ class ValidationHelper
      *
      * @param Request $request The HTTP request
      *
-     * @throws ValidationException If JSON is invalid
-     *
      * @return array<string, mixed> The decoded JSON data
+     *
+     * @throws ValidationException If JSON is invalid
      */
     public function decodeJsonBody(Request $request): array
     {

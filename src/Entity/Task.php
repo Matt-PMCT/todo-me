@@ -513,6 +513,7 @@ class Task implements UserOwnedInterface
      * Validation is still performed to ensure data integrity.
      *
      * @param array<string, mixed> $state The state to restore
+     *
      * @internal Only for use by TaskService undo operations
      */
     public function restoreFromState(array $state): void

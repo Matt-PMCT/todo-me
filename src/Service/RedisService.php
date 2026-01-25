@@ -7,7 +7,6 @@ namespace App\Service;
 use Predis\Client;
 use Predis\ClientInterface;
 use Psr\Log\LoggerInterface;
-use Throwable;
 
 class RedisService
 {
@@ -34,7 +33,7 @@ class RedisService
                 $this->client->ping();
                 $this->connected = true;
                 $this->logger->debug('Redis connection established');
-            } catch (Throwable $e) {
+            } catch (\Throwable $e) {
                 $this->logger->error('Failed to connect to Redis', [
                     'error' => $e->getMessage(),
                     'url' => $this->redisUrl,
@@ -53,6 +52,7 @@ class RedisService
     public function isConnected(): bool
     {
         $this->getClient();
+
         return $this->connected;
     }
 
@@ -70,11 +70,13 @@ class RedisService
             }
 
             $result = $client->ping();
+
             return $result === 'PONG' || (string) $result === 'PONG';
-        } catch (Throwable $e) {
+        } catch (\Throwable $e) {
             $this->logger->error('Redis PING failed', [
                 'error' => $e->getMessage(),
             ]);
+
             return false;
         }
     }
@@ -84,6 +86,7 @@ class RedisService
      * Uses SCAN to avoid blocking Redis with KEYS command.
      *
      * @param string $pattern The pattern to match (e.g., "user:123:*")
+     *
      * @return int Number of keys deleted
      */
     public function deletePattern(string $pattern): int
@@ -113,11 +116,12 @@ class RedisService
             ]);
 
             return $deleted;
-        } catch (Throwable $e) {
+        } catch (\Throwable $e) {
             $this->logger->error('Redis DELETEPATTERN failed', [
                 'pattern' => $pattern,
                 'error' => $e->getMessage(),
             ]);
+
             return 0;
         }
     }
@@ -137,11 +141,12 @@ class RedisService
             $this->logger->debug('Redis GET', ['key' => $key, 'found' => $value !== null]);
 
             return $value;
-        } catch (Throwable $e) {
+        } catch (\Throwable $e) {
             $this->logger->error('Redis GET failed', [
                 'key' => $key,
                 'error' => $e->getMessage(),
             ]);
+
             return null;
         }
     }
@@ -149,9 +154,9 @@ class RedisService
     /**
      * Set a value in Redis.
      *
-     * @param string $key The key to set
+     * @param string $key   The key to set
      * @param string $value The value to set
-     * @param int $ttl Time to live in seconds (0 = no expiration)
+     * @param int    $ttl   Time to live in seconds (0 = no expiration)
      */
     public function set(string $key, string $value, int $ttl = 0): bool
     {
@@ -175,11 +180,12 @@ class RedisService
             ]);
 
             return $success;
-        } catch (Throwable $e) {
+        } catch (\Throwable $e) {
             $this->logger->error('Redis SET failed', [
                 'key' => $key,
                 'error' => $e->getMessage(),
             ]);
+
             return false;
         }
     }
@@ -200,11 +206,12 @@ class RedisService
             $this->logger->debug('Redis DEL', ['key' => $key, 'success' => $success]);
 
             return $success;
-        } catch (Throwable $e) {
+        } catch (\Throwable $e) {
             $this->logger->error('Redis DEL failed', [
                 'key' => $key,
                 'error' => $e->getMessage(),
             ]);
+
             return false;
         }
     }
@@ -224,11 +231,12 @@ class RedisService
             $this->logger->debug('Redis EXISTS', ['key' => $key, 'exists' => $exists]);
 
             return $exists;
-        } catch (Throwable $e) {
+        } catch (\Throwable $e) {
             $this->logger->error('Redis EXISTS failed', [
                 'key' => $key,
                 'error' => $e->getMessage(),
             ]);
+
             return false;
         }
     }
@@ -249,11 +257,12 @@ class RedisService
             $this->logger->debug('Redis INCR', ['key' => $key, 'value' => $result]);
 
             return (int) $result;
-        } catch (Throwable $e) {
+        } catch (\Throwable $e) {
             $this->logger->error('Redis INCR failed', [
                 'key' => $key,
                 'error' => $e->getMessage(),
             ]);
+
             return 0;
         }
     }
@@ -278,11 +287,12 @@ class RedisService
             ]);
 
             return $success;
-        } catch (Throwable $e) {
+        } catch (\Throwable $e) {
             $this->logger->error('Redis EXPIRE failed', [
                 'key' => $key,
                 'error' => $e->getMessage(),
             ]);
+
             return false;
         }
     }
@@ -290,20 +300,22 @@ class RedisService
     /**
      * Set a JSON-encoded value in Redis.
      *
-     * @param string $key The key to set
-     * @param array $data The data to JSON-encode and store
-     * @param int $ttl Time to live in seconds (0 = no expiration)
+     * @param string $key  The key to set
+     * @param array  $data The data to JSON-encode and store
+     * @param int    $ttl  Time to live in seconds (0 = no expiration)
      */
     public function setJson(string $key, array $data, int $ttl = 0): bool
     {
         try {
             $json = json_encode($data, JSON_THROW_ON_ERROR);
+
             return $this->set($key, $json, $ttl);
-        } catch (Throwable $e) {
+        } catch (\Throwable $e) {
             $this->logger->error('Redis setJson failed', [
                 'key' => $key,
                 'error' => $e->getMessage(),
             ]);
+
             return false;
         }
     }
@@ -320,12 +332,14 @@ class RedisService
             }
 
             $data = json_decode($value, true, 512, JSON_THROW_ON_ERROR);
+
             return is_array($data) ? $data : null;
-        } catch (Throwable $e) {
+        } catch (\Throwable $e) {
             $this->logger->error('Redis getJson failed', [
                 'key' => $key,
                 'error' => $e->getMessage(),
             ]);
+
             return null;
         }
     }
@@ -338,6 +352,7 @@ class RedisService
      * before either deletes it.
      *
      * @param string $key The key to get and delete
+     *
      * @return string|null The value if key existed, null otherwise
      */
     public function getAndDelete(string $key): ?string
@@ -366,11 +381,12 @@ class RedisService
             ]);
 
             return $result;
-        } catch (Throwable $e) {
+        } catch (\Throwable $e) {
             $this->logger->error('Redis GETDEL failed', [
                 'key' => $key,
                 'error' => $e->getMessage(),
             ]);
+
             return null;
         }
     }
@@ -382,6 +398,7 @@ class RedisService
      * JSON data like undo tokens.
      *
      * @param string $key The key to get and delete
+     *
      * @return array|null The decoded JSON data if key existed and was valid JSON, null otherwise
      */
     public function getJsonAndDelete(string $key): ?array
@@ -393,12 +410,14 @@ class RedisService
             }
 
             $data = json_decode($value, true, 512, JSON_THROW_ON_ERROR);
+
             return is_array($data) ? $data : null;
-        } catch (Throwable $e) {
+        } catch (\Throwable $e) {
             $this->logger->error('Redis getJsonAndDelete failed', [
                 'key' => $key,
                 'error' => $e->getMessage(),
             ]);
+
             return null;
         }
     }
@@ -408,6 +427,7 @@ class RedisService
      * Uses SCAN to avoid blocking Redis with KEYS command.
      *
      * @param string $pattern The pattern to match (e.g., "user:123:*")
+     *
      * @return string[] Array of matching keys
      */
     public function keys(string $pattern): array
@@ -437,11 +457,12 @@ class RedisService
             ]);
 
             return $allKeys;
-        } catch (Throwable $e) {
+        } catch (\Throwable $e) {
             $this->logger->error('Redis KEYS failed', [
                 'pattern' => $pattern,
                 'error' => $e->getMessage(),
             ]);
+
             return [];
         }
     }

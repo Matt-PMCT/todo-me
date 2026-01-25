@@ -67,7 +67,7 @@ abstract class ApiTestCase extends WebTestCase
     protected function createAuthenticatedClient(User $user): KernelBrowser
     {
         $client = static::createClient();
-        $client->setServerParameter('HTTP_AUTHORIZATION', 'Bearer ' . $user->getApiToken());
+        $client->setServerParameter('HTTP_AUTHORIZATION', 'Bearer '.$user->getApiToken());
 
         return $client;
     }
@@ -86,10 +86,7 @@ abstract class ApiTestCase extends WebTestCase
     /**
      * Creates a test user with the given email and password.
      *
-     * @param string $email
-     * @param string $password
      * @param bool $withToken Whether to generate an API token
-     * @return User
      */
     protected function createUser(
         string $email = 'test@example.com',
@@ -101,7 +98,7 @@ abstract class ApiTestCase extends WebTestCase
 
         // Generate username from email (using part before @ plus random suffix)
         $emailPrefix = explode('@', $email)[0];
-        $user->setUsername($emailPrefix . '_' . substr(md5(uniqid()), 0, 8));
+        $user->setUsername($emailPrefix.'_'.substr(md5(uniqid()), 0, 8));
 
         /** @var UserPasswordHasherInterface $passwordHasher */
         $passwordHasher = static::getContainer()->get(UserPasswordHasherInterface::class);
@@ -196,12 +193,11 @@ abstract class ApiTestCase extends WebTestCase
     /**
      * Makes an API request and returns the response.
      *
-     * @param string $method HTTP method
-     * @param string $uri Request URI
-     * @param array<string, mixed>|null $data Request body data
-     * @param array<string, string> $headers Additional headers
-     * @param KernelBrowser|null $client Client to use (defaults to $this->client)
-     * @return Response
+     * @param string                    $method  HTTP method
+     * @param string                    $uri     Request URI
+     * @param array<string, mixed>|null $data    Request body data
+     * @param array<string, string>     $headers Additional headers
+     * @param KernelBrowser|null        $client  Client to use (defaults to $this->client)
      */
     protected function apiRequest(
         string $method,
@@ -214,7 +210,7 @@ abstract class ApiTestCase extends WebTestCase
 
         $serverHeaders = ['CONTENT_TYPE' => 'application/json'];
         foreach ($headers as $key => $value) {
-            $serverHeaders['HTTP_' . strtoupper(str_replace('-', '_', $key))] = $value;
+            $serverHeaders['HTTP_'.strtoupper(str_replace('-', '_', $key))] = $value;
         }
 
         $content = $data !== null ? json_encode($data) : null;
@@ -227,12 +223,11 @@ abstract class ApiTestCase extends WebTestCase
     /**
      * Makes an authenticated API request.
      *
-     * @param User $user The user to authenticate as
-     * @param string $method HTTP method
-     * @param string $uri Request URI
-     * @param array<string, mixed>|null $data Request body data
-     * @param array<string, string> $headers Additional headers
-     * @return Response
+     * @param User                      $user    The user to authenticate as
+     * @param string                    $method  HTTP method
+     * @param string                    $uri     Request URI
+     * @param array<string, mixed>|null $data    Request body data
+     * @param array<string, string>     $headers Additional headers
      */
     protected function authenticatedApiRequest(
         User $user,
@@ -241,7 +236,7 @@ abstract class ApiTestCase extends WebTestCase
         ?array $data = null,
         array $headers = []
     ): Response {
-        $headers['Authorization'] = 'Bearer ' . $user->getApiToken();
+        $headers['Authorization'] = 'Bearer '.$user->getApiToken();
 
         return $this->apiRequest($method, $uri, $data, $headers);
     }
@@ -333,7 +328,9 @@ abstract class ApiTestCase extends WebTestCase
      * Refreshes an entity from the database.
      *
      * @template T of object
+     *
      * @param T $entity
+     *
      * @return T
      */
     protected function refreshEntity(object $entity): object
@@ -358,14 +355,14 @@ abstract class ApiTestCase extends WebTestCase
     {
         return sprintf(
             '%04x%04x-%04x-%04x-%04x-%04x%04x%04x',
-            random_int(0, 0xffff),
-            random_int(0, 0xffff),
-            random_int(0, 0xffff),
-            random_int(0, 0x0fff) | 0x4000,
-            random_int(0, 0x3fff) | 0x8000,
-            random_int(0, 0xffff),
-            random_int(0, 0xffff),
-            random_int(0, 0xffff)
+            random_int(0, 0xFFFF),
+            random_int(0, 0xFFFF),
+            random_int(0, 0xFFFF),
+            random_int(0, 0x0FFF) | 0x4000,
+            random_int(0, 0x3FFF) | 0x8000,
+            random_int(0, 0xFFFF),
+            random_int(0, 0xFFFF),
+            random_int(0, 0xFFFF)
         );
     }
 }

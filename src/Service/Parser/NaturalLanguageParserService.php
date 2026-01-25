@@ -46,7 +46,8 @@ class NaturalLanguageParserService
      * Parse input text into task components.
      *
      * @param string $input The raw input text to parse
-     * @param User $user The user context for finding projects, creating tags, etc.
+     * @param User   $user  the user context for finding projects, creating tags, etc
+     *
      * @return TaskParseResult The parsed result with all components
      */
     public function parse(string $input, User $user): TaskParseResult
@@ -81,7 +82,7 @@ class NaturalLanguageParserService
             $remainingInput = $this->maskSpan($input, $dateResult->startPosition, $dateResult->endPosition);
             $additionalDate = $this->dateParser->parse($remainingInput);
             if ($additionalDate !== null) {
-                $warnings[] = 'Multiple dates found; using first: "' . $dateResult->originalText . '"';
+                $warnings[] = 'Multiple dates found; using first: "'.$dateResult->originalText.'"';
             }
         }
 
@@ -104,14 +105,14 @@ class NaturalLanguageParserService
             $spansToRemove[] = [$projectResult->startPosition, $projectResult->endPosition];
 
             if (!$projectResult->found) {
-                $warnings[] = 'Project not found: "' . $projectResult->matchedName . '"';
+                $warnings[] = 'Project not found: "'.$projectResult->matchedName.'"';
             }
 
             // Check for additional project references and warn
             $remainingInput = $this->maskSpan($input, $projectResult->startPosition, $projectResult->endPosition);
             $additionalProject = $this->projectParser->parse($remainingInput, $user);
             if ($additionalProject !== null) {
-                $warnings[] = 'Multiple projects found; using first: "#' . $projectResult->matchedName . '"';
+                $warnings[] = 'Multiple projects found; using first: "#'.$projectResult->matchedName.'"';
             }
         }
 
@@ -155,14 +156,14 @@ class NaturalLanguageParserService
             $spansToRemove[] = [$priorityResult->startPosition, $priorityResult->endPosition];
 
             if (!$priorityResult->valid) {
-                $warnings[] = 'Invalid priority: "' . $priorityResult->originalText . '" (valid: p0-p4)';
+                $warnings[] = 'Invalid priority: "'.$priorityResult->originalText.'" (valid: p0-p4)';
             }
 
             // Check for additional priorities and warn
             $remainingInput = $this->maskSpan($input, $priorityResult->startPosition, $priorityResult->endPosition);
             $additionalPriority = $this->priorityParser->parse($remainingInput);
             if ($additionalPriority !== null) {
-                $warnings[] = 'Multiple priorities found; using first: "' . $priorityResult->originalText . '"';
+                $warnings[] = 'Multiple priorities found; using first: "'.$priorityResult->originalText.'"';
             }
         }
 
@@ -170,7 +171,7 @@ class NaturalLanguageParserService
         $title = $this->extractTitle($input, $spansToRemove);
 
         // Sort highlights by position
-        usort($highlights, fn(ParseHighlight $a, ParseHighlight $b) => $a->startPosition <=> $b->startPosition);
+        usort($highlights, fn (ParseHighlight $a, ParseHighlight $b) => $a->startPosition <=> $b->startPosition);
 
         return TaskParseResult::create(
             title: $title,
@@ -193,14 +194,15 @@ class NaturalLanguageParserService
     {
         $length = $end - $start;
 
-        return substr($input, 0, $start) . str_repeat(' ', $length) . substr($input, $end);
+        return substr($input, 0, $start).str_repeat(' ', $length).substr($input, $end);
     }
 
     /**
      * Extract the title by removing all metadata spans.
      *
-     * @param string $input The original input string
+     * @param string                       $input The original input string
      * @param array<array{0: int, 1: int}> $spans Array of [start, end] position pairs
+     *
      * @return string The cleaned title
      */
     private function extractTitle(string $input, array $spans): string
@@ -211,11 +213,11 @@ class NaturalLanguageParserService
 
         // Sort spans by start position in descending order
         // This allows us to remove from end to start without affecting positions
-        usort($spans, fn(array $a, array $b) => $b[0] <=> $a[0]);
+        usort($spans, fn (array $a, array $b) => $b[0] <=> $a[0]);
 
         $result = $input;
         foreach ($spans as [$start, $end]) {
-            $result = substr($result, 0, $start) . substr($result, $end);
+            $result = substr($result, 0, $start).substr($result, $end);
         }
 
         // Collapse multiple spaces into one and trim

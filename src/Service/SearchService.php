@@ -29,8 +29,9 @@ final class SearchService
     /**
      * Performs a global search across tasks, projects, and tags.
      *
-     * @param User $user The user performing the search
+     * @param User          $user    The user performing the search
      * @param SearchRequest $request The search request
+     *
      * @return SearchResponse The search results
      */
     public function search(User $user, SearchRequest $request): SearchResponse

@@ -155,7 +155,7 @@ class ProjectHierarchyApiTest extends ApiTestCase
         $parent = $this->createProject($user, 'Parent');
         $project = $this->createProject($user, 'Project');
 
-        $response = $this->authenticatedApiRequest($user, 'POST', '/api/v1/projects/' . $project->getId() . '/move', [
+        $response = $this->authenticatedApiRequest($user, 'POST', '/api/v1/projects/'.$project->getId().'/move', [
             'parentId' => $parent->getId(),
         ]);
 
@@ -172,7 +172,7 @@ class ProjectHierarchyApiTest extends ApiTestCase
         $parent = $this->createProject($user, 'Parent');
         $child = $this->createProject($user, 'Child', null, false, $parent);
 
-        $response = $this->authenticatedApiRequest($user, 'POST', '/api/v1/projects/' . $child->getId() . '/move', [
+        $response = $this->authenticatedApiRequest($user, 'POST', '/api/v1/projects/'.$child->getId().'/move', [
             'parentId' => null,
         ]);
 
@@ -190,7 +190,7 @@ class ProjectHierarchyApiTest extends ApiTestCase
         $child = $this->createProject($user, 'Child', null, false, $parent);
         $grandchild = $this->createProject($user, 'Grandchild', null, false, $child);
 
-        $response = $this->authenticatedApiRequest($user, 'POST', '/api/v1/projects/' . $parent->getId() . '/move', [
+        $response = $this->authenticatedApiRequest($user, 'POST', '/api/v1/projects/'.$parent->getId().'/move', [
             'parentId' => $grandchild->getId(),
         ]);
 
@@ -204,7 +204,7 @@ class ProjectHierarchyApiTest extends ApiTestCase
         $parent = $this->createProject($user, 'Parent');
         $project = $this->createProject($user, 'Project');
 
-        $response = $this->authenticatedApiRequest($user, 'POST', '/api/v1/projects/' . $project->getId() . '/move', [
+        $response = $this->authenticatedApiRequest($user, 'POST', '/api/v1/projects/'.$project->getId().'/move', [
             'parentId' => $parent->getId(),
         ]);
 
@@ -237,7 +237,7 @@ class ProjectHierarchyApiTest extends ApiTestCase
         $treeResponse = $this->authenticatedApiRequest($user, 'GET', '/api/v1/projects/tree');
         $treeData = $this->getResponseData($treeResponse);
 
-        $names = array_map(fn($p) => $p['name'], $treeData['projects']);
+        $names = array_map(fn ($p) => $p['name'], $treeData['projects']);
         $this->assertEquals(['Project 3', 'Project 1', 'Project 2'], $names);
     }
 
@@ -252,7 +252,7 @@ class ProjectHierarchyApiTest extends ApiTestCase
         $this->createTask($user, 'Task 1', null, 'pending', 3, $project);
         $this->createTask($user, 'Task 2', null, 'pending', 3, $project);
 
-        $response = $this->authenticatedApiRequest($user, 'GET', '/api/v1/projects/' . $project->getId() . '/tasks');
+        $response = $this->authenticatedApiRequest($user, 'GET', '/api/v1/projects/'.$project->getId().'/tasks');
 
         $this->assertResponseStatusCode(Response::HTTP_OK, $response);
         $data = $this->getResponseData($response);
@@ -271,7 +271,7 @@ class ProjectHierarchyApiTest extends ApiTestCase
         $this->createTask($user, 'Parent Task', null, 'pending', 3, $parent);
         $this->createTask($user, 'Child Task', null, 'pending', 3, $child);
 
-        $response = $this->authenticatedApiRequest($user, 'GET', '/api/v1/projects/' . $parent->getId() . '/tasks?include_children=true');
+        $response = $this->authenticatedApiRequest($user, 'GET', '/api/v1/projects/'.$parent->getId().'/tasks?include_children=true');
 
         $this->assertResponseStatusCode(Response::HTTP_OK, $response);
         $data = $this->getResponseData($response);
@@ -288,7 +288,7 @@ class ProjectHierarchyApiTest extends ApiTestCase
         $user = $this->createUser('settings@example.com');
         $project = $this->createProject($user, 'Project');
 
-        $response = $this->authenticatedApiRequest($user, 'PATCH', '/api/v1/projects/' . $project->getId() . '/settings', [
+        $response = $this->authenticatedApiRequest($user, 'PATCH', '/api/v1/projects/'.$project->getId().'/settings', [
             'showChildrenTasks' => false,
         ]);
 
@@ -330,7 +330,7 @@ class ProjectHierarchyApiTest extends ApiTestCase
         $user = $this->createUser('move-self@example.com');
         $project = $this->createProject($user, 'Test Project');
 
-        $response = $this->authenticatedApiRequest($user, 'POST', '/api/v1/projects/' . $project->getId() . '/move', [
+        $response = $this->authenticatedApiRequest($user, 'POST', '/api/v1/projects/'.$project->getId().'/move', [
             'parentId' => $project->getId(),
         ]);
 
@@ -346,7 +346,7 @@ class ProjectHierarchyApiTest extends ApiTestCase
         $child = $this->createProject($user, 'Child', null, false, $parent);
 
         // Try to move parent under child (would create circular reference)
-        $response = $this->authenticatedApiRequest($user, 'POST', '/api/v1/projects/' . $parent->getId() . '/move', [
+        $response = $this->authenticatedApiRequest($user, 'POST', '/api/v1/projects/'.$parent->getId().'/move', [
             'parentId' => $child->getId(),
         ]);
 
@@ -464,7 +464,7 @@ class ProjectHierarchyApiTest extends ApiTestCase
         $user2Project = $this->createProject($user2, 'User 2 Project');
 
         // User 2 tries to move their project under User 1's project
-        $response = $this->authenticatedApiRequest($user2, 'POST', '/api/v1/projects/' . $user2Project->getId() . '/move', [
+        $response = $this->authenticatedApiRequest($user2, 'POST', '/api/v1/projects/'.$user2Project->getId().'/move', [
             'parentId' => $user1Parent->getId(),
         ]);
 

@@ -55,7 +55,7 @@ final class ReminderTrackingService
     public function shouldSendOverdueReminder(Task $task): bool
     {
         $today = (new \DateTimeImmutable())->format('Y-m-d');
-        $key = $this->buildKey($task, 'overdue:' . $today);
+        $key = $this->buildKey($task, 'overdue:'.$today);
 
         return $this->redisService->get($key) === null;
     }
@@ -66,7 +66,7 @@ final class ReminderTrackingService
     public function markOverdueReminderSent(Task $task): void
     {
         $today = (new \DateTimeImmutable())->format('Y-m-d');
-        $key = $this->buildKey($task, 'overdue:' . $today);
+        $key = $this->buildKey($task, 'overdue:'.$today);
         $this->redisService->set($key, (string) time(), self::TTL_SECONDS);
     }
 
@@ -76,7 +76,7 @@ final class ReminderTrackingService
     public function shouldSendDueTodayReminder(Task $task): bool
     {
         $today = (new \DateTimeImmutable())->format('Y-m-d');
-        $key = $this->buildKey($task, 'due_today:' . $today);
+        $key = $this->buildKey($task, 'due_today:'.$today);
 
         return $this->redisService->get($key) === null;
     }
@@ -87,7 +87,7 @@ final class ReminderTrackingService
     public function markDueTodayReminderSent(Task $task): void
     {
         $today = (new \DateTimeImmutable())->format('Y-m-d');
-        $key = $this->buildKey($task, 'due_today:' . $today);
+        $key = $this->buildKey($task, 'due_today:'.$today);
         $this->redisService->set($key, (string) time(), self::TTL_SECONDS);
     }
 
@@ -96,7 +96,7 @@ final class ReminderTrackingService
      */
     public function clearReminders(Task $task): void
     {
-        $pattern = self::KEY_PREFIX . $task->getId() . ':*';
+        $pattern = self::KEY_PREFIX.$task->getId().':*';
         $keys = $this->redisService->keys($pattern);
 
         foreach ($keys as $key) {
@@ -109,6 +109,6 @@ final class ReminderTrackingService
      */
     private function buildKey(Task $task, string $reminderType): string
     {
-        return self::KEY_PREFIX . $task->getId() . ':' . $reminderType;
+        return self::KEY_PREFIX.$task->getId().':'.$reminderType;
     }
 }

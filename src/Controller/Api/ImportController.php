@@ -159,7 +159,7 @@ final class ImportController extends AbstractController
             ]);
         } catch (\Exception $e) {
             return $this->responseFormatter->error(
-                'Import failed: ' . $e->getMessage(),
+                'Import failed: '.$e->getMessage(),
                 'IMPORT_FAILED',
                 Response::HTTP_BAD_REQUEST
             );
@@ -298,7 +298,7 @@ final class ImportController extends AbstractController
             ]);
         } catch (\Exception $e) {
             return $this->responseFormatter->error(
-                'Import failed: ' . $e->getMessage(),
+                'Import failed: '.$e->getMessage(),
                 'IMPORT_FAILED',
                 Response::HTTP_BAD_REQUEST
             );
@@ -381,7 +381,7 @@ final class ImportController extends AbstractController
             ]);
         } catch (\Exception $e) {
             return $this->responseFormatter->error(
-                'Import failed: ' . $e->getMessage(),
+                'Import failed: '.$e->getMessage(),
                 'IMPORT_FAILED',
                 Response::HTTP_BAD_REQUEST
             );

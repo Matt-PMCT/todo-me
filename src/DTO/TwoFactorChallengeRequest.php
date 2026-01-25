@@ -11,7 +11,6 @@ final class TwoFactorChallengeRequest
     public function __construct(
         #[Assert\NotBlank(message: 'Challenge token is required')]
         public readonly string $challengeToken = '',
-
         #[Assert\NotBlank(message: 'Code is required')]
         public readonly string $code = '',
     ) {

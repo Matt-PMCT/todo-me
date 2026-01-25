@@ -15,7 +15,7 @@ final class EntityNotFoundException extends HttpException
 
     /**
      * @param string $entityType The type of entity (e.g., 'Task', 'Project')
-     * @param string $entityId The ID that was not found
+     * @param string $entityId   The ID that was not found
      */
     public function __construct(
         public readonly string $entityType,

@@ -5,10 +5,8 @@ declare(strict_types=1);
 namespace App\Tests\Unit\Service;
 
 use App\Entity\Notification;
-use App\Entity\Task;
 use App\Entity\User;
 use App\Message\SendEmailNotification;
-use App\Message\SendPushNotification;
 use App\Repository\NotificationRepository;
 use App\Service\NotificationService;
 use App\Tests\Unit\UnitTestCase;

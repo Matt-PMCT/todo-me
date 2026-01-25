@@ -14,6 +14,11 @@
  * - k/Up: Navigate to previous task
  * - Enter: Open selected task details
  * - Ctrl/Cmd+Z: Trigger undo (if available)
+ * - n: Focus quick add (alias for Ctrl+K)
+ * - c: Complete selected task
+ * - e: Edit selected task
+ * - Delete: Delete selected task (with confirmation)
+ * - t: Set due date to today
  */
 
 /**
@@ -111,6 +116,32 @@ function handleKeydown(e) {
 
         case 'Enter':
             handleTaskOpen(e);
+            break;
+
+        case 'n':
+            e.preventDefault();
+            focusQuickAdd();
+            break;
+
+        case 'c':
+            e.preventDefault();
+            completeSelectedTask();
+            break;
+
+        case 'e':
+            e.preventDefault();
+            editSelectedTask();
+            break;
+
+        case 'Delete':
+        case 'Backspace':
+            e.preventDefault();
+            deleteSelectedTask();
+            break;
+
+        case 't':
+            e.preventDefault();
+            setDueDateToday();
             break;
     }
 }
@@ -269,6 +300,123 @@ function handleUndo(e) {
         e.preventDefault();
         undoButton.click();
     }
+}
+
+/**
+ * Get the currently selected task element
+ * @returns {Element|null}
+ */
+function getSelectedTask() {
+    const store = window.Alpine?.store('keyboard');
+    if (!store || store.selectedTaskIndex < 0) {
+        return null;
+    }
+
+    const taskItems = document.querySelectorAll('[data-task-item]');
+    return taskItems[store.selectedTaskIndex] || null;
+}
+
+/**
+ * Get the task ID from a task element
+ * @param {Element} taskElement
+ * @returns {string|null}
+ */
+function getTaskId(taskElement) {
+    return taskElement.getAttribute('data-task-id') || taskElement.dataset.taskItem || null;
+}
+
+/**
+ * Complete the currently selected task
+ */
+function completeSelectedTask() {
+    const selectedTask = getSelectedTask();
+    if (!selectedTask) {
+        return;
+    }
+
+    // Look for the complete checkbox or button
+    const completeCheckbox = selectedTask.querySelector('input[type="checkbox"]');
+    if (completeCheckbox) {
+        completeCheckbox.click();
+        return;
+    }
+
+    // Fallback: look for a complete button
+    const completeButton = selectedTask.querySelector('[data-action="complete"], button[title*="Complete"]');
+    if (completeButton) {
+        completeButton.click();
+    }
+}
+
+/**
+ * Edit the currently selected task
+ */
+function editSelectedTask() {
+    const selectedTask = getSelectedTask();
+    if (!selectedTask) {
+        return;
+    }
+
+    // Look for an edit link or button
+    const editLink = selectedTask.querySelector('a[href*="/edit"], a[href*="/tasks/"]');
+    if (editLink) {
+        window.location.href = editLink.href;
+        return;
+    }
+
+    // Dispatch event for inline editing if available
+    const taskId = getTaskId(selectedTask);
+    if (taskId) {
+        window.dispatchEvent(new CustomEvent('editTask', { detail: { taskId } }));
+    }
+}
+
+/**
+ * Delete the currently selected task with confirmation
+ */
+function deleteSelectedTask() {
+    const selectedTask = getSelectedTask();
+    if (!selectedTask) {
+        return;
+    }
+
+    const taskId = getTaskId(selectedTask);
+    if (!taskId) {
+        return;
+    }
+
+    // Confirm deletion
+    if (!confirm('Are you sure you want to delete this task?')) {
+        return;
+    }
+
+    // Look for a delete button
+    const deleteButton = selectedTask.querySelector('[data-action="delete"], button[title*="Delete"]');
+    if (deleteButton) {
+        deleteButton.click();
+        return;
+    }
+
+    // Dispatch delete event
+    window.dispatchEvent(new CustomEvent('deleteTask', { detail: { taskId } }));
+}
+
+/**
+ * Set due date to today for the currently selected task
+ */
+function setDueDateToday() {
+    const selectedTask = getSelectedTask();
+    if (!selectedTask) {
+        return;
+    }
+
+    const taskId = getTaskId(selectedTask);
+    if (!taskId) {
+        return;
+    }
+
+    // Dispatch event for setting due date
+    window.dispatchEvent(new CustomEvent('setDueDateToday', { detail: { taskId } }));
 }
 
 // Initialize keyboard store for Alpine.js

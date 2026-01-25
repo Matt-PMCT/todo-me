@@ -16,7 +16,6 @@ use App\Exception\InvalidStateException;
 use App\Exception\ProjectMoveToArchivedException;
 use App\Exception\ProjectMoveToDescendantException;
 use App\Exception\ProjectParentNotFoundException;
-use App\Exception\ProjectParentNotOwnedException;
 use App\Interface\ActivityLogServiceInterface;
 use App\Interface\OwnershipCheckerInterface;
 use App\Repository\ProjectRepository;
@@ -60,6 +59,7 @@ final class ProjectService
         if ($ownerId === null) {
             throw InvalidStateException::missingOwner('Project');
         }
+
         return $ownerId;
     }
 
@@ -75,14 +75,16 @@ final class ProjectService
         if ($ownerId === null || $user === null) {
             throw InvalidStateException::missingOwner('Project');
         }
+
         return [$user, $ownerId];
     }
 
     /**
      * Create a new project.
      *
-     * @param User $user The owner of the project
-     * @param CreateProjectRequest $dto The project data
+     * @param User                 $user The owner of the project
+     * @param CreateProjectRequest $dto  The project data
+     *
      * @return Project The created project
      */
     public function create(User $user, CreateProjectRequest $dto): Project
@@ -119,8 +121,9 @@ final class ProjectService
     /**
      * Update an existing project.
      *
-     * @param Project $project The project to update
-     * @param UpdateProjectRequest $dto The update data
+     * @param Project              $project The project to update
+     * @param UpdateProjectRequest $dto     The update data
+     *
      * @return array{project: Project, undoToken: UndoToken|null}
      */
     public function update(Project $project, UpdateProjectRequest $dto): array
@@ -214,6 +217,7 @@ final class ProjectService
      * Use undoDelete() to restore the project.
      *
      * @param Project $project The project to delete
+     *
      * @return UndoToken|null The undo token for restoring the project
      */
     public function delete(Project $project): ?UndoToken
@@ -246,6 +250,7 @@ final class ProjectService
      * Archived projects are hidden by default but tasks remain intact.
      *
      * @param Project $project The project to archive
+     *
      * @return array{project: Project, undoToken: UndoToken|null}
      */
     public function archive(Project $project): array
@@ -273,6 +278,7 @@ final class ProjectService
      * Unarchive a project.
      *
      * @param Project $project The project to unarchive
+     *
      * @return array{project: Project, undoToken: UndoToken|null}
      */
     public function unarchive(Project $project): array
@@ -299,9 +305,11 @@ final class ProjectService
     /**
      * Undo an archive/unarchive operation.
      *
-     * @param User $user The user performing the undo
+     * @param User   $user  The user performing the undo
      * @param string $token The undo token
+     *
      * @return Project The restored project
+     *
      * @throws EntityNotFoundException If the project no longer exists
      */
     public function undoArchive(User $user, string $token): Project
@@ -315,9 +323,11 @@ final class ProjectService
      * Since we now use soft delete, this restores the original project
      * with its original ID and all associated tasks intact.
      *
-     * @param User $user The user performing the undo
+     * @param User   $user  The user performing the undo
      * @param string $token The undo token
+     *
      * @return Project The restored project
+     *
      * @throws EntityNotFoundException If the project was permanently deleted
      */
     public function undoDelete(User $user, string $token): Project
@@ -328,9 +338,11 @@ final class ProjectService
     /**
      * Undo an update operation.
      *
-     * @param User $user The user performing the undo
+     * @param User   $user  The user performing the undo
      * @param string $token The undo token
+     *
      * @return Project The restored project
+     *
      * @throws EntityNotFoundException If the project no longer exists
      */
     public function undoUpdate(User $user, string $token): Project
@@ -345,9 +357,11 @@ final class ProjectService
      * is atomically consumed first, then validated. This ensures only one
      * concurrent request can successfully use a token.
      *
-     * @param User $user The user performing the undo
+     * @param User   $user  The user performing the undo
      * @param string $token The undo token
+     *
      * @return array{project: Project, action: string, message: string, warning: string|null}
+     *
      * @throws EntityNotFoundException If the project no longer exists (for non-delete operations)
      */
     public function undo(User $user, string $token): array
@@ -358,9 +372,11 @@ final class ProjectService
     /**
      * Find a project by ID and verify ownership.
      *
-     * @param string $id The project ID
-     * @param User $user The user who should own the project
+     * @param string $id   The project ID
+     * @param User   $user The user who should own the project
+     *
      * @return Project The project
+     *
      * @throws EntityNotFoundException If the project is not found or not owned by user
      */
     public function findByIdOrFail(string $id, User $user): Project
@@ -378,6 +394,7 @@ final class ProjectService
      * Get task counts for a project.
      *
      * @param Project $project The project
+     *
      * @return array{total: int, completed: int}
      */
     public function getTaskCounts(Project $project): array
@@ -391,8 +408,9 @@ final class ProjectService
     /**
      * Move a project to a new parent.
      *
-     * @param Project $project The project to move
-     * @param MoveProjectRequest $dto The move request
+     * @param Project            $project The project to move
+     * @param MoveProjectRequest $dto     The move request
+     *
      * @return array{project: Project, undoToken: UndoToken|null}
      */
     public function move(Project $project, MoveProjectRequest $dto): array
@@ -402,6 +420,7 @@ final class ProjectService
         [$user, $ownerId] = $this->getValidatedOwner($project);
 
         $this->entityManager->beginTransaction();
+
         try {
             // Store previous state for undo
             $previousState = $this->projectStateService->serializeProjectState($project);
@@ -437,6 +456,7 @@ final class ProjectService
             $this->entityManager->commit();
         } catch (\Exception $e) {
             $this->entityManager->rollback();
+
             throw $e;
         }
 
@@ -452,8 +472,9 @@ final class ProjectService
     /**
      * Reorder a project within its current parent.
      *
-     * @param Project $project The project to reorder
-     * @param int $newPosition The new position
+     * @param Project $project     The project to reorder
+     * @param int     $newPosition The new position
+     *
      * @return array{project: Project, undoToken: UndoToken|null}
      */
     public function reorder(Project $project, int $newPosition): array
@@ -483,9 +504,9 @@ final class ProjectService
     /**
      * Batch reorder projects within a parent.
      *
-     * @param User $user The user
-     * @param string|null $parentId The parent project ID (null for root)
-     * @param string[] $projectIds The project IDs in desired order
+     * @param User        $user       The user
+     * @param string|null $parentId   The parent project ID (null for root)
+     * @param string[]    $projectIds The project IDs in desired order
      */
     public function batchReorder(User $user, ?string $parentId, array $projectIds): void
     {
@@ -507,6 +528,7 @@ final class ProjectService
         }
 
         $this->entityManager->beginTransaction();
+
         try {
             // Validate all projects belong to user and have the correct parent
             foreach ($projectIds as $position => $projectId) {
@@ -530,6 +552,7 @@ final class ProjectService
             $this->entityManager->commit();
         } catch (\Exception $e) {
             $this->entityManager->rollback();
+
             throw $e;
         }
 
@@ -540,8 +563,9 @@ final class ProjectService
     /**
      * Update project settings.
      *
-     * @param Project $project The project to update
-     * @param ProjectSettingsRequest $dto The settings
+     * @param Project                $project The project to update
+     * @param ProjectSettingsRequest $dto     The settings
+     *
      * @return Project The updated project
      */
     public function updateSettings(Project $project, ProjectSettingsRequest $dto): Project
@@ -565,9 +589,10 @@ final class ProjectService
     /**
      * Get the project tree for a user.
      *
-     * @param User $user The user
-     * @param bool $includeArchived Whether to include archived projects
+     * @param User $user              The user
+     * @param bool $includeArchived   Whether to include archived projects
      * @param bool $includeTaskCounts Whether to include task counts
+     *
      * @return array The tree structure
      */
     public function getTree(User $user, bool $includeArchived = false, bool $includeTaskCounts = false): array
@@ -602,9 +627,10 @@ final class ProjectService
     /**
      * Archive a project with options for handling children.
      *
-     * @param Project $project The project to archive
-     * @param bool $cascade Archive all descendants
-     * @param bool $promoteChildren Move children to the project's parent
+     * @param Project $project         The project to archive
+     * @param bool    $cascade         Archive all descendants
+     * @param bool    $promoteChildren Move children to the project's parent
+     *
      * @return array{project: Project, undoToken: UndoToken|null, affectedProjects: array}
      */
     public function archiveWithOptions(Project $project, bool $cascade = false, bool $promoteChildren = false): array
@@ -612,6 +638,7 @@ final class ProjectService
         $ownerId = $this->getValidatedOwnerId($project);
 
         $this->entityManager->beginTransaction();
+
         try {
             $previousState = $this->projectStateService->serializeArchiveState($project);
 
@@ -650,6 +677,7 @@ final class ProjectService
             $this->entityManager->commit();
         } catch (\Exception $e) {
             $this->entityManager->rollback();
+
             throw $e;
         }
 
@@ -667,7 +695,8 @@ final class ProjectService
      * Unarchive a project with options for handling children.
      *
      * @param Project $project The project to unarchive
-     * @param bool $cascade Unarchive all descendants
+     * @param bool    $cascade Unarchive all descendants
+     *
      * @return array{project: Project, undoToken: UndoToken|null, affectedProjects: array}
      */
     public function unarchiveWithOptions(Project $project, bool $cascade = false): array
@@ -675,6 +704,7 @@ final class ProjectService
         $ownerId = $this->getValidatedOwnerId($project);
 
         $this->entityManager->beginTransaction();
+
         try {
             $previousState = $this->projectStateService->serializeArchiveState($project);
 
@@ -701,6 +731,7 @@ final class ProjectService
             $this->entityManager->commit();
         } catch (\Exception $e) {
             $this->entityManager->rollback();
+
             throw $e;
         }
 
@@ -718,6 +749,7 @@ final class ProjectService
      * Get archived projects for a user.
      *
      * @param User $user The user
+     *
      * @return Project[] The archived projects
      */
     public function getArchivedProjects(User $user): array
@@ -728,9 +760,10 @@ final class ProjectService
     /**
      * Validate and get a parent project.
      *
-     * @param User $user The user
-     * @param string $parentId The parent ID to validate
-     * @param Project|null $project The project being moved (to check for circular refs)
+     * @param User         $user     The user
+     * @param string       $parentId The parent ID to validate
+     * @param Project|null $project  The project being moved (to check for circular refs)
+     *
      * @return Project The validated parent project
      */
     private function validateAndGetParent(User $user, string $parentId, ?Project $project = null): Project

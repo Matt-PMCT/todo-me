@@ -12,7 +12,7 @@ use App\Entity\Task;
 final class TaskListResponse
 {
     /**
-     * @param TaskResponse[] $items
+     * @param TaskResponse[]                                            $items
      * @param array{total: int, page: int, limit: int, totalPages: int} $meta
      */
     public function __construct(
@@ -24,13 +24,13 @@ final class TaskListResponse
     /**
      * Creates a TaskListResponse from an array of Task entities.
      *
-     * @param Task[] $tasks
+     * @param Task[]                                                    $tasks
      * @param array{total: int, page: int, limit: int, totalPages: int} $meta
      */
     public static function fromTasks(array $tasks, array $meta): self
     {
         $items = array_map(
-            fn(Task $task) => TaskResponse::fromTask($task),
+            fn (Task $task) => TaskResponse::fromTask($task),
             $tasks
         );
 
@@ -49,7 +49,7 @@ final class TaskListResponse
     {
         return [
             'items' => array_map(
-                fn(TaskResponse $item) => $item->toArray(),
+                fn (TaskResponse $item) => $item->toArray(),
                 $this->items
             ),
             'meta' => $this->meta,

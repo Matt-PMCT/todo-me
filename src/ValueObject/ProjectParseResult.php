@@ -24,12 +24,12 @@ final readonly class ProjectParseResult
     /**
      * Create a new ProjectParseResult.
      *
-     * @param Project|null $project The matched project entity (null if not found)
-     * @param string $originalText The original input text
-     * @param int $startPosition The start position of the match in the original text
-     * @param int $endPosition The end position of the match in the original text
-     * @param string $matchedName The matched project name/path from the hashtag
-     * @param bool $found Whether the project was found in the database
+     * @param Project|null $project       The matched project entity (null if not found)
+     * @param string       $originalText  The original input text
+     * @param int          $startPosition The start position of the match in the original text
+     * @param int          $endPosition   The end position of the match in the original text
+     * @param string       $matchedName   The matched project name/path from the hashtag
+     * @param bool         $found         Whether the project was found in the database
      */
     public static function create(
         ?Project $project,

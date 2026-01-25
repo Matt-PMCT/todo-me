@@ -50,6 +50,7 @@ final class TaskGroupingService
      * Groups tasks by time period relative to today.
      *
      * @param Task[] $tasks
+     *
      * @return array<string, array{label: string, tasks: Task[]}>
      */
     public function groupByTimePeriod(array $tasks, User $user): array
@@ -72,6 +73,7 @@ final class TaskGroupingService
 
             if ($dueDate === null) {
                 $groups[self::GROUP_NO_DATE][] = $task;
+
                 continue;
             }
 
@@ -111,6 +113,7 @@ final class TaskGroupingService
      * Groups tasks by project.
      *
      * @param Task[] $tasks
+     *
      * @return array<string, array{projectId: string|null, projectName: string, tasks: Task[]}>
      */
     public function groupByProject(array $tasks): array
@@ -140,6 +143,7 @@ final class TaskGroupingService
      * Groups overdue tasks by severity (low, medium, high).
      *
      * @param Task[] $tasks
+     *
      * @return array<string, array{label: string, colorClass: string, tasks: Task[]}>
      */
     public function groupBySeverity(array $tasks): array
@@ -171,8 +175,9 @@ final class TaskGroupingService
     /**
      * Calculates the start and end of the week containing the given date.
      *
-     * @param \DateTimeImmutable $date The date to get week boundaries for
-     * @param int $startOfWeek The day the week starts on (0=Sunday, 1=Monday)
+     * @param \DateTimeImmutable $date        The date to get week boundaries for
+     * @param int                $startOfWeek The day the week starts on (0=Sunday, 1=Monday)
+     *
      * @return array{\DateTimeImmutable, \DateTimeImmutable} Start and end of the week
      */
     private function getWeekBoundaries(\DateTimeImmutable $date, int $startOfWeek): array

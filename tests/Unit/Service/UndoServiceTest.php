@@ -459,6 +459,7 @@ class UndoServiceTest extends UnitTestCase
             ->method('setJson')
             ->willReturnCallback(function ($key, $data, $ttl) use (&$capturedKey) {
                 $capturedKey = $key;
+
                 return true;
             });
 

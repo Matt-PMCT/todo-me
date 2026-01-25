@@ -37,9 +37,11 @@ final class ProjectUndoService
     /**
      * Creates an undo token for a project update operation.
      *
-     * @param Project $project The project being updated
+     * @param Project              $project       The project being updated
      * @param array<string, mixed> $previousState The state before the update
+     *
      * @return UndoToken|null The undo token, or null if creation failed
+     *
      * @throws InvalidStateException If project has no owner or ID
      */
     public function createUpdateUndoToken(Project $project, array $previousState): ?UndoToken
@@ -67,7 +69,9 @@ final class ProjectUndoService
      * Creates an undo token for a project delete operation.
      *
      * @param Project $project The project being deleted
+     *
      * @return UndoToken|null The undo token, or null if creation failed
+     *
      * @throws InvalidStateException If project has no owner or ID
      */
     public function createDeleteUndoToken(Project $project): ?UndoToken
@@ -97,9 +101,11 @@ final class ProjectUndoService
     /**
      * Creates an undo token for a project archive/unarchive operation.
      *
-     * @param Project $project The project being archived/unarchived
+     * @param Project              $project       The project being archived/unarchived
      * @param array<string, mixed> $previousState The archive state before the change
+     *
      * @return UndoToken|null The undo token, or null if creation failed
+     *
      * @throws InvalidStateException If project has no owner or ID
      */
     public function createArchiveUndoToken(Project $project, array $previousState): ?UndoToken
@@ -129,11 +135,13 @@ final class ProjectUndoService
      * Uses consume-then-validate pattern to avoid race conditions. The token
      * is atomically consumed first, then validated.
      *
-     * @param User $user The user performing the undo
+     * @param User   $user  The user performing the undo
      * @param string $token The undo token
+     *
      * @return array{project: Project, action: string, message: string, warning: string|null}
+     *
      * @throws InvalidUndoTokenException If the token is invalid or expired
-     * @throws EntityNotFoundException If the project no longer exists (for non-delete operations)
+     * @throws EntityNotFoundException   If the project no longer exists (for non-delete operations)
      */
     public function undo(User $user, string $token): array
     {
@@ -168,11 +176,13 @@ final class ProjectUndoService
     /**
      * Undoes an archive/unarchive operation.
      *
-     * @param User $user The user performing the undo
+     * @param User   $user  The user performing the undo
      * @param string $token The undo token
+     *
      * @return Project The restored project
+     *
      * @throws InvalidUndoTokenException If the token is invalid or expired
-     * @throws EntityNotFoundException If the project no longer exists
+     * @throws EntityNotFoundException   If the project no longer exists
      */
     public function undoArchive(User $user, string $token): Project
     {
@@ -184,11 +194,13 @@ final class ProjectUndoService
     /**
      * Undoes a delete operation (restore soft-deleted project).
      *
-     * @param User $user The user performing the undo
+     * @param User   $user  The user performing the undo
      * @param string $token The undo token
+     *
      * @return Project The restored project
+     *
      * @throws InvalidUndoTokenException If the token is invalid or expired
-     * @throws EntityNotFoundException If the project was permanently deleted
+     * @throws EntityNotFoundException   If the project was permanently deleted
      */
     public function undoDelete(User $user, string $token): Project
     {
@@ -200,11 +212,13 @@ final class ProjectUndoService
     /**
      * Undoes an update operation.
      *
-     * @param User $user The user performing the undo
+     * @param User   $user  The user performing the undo
      * @param string $token The undo token
+     *
      * @return Project The restored project
+     *
      * @throws InvalidUndoTokenException If the token is invalid or expired
-     * @throws EntityNotFoundException If the project no longer exists
+     * @throws EntityNotFoundException   If the project no longer exists
      */
     public function undoUpdate(User $user, string $token): Project
     {
@@ -219,10 +233,12 @@ final class ProjectUndoService
      * Atomically consumes the token first to prevent race conditions, then validates
      * the entity type and optionally the action type.
      *
-     * @param User $user The user performing the undo
-     * @param string $token The undo token string
+     * @param User        $user           The user performing the undo
+     * @param string      $token          The undo token string
      * @param string|null $expectedAction The expected action type, or null to skip action validation
+     *
      * @return UndoToken The validated undo token
+     *
      * @throws InvalidUndoTokenException If the token is invalid, expired, or has wrong type
      */
     private function consumeAndValidateToken(User $user, string $token, ?string $expectedAction = null): UndoToken

@@ -9,15 +9,14 @@ use App\DTO\MoveProjectRequest;
 use App\DTO\ProjectSettingsRequest;
 use App\DTO\UpdateProjectRequest;
 use App\Entity\Project;
-use App\Entity\User;
 use App\Enum\UndoAction;
 use App\Exception\BatchSizeLimitExceededException;
 use App\Exception\EntityNotFoundException;
 use App\Exception\InvalidUndoTokenException;
 use App\Exception\ProjectMoveToDescendantException;
+use App\Interface\ActivityLogServiceInterface;
 use App\Interface\OwnershipCheckerInterface;
 use App\Repository\ProjectRepository;
-use App\Interface\ActivityLogServiceInterface;
 use App\Service\ProjectCacheService;
 use App\Service\ProjectService;
 use App\Service\ProjectStateService;
@@ -26,12 +25,11 @@ use App\Service\UndoService;
 use App\Service\ValidationHelper;
 use App\Tests\Unit\UnitTestCase;
 use App\Transformer\ProjectTreeTransformer;
-use Psr\Log\LoggerInterface;
-use Symfony\Component\Cache\Adapter\ArrayAdapter;
-use Symfony\Contracts\Cache\ItemInterface;
 use App\ValueObject\UndoToken;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\MockObject\MockObject;
+use Psr\Log\LoggerInterface;
+use Symfony\Component\Cache\Adapter\ArrayAdapter;
 
 class ProjectServiceTest extends UnitTestCase
 {
@@ -328,6 +326,7 @@ class ProjectServiceTest extends UnitTestCase
             ->method('createUndoToken')
             ->willReturnCallback(function ($userId, $action, $entityType, $entityId, $previousState) use (&$capturedPreviousState) {
                 $capturedPreviousState = $previousState;
+
                 return UndoToken::create($action, $entityType, $entityId, $previousState, $userId);
             });
 

@@ -488,8 +488,8 @@ class ImportServiceTest extends UnitTestCase
     public function testImportCsvParsesHeadersAndDataCorrectly(): void
     {
         $csvContent = "title,description,status,priority\n"
-            . "Task 1,Description 1,pending,3\n"
-            . "Task 2,Description 2,completed,4";
+            ."Task 1,Description 1,pending,3\n"
+            .'Task 2,Description 2,completed,4';
 
         $this->taskRepository->method('getMaxPosition')->willReturn(0);
         $this->entityManager->expects($this->exactly(2))->method('persist');
@@ -501,7 +501,7 @@ class ImportServiceTest extends UnitTestCase
 
     public function testImportCsvHandlesEmptyContent(): void
     {
-        $csvContent = "";
+        $csvContent = '';
 
         $stats = $this->importService->importCsv($this->user, $csvContent);
 
@@ -512,7 +512,7 @@ class ImportServiceTest extends UnitTestCase
 
     public function testImportCsvHandlesHeaderOnly(): void
     {
-        $csvContent = "title,description,status";
+        $csvContent = 'title,description,status';
 
         $stats = $this->importService->importCsv($this->user, $csvContent);
 
@@ -522,7 +522,7 @@ class ImportServiceTest extends UnitTestCase
     public function testImportCsvCreatesProjectsFromData(): void
     {
         $csvContent = "title,project\n"
-            . "Task 1,New Project";
+            .'Task 1,New Project';
 
         $this->taskRepository->method('getMaxPosition')->willReturn(0);
         $this->projectRepository->method('findByNameInsensitive')->willReturn(null);
@@ -537,7 +537,7 @@ class ImportServiceTest extends UnitTestCase
     public function testImportCsvCreatesTagsFromData(): void
     {
         $csvContent = "title,tags\n"
-            . "Task 1,\"urgent,important\"";
+            .'Task 1,"urgent,important"';
 
         $this->taskRepository->method('getMaxPosition')->willReturn(0);
         $this->tagRepository->method('findByNameInsensitive')->willReturn(null);
@@ -552,7 +552,7 @@ class ImportServiceTest extends UnitTestCase
     {
         // Test with "duedate" header
         $csvContent1 = "title,duedate\n"
-            . "Task 1,2026-01-30";
+            .'Task 1,2026-01-30';
 
         $this->taskRepository->method('getMaxPosition')->willReturn(0);
 
@@ -573,8 +573,8 @@ class ImportServiceTest extends UnitTestCase
     public function testImportCsvSkipsRowsWithoutTitle(): void
     {
         $csvContent = "title,description\n"
-            . "Valid Task,Description\n"
-            . ",No title here";
+            ."Valid Task,Description\n"
+            .',No title here';
 
         $this->taskRepository->method('getMaxPosition')->willReturn(0);
         $this->entityManager->expects($this->once())->method('persist'); // Only valid task
@@ -587,7 +587,7 @@ class ImportServiceTest extends UnitTestCase
     public function testImportCsvHandlesMalformedRows(): void
     {
         $csvContent = "title,description,status\n"
-            . "Task with missing columns";
+            .'Task with missing columns';
 
         $this->taskRepository->method('getMaxPosition')->willReturn(0);
         $this->entityManager->expects($this->once())->method('persist');
@@ -622,7 +622,7 @@ class ImportServiceTest extends UnitTestCase
     public function testImportCsvHandlesInvalidDates(): void
     {
         $csvContent = "title,dueDate\n"
-            . "Task with invalid date,not-a-date";
+            .'Task with invalid date,not-a-date';
 
         $this->taskRepository->method('getMaxPosition')->willReturn(0);
 

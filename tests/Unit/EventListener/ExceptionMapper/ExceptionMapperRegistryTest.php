@@ -48,12 +48,14 @@ class ExceptionMapperRegistryTest extends TestCase
         $mapper1 = $this->createMock(ExceptionMapperInterface::class);
         $mapper1->method('canHandle')->willReturnCallback(function () use (&$callOrder) {
             $callOrder[] = 1;
+
             return false;
         });
 
         $mapper2 = $this->createMock(ExceptionMapperInterface::class);
         $mapper2->method('canHandle')->willReturnCallback(function () use (&$callOrder) {
             $callOrder[] = 2;
+
             return true;
         });
         $mapper2->method('map')->willReturn(new ExceptionMapping('ERROR', 'Error', 500));

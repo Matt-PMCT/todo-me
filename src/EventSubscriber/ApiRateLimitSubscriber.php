@@ -9,8 +9,8 @@ use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpKernel\Event\RequestEvent;
 use Symfony\Component\HttpKernel\Event\ResponseEvent;
 use Symfony\Component\HttpKernel\KernelEvents;
-use Symfony\Component\RateLimiter\RateLimiterFactory;
 use Symfony\Component\RateLimiter\RateLimit;
+use Symfony\Component\RateLimiter\RateLimiterFactory;
 
 /**
  * Subscriber that applies rate limiting to API routes.
@@ -138,20 +138,20 @@ final class ApiRateLimitSubscriber implements EventSubscriberInterface
         if ($authHeader !== null && str_starts_with($authHeader, 'Bearer ')) {
             $token = substr($authHeader, 7);
             if (!empty($token)) {
-                return 'token_' . hash('sha256', $token);
+                return 'token_'.hash('sha256', $token);
             }
         }
 
         // Check for API key in X-API-Key header
         $apiKey = $request->headers->get('X-API-Key');
         if ($apiKey !== null && !empty($apiKey)) {
-            return 'token_' . hash('sha256', $apiKey);
+            return 'token_'.hash('sha256', $apiKey);
         }
 
         // Fall back to IP address
         $ip = $request->getClientIp() ?? 'unknown';
 
-        return 'ip_' . $ip;
+        return 'ip_'.$ip;
     }
 
     /**

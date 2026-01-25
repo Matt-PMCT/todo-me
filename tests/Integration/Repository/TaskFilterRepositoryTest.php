@@ -45,7 +45,7 @@ class TaskFilterRepositoryTest extends IntegrationTestCase
         $results = $qb->getQuery()->getResult();
 
         $this->assertCount(2, $results);
-        $titles = array_map(fn(Task $t) => $t->getTitle(), $results);
+        $titles = array_map(fn (Task $t) => $t->getTitle(), $results);
         $this->assertContains('Pending Task', $titles);
         $this->assertContains('In Progress Task', $titles);
         $this->assertNotContains('Completed Task', $titles);
@@ -69,7 +69,7 @@ class TaskFilterRepositoryTest extends IntegrationTestCase
         $results = $qb->getQuery()->getResult();
 
         $this->assertCount(2, $results);
-        $titles = array_map(fn(Task $t) => $t->getTitle(), $results);
+        $titles = array_map(fn (Task $t) => $t->getTitle(), $results);
         $this->assertContains('Medium Priority', $titles);
         $this->assertContains('High Priority', $titles);
     }
@@ -116,7 +116,7 @@ class TaskFilterRepositoryTest extends IntegrationTestCase
         $results = $qb->getQuery()->getResult();
 
         $this->assertCount(2, $results);
-        $titles = array_map(fn(Task $t) => $t->getTitle(), $results);
+        $titles = array_map(fn (Task $t) => $t->getTitle(), $results);
         $this->assertContains('Parent Task', $titles);
         $this->assertContains('Child Task', $titles);
     }
@@ -151,7 +151,7 @@ class TaskFilterRepositoryTest extends IntegrationTestCase
         $results = $qb->getQuery()->getResult();
 
         $this->assertCount(3, $results);
-        $titles = array_map(fn(Task $t) => $t->getTitle(), $results);
+        $titles = array_map(fn (Task $t) => $t->getTitle(), $results);
         $this->assertContains('Urgent Task', $titles);
         $this->assertContains('Home Task', $titles);
         $this->assertContains('Both Tags Task', $titles);
@@ -263,7 +263,7 @@ class TaskFilterRepositoryTest extends IntegrationTestCase
         $results = $qb->getQuery()->getResult();
 
         $this->assertCount(2, $results);
-        $titles = array_map(fn(Task $t) => $t->getTitle(), $results);
+        $titles = array_map(fn (Task $t) => $t->getTitle(), $results);
         $this->assertContains('Buy groceries', $titles);
         $this->assertContains('Work meeting', $titles);
     }
@@ -353,7 +353,7 @@ class TaskFilterRepositoryTest extends IntegrationTestCase
         $results = $this->taskRepository->findTodayTasks($user);
 
         $this->assertCount(2, $results);
-        $titles = array_map(fn(Task $t) => $t->getTitle(), $results);
+        $titles = array_map(fn (Task $t) => $t->getTitle(), $results);
         $this->assertContains('Today Task', $titles);
         $this->assertContains('Overdue Task', $titles);
         $this->assertNotContains('Future Task', $titles);
@@ -382,7 +382,7 @@ class TaskFilterRepositoryTest extends IntegrationTestCase
         $results = $this->taskRepository->findUpcomingTasks($user, 7);
 
         $this->assertCount(2, $results);
-        $titles = array_map(fn(Task $t) => $t->getTitle(), $results);
+        $titles = array_map(fn (Task $t) => $t->getTitle(), $results);
         $this->assertContains('Due Tomorrow', $titles);
         $this->assertContains('Due in Week', $titles);
         $this->assertNotContains('Due in Month', $titles);

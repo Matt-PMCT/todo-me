@@ -7,7 +7,6 @@ namespace App\Tests\Functional\Web;
 use App\Entity\Task;
 use App\Tests\Functional\ApiTestCase;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Security\Csrf\CsrfTokenManagerInterface;
 
 /**
  * Functional tests for TaskListController.
@@ -81,7 +80,7 @@ class TaskListControllerTest extends ApiTestCase
         $this->createTask($user, 'Low Priority Task', null, Task::STATUS_PENDING, Task::PRIORITY_MIN);
         $this->client->loginUser($user);
 
-        $this->client->request('GET', '/tasks?priority=' . Task::PRIORITY_MAX);
+        $this->client->request('GET', '/tasks?priority='.Task::PRIORITY_MAX);
 
         $this->assertResponseStatusCode(Response::HTTP_OK, $this->client->getResponse());
         $this->assertSelectorTextContains('body', 'High Priority Task');
@@ -160,10 +159,10 @@ class TaskListControllerTest extends ApiTestCase
         $crawler = $this->client->request('GET', '/tasks');
 
         // Find the status form for this task and get its CSRF token
-        $statusForm = $crawler->filter('form[action*="/tasks/' . $task->getId() . '/status"]');
+        $statusForm = $crawler->filter('form[action*="/tasks/'.$task->getId().'/status"]');
         $csrfToken = $statusForm->filter('input[name="_csrf_token"]')->attr('value');
 
-        $this->client->request('POST', '/tasks/' . $task->getId() . '/status', [
+        $this->client->request('POST', '/tasks/'.$task->getId().'/status', [
             'status' => Task::STATUS_COMPLETED,
             '_csrf_token' => $csrfToken,
         ]);
@@ -183,7 +182,7 @@ class TaskListControllerTest extends ApiTestCase
         $task = $this->createTask($user, 'Status Task');
         $this->client->loginUser($user);
 
-        $this->client->request('POST', '/tasks/' . $task->getId() . '/status', [
+        $this->client->request('POST', '/tasks/'.$task->getId().'/status', [
             'status' => Task::STATUS_COMPLETED,
             '_csrf_token' => 'invalid-token',
         ]);
@@ -207,10 +206,10 @@ class TaskListControllerTest extends ApiTestCase
         $crawler = $this->client->request('GET', '/tasks');
 
         // Find the delete form for this task and get its CSRF token
-        $deleteForm = $crawler->filter('form[action*="/tasks/' . $task->getId() . '/delete"]');
+        $deleteForm = $crawler->filter('form[action*="/tasks/'.$task->getId().'/delete"]');
         $csrfToken = $deleteForm->filter('input[name="_csrf_token"]')->attr('value');
 
-        $this->client->request('POST', '/tasks/' . $task->getId() . '/delete', [
+        $this->client->request('POST', '/tasks/'.$task->getId().'/delete', [
             '_csrf_token' => $csrfToken,
         ]);
 
@@ -229,7 +228,7 @@ class TaskListControllerTest extends ApiTestCase
         $task = $this->createTask($user, 'Task to Delete');
         $this->client->loginUser($user);
 
-        $this->client->request('POST', '/tasks/' . $task->getId() . '/delete', [
+        $this->client->request('POST', '/tasks/'.$task->getId().'/delete', [
             '_csrf_token' => 'invalid-token',
         ]);
 
@@ -254,7 +253,7 @@ class TaskListControllerTest extends ApiTestCase
 
         // Attempt to change user1's task using an arbitrary token
         // Either CSRF or authorization will prevent this - both are valid protections
-        $this->client->request('POST', '/tasks/' . $user1Task->getId() . '/status', [
+        $this->client->request('POST', '/tasks/'.$user1Task->getId().'/status', [
             'status' => Task::STATUS_COMPLETED,
             '_csrf_token' => 'forged-token',
         ]);
@@ -282,7 +281,7 @@ class TaskListControllerTest extends ApiTestCase
 
         // Attempt to delete user1's task using an arbitrary token
         // Either CSRF or authorization will prevent this - both are valid protections
-        $this->client->request('POST', '/tasks/' . $task->getId() . '/delete', [
+        $this->client->request('POST', '/tasks/'.$task->getId().'/delete', [
             '_csrf_token' => 'forged-token',
         ]);
 

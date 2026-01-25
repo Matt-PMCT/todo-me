@@ -201,8 +201,8 @@ final class ReminderSchedulerService
         }
 
         // Check if user has this notification type enabled
-        if (!$owner->isNotificationEnabled('taskDueSoon', 'email') &&
-            !$owner->isNotificationEnabled('taskDueSoon', 'push')) {
+        if (!$owner->isNotificationEnabled('taskDueSoon', 'email')
+            && !$owner->isNotificationEnabled('taskDueSoon', 'push')) {
             return false;
         }
 
@@ -231,8 +231,8 @@ final class ReminderSchedulerService
         }
 
         // Check if user has this notification type enabled
-        if (!$owner->isNotificationEnabled('taskOverdue', 'email') &&
-            !$owner->isNotificationEnabled('taskOverdue', 'push')) {
+        if (!$owner->isNotificationEnabled('taskOverdue', 'email')
+            && !$owner->isNotificationEnabled('taskOverdue', 'push')) {
             return false;
         }
 
@@ -251,8 +251,8 @@ final class ReminderSchedulerService
         }
 
         // Check if user has this notification type enabled
-        if (!$owner->isNotificationEnabled('taskDueToday', 'email') &&
-            !$owner->isNotificationEnabled('taskDueToday', 'push')) {
+        if (!$owner->isNotificationEnabled('taskDueToday', 'email')
+            && !$owner->isNotificationEnabled('taskDueToday', 'push')) {
             return false;
         }
 

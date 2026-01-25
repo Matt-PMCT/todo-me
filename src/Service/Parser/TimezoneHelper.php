@@ -4,18 +4,15 @@ declare(strict_types=1);
 
 namespace App\Service\Parser;
 
-use DateTimeImmutable;
-use DateTimeZone;
-
 class TimezoneHelper
 {
     /**
      * Convert a date from a user's timezone to UTC.
      */
-    public function resolveToUtc(DateTimeImmutable $date, string $timezone): DateTimeImmutable
+    public function resolveToUtc(\DateTimeImmutable $date, string $timezone): \DateTimeImmutable
     {
-        $userTz = new DateTimeZone($timezone);
-        $utcTz = new DateTimeZone('UTC');
+        $userTz = new \DateTimeZone($timezone);
+        $utcTz = new \DateTimeZone('UTC');
 
         // If the date already has UTC timezone, return as-is
         if ($date->getTimezone()->getName() === 'UTC') {
@@ -31,9 +28,9 @@ class TimezoneHelper
     /**
      * Convert a date from UTC to a user's timezone.
      */
-    public function resolveFromUtc(DateTimeImmutable $date, string $timezone): DateTimeImmutable
+    public function resolveFromUtc(\DateTimeImmutable $date, string $timezone): \DateTimeImmutable
     {
-        $userTz = new DateTimeZone($timezone);
+        $userTz = new \DateTimeZone($timezone);
 
         return $date->setTimezone($userTz);
     }
@@ -41,20 +38,20 @@ class TimezoneHelper
     /**
      * Get the start of the current day in the specified timezone.
      */
-    public function getStartOfDay(string $timezone): DateTimeImmutable
+    public function getStartOfDay(string $timezone): \DateTimeImmutable
     {
-        $userTz = new DateTimeZone($timezone);
+        $userTz = new \DateTimeZone($timezone);
 
-        return new DateTimeImmutable('today', $userTz);
+        return new \DateTimeImmutable('today', $userTz);
     }
 
     /**
      * Get the current time in the specified timezone.
      */
-    public function getNow(string $timezone): DateTimeImmutable
+    public function getNow(string $timezone): \DateTimeImmutable
     {
-        $userTz = new DateTimeZone($timezone);
+        $userTz = new \DateTimeZone($timezone);
 
-        return new DateTimeImmutable('now', $userTz);
+        return new \DateTimeImmutable('now', $userTz);
     }
 }

@@ -22,12 +22,12 @@ class UndoService
     /**
      * Create an undo token for a given action.
      *
-     * @param string $userId The user ID to scope the token to
-     * @param string $action The action type (delete, update, status_change, archive)
-     * @param string $entityType The type of entity (e.g., 'todo', 'category')
-     * @param string $entityId The entity ID
-     * @param array $previousState The previous state of the entity for restoration
-     * @param int $ttl Time to live in seconds (default 60)
+     * @param string $userId        The user ID to scope the token to
+     * @param string $action        The action type (delete, update, status_change, archive)
+     * @param string $entityType    The type of entity (e.g., 'todo', 'category')
+     * @param string $entityId      The entity ID
+     * @param array  $previousState The previous state of the entity for restoration
+     * @param int    $ttl           Time to live in seconds (default 60)
      */
     public function createUndoToken(
         string $userId,
@@ -45,6 +45,7 @@ class UndoService
                 'entityType' => $entityType,
                 'entityId' => $entityId,
             ]);
+
             return null;
         }
 
@@ -68,6 +69,7 @@ class UndoService
                 'entityType' => $entityType,
                 'entityId' => $entityId,
             ]);
+
             return null;
         }
 
@@ -87,7 +89,7 @@ class UndoService
      * Get an undo token without consuming it.
      *
      * @param string $userId The user ID
-     * @param string $token The token string
+     * @param string $token  The token string
      */
     public function getUndoToken(string $userId, string $token): ?UndoToken
     {
@@ -99,6 +101,7 @@ class UndoService
                 'userId' => $userId,
                 'token' => $token,
             ]);
+
             return null;
         }
 
@@ -112,6 +115,7 @@ class UndoService
                 ]);
                 // Clean up expired token
                 $this->redisService->delete($key);
+
                 return null;
             }
 
@@ -122,6 +126,7 @@ class UndoService
                 'token' => $token,
                 'error' => $e->getMessage(),
             ]);
+
             return null;
         }
     }
@@ -134,7 +139,8 @@ class UndoService
      * requests could peek at the same token and then try to consume it.
      *
      * @param string $userId The user ID
-     * @param string $token The token string
+     * @param string $token  The token string
+     *
      * @return UndoToken|null The token if successfully consumed, null if not found or already consumed
      */
     public function consumeUndoToken(string $userId, string $token): ?UndoToken
@@ -149,6 +155,7 @@ class UndoService
                 'userId' => $userId,
                 'token' => $token,
             ]);
+
             return null;
         }
 
@@ -160,6 +167,7 @@ class UndoService
                     'userId' => $userId,
                     'token' => $token,
                 ]);
+
                 // Token was already deleted by getJsonAndDelete, just return null
                 return null;
             }
@@ -179,6 +187,7 @@ class UndoService
                 'token' => $token,
                 'error' => $e->getMessage(),
             ]);
+
             return null;
         }
     }
@@ -187,7 +196,7 @@ class UndoService
      * Check if a valid (non-expired) token exists.
      *
      * @param string $userId The user ID
-     * @param string $token The token string
+     * @param string $token  The token string
      */
     public function hasValidToken(string $userId, string $token): bool
     {

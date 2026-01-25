@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Tests\Unit\Entity;
 
 use App\Entity\Project;
-use App\Entity\User;
 use App\Exception\ProjectCannotBeOwnParentException;
 use App\Exception\ProjectCircularReferenceException;
 use App\Tests\Unit\UnitTestCase;

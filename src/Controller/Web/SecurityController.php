@@ -197,6 +197,7 @@ class SecurityController extends AbstractController
             try {
                 $this->passwordResetService->resetPassword($token, $password);
                 $this->addFlash('success', 'Your password has been reset. Please log in with your new password.');
+
                 return $this->redirectToRoute('app_login');
             } catch (ValidationException $e) {
                 return $this->render('security/reset-password.html.twig', [
@@ -226,6 +227,7 @@ class SecurityController extends AbstractController
     {
         try {
             $this->emailVerificationService->verifyEmail($token);
+
             return $this->render('security/verify-email.html.twig', [
                 'success' => true,
             ]);

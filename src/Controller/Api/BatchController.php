@@ -130,6 +130,7 @@ final class BatchController extends AbstractController
      * Formats operation validation errors into a flat array.
      *
      * @param array<int, array<string, string>> $operationErrors
+     *
      * @return array<string, string>
      */
     private function formatOperationErrors(array $operationErrors): array
@@ -140,6 +141,7 @@ final class BatchController extends AbstractController
                 $errors["operations[$index].$field"] = $message;
             }
         }
+
         return $errors;
     }
 }

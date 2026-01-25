@@ -13,11 +13,11 @@ use Symfony\Component\Validator\Constraints as Assert;
 final class UpdateProjectRequest
 {
     /**
-     * @param string|null $name Project name
-     * @param string|null $description Project description
-     * @param string|null|false $parentId Parent ID (null = move to root, false = not specified)
-     * @param string|null $color Project color in hex format
-     * @param string|null $icon Project icon identifier
+     * @param string|null       $name        Project name
+     * @param string|null       $description Project description
+     * @param string|false|null $parentId    Parent ID (null = move to root, false = not specified)
+     * @param string|null       $color       Project color in hex format
+     * @param string|null       $icon        Project icon identifier
      */
     public function __construct(
         #[Assert\Length(
@@ -25,21 +25,17 @@ final class UpdateProjectRequest
             maxMessage: 'Name cannot be longer than {{ limit }} characters'
         )]
         public readonly ?string $name = null,
-
         #[Assert\Length(
             max: 500,
             maxMessage: 'Description cannot be longer than {{ limit }} characters'
         )]
         public readonly ?string $description = null,
-
-        public readonly string|null|false $parentId = false,
-
+        public readonly string|false|null $parentId = false,
         #[Assert\Regex(
             pattern: '/^#[0-9A-Fa-f]{6}$/',
             message: 'Color must be a valid hex color'
         )]
         public readonly ?string $color = null,
-
         #[Assert\Regex(
             pattern: '/^[a-zA-Z0-9_-]*$/',
             message: 'Icon must contain only alphanumeric characters, dashes, and underscores'

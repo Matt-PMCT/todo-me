@@ -180,7 +180,7 @@ class TaskFilterApiTest extends ApiTestCase
         $response = $this->authenticatedApiRequest(
             $user,
             'GET',
-            '/api/v1/tasks?project_ids=' . $project1->getId() . ',' . $project2->getId()
+            '/api/v1/tasks?project_ids='.$project1->getId().','.$project2->getId()
         );
 
         $this->assertResponseStatusCode(Response::HTTP_OK, $response);
@@ -208,7 +208,7 @@ class TaskFilterApiTest extends ApiTestCase
         $response = $this->authenticatedApiRequest(
             $user,
             'GET',
-            '/api/v1/tasks?project_ids=' . $parentProject->getId()
+            '/api/v1/tasks?project_ids='.$parentProject->getId()
         );
 
         $this->assertResponseStatusCode(Response::HTTP_OK, $response);
@@ -222,7 +222,7 @@ class TaskFilterApiTest extends ApiTestCase
         $response = $this->authenticatedApiRequest(
             $user,
             'GET',
-            '/api/v1/tasks?project_ids=' . $parentProject->getId() . '&include_child_projects=true'
+            '/api/v1/tasks?project_ids='.$parentProject->getId().'&include_child_projects=true'
         );
 
         $this->assertResponseStatusCode(Response::HTTP_OK, $response);
@@ -266,7 +266,7 @@ class TaskFilterApiTest extends ApiTestCase
         $response = $this->authenticatedApiRequest(
             $user,
             'GET',
-            '/api/v1/tasks?tag_ids=' . $tag1->getId() . ',' . $tag2->getId() . '&tag_mode=OR'
+            '/api/v1/tasks?tag_ids='.$tag1->getId().','.$tag2->getId().'&tag_mode=OR'
         );
 
         $this->assertResponseStatusCode(Response::HTTP_OK, $response);
@@ -304,7 +304,7 @@ class TaskFilterApiTest extends ApiTestCase
         $response = $this->authenticatedApiRequest(
             $user,
             'GET',
-            '/api/v1/tasks?tag_ids=' . $tag1->getId() . ',' . $tag2->getId() . '&tag_mode=AND'
+            '/api/v1/tasks?tag_ids='.$tag1->getId().','.$tag2->getId().'&tag_mode=AND'
         );
 
         $this->assertResponseStatusCode(Response::HTTP_OK, $response);
@@ -551,9 +551,9 @@ class TaskFilterApiTest extends ApiTestCase
         $response = $this->authenticatedApiRequest(
             $user,
             'GET',
-            '/api/v1/tasks?project_ids=' . $project->getId() .
-            '&priority_min=3' .
-            '&tag_ids=' . $tag->getId() .
+            '/api/v1/tasks?project_ids='.$project->getId().
+            '&priority_min=3'.
+            '&tag_ids='.$tag->getId().
             '&due_before=2024-01-20'
         );
 
@@ -582,7 +582,7 @@ class TaskFilterApiTest extends ApiTestCase
         $response = $this->authenticatedApiRequest(
             $user,
             'GET',
-            '/api/v1/tasks?project_ids=' . implode(',', $projectIds)
+            '/api/v1/tasks?project_ids='.implode(',', $projectIds)
         );
 
         $this->assertResponseStatusCode(Response::HTTP_UNPROCESSABLE_ENTITY, $response);
@@ -602,7 +602,7 @@ class TaskFilterApiTest extends ApiTestCase
         $response = $this->authenticatedApiRequest(
             $user,
             'GET',
-            '/api/v1/tasks?tag_ids=' . implode(',', $tagIds)
+            '/api/v1/tasks?tag_ids='.implode(',', $tagIds)
         );
 
         $this->assertResponseStatusCode(Response::HTTP_UNPROCESSABLE_ENTITY, $response);

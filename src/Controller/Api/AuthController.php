@@ -13,7 +13,6 @@ use App\DTO\TokenResponse;
 use App\DTO\TwoFactorChallengeRequest;
 use App\DTO\UserResponse;
 use App\Entity\User;
-use App\Exception\ValidationException;
 use App\Service\AccountLockoutService;
 use App\Service\ApiLogger;
 use App\Service\EmailService;
@@ -30,9 +29,9 @@ use OpenApi\Attributes as OA;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\RateLimiter\RateLimiterFactory;
-use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
@@ -558,6 +557,7 @@ final class AuthController extends AbstractController
                 $field = $error->getPropertyPath();
                 $validationErrors[$field][] = $error->getMessage();
             }
+
             return $this->responseFormatter->error(
                 'Validation failed',
                 'VALIDATION_ERROR',
@@ -586,6 +586,7 @@ final class AuthController extends AbstractController
                 $field = $error->getPropertyPath();
                 $validationErrors[$field][] = $error->getMessage();
             }
+
             return $this->responseFormatter->error(
                 'Validation failed',
                 'VALIDATION_ERROR',
@@ -636,6 +637,7 @@ final class AuthController extends AbstractController
                 $field = $error->getPropertyPath();
                 $validationErrors[$field][] = $error->getMessage();
             }
+
             return $this->responseFormatter->error(
                 'Validation failed',
                 'VALIDATION_ERROR',

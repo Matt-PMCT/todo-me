@@ -25,8 +25,8 @@ final class PasswordPolicyValidator
     /**
      * Validates a password against the security policy.
      *
-     * @param string $password The password to validate
-     * @param string|null $email Optional email to check against
+     * @param string      $password The password to validate
+     * @param string|null $email    Optional email to check against
      * @param string|null $username Optional username to check against
      *
      * @return array<string> Array of error messages, empty if valid

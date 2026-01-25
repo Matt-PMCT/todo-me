@@ -530,6 +530,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         if (!$this->isLocked()) {
             return 0;
         }
+
         return max(0, $this->lockedUntil->getTimestamp() - time());
     }
 
@@ -584,7 +585,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
             return 0;
         }
 
-        return count(array_filter($this->backupCodes, fn(array $code) => !$code['used']));
+        return count(array_filter($this->backupCodes, fn (array $code) => !$code['used']));
     }
 
     public function getTwoFactorEnabledAt(): ?\DateTimeImmutable
@@ -665,7 +666,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         $settings = $this->getNotificationSettings();
 
         // First check if the channel is enabled
-        $channelKey = $channel . 'Enabled';
+        $channelKey = $channel.'Enabled';
         if (!($settings[$channelKey] ?? false)) {
             return false;
         }

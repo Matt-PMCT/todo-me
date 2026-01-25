@@ -118,7 +118,7 @@ class TaskRepository extends ServiceEntityRepository
 
         // Apply search filter (simple LIKE search on title and description)
         if (isset($filters['search']) && $filters['search'] !== '') {
-            $searchTerm = '%' . $filters['search'] . '%';
+            $searchTerm = '%'.$filters['search'].'%';
             $qb->andWhere($qb->expr()->orX(
                 $qb->expr()->like('LOWER(t.title)', 'LOWER(:search)'),
                 $qb->expr()->like('LOWER(t.description)', 'LOWER(:search)')
@@ -136,8 +136,6 @@ class TaskRepository extends ServiceEntityRepository
      * Find tasks by owner with pagination and filters.
      *
      * @param User $owner The task owner
-     * @param int $page The page number (1-indexed)
-     * @param int $limit The number of items per page
      * @param array{
      *     status?: string,
      *     priority?: int,
@@ -147,7 +145,6 @@ class TaskRepository extends ServiceEntityRepository
      *     dueAfter?: string,
      *     tagIds?: string[]
      * } $filters
-     * @return QueryBuilder
      */
     public function findByOwnerPaginatedQueryBuilder(User $owner, array $filters = []): QueryBuilder
     {
@@ -158,7 +155,6 @@ class TaskRepository extends ServiceEntityRepository
      * Creates a QueryBuilder for paginated project task queries.
      *
      * @param Project $project The project
-     * @return QueryBuilder
      */
     public function findByProjectPaginatedQueryBuilder(Project $project): QueryBuilder
     {
@@ -277,13 +273,13 @@ class TaskRepository extends ServiceEntityRepository
     {
         $conn = $this->getEntityManager()->getConnection();
 
-        $sql = "
+        $sql = '
             SELECT t.id
             FROM tasks t
             WHERE t.owner_id = :owner_id
             AND t.search_vector @@ plainto_tsquery(:locale, :query)
             ORDER BY ts_rank(t.search_vector, plainto_tsquery(:locale, :query)) DESC
-        ";
+        ';
 
         $result = $conn->executeQuery($sql, [
             'owner_id' => $owner->getId(),
@@ -386,7 +382,7 @@ class TaskRepository extends ServiceEntityRepository
             ->where('t.owner = :owner')
             ->andWhere('t.title LIKE :prefix')
             ->setParameter('owner', $owner)
-            ->setParameter('prefix', $prefix . '%')
+            ->setParameter('prefix', $prefix.'%')
             ->orderBy('t.title', 'ASC')
             ->setMaxResults($limit)
             ->getQuery()
@@ -401,8 +397,9 @@ class TaskRepository extends ServiceEntityRepository
     /**
      * Gets the maximum position for tasks of a given owner and optionally project.
      *
-     * @param User $owner The task owner
+     * @param User         $owner   The task owner
      * @param Project|null $project Optional project filter
+     *
      * @return int The maximum position (or -1 if no tasks exist)
      */
     public function getMaxPosition(User $owner, ?Project $project = null): int
@@ -444,7 +441,7 @@ class TaskRepository extends ServiceEntityRepository
     /**
      * Reorders tasks by updating their positions based on the provided task IDs.
      *
-     * @param User $owner The task owner
+     * @param User     $owner   The task owner
      * @param string[] $taskIds The task IDs in the desired order
      */
     public function reorderTasks(User $owner, array $taskIds): void
@@ -477,8 +474,9 @@ class TaskRepository extends ServiceEntityRepository
     /**
      * Finds tasks by their IDs that belong to a specific owner.
      *
-     * @param User $owner The task owner
-     * @param string[] $ids The task IDs
+     * @param User     $owner The task owner
+     * @param string[] $ids   The task IDs
+     *
      * @return Task[]
      */
     public function findByOwnerAndIds(User $owner, array $ids): array
@@ -575,12 +573,12 @@ class TaskRepository extends ServiceEntityRepository
         // Apply search filter using PostgreSQL full-text search
         if ($filterRequest->search !== null && $filterRequest->search !== '') {
             $conn = $this->getEntityManager()->getConnection();
-            $ftsSql = "
+            $ftsSql = '
                 SELECT t.id
                 FROM tasks t
                 WHERE t.owner_id = :owner_id
                 AND t.search_vector @@ plainto_tsquery(:locale, :query)
-            ";
+            ';
 
             $ftsResult = $conn->executeQuery($ftsSql, [
                 'owner_id' => $owner->getId(),
@@ -850,8 +848,9 @@ class TaskRepository extends ServiceEntityRepository
     /**
      * Find all tasks in a recurring chain (original + all instances).
      *
-     * @param User $owner The task owner
+     * @param User   $owner          The task owner
      * @param string $originalTaskId The ID of the first task in the chain
+     *
      * @return Task[] All tasks in the chain, ordered by created date
      */
     public function findRecurringChain(User $owner, string $originalTaskId): array
@@ -869,8 +868,9 @@ class TaskRepository extends ServiceEntityRepository
     /**
      * Count completed tasks in a recurring chain.
      *
-     * @param User $owner The task owner
+     * @param User   $owner          The task owner
      * @param string $originalTaskId The ID of the first task in the chain
+     *
      * @return int Number of completed tasks
      */
     public function countCompletedInChain(User $owner, string $originalTaskId): int
@@ -892,8 +892,9 @@ class TaskRepository extends ServiceEntityRepository
     /**
      * Count all tasks in a recurring chain.
      *
-     * @param User $owner The task owner
+     * @param User   $owner          The task owner
      * @param string $originalTaskId The ID of the first task in the chain
+     *
      * @return int Total number of tasks
      */
     public function countInChain(User $owner, string $originalTaskId): int
@@ -914,6 +915,7 @@ class TaskRepository extends ServiceEntityRepository
      * Find all subtasks of a parent task.
      *
      * @param Task $parent The parent task
+     *
      * @return Task[]
      */
     public function findSubtasksByParent(Task $parent): array
@@ -934,6 +936,7 @@ class TaskRepository extends ServiceEntityRepository
      * Get the count of subtasks for a task (total and completed).
      *
      * @param Task $task The parent task
+     *
      * @return array{total: int, completed: int}
      */
     public function getSubtaskCounts(Task $task): array
@@ -966,6 +969,7 @@ class TaskRepository extends ServiceEntityRepository
      *     dueAfter?: string,
      *     tagIds?: string[]
      * } $filters
+     *
      * @return Task[]
      */
     public function findTopLevelTasks(User $owner, array $filters = []): array
@@ -993,10 +997,11 @@ class TaskRepository extends ServiceEntityRepository
     /**
      * Find tasks by project, optionally including tasks from child projects.
      *
-     * @param Project $project The parent project
-     * @param bool $includeChildren Whether to include tasks from child projects
-     * @param bool $includeArchivedProjects Whether to include tasks from archived child projects
-     * @param string|null $status Optional status filter
+     * @param Project     $project                 The parent project
+     * @param bool        $includeChildren         Whether to include tasks from child projects
+     * @param bool        $includeArchivedProjects Whether to include tasks from archived child projects
+     * @param string|null $status                  Optional status filter
+     *
      * @return Task[]
      */
     public function findByProjectWithChildren(
@@ -1045,8 +1050,9 @@ class TaskRepository extends ServiceEntityRepository
      * Returns an array of arrays with 'task' and 'subtaskCount' keys.
      * This avoids N+1 queries when displaying task lists with subtask counts.
      *
-     * @param User $owner The task owner
+     * @param User        $owner  The task owner
      * @param string|null $status Optional status filter
+     *
      * @return array<array{task: Task, subtaskCount: int}>
      */
     public function findByOwnerWithSubtaskCounts(User $owner, ?string $status = null): array

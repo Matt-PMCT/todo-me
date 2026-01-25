@@ -11,31 +11,22 @@ final class NotificationPreferencesRequest
     public function __construct(
         #[Assert\Type('bool')]
         public readonly ?bool $emailEnabled = null,
-
         #[Assert\Type('bool')]
         public readonly ?bool $pushEnabled = null,
-
         #[Assert\Type('bool')]
         public readonly ?bool $taskDueSoon = null,
-
         #[Assert\Type('bool')]
         public readonly ?bool $taskOverdue = null,
-
         #[Assert\Type('bool')]
         public readonly ?bool $taskDueToday = null,
-
         #[Assert\Type('bool')]
         public readonly ?bool $recurringCreated = null,
-
         #[Assert\Type('bool')]
         public readonly ?bool $quietHoursEnabled = null,
-
         #[Assert\Regex(pattern: '/^([01]\d|2[0-3]):[0-5]\d$/')]
         public readonly ?string $quietHoursStart = null,
-
         #[Assert\Regex(pattern: '/^([01]\d|2[0-3]):[0-5]\d$/')]
         public readonly ?string $quietHoursEnd = null,
-
         #[Assert\Choice(choices: [1, 2, 4, 8, 12, 24, 48])]
         public readonly ?int $dueSoonHours = null,
     ) {

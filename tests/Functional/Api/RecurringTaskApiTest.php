@@ -226,7 +226,7 @@ class RecurringTaskApiTest extends ApiTestCase
         $completeResponse = $this->authenticatedApiRequest(
             $user,
             'PATCH',
-            '/api/v1/tasks/' . $taskId . '/status',
+            '/api/v1/tasks/'.$taskId.'/status',
             ['status' => Task::STATUS_COMPLETED]
         );
 
@@ -269,7 +269,7 @@ class RecurringTaskApiTest extends ApiTestCase
         $completeResponse = $this->authenticatedApiRequest(
             $user,
             'PATCH',
-            '/api/v1/tasks/' . $taskId . '/status',
+            '/api/v1/tasks/'.$taskId.'/status',
             ['status' => Task::STATUS_COMPLETED]
         );
 
@@ -304,7 +304,7 @@ class RecurringTaskApiTest extends ApiTestCase
         $completeResponse = $this->authenticatedApiRequest(
             $user,
             'PATCH',
-            '/api/v1/tasks/' . $taskId . '/status',
+            '/api/v1/tasks/'.$taskId.'/status',
             ['status' => Task::STATUS_COMPLETED]
         );
 
@@ -344,7 +344,7 @@ class RecurringTaskApiTest extends ApiTestCase
         $completeResponse1 = $this->authenticatedApiRequest(
             $user,
             'PATCH',
-            '/api/v1/tasks/' . $originalTaskId . '/status',
+            '/api/v1/tasks/'.$originalTaskId.'/status',
             ['status' => Task::STATUS_COMPLETED]
         );
 
@@ -358,7 +358,7 @@ class RecurringTaskApiTest extends ApiTestCase
         $completeResponse2 = $this->authenticatedApiRequest(
             $user,
             'PATCH',
-            '/api/v1/tasks/' . $secondTaskId . '/status',
+            '/api/v1/tasks/'.$secondTaskId.'/status',
             ['status' => Task::STATUS_COMPLETED]
         );
 
@@ -398,7 +398,7 @@ class RecurringTaskApiTest extends ApiTestCase
         $completeResponse = $this->authenticatedApiRequest(
             $user,
             'PATCH',
-            '/api/v1/tasks/' . $taskId . '/status',
+            '/api/v1/tasks/'.$taskId.'/status',
             ['status' => Task::STATUS_COMPLETED]
         );
 
@@ -437,7 +437,7 @@ class RecurringTaskApiTest extends ApiTestCase
         $completeResponse = $this->authenticatedApiRequest(
             $user,
             'PATCH',
-            '/api/v1/tasks/' . $taskId . '/status',
+            '/api/v1/tasks/'.$taskId.'/status',
             ['status' => Task::STATUS_COMPLETED]
         );
 
@@ -478,7 +478,7 @@ class RecurringTaskApiTest extends ApiTestCase
         $completeForeverResponse = $this->authenticatedApiRequest(
             $user,
             'POST',
-            '/api/v1/tasks/' . $taskId . '/complete-forever'
+            '/api/v1/tasks/'.$taskId.'/complete-forever'
         );
 
         $this->assertResponseStatusCode(Response::HTTP_OK, $completeForeverResponse);
@@ -506,7 +506,7 @@ class RecurringTaskApiTest extends ApiTestCase
         $response = $this->authenticatedApiRequest(
             $user,
             'POST',
-            '/api/v1/tasks/' . $task->getId() . '/complete-forever'
+            '/api/v1/tasks/'.$task->getId().'/complete-forever'
         );
 
         $this->assertResponseStatusCode(Response::HTTP_BAD_REQUEST, $response);
@@ -556,7 +556,7 @@ class RecurringTaskApiTest extends ApiTestCase
         $complete1 = $this->authenticatedApiRequest(
             $user,
             'PATCH',
-            '/api/v1/tasks/' . $taskId . '/status',
+            '/api/v1/tasks/'.$taskId.'/status',
             ['status' => Task::STATUS_COMPLETED]
         );
         $data1 = $this->getResponseData($complete1);
@@ -565,7 +565,7 @@ class RecurringTaskApiTest extends ApiTestCase
         $complete2 = $this->authenticatedApiRequest(
             $user,
             'PATCH',
-            '/api/v1/tasks/' . $task2Id . '/status',
+            '/api/v1/tasks/'.$task2Id.'/status',
             ['status' => Task::STATUS_COMPLETED]
         );
 
@@ -573,7 +573,7 @@ class RecurringTaskApiTest extends ApiTestCase
         $historyResponse = $this->authenticatedApiRequest(
             $user,
             'GET',
-            '/api/v1/tasks/' . $taskId . '/recurring-history'
+            '/api/v1/tasks/'.$taskId.'/recurring-history'
         );
 
         $this->assertResponseStatusCode(Response::HTTP_OK, $historyResponse);
@@ -632,7 +632,7 @@ class RecurringTaskApiTest extends ApiTestCase
         $updateResponse = $this->authenticatedApiRequest(
             $user,
             'PUT',
-            '/api/v1/tasks/' . $taskId,
+            '/api/v1/tasks/'.$taskId,
             [
                 'recurrenceRule' => 'every week',
             ]
@@ -668,7 +668,7 @@ class RecurringTaskApiTest extends ApiTestCase
         $updateResponse = $this->authenticatedApiRequest(
             $user,
             'PUT',
-            '/api/v1/tasks/' . $taskId,
+            '/api/v1/tasks/'.$taskId,
             [
                 'clearRecurrence' => true,
             ]
@@ -711,7 +711,7 @@ class RecurringTaskApiTest extends ApiTestCase
         $completeResponse = $this->authenticatedApiRequest(
             $user,
             'PATCH',
-            '/api/v1/tasks/' . $taskId . '/status',
+            '/api/v1/tasks/'.$taskId.'/status',
             ['status' => Task::STATUS_COMPLETED]
         );
 
@@ -747,7 +747,7 @@ class RecurringTaskApiTest extends ApiTestCase
         $completeResponse = $this->authenticatedApiRequest(
             $user,
             'PATCH',
-            '/api/v1/tasks/' . $taskId . '/status',
+            '/api/v1/tasks/'.$taskId.'/status',
             ['status' => Task::STATUS_COMPLETED]
         );
 

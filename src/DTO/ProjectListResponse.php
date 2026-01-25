@@ -10,7 +10,7 @@ namespace App\DTO;
 final class ProjectListResponse
 {
     /**
-     * @param ProjectResponse[] $items
+     * @param ProjectResponse[]                                         $items
      * @param array{total: int, page: int, limit: int, totalPages: int} $meta
      */
     public function __construct(
@@ -23,9 +23,9 @@ final class ProjectListResponse
      * Creates a ProjectListResponse from project responses with pagination info.
      *
      * @param ProjectResponse[] $items
-     * @param int $total Total number of projects
-     * @param int $page Current page number
-     * @param int $limit Items per page
+     * @param int               $total Total number of projects
+     * @param int               $page  Current page number
+     * @param int               $limit Items per page
      */
     public static function create(array $items, int $total, int $page, int $limit): self
     {
@@ -52,7 +52,7 @@ final class ProjectListResponse
     public function toArray(): array
     {
         return [
-            'items' => array_map(fn(ProjectResponse $project) => $project->toArray(), $this->items),
+            'items' => array_map(fn (ProjectResponse $project) => $project->toArray(), $this->items),
             'meta' => $this->meta,
         ];
     }

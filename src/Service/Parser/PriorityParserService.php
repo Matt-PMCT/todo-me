@@ -20,6 +20,7 @@ class PriorityParserService
      * Invalid priorities (p5, p10, etc.): returns result with valid: false
      *
      * @param string $input The text to parse
+     *
      * @return PriorityParseResult|null The parse result, or null if no priority pattern found
      */
     public function parse(string $input): ?PriorityParseResult

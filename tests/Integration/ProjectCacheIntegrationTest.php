@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace App\Tests\Integration;
 
+use App\DTO\CreateProjectRequest;
+use App\DTO\MoveProjectRequest;
+use App\DTO\UpdateProjectRequest;
 use App\Service\ProjectCacheService;
 use App\Service\ProjectService;
-use App\DTO\CreateProjectRequest;
-use App\DTO\UpdateProjectRequest;
-use App\DTO\MoveProjectRequest;
 use Symfony\Component\Cache\Adapter\AdapterInterface;
 
 /**
@@ -128,6 +128,7 @@ class ProjectCacheIntegrationTest extends IntegrationTestCase
         foreach ($tree as $project) {
             if ($project['name'] === 'New Project') {
                 $found = true;
+
                 break;
             }
         }
@@ -265,7 +266,7 @@ class ProjectCacheIntegrationTest extends IntegrationTestCase
         $tree2 = $this->projectService->getTree($user, false, false);
 
         // Verify new order
-        $names = array_map(fn($p) => $p['name'], $tree2);
+        $names = array_map(fn ($p) => $p['name'], $tree2);
         $this->assertEquals(['Project 3', 'Project 1', 'Project 2'], $names);
     }
 

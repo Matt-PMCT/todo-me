@@ -89,6 +89,6 @@ final class BackupCodeService implements BackupCodeServiceInterface
         $bytes = random_bytes(self::CODE_LENGTH / 2);
         $hex = strtoupper(bin2hex($bytes));
 
-        return substr($hex, 0, 4) . '-' . substr($hex, 4, 4);
+        return substr($hex, 0, 4).'-'.substr($hex, 4, 4);
     }
 }

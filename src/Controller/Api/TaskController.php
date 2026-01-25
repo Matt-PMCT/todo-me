@@ -491,14 +491,14 @@ final class TaskController extends AbstractController
         $tasks = $this->taskRepository->findRecurringChain($user, $originalTaskId);
 
         $taskResponses = array_map(
-            fn($t) => TaskResponse::fromTask($t)->toArray(),
+            fn ($t) => TaskResponse::fromTask($t)->toArray(),
             $tasks
         );
 
         return $this->responseFormatter->success([
             'tasks' => $taskResponses,
             'totalCount' => count($tasks),
-            'completedCount' => count(array_filter($tasks, fn($t) => $t->isCompleted())),
+            'completedCount' => count(array_filter($tasks, fn ($t) => $t->isCompleted())),
         ]);
     }
 
@@ -570,14 +570,14 @@ final class TaskController extends AbstractController
         $subtasks = $this->taskRepository->findSubtasksByParent($parentTask);
 
         $taskResponses = array_map(
-            fn($task) => TaskResponse::fromTask($task)->toArray(),
+            fn ($task) => TaskResponse::fromTask($task)->toArray(),
             $subtasks
         );
 
         return $this->responseFormatter->success([
             'tasks' => $taskResponses,
             'total' => count($subtasks),
-            'completedCount' => count(array_filter($subtasks, fn($t) => $t->isCompleted())),
+            'completedCount' => count(array_filter($subtasks, fn ($t) => $t->isCompleted())),
         ]);
     }
 

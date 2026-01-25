@@ -4,9 +4,6 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Service;
 
-use App\Entity\Project;
-use App\Entity\Tag;
-use App\Entity\Task;
 use App\Entity\User;
 use App\Exception\ForbiddenException;
 use App\Exception\UnauthorizedException;

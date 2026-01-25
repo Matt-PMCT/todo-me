@@ -11,7 +11,6 @@ final class TwoFactorVerifyRequest
     public function __construct(
         #[Assert\NotBlank(message: 'Setup token is required')]
         public readonly string $setupToken = '',
-
         #[Assert\NotBlank(message: 'Code is required')]
         #[Assert\Length(
             exactly: 6,

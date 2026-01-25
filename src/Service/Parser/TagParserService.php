@@ -29,7 +29,8 @@ final class TagParserService
      * for each unique tag found. Duplicates are ignored (only first occurrence is returned).
      *
      * @param string $input The input text to parse
-     * @param User $user The user for whom to find/create tags
+     * @param User   $user  The user for whom to find/create tags
+     *
      * @return TagParseResult[] Array of parse results for each unique tag found
      */
     public function parse(string $input, User $user): array

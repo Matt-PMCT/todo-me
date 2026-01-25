@@ -11,6 +11,7 @@ use App\Service\NotificationService;
 use App\Service\ResponseFormatter;
 use App\Service\ValidationHelper;
 use Doctrine\ORM\EntityManagerInterface;
+use OpenApi\Attributes as OA;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -18,6 +19,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
+#[OA\Tag(name: 'Notifications', description: 'User notification management')]
 #[Route('/api/v1/notifications')]
 #[IsGranted('IS_AUTHENTICATED_FULLY')]
 final class NotificationController extends AbstractController
@@ -35,6 +37,18 @@ final class NotificationController extends AbstractController
      * Get notification preferences for the current user.
      */
     #[Route('/preferences', name: 'api_notification_preferences_get', methods: ['GET'])]
+    #[OA\Get(
+        summary: 'Get notification preferences',
+        description: 'Returns the notification preferences for the authenticated user',
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: 'Notification preferences',
+                content: new OA\JsonContent(ref: '#/components/schemas/ApiResponse')
+            ),
+            new OA\Response(response: 401, description: 'Not authenticated'),
+        ]
+    )]
     public function getPreferences(): JsonResponse
     {
         /** @var User $user */
@@ -49,6 +63,30 @@ final class NotificationController extends AbstractController
      * Update notification preferences for the current user.
      */
     #[Route('/preferences', name: 'api_notification_preferences_update', methods: ['PATCH'])]
+    #[OA\Patch(
+        summary: 'Update notification preferences',
+        description: 'Updates notification preferences for the authenticated user',
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(
+                properties: [
+                    new OA\Property(property: 'emailEnabled', type: 'boolean'),
+                    new OA\Property(property: 'pushEnabled', type: 'boolean'),
+                    new OA\Property(property: 'dailyDigestEnabled', type: 'boolean'),
+                    new OA\Property(property: 'taskReminders', type: 'boolean'),
+                ]
+            )
+        ),
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: 'Updated preferences',
+                content: new OA\JsonContent(ref: '#/components/schemas/ApiResponse')
+            ),
+            new OA\Response(response: 401, description: 'Not authenticated'),
+            new OA\Response(response: 422, description: 'Validation error'),
+        ]
+    )]
     public function updatePreferences(Request $request): JsonResponse
     {
         /** @var User $user */
@@ -74,6 +112,23 @@ final class NotificationController extends AbstractController
      * Get notifications for the current user.
      */
     #[Route('', name: 'api_notifications_list', methods: ['GET'])]
+    #[OA\Get(
+        summary: 'List notifications',
+        description: 'Returns paginated notifications for the authenticated user',
+        parameters: [
+            new OA\Parameter(name: 'limit', in: 'query', schema: new OA\Schema(type: 'integer', default: 50, maximum: 100)),
+            new OA\Parameter(name: 'offset', in: 'query', schema: new OA\Schema(type: 'integer', default: 0)),
+            new OA\Parameter(name: 'unreadOnly', in: 'query', schema: new OA\Schema(type: 'boolean', default: false)),
+        ],
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: 'List of notifications',
+                content: new OA\JsonContent(ref: '#/components/schemas/ApiResponse')
+            ),
+            new OA\Response(response: 401, description: 'Not authenticated'),
+        ]
+    )]
     public function list(Request $request): JsonResponse
     {
         /** @var User $user */
@@ -107,6 +162,18 @@ final class NotificationController extends AbstractController
      * Get unread notification count.
      */
     #[Route('/unread-count', name: 'api_notifications_unread_count', methods: ['GET'])]
+    #[OA\Get(
+        summary: 'Get unread count',
+        description: 'Returns the number of unread notifications for the authenticated user',
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: 'Unread notification count',
+                content: new OA\JsonContent(ref: '#/components/schemas/ApiResponse')
+            ),
+            new OA\Response(response: 401, description: 'Not authenticated'),
+        ]
+    )]
     public function unreadCount(): JsonResponse
     {
         /** @var User $user */
@@ -121,6 +188,22 @@ final class NotificationController extends AbstractController
      * Mark a notification as read.
      */
     #[Route('/{id}/read', name: 'api_notification_mark_read', methods: ['POST'])]
+    #[OA\Post(
+        summary: 'Mark notification as read',
+        description: 'Marks a single notification as read',
+        parameters: [
+            new OA\Parameter(name: 'id', in: 'path', required: true, schema: new OA\Schema(type: 'string', format: 'uuid')),
+        ],
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: 'Notification marked as read',
+                content: new OA\JsonContent(ref: '#/components/schemas/ApiResponse')
+            ),
+            new OA\Response(response: 401, description: 'Not authenticated'),
+            new OA\Response(response: 404, description: 'Notification not found'),
+        ]
+    )]
     public function markRead(string $id): JsonResponse
     {
         /** @var User $user */
@@ -150,6 +233,18 @@ final class NotificationController extends AbstractController
      * Mark all notifications as read.
      */
     #[Route('/read-all', name: 'api_notifications_mark_all_read', methods: ['POST'])]
+    #[OA\Post(
+        summary: 'Mark all notifications as read',
+        description: 'Marks all notifications as read for the authenticated user',
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: 'Notifications marked as read',
+                content: new OA\JsonContent(ref: '#/components/schemas/ApiResponse')
+            ),
+            new OA\Response(response: 401, description: 'Not authenticated'),
+        ]
+    )]
     public function markAllRead(): JsonResponse
     {
         /** @var User $user */

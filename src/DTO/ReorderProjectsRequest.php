@@ -12,13 +12,12 @@ use Symfony\Component\Validator\Constraints as Assert;
 final class ReorderProjectsRequest
 {
     /**
-     * @param string|null $parentId The parent project ID (null for root projects)
-     * @param string[] $projectIds The project IDs in the desired order
+     * @param string|null $parentId   The parent project ID (null for root projects)
+     * @param string[]    $projectIds The project IDs in the desired order
      */
     public function __construct(
         #[Assert\Uuid(message: 'Parent ID must be a valid UUID')]
         public readonly ?string $parentId = null,
-
         #[Assert\NotBlank(message: 'Project IDs are required')]
         #[Assert\All([
             new Assert\Uuid(message: 'Each project ID must be a valid UUID'),

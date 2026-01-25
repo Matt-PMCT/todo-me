@@ -28,6 +28,7 @@ class UserSessionRepository extends ServiceEntityRepository
      * Find all sessions for a user, ordered by last active date descending.
      *
      * @param User $user The user
+     *
      * @return UserSession[]
      */
     public function findByOwner(User $user): array
@@ -44,7 +45,6 @@ class UserSessionRepository extends ServiceEntityRepository
      * Find a session by its token hash.
      *
      * @param string $tokenHash SHA256 hash of the API token
-     * @return UserSession|null
      */
     public function findByTokenHash(string $tokenHash): ?UserSession
     {
@@ -55,6 +55,7 @@ class UserSessionRepository extends ServiceEntityRepository
      * Delete all sessions for a user.
      *
      * @param User $user The user
+     *
      * @return int Number of deleted sessions
      */
     public function deleteByOwner(User $user): int
@@ -70,8 +71,9 @@ class UserSessionRepository extends ServiceEntityRepository
     /**
      * Delete all sessions for a user except the one with the given token hash.
      *
-     * @param User $user The user
+     * @param User   $user             The user
      * @param string $currentTokenHash Token hash of the session to keep
+     *
      * @return int Number of deleted sessions
      */
     public function deleteByOwnerExcept(User $user, string $currentTokenHash): int

@@ -433,7 +433,7 @@ class TaskRepositoryTest extends IntegrationTestCase
         ]);
 
         $this->assertCount(2, $results);
-        $titles = array_map(fn($t) => $t->getTitle(), $results);
+        $titles = array_map(fn ($t) => $t->getTitle(), $results);
         $this->assertContains('Task 1', $titles);
         $this->assertContains('Task 3', $titles);
     }

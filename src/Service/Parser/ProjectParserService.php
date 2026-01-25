@@ -38,7 +38,8 @@ final class ProjectParserService
      * it to a project owned by the user.
      *
      * @param string $input The input text to parse
-     * @param User $user The user whose projects to search
+     * @param User   $user  The user whose projects to search
+     *
      * @return ProjectParseResult|null The parse result, or null if no hashtag found
      */
     public function parse(string $input, User $user): ?ProjectParseResult

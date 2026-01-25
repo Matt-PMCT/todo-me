@@ -41,7 +41,7 @@ class TagRepositoryTest extends IntegrationTestCase
         $results = $this->tagRepository->findByOwner($user1);
 
         $this->assertCount(2, $results);
-        $names = array_map(fn($t) => $t->getName(), $results);
+        $names = array_map(fn ($t) => $t->getName(), $results);
         $this->assertContains('urgent', $names);
         $this->assertContains('home', $names);
         $this->assertNotContains('work', $names);
@@ -100,7 +100,7 @@ class TagRepositoryTest extends IntegrationTestCase
         $results = $this->tagRepository->findByOwnerAndNames($user, ['urgent', 'home', 'nonexistent']);
 
         $this->assertCount(2, $results);
-        $names = array_map(fn($t) => $t->getName(), $results);
+        $names = array_map(fn ($t) => $t->getName(), $results);
         $this->assertContains('urgent', $names);
         $this->assertContains('home', $names);
     }

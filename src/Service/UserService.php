@@ -28,8 +28,9 @@ final class UserService implements UserServiceInterface
     /**
      * Registers a new user.
      *
-     * @param string $email The user's email address
+     * @param string $email         The user's email address
      * @param string $plainPassword The user's plain text password
+     *
      * @return User The newly created user
      */
     public function register(string $email, string $plainPassword): User
@@ -39,7 +40,7 @@ final class UserService implements UserServiceInterface
 
         // Generate username from email prefix with random suffix for uniqueness
         $emailPrefix = explode('@', $email)[0];
-        $user->setUsername($emailPrefix . '_' . substr(bin2hex(random_bytes(4)), 0, 8));
+        $user->setUsername($emailPrefix.'_'.substr(bin2hex(random_bytes(4)), 0, 8));
 
         $hashedPassword = $this->passwordHasher->hashPassword($user, $plainPassword);
         $user->setPasswordHash($hashedPassword);
@@ -56,6 +57,7 @@ final class UserService implements UserServiceInterface
      * Generates a new API token for the user.
      *
      * @param User $user The user to generate a new token for
+     *
      * @return string The new API token
      */
     public function generateNewApiToken(User $user): string
@@ -98,8 +100,9 @@ final class UserService implements UserServiceInterface
     /**
      * Validates a user's password.
      *
-     * @param User $user The user to validate
+     * @param User   $user          The user to validate
      * @param string $plainPassword The plain text password to check
+     *
      * @return bool True if password is valid, false otherwise
      */
     public function validatePassword(User $user, string $plainPassword): bool
@@ -110,7 +113,7 @@ final class UserService implements UserServiceInterface
     /**
      * Changes a user's password.
      *
-     * @param User $user The user whose password should be changed
+     * @param User   $user             The user whose password should be changed
      * @param string $newPlainPassword The new plain text password
      */
     public function changePassword(User $user, string $newPlainPassword): void
@@ -126,6 +129,7 @@ final class UserService implements UserServiceInterface
      * Finds a user by email address.
      *
      * @param string $email The email address to search for
+     *
      * @return User|null The user if found, null otherwise
      */
     public function findByEmail(string $email): ?User
@@ -138,6 +142,7 @@ final class UserService implements UserServiceInterface
      * Returns null if token is not found OR if token is expired.
      *
      * @param string $token The API token to search for
+     *
      * @return User|null The user if found and token is valid, null otherwise
      */
     public function findByApiToken(string $token): ?User
@@ -161,6 +166,7 @@ final class UserService implements UserServiceInterface
      * Used for token refresh where expired tokens are allowed.
      *
      * @param string $token The API token to search for
+     *
      * @return User|null The user if found, null otherwise
      */
     public function findByApiTokenIgnoreExpiration(string $token): ?User

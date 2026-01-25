@@ -59,19 +59,19 @@ final class Version20260123000001 extends AbstractMigration
         $this->addSql('ALTER TABLE tasks ALTER COLUMN title TYPE VARCHAR(500)');
 
         // Recreate the triggers after altering the column
-        $this->addSql("
+        $this->addSql('
             CREATE TRIGGER tasks_search_vector_insert
             BEFORE INSERT ON tasks
             FOR EACH ROW
             EXECUTE FUNCTION tasks_search_vector_update()
-        ");
-        $this->addSql("
+        ');
+        $this->addSql('
             CREATE TRIGGER tasks_search_vector_update
             BEFORE UPDATE ON tasks
             FOR EACH ROW
             WHEN (OLD.title IS DISTINCT FROM NEW.title OR OLD.description IS DISTINCT FROM NEW.description)
             EXECUTE FUNCTION tasks_search_vector_update()
-        ");
+        ');
         $this->addSql('ALTER TABLE tasks ALTER COLUMN priority SET DEFAULT 2');
         $this->addSql('ALTER TABLE tasks ADD due_time TIME(0) WITHOUT TIME ZONE DEFAULT NULL');
         $this->addSql('ALTER TABLE tasks ADD parent_task_id UUID DEFAULT NULL');
@@ -111,19 +111,19 @@ final class Version20260123000001 extends AbstractMigration
         $this->addSql('ALTER TABLE tasks ALTER COLUMN title TYPE VARCHAR(255)');
 
         // Recreate the triggers after altering the column
-        $this->addSql("
+        $this->addSql('
             CREATE TRIGGER tasks_search_vector_insert
             BEFORE INSERT ON tasks
             FOR EACH ROW
             EXECUTE FUNCTION tasks_search_vector_update()
-        ");
-        $this->addSql("
+        ');
+        $this->addSql('
             CREATE TRIGGER tasks_search_vector_update
             BEFORE UPDATE ON tasks
             FOR EACH ROW
             WHEN (OLD.title IS DISTINCT FROM NEW.title OR OLD.description IS DISTINCT FROM NEW.description)
             EXECUTE FUNCTION tasks_search_vector_update()
-        ");
+        ');
         $this->addSql('ALTER TABLE tasks ALTER COLUMN priority SET DEFAULT 3');
 
         // Projects table rollback

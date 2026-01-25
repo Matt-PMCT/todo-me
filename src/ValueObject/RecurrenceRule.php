@@ -12,15 +12,15 @@ use App\Enum\RecurrenceType;
 final readonly class RecurrenceRule
 {
     /**
-     * @param string $originalText The original text that was parsed
-     * @param RecurrenceType $type Whether recurrence is absolute (from schedule) or relative (from completion)
-     * @param string $interval The base interval: 'day', 'week', 'month', 'year'
-     * @param int $count How many intervals between occurrences (e.g., 2 for "every 2 weeks")
-     * @param int[] $days Days of week for weekly patterns (0=Sunday, 6=Saturday)
-     * @param int|null $dayOfMonth Day of month for monthly patterns (1-31, -1 for last day)
-     * @param int|null $monthOfYear Month for yearly patterns (1-12)
-     * @param string|null $time Time of day (HH:MM format)
-     * @param \DateTimeImmutable|null $endDate When the recurrence should stop
+     * @param string                  $originalText The original text that was parsed
+     * @param RecurrenceType          $type         Whether recurrence is absolute (from schedule) or relative (from completion)
+     * @param string                  $interval     The base interval: 'day', 'week', 'month', 'year'
+     * @param int                     $count        How many intervals between occurrences (e.g., 2 for "every 2 weeks")
+     * @param int[]                   $days         Days of week for weekly patterns (0=Sunday, 6=Saturday)
+     * @param int|null                $dayOfMonth   Day of month for monthly patterns (1-31, -1 for last day)
+     * @param int|null                $monthOfYear  Month for yearly patterns (1-12)
+     * @param string|null             $time         Time of day (HH:MM format)
+     * @param \DateTimeImmutable|null $endDate      When the recurrence should stop
      */
     private function __construct(
         public string $originalText,
@@ -38,15 +38,15 @@ final readonly class RecurrenceRule
     /**
      * Create a new RecurrenceRule.
      *
-     * @param string $originalText The original text that was parsed
-     * @param RecurrenceType $type Whether recurrence is absolute or relative
-     * @param string $interval The base interval: 'day', 'week', 'month', 'year'
-     * @param int $count How many intervals between occurrences
-     * @param int[] $days Days of week for weekly patterns
-     * @param int|null $dayOfMonth Day of month for monthly patterns
-     * @param int|null $monthOfYear Month for yearly patterns
-     * @param string|null $time Time of day
-     * @param \DateTimeImmutable|null $endDate When the recurrence should stop
+     * @param string                  $originalText The original text that was parsed
+     * @param RecurrenceType          $type         Whether recurrence is absolute or relative
+     * @param string                  $interval     The base interval: 'day', 'week', 'month', 'year'
+     * @param int                     $count        How many intervals between occurrences
+     * @param int[]                   $days         Days of week for weekly patterns
+     * @param int|null                $dayOfMonth   Day of month for monthly patterns
+     * @param int|null                $monthOfYear  Month for yearly patterns
+     * @param string|null             $time         Time of day
+     * @param \DateTimeImmutable|null $endDate      When the recurrence should stop
      */
     public static function create(
         string $originalText,
@@ -197,7 +197,7 @@ final readonly class RecurrenceRule
                 'week' => 'Weekly',
                 'month' => 'Monthly',
                 'year' => 'Yearly',
-                default => 'Every ' . $this->interval,
+                default => 'Every '.$this->interval,
             };
         } else {
             $parts[] = sprintf('Every %d %ss', $this->count, $this->interval);
@@ -206,8 +206,8 @@ final readonly class RecurrenceRule
         // Days of week
         if (!empty($this->days)) {
             $dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-            $names = array_map(fn($d) => $dayNames[$d] ?? '', $this->days);
-            $parts[] = 'on ' . implode(', ', $names);
+            $names = array_map(fn ($d) => $dayNames[$d] ?? '', $this->days);
+            $parts[] = 'on '.implode(', ', $names);
         }
 
         // Day of month
@@ -215,24 +215,24 @@ final readonly class RecurrenceRule
             if ($this->dayOfMonth === -1) {
                 $parts[] = 'on the last day';
             } else {
-                $parts[] = 'on the ' . $this->ordinal($this->dayOfMonth);
+                $parts[] = 'on the '.$this->ordinal($this->dayOfMonth);
             }
         }
 
         // Month
         if ($this->monthOfYear !== null) {
             $monthNames = ['', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-            $parts[] = 'in ' . ($monthNames[$this->monthOfYear] ?? '');
+            $parts[] = 'in '.($monthNames[$this->monthOfYear] ?? '');
         }
 
         // Time
         if ($this->time !== null) {
-            $parts[] = 'at ' . $this->time;
+            $parts[] = 'at '.$this->time;
         }
 
         // End date
         if ($this->endDate !== null) {
-            $parts[] = 'until ' . $this->endDate->format('M j, Y');
+            $parts[] = 'until '.$this->endDate->format('M j, Y');
         }
 
         // Type indicator
@@ -252,9 +252,9 @@ final readonly class RecurrenceRule
         $mod100 = $number % 100;
 
         if ($mod100 >= 11 && $mod100 <= 13) {
-            return $number . 'th';
+            return $number.'th';
         }
 
-        return $number . ($suffixes[$number % 10] ?? 'th');
+        return $number.($suffixes[$number % 10] ?? 'th');
     }
 }

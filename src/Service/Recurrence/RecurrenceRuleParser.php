@@ -51,7 +51,9 @@ final class RecurrenceRuleParser
      * Parse a recurrence rule string into a RecurrenceRule object.
      *
      * @param string $rule The natural language rule
+     *
      * @return RecurrenceRule The parsed rule
+     *
      * @throws InvalidRecurrenceException If the rule cannot be parsed
      */
     public function parse(string $rule): RecurrenceRule
@@ -67,7 +69,7 @@ final class RecurrenceRuleParser
         $type = RecurrenceType::ABSOLUTE;
         if (str_starts_with($normalizedRule, 'every!')) {
             $type = RecurrenceType::RELATIVE;
-            $normalizedRule = 'every' . substr($normalizedRule, 6);
+            $normalizedRule = 'every'.substr($normalizedRule, 6);
         }
 
         // Extract and remove end date
@@ -344,7 +346,6 @@ final class RecurrenceRuleParser
     /**
      * Extract end date from the rule.
      *
-     * @return \DateTimeImmutable|null
      * @throws InvalidRecurrenceException If date cannot be parsed
      */
     private function extractEndDate(string $rule): ?\DateTimeImmutable

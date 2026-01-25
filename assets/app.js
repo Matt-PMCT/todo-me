@@ -19,4 +19,10 @@ import './js/search.js';
 // Import keyboard shortcuts
 import './js/keyboard-shortcuts.js';
 
+// Import subtask interactions
+import './js/subtasks.js';
+
+// Import mobile swipe gestures
+import './js/swipe-gestures.js';
+
 console.log('This log comes from assets/app.js - welcome to AssetMapper!');

@@ -50,7 +50,7 @@ class RegisterRequestTest extends DtoTestCase
     public function testEmailTooLongViolation(): void
     {
         // Email max length is 180 characters
-        $longEmail = $this->generateString(170) . '@example.com';
+        $longEmail = $this->generateString(170).'@example.com';
         $dto = new RegisterRequest(email: $longEmail, password: 'password123');
 
         $violations = $this->validate($dto);
@@ -61,7 +61,7 @@ class RegisterRequestTest extends DtoTestCase
     public function testEmailAtMaxLengthIsValid(): void
     {
         // Email max length is 180 characters
-        $email = $this->generateString(167) . '@example.com'; // 167 + 12 = 179
+        $email = $this->generateString(167).'@example.com'; // 167 + 12 = 179
         $dto = new RegisterRequest(email: $email, password: 'password123');
 
         $violations = $this->validate($dto);
