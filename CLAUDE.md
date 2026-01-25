@@ -57,7 +57,7 @@ vendor/bin/phpunit --testdox-text var/test-results.txt --log-junit var/test-resu
 ```bash
 php bin/console doctrine:migrations:migrate    # Run migrations
 php bin/console doctrine:migrations:generate   # Create new migration
-php bin/console doctrine:migrations:rollback   # Revert last migration
+php bin/console doctrine:migrations:migrate prev   # Revert to previous migration
 ```
 
 ## Architecture
@@ -65,16 +65,16 @@ php bin/console doctrine:migrations:rollback   # Revert last migration
 ### Directory Structure
 ```
 src/
-├── Controller/Api/     # REST endpoints (Auth, Task, Project controllers)
-├── Controller/Web/     # Web UI controllers (Security, TaskList, Home)
+├── Controller/Api/     # REST endpoints (Auth, Task, Project, Batch, Search, etc.)
+├── Controller/Web/     # Web UI controllers (Security, TaskList, Settings, Notifications, etc.)
 ├── Service/            # Business logic layer (TaskService, ProjectService, etc.)
 ├── Repository/         # Doctrine repositories with query methods
-├── Entity/             # Doctrine entities (User, Task, Project, Tag) - all use UUIDs
+├── Entity/             # Doctrine entities (User, Task, Project, Tag, ApiToken, Notification, etc.) - all use UUIDs
 ├── DTO/                # Request/Response DTOs with validation constraints
 ├── Exception/          # Custom exceptions (ValidationException, EntityNotFoundException, etc.)
 ├── Security/           # ApiTokenAuthenticator for Bearer/X-API-Key auth
 ├── EventListener/      # Exception handling, request ID tracking
-├── EventSubscriber/    # Rate limiting subscriber
+├── EventSubscriber/    # Rate limiting, login authentication handling
 └── Interface/          # UserOwnedInterface for multi-tenant ownership
 ```
 
@@ -105,7 +105,7 @@ All API endpoints return:
 - Anonymous: 1000 req/hour
 - Authenticated: 1000 req/hour
 - Login: 5 attempts/min
-- Test env has 100× higher limits
+- Test env uses 100/min limits with shorter intervals for easier testing
 
 ### Database Schema
 - All entities use UUID primary keys
