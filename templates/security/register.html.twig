@@ -47,15 +47,27 @@
                     <label for="password" class="block text-sm font-medium leading-6 text-gray-900">Password</label>
                     <div class="mt-2">
                         <input id="password" name="password" type="password" autocomplete="new-password" required
+                               minlength="{{ requirements.minLength|default(12) }}"
                                class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 px-3">
                     </div>
-                    <p class="mt-1 text-xs text-gray-500">Password must be at least 8 characters long.</p>
+                    {% if requirements is defined %}
+                    <div class="mt-2 text-xs text-gray-500">
+                        <p class="font-medium">Password requirements:</p>
+                        <ul class="mt-1 list-disc list-inside space-y-0.5">
+                            <li>At least {{ requirements.minLength }} characters</li>
+                            <li>At least one uppercase letter</li>
+                            <li>At least one lowercase letter</li>
+                            <li>At least one number</li>
+                        </ul>
+                    </div>
+                    {% endif %}
                 </div>
 
                 <div>
                     <label for="password_confirm" class="block text-sm font-medium leading-6 text-gray-900">Confirm Password</label>
                     <div class="mt-2">
                         <input id="password_confirm" name="password_confirm" type="password" autocomplete="new-password" required
+                               minlength="{{ requirements.minLength|default(12) }}"
                                class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 px-3">
                     </div>
                 </div>
