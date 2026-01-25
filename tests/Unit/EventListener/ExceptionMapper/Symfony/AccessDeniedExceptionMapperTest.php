@@ -6,16 +6,21 @@ namespace App\Tests\Unit\EventListener\ExceptionMapper\Symfony;
 
 use App\EventListener\ExceptionMapper\ExceptionMapping;
 use App\EventListener\ExceptionMapper\Symfony\AccessDeniedExceptionMapper;
+use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
+use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\Security\Core\Exception\AccessDeniedException;
+use Symfony\Component\Security\Core\User\UserInterface;
 
 class AccessDeniedExceptionMapperTest extends TestCase
 {
+    private Security&MockObject $security;
     private AccessDeniedExceptionMapper $mapper;
 
     protected function setUp(): void
     {
-        $this->mapper = new AccessDeniedExceptionMapper();
+        $this->security = $this->createMock(Security::class);
+        $this->mapper = new AccessDeniedExceptionMapper($this->security);
     }
 
     public function testCanHandleReturnsTrueForAccessDeniedException(): void
@@ -44,8 +49,9 @@ class AccessDeniedExceptionMapperTest extends TestCase
         $this->assertFalse($this->mapper->canHandle($exception));
     }
 
-    public function testMapReturnsCorrectMapping(): void
+    public function testMapReturns401ForUnauthenticatedUser(): void
     {
+        $this->security->method('getUser')->willReturn(null);
         $exception = new AccessDeniedException();
 
         $mapping = $this->mapper->map($exception);
@@ -56,8 +62,23 @@ class AccessDeniedExceptionMapperTest extends TestCase
         $this->assertSame(401, $mapping->statusCode);
     }
 
-    public function testMapReturnsGenericMessageRegardlessOfExceptionMessage(): void
+    public function testMapReturns403ForAuthenticatedUser(): void
     {
+        $user = $this->createMock(UserInterface::class);
+        $this->security->method('getUser')->willReturn($user);
+        $exception = new AccessDeniedException();
+
+        $mapping = $this->mapper->map($exception);
+
+        $this->assertInstanceOf(ExceptionMapping::class, $mapping);
+        $this->assertSame('FORBIDDEN', $mapping->errorCode);
+        $this->assertSame('Access denied', $mapping->message);
+        $this->assertSame(403, $mapping->statusCode);
+    }
+
+    public function testMapReturnsGenericMessageForUnauthenticatedUser(): void
+    {
+        $this->security->method('getUser')->willReturn(null);
         // The mapper returns a generic message, not the exception's message
         $exception = new AccessDeniedException('You cannot do this');
 
@@ -69,6 +90,7 @@ class AccessDeniedExceptionMapperTest extends TestCase
 
     public function testMappingHasNoDetails(): void
     {
+        $this->security->method('getUser')->willReturn(null);
         $exception = new AccessDeniedException();
 
         $mapping = $this->mapper->map($exception);
