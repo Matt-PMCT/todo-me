@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Security;
 
 use App\Interface\ApiLoggerInterface;
+use App\Interface\ApiTokenServiceInterface;
 use App\Interface\UserServiceInterface;
 use App\Service\ApiLogger;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -24,11 +25,16 @@ use Symfony\Component\Security\Http\Authenticator\Passport\SelfValidatingPasspor
  * Supports two token methods:
  * - Authorization: Bearer {token}
  * - X-API-Key: {token}
+ *
+ * Supports two token systems:
+ * 1. Named API tokens (prefixed with "tm_") - stored in api_tokens table
+ * 2. User login tokens - stored in users.api_token column
  */
 final class ApiTokenAuthenticator extends AbstractAuthenticator
 {
     private const BEARER_PREFIX = 'Bearer ';
     private const API_KEY_HEADER = 'X-API-Key';
+    private const NAMED_TOKEN_PREFIX = 'tm_';
 
     /**
      * Generic authentication error message to prevent token enumeration.
@@ -48,6 +54,7 @@ final class ApiTokenAuthenticator extends AbstractAuthenticator
     public function __construct(
         private readonly UserServiceInterface $userService,
         private readonly ApiLoggerInterface $apiLogger,
+        private readonly ApiTokenServiceInterface $apiTokenService,
     ) {
     }
 
@@ -90,7 +97,33 @@ final class ApiTokenAuthenticator extends AbstractAuthenticator
 
         return new SelfValidatingPassport(
             new UserBadge($token, function (string $token) use ($request) {
-                // First check if token exists (ignoring expiration)
+                // First, try the named API tokens (new system) if token has the tm_ prefix
+                if (str_starts_with($token, self::NAMED_TOKEN_PREFIX)) {
+                    $apiToken = $this->apiTokenService->findValidToken($token);
+
+                    if ($apiToken !== null) {
+                        $this->apiTokenService->updateLastUsed($apiToken);
+
+                        $this->apiLogger->logInfo('User authenticated via named API token', [
+                            'user_id' => $apiToken->getOwner()->getId(),
+                            'token_id' => $apiToken->getId(),
+                            'token_name' => $apiToken->getName(),
+                        ]);
+
+                        return $apiToken->getOwner();
+                    }
+
+                    // Named token not found or expired
+                    $this->apiLogger->logWarning('Authentication attempt with invalid named API token', [
+                        'uri' => $request->getRequestUri(),
+                        'ip' => $request->getClientIp(),
+                        'token_prefix' => substr($token, 0, 8),
+                    ]);
+
+                    throw new CustomUserMessageAuthenticationException(self::AUTH_FAILED_MESSAGE);
+                }
+
+                // Fall back to User.apiToken (login token - existing system)
                 $user = $this->userService->findByApiTokenIgnoreExpiration($token);
 
                 if ($user === null) {

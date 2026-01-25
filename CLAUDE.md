@@ -39,18 +39,19 @@ vendor/bin/phpunit --filter=testCreateTask      # Single test method
 docker compose -f docker/docker-compose.yml exec php vendor/bin/phpunit tests/Unit
 ```
 
-**Output to file (recommended for full test suite):**
-When running the full test suite, output results to a file to avoid losing output:
+**Output to file (REQUIRED for full test suite):**
+Always output full test suite results to a file to avoid losing output due to terminal truncation:
 ```bash
-# JUnit XML format (machine-readable, good for CI)
-vendor/bin/phpunit --log-junit var/test-results.xml
-
-# TestDox text format (human-readable summary)
+# Full test suite - ALWAYS use file output
 vendor/bin/phpunit --testdox-text var/test-results.txt
 
-# Both console output and file logging
-vendor/bin/phpunit --testdox --log-junit var/test-results.xml
+# Then read the results
+cat var/test-results.txt
+
+# For CI/CD pipelines, also generate JUnit XML
+vendor/bin/phpunit --testdox-text var/test-results.txt --log-junit var/test-results.xml
 ```
+**IMPORTANT:** Never run the full test suite without `--testdox-text var/test-results.txt` or similar file output. Terminal output can be truncated and you'll lose important failure information.
 
 ### Database
 ```bash

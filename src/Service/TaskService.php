@@ -15,6 +15,7 @@ use App\Exception\EntityNotFoundException;
 use App\Exception\ForbiddenException;
 use App\Exception\InvalidRecurrenceException;
 use App\Exception\ValidationException;
+use App\Interface\ActivityLogServiceInterface;
 use App\Interface\OwnershipCheckerInterface;
 use App\Interface\TaskStateServiceInterface;
 use App\Interface\TaskUndoServiceInterface;
@@ -48,6 +49,7 @@ final class TaskService
         private readonly TaskUndoServiceInterface $taskUndoService,
         private readonly RecurrenceRuleParser $recurrenceRuleParser,
         private readonly NextDateCalculator $nextDateCalculator,
+        private readonly ActivityLogServiceInterface $activityLogService,
     ) {
     }
 
@@ -134,6 +136,10 @@ final class TaskService
         }
 
         $this->entityManager->persist($task);
+
+        // Log the task creation
+        $this->activityLogService->logTaskCreated($task);
+
         $this->entityManager->flush();
 
         return $task;
@@ -203,6 +209,10 @@ final class TaskService
         $task->setPosition($maxPosition + 1);
 
         $this->entityManager->persist($task);
+
+        // Log the task creation
+        $this->activityLogService->logTaskCreated($task);
+
         $this->entityManager->flush();
 
         return new TaskCreationResult(
@@ -302,6 +312,15 @@ final class TaskService
         // Store previous state for undo
         $previousState = $this->taskStateService->serializeTaskState($task);
 
+        // Track changes for activity log
+        $changes = [];
+        $oldTitle = $task->getTitle();
+        $oldDescription = $task->getDescription();
+        $oldStatus = $task->getStatus();
+        $oldPriority = $task->getPriority();
+        $oldDueDate = $task->getDueDate()?->format('Y-m-d');
+        $oldProjectId = $task->getProject()?->getId();
+
         // Update title
         if ($dto->title !== null) {
             $task->setTitle($dto->title);
@@ -377,6 +396,33 @@ final class TaskService
             }
         }
 
+        // Build changes array for activity log
+        if ($dto->title !== null && $task->getTitle() !== $oldTitle) {
+            $changes['title'] = ['old' => $oldTitle, 'new' => $task->getTitle()];
+        }
+        if (($dto->description !== null || $dto->clearDescription) && $task->getDescription() !== $oldDescription) {
+            $changes['description'] = ['old' => $oldDescription, 'new' => $task->getDescription()];
+        }
+        if ($dto->status !== null && $task->getStatus() !== $oldStatus) {
+            $changes['status'] = ['old' => $oldStatus, 'new' => $task->getStatus()];
+        }
+        if ($dto->priority !== null && $task->getPriority() !== $oldPriority) {
+            $changes['priority'] = ['old' => $oldPriority, 'new' => $task->getPriority()];
+        }
+        $newDueDate = $task->getDueDate()?->format('Y-m-d');
+        if (($dto->dueDate !== null || $dto->clearDueDate) && $newDueDate !== $oldDueDate) {
+            $changes['dueDate'] = ['old' => $oldDueDate, 'new' => $newDueDate];
+        }
+        $newProjectId = $task->getProject()?->getId();
+        if (($dto->projectId !== null || $dto->clearProject) && $newProjectId !== $oldProjectId) {
+            $changes['projectId'] = ['old' => $oldProjectId, 'new' => $newProjectId];
+        }
+
+        // Log the update if there were changes
+        if (!empty($changes)) {
+            $this->activityLogService->logTaskUpdated($task, $changes);
+        }
+
         $this->entityManager->flush();
 
         // Create undo token
@@ -396,8 +442,16 @@ final class TaskService
      */
     public function delete(Task $task): ?UndoToken
     {
+        // Capture info for activity log before deletion
+        $owner = $task->getOwner();
+        $taskId = $task->getId();
+        $taskTitle = $task->getTitle();
+
         // Create undo token before deleting
         $undoToken = $this->taskUndoService->createDeleteUndoToken($task);
+
+        // Log the deletion
+        $this->activityLogService->logTaskDeleted($owner, $taskId, $taskTitle);
 
         // Remove the task
         $this->entityManager->remove($task);
@@ -426,6 +480,15 @@ final class TaskService
 
         // Update status
         $task->setStatus($newStatus);
+
+        // Log completion or status change
+        if ($newStatus === Task::STATUS_COMPLETED && $previousStatus !== Task::STATUS_COMPLETED) {
+            $this->activityLogService->logTaskCompleted($task);
+        } elseif ($newStatus !== $previousStatus) {
+            $this->activityLogService->logTaskUpdated($task, [
+                'status' => ['old' => $previousStatus, 'new' => $newStatus],
+            ]);
+        }
 
         $this->entityManager->flush();
 

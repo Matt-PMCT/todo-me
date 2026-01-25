@@ -6,6 +6,7 @@ namespace App\Tests\Unit\Security;
 
 use App\Entity\User;
 use App\Interface\ApiLoggerInterface;
+use App\Interface\ApiTokenServiceInterface;
 use App\Interface\UserServiceInterface;
 use App\Security\ApiTokenAuthenticator;
 use App\Tests\Unit\UnitTestCase;
@@ -31,6 +32,7 @@ class ApiTokenAuthenticatorTest extends UnitTestCase
 {
     private UserServiceInterface&MockObject $userService;
     private ApiLoggerInterface&MockObject $apiLogger;
+    private ApiTokenServiceInterface&MockObject $apiTokenService;
     private ApiTokenAuthenticator $authenticator;
 
     protected function setUp(): void
@@ -39,10 +41,12 @@ class ApiTokenAuthenticatorTest extends UnitTestCase
 
         $this->userService = $this->createMock(UserServiceInterface::class);
         $this->apiLogger = $this->createMock(ApiLoggerInterface::class);
+        $this->apiTokenService = $this->createMock(ApiTokenServiceInterface::class);
 
         $this->authenticator = new ApiTokenAuthenticator(
             $this->userService,
             $this->apiLogger,
+            $this->apiTokenService,
         );
     }
 

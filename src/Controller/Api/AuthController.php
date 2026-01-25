@@ -21,6 +21,8 @@ use App\Service\EmailVerificationService;
 use App\Service\PasswordPolicyValidator;
 use App\Service\PasswordResetService;
 use App\Service\ResponseFormatter;
+use App\Service\SessionService;
+use App\Service\TokenHelper;
 use App\Service\TwoFactorLoginService;
 use App\Service\UserService;
 use App\Service\ValidationHelper;
@@ -30,6 +32,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\RateLimiter\RateLimiterFactory;
+use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
@@ -51,6 +54,9 @@ final class AuthController extends AbstractController
         private readonly EmailService $emailService,
         private readonly AccountLockoutService $accountLockoutService,
         private readonly TwoFactorLoginService $twoFactorLoginService,
+        private readonly SessionService $sessionService,
+        private readonly RequestStack $requestStack,
+        private readonly TokenHelper $tokenHelper,
     ) {
     }
 
@@ -369,6 +375,12 @@ final class AuthController extends AbstractController
     {
         $apiToken = $this->userService->generateNewApiToken($user);
 
+        // Create session record
+        $request = $this->requestStack->getCurrentRequest();
+        if ($request !== null) {
+            $this->sessionService->createSession($user, $apiToken, $request);
+        }
+
         $this->accountLockoutService->recordSuccessfulLogin($user);
 
         $this->apiLogger->logInfo('User logged in successfully', [
@@ -396,7 +408,7 @@ final class AuthController extends AbstractController
             new OA\Response(response: 401, description: 'Not authenticated'),
         ]
     )]
-    public function revokeToken(): JsonResponse
+    public function revokeToken(Request $request): JsonResponse
     {
         /** @var User|null $user */
         $user = $this->getUser();
@@ -407,6 +419,12 @@ final class AuthController extends AbstractController
                 'AUTHENTICATION_REQUIRED',
                 Response::HTTP_UNAUTHORIZED
             );
+        }
+
+        // Delete the session before revoking the token
+        $currentToken = $this->tokenHelper->extractFromRequest($request);
+        if ($currentToken !== null) {
+            $this->sessionService->deleteSessionByToken($currentToken);
         }
 
         $this->userService->revokeApiToken($user);
@@ -438,7 +456,7 @@ final class AuthController extends AbstractController
     public function refreshToken(Request $request): JsonResponse
     {
         // Extract token from request (works even if expired)
-        $token = $this->extractTokenFromRequest($request);
+        $token = $this->tokenHelper->extractFromRequest($request);
 
         if ($token === null) {
             return $this->responseFormatter->error(
@@ -491,25 +509,6 @@ final class AuthController extends AbstractController
         );
 
         return $this->responseFormatter->success($tokenResponse->toArray());
-    }
-
-    /**
-     * Extracts the API token from the request headers.
-     */
-    private function extractTokenFromRequest(Request $request): ?string
-    {
-        $authHeader = $request->headers->get('Authorization', '');
-        if (str_starts_with($authHeader, 'Bearer ')) {
-            $token = substr($authHeader, 7);
-            return $token !== '' ? $token : null;
-        }
-
-        $apiKey = $request->headers->get('X-API-Key');
-        if ($apiKey !== null && $apiKey !== '') {
-            return $apiKey;
-        }
-
-        return null;
     }
 
     /**
