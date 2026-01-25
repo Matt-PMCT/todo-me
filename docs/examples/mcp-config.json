@@ -1,0 +1,141 @@
+{
+  "mcpServers": {
+    "todo-me": {
+      "command": "npx",
+      "args": ["-y", "@anthropic/mcp-server-fetch"],
+      "env": {
+        "TODO_ME_API_URL": "https://your-domain.com/api/v1",
+        "TODO_ME_API_TOKEN": "your-api-token-here"
+      }
+    }
+  },
+  "customTools": [
+    {
+      "name": "todo_list_tasks",
+      "description": "List tasks from todo-me with optional filters",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": ["pending", "in_progress", "completed"],
+            "description": "Filter by task status"
+          },
+          "priority_min": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 5,
+            "description": "Minimum priority (1-5)"
+          },
+          "due_before": {
+            "type": "string",
+            "format": "date",
+            "description": "Filter tasks due before this date"
+          },
+          "search": {
+            "type": "string",
+            "description": "Search query for task title/description"
+          },
+          "limit": {
+            "type": "integer",
+            "default": 20,
+            "description": "Maximum tasks to return"
+          }
+        }
+      },
+      "endpoint": {
+        "method": "GET",
+        "url": "${TODO_ME_API_URL}/tasks",
+        "headers": {
+          "Authorization": "Bearer ${TODO_ME_API_TOKEN}"
+        }
+      }
+    },
+    {
+      "name": "todo_create_task",
+      "description": "Create a new task using natural language",
+      "inputSchema": {
+        "type": "object",
+        "required": ["text"],
+        "properties": {
+          "text": {
+            "type": "string",
+            "description": "Natural language description of the task (e.g., 'Buy milk tomorrow at 5pm #shopping')"
+          }
+        }
+      },
+      "endpoint": {
+        "method": "POST",
+        "url": "${TODO_ME_API_URL}/tasks?parse_natural_language=true",
+        "headers": {
+          "Authorization": "Bearer ${TODO_ME_API_TOKEN}",
+          "Content-Type": "application/json"
+        },
+        "body": {
+          "input_text": "${text}"
+        }
+      }
+    },
+    {
+      "name": "todo_complete_task",
+      "description": "Mark a task as completed",
+      "inputSchema": {
+        "type": "object",
+        "required": ["task_id"],
+        "properties": {
+          "task_id": {
+            "type": "string",
+            "description": "UUID of the task to complete"
+          }
+        }
+      },
+      "endpoint": {
+        "method": "PATCH",
+        "url": "${TODO_ME_API_URL}/tasks/${task_id}/status",
+        "headers": {
+          "Authorization": "Bearer ${TODO_ME_API_TOKEN}",
+          "Content-Type": "application/json"
+        },
+        "body": {
+          "status": "completed"
+        }
+      }
+    },
+    {
+      "name": "todo_get_today",
+      "description": "Get tasks due today and overdue tasks",
+      "inputSchema": {
+        "type": "object",
+        "properties": {}
+      },
+      "endpoint": {
+        "method": "GET",
+        "url": "${TODO_ME_API_URL}/tasks/today",
+        "headers": {
+          "Authorization": "Bearer ${TODO_ME_API_TOKEN}"
+        }
+      }
+    },
+    {
+      "name": "todo_search",
+      "description": "Search tasks by keyword",
+      "inputSchema": {
+        "type": "object",
+        "required": ["query"],
+        "properties": {
+          "query": {
+            "type": "string",
+            "description": "Search query"
+          }
+        }
+      },
+      "endpoint": {
+        "method": "GET",
+        "url": "${TODO_ME_API_URL}/search?q=${query}",
+        "headers": {
+          "Authorization": "Bearer ${TODO_ME_API_TOKEN}"
+        }
+      }
+    }
+  ]
+}

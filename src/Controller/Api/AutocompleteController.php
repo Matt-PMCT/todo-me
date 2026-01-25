@@ -8,6 +8,7 @@ use App\Entity\User;
 use App\Repository\ProjectRepository;
 use App\Repository\TagRepository;
 use App\Service\ResponseFormatter;
+use OpenApi\Attributes as OA;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -19,6 +20,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
  *
  * Provides search suggestions for projects and tags based on user input.
  */
+#[OA\Tag(name: 'Autocomplete', description: 'Autocomplete suggestions for projects and tags')]
 #[Route('/api/v1/autocomplete', name: 'api_autocomplete_')]
 #[IsGranted('IS_AUTHENTICATED_FULLY')]
 final class AutocompleteController extends AbstractController
@@ -45,6 +47,18 @@ final class AutocompleteController extends AbstractController
      * - parent: Parent project info (if any)
      */
     #[Route('/projects', name: 'projects', methods: ['GET'])]
+    #[OA\Get(
+        summary: 'Autocomplete projects',
+        description: 'Search projects by name prefix for autocomplete',
+        parameters: [
+            new OA\Parameter(name: 'q', in: 'query', description: 'Search query', schema: new OA\Schema(type: 'string')),
+            new OA\Parameter(name: 'limit', in: 'query', schema: new OA\Schema(type: 'integer', default: 10, maximum: 50)),
+        ],
+        responses: [
+            new OA\Response(response: 200, description: 'Project suggestions'),
+            new OA\Response(response: 401, description: 'Not authenticated'),
+        ]
+    )]
     public function projects(Request $request): JsonResponse
     {
         /** @var User $user */
@@ -94,6 +108,18 @@ final class AutocompleteController extends AbstractController
      * - color: Tag color
      */
     #[Route('/tags', name: 'tags', methods: ['GET'])]
+    #[OA\Get(
+        summary: 'Autocomplete tags',
+        description: 'Search tags by name prefix for autocomplete',
+        parameters: [
+            new OA\Parameter(name: 'q', in: 'query', description: 'Search query', schema: new OA\Schema(type: 'string')),
+            new OA\Parameter(name: 'limit', in: 'query', schema: new OA\Schema(type: 'integer', default: 10, maximum: 50)),
+        ],
+        responses: [
+            new OA\Response(response: 200, description: 'Tag suggestions'),
+            new OA\Response(response: 401, description: 'Not authenticated'),
+        ]
+    )]
     public function tags(Request $request): JsonResponse
     {
         /** @var User $user */

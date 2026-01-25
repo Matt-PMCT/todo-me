@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Service;
 
+use App\Entity\SavedFilter;
 use App\Entity\User;
 use App\Interface\UserServiceInterface;
 use App\Repository\UserRepository;
@@ -173,5 +174,26 @@ final class UserService implements UserServiceInterface
     public function getTokenExpiresAt(User $user): ?\DateTimeImmutable
     {
         return $user->getApiTokenExpiresAt();
+    }
+
+    /**
+     * Deletes a user and all associated data (GDPR right to erasure).
+     *
+     * Projects, tasks, and tags are automatically deleted via orphanRemoval.
+     * SavedFilters must be deleted manually as they don't have orphanRemoval.
+     */
+    public function deleteUser(User $user): void
+    {
+        // Delete saved filters (not cascade deleted via orphanRemoval)
+        $this->entityManager->createQueryBuilder()
+            ->delete(SavedFilter::class, 'sf')
+            ->where('sf.owner = :user')
+            ->setParameter('user', $user)
+            ->getQuery()
+            ->execute();
+
+        // Delete user (cascades to projects, tasks, tags via orphanRemoval)
+        $this->entityManager->remove($user);
+        $this->entityManager->flush();
     }
 }

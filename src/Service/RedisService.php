@@ -57,6 +57,72 @@ class RedisService
     }
 
     /**
+     * Ping Redis to check connectivity.
+     *
+     * @return bool True if Redis responds, false otherwise
+     */
+    public function ping(): bool
+    {
+        try {
+            $client = $this->getClient();
+            if ($client === null) {
+                return false;
+            }
+
+            $result = $client->ping();
+            return $result === 'PONG' || (string) $result === 'PONG';
+        } catch (Throwable $e) {
+            $this->logger->error('Redis PING failed', [
+                'error' => $e->getMessage(),
+            ]);
+            return false;
+        }
+    }
+
+    /**
+     * Delete all keys matching a pattern.
+     * Uses SCAN to avoid blocking Redis with KEYS command.
+     *
+     * @param string $pattern The pattern to match (e.g., "user:123:*")
+     * @return int Number of keys deleted
+     */
+    public function deletePattern(string $pattern): int
+    {
+        try {
+            $client = $this->getClient();
+            if ($client === null) {
+                return 0;
+            }
+
+            $deleted = 0;
+            $cursor = '0';
+
+            do {
+                $result = $client->scan($cursor, ['MATCH' => $pattern, 'COUNT' => 100]);
+                $cursor = $result[0];
+                $keys = $result[1];
+
+                if (!empty($keys)) {
+                    $deleted += $client->del($keys);
+                }
+            } while ($cursor !== '0');
+
+            $this->logger->debug('Redis DELETEPATTERN', [
+                'pattern' => $pattern,
+                'deleted' => $deleted,
+            ]);
+
+            return $deleted;
+        } catch (Throwable $e) {
+            $this->logger->error('Redis DELETEPATTERN failed', [
+                'pattern' => $pattern,
+                'error' => $e->getMessage(),
+            ]);
+            return 0;
+        }
+    }
+
+    /**
      * Get a value from Redis.
      */
     public function get(string $key): ?string

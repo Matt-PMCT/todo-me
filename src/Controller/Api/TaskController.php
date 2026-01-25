@@ -18,6 +18,7 @@ use App\Service\PaginationHelper;
 use App\Service\ResponseFormatter;
 use App\Service\TaskService;
 use App\Service\ValidationHelper;
+use OpenApi\Attributes as OA;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -28,6 +29,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 /**
  * Controller for task CRUD operations.
  */
+#[OA\Tag(name: 'Tasks', description: 'Task management operations')]
 #[Route('/api/v1/tasks', name: 'api_tasks_')]
 #[IsGranted('IS_AUTHENTICATED_FULLY')]
 final class TaskController extends AbstractController
@@ -63,6 +65,26 @@ final class TaskController extends AbstractController
      * - direction/order: Sort direction (ASC, DESC)
      */
     #[Route('', name: 'list', methods: ['GET'])]
+    #[OA\Get(
+        summary: 'List tasks',
+        description: 'List tasks with pagination and filters',
+        parameters: [
+            new OA\Parameter(name: 'page', in: 'query', schema: new OA\Schema(type: 'integer', default: 1)),
+            new OA\Parameter(name: 'limit', in: 'query', schema: new OA\Schema(type: 'integer', default: 20, maximum: 100)),
+            new OA\Parameter(name: 'status', in: 'query', schema: new OA\Schema(type: 'string', enum: ['pending', 'in_progress', 'completed'])),
+            new OA\Parameter(name: 'priority_min', in: 'query', schema: new OA\Schema(type: 'integer', minimum: 1, maximum: 5)),
+            new OA\Parameter(name: 'priority_max', in: 'query', schema: new OA\Schema(type: 'integer', minimum: 1, maximum: 5)),
+            new OA\Parameter(name: 'project_ids', in: 'query', schema: new OA\Schema(type: 'string'), description: 'Comma-separated project UUIDs'),
+            new OA\Parameter(name: 'tag_ids', in: 'query', schema: new OA\Schema(type: 'string'), description: 'Comma-separated tag UUIDs'),
+            new OA\Parameter(name: 'search', in: 'query', schema: new OA\Schema(type: 'string')),
+            new OA\Parameter(name: 'due_before', in: 'query', schema: new OA\Schema(type: 'string', format: 'date-time')),
+            new OA\Parameter(name: 'due_after', in: 'query', schema: new OA\Schema(type: 'string', format: 'date-time')),
+        ],
+        responses: [
+            new OA\Response(response: 200, description: 'Task list'),
+            new OA\Response(response: 401, description: 'Not authenticated'),
+        ]
+    )]
     public function list(Request $request): JsonResponse
     {
         /** @var User $user */
@@ -250,6 +272,42 @@ final class TaskController extends AbstractController
      * Natural language mode: POST /api/v1/tasks?parse_natural_language=true with {input_text}
      */
     #[Route('', name: 'create', methods: ['POST'])]
+    #[OA\Post(
+        summary: 'Create task',
+        description: 'Create a new task. Use parse_natural_language=true for natural language input.',
+        parameters: [
+            new OA\Parameter(name: 'parse_natural_language', in: 'query', schema: new OA\Schema(type: 'boolean', default: false)),
+        ],
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(
+                oneOf: [
+                    new OA\Schema(
+                        properties: [
+                            new OA\Property(property: 'title', type: 'string', maxLength: 255),
+                            new OA\Property(property: 'description', type: 'string'),
+                            new OA\Property(property: 'priority', type: 'integer', minimum: 1, maximum: 5, default: 3),
+                            new OA\Property(property: 'dueDate', type: 'string', format: 'date-time'),
+                            new OA\Property(property: 'projectId', type: 'string', format: 'uuid'),
+                            new OA\Property(property: 'tagIds', type: 'array', items: new OA\Items(type: 'string', format: 'uuid')),
+                        ],
+                        required: ['title']
+                    ),
+                    new OA\Schema(
+                        properties: [
+                            new OA\Property(property: 'input_text', type: 'string', description: 'Natural language task description'),
+                        ],
+                        required: ['input_text']
+                    ),
+                ]
+            )
+        ),
+        responses: [
+            new OA\Response(response: 201, description: 'Task created'),
+            new OA\Response(response: 401, description: 'Not authenticated'),
+            new OA\Response(response: 422, description: 'Validation error'),
+        ]
+    )]
     public function create(Request $request): JsonResponse
     {
         /** @var User $user */
@@ -283,6 +341,18 @@ final class TaskController extends AbstractController
      * Get a single task by ID.
      */
     #[Route('/{id}', name: 'show', methods: ['GET'], requirements: ['id' => '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}'])]
+    #[OA\Get(
+        summary: 'Get task',
+        description: 'Get a single task by ID',
+        parameters: [
+            new OA\Parameter(name: 'id', in: 'path', required: true, schema: new OA\Schema(type: 'string', format: 'uuid')),
+        ],
+        responses: [
+            new OA\Response(response: 200, description: 'Task details'),
+            new OA\Response(response: 401, description: 'Not authenticated'),
+            new OA\Response(response: 404, description: 'Task not found'),
+        ]
+    )]
     public function show(string $id): JsonResponse
     {
         /** @var User $user */
@@ -299,6 +369,19 @@ final class TaskController extends AbstractController
      * Update a task.
      */
     #[Route('/{id}', name: 'update', methods: ['PUT', 'PATCH'], requirements: ['id' => '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}'])]
+    #[OA\Put(
+        summary: 'Update task',
+        description: 'Update a task. Returns an undo token.',
+        parameters: [
+            new OA\Parameter(name: 'id', in: 'path', required: true, schema: new OA\Schema(type: 'string', format: 'uuid')),
+        ],
+        responses: [
+            new OA\Response(response: 200, description: 'Task updated'),
+            new OA\Response(response: 401, description: 'Not authenticated'),
+            new OA\Response(response: 404, description: 'Task not found'),
+            new OA\Response(response: 422, description: 'Validation error'),
+        ]
+    )]
     public function update(Request $request, string $id): JsonResponse
     {
         /** @var User $user */
@@ -320,6 +403,18 @@ final class TaskController extends AbstractController
      * Delete a task.
      */
     #[Route('/{id}', name: 'delete', methods: ['DELETE'], requirements: ['id' => '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}'])]
+    #[OA\Delete(
+        summary: 'Delete task',
+        description: 'Delete a task. Returns an undo token.',
+        parameters: [
+            new OA\Parameter(name: 'id', in: 'path', required: true, schema: new OA\Schema(type: 'string', format: 'uuid')),
+        ],
+        responses: [
+            new OA\Response(response: 200, description: 'Task deleted'),
+            new OA\Response(response: 401, description: 'Not authenticated'),
+            new OA\Response(response: 404, description: 'Task not found'),
+        ]
+    )]
     public function delete(string $id): JsonResponse
     {
         /** @var User $user */
