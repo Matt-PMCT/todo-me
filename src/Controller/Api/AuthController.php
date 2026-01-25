@@ -499,7 +499,7 @@ final class AuthController extends AbstractController
 
         $this->apiLogger->logInfo('Token refreshed successfully', [
             'user_id' => $user->getId(),
-            'email' => $user->getEmail(),
+            'email_hash' => ApiLogger::hashEmail($user->getEmail()),
         ]);
 
         $tokenResponse = new TokenResponse(
