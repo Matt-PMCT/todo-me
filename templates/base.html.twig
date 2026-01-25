@@ -58,6 +58,9 @@
                     {% if app.user %}
                     <div class="hidden md:block">
                         <div class="ml-4 flex items-center md:ml-6">
+                            <!-- Notification dropdown -->
+                            {% include 'components/notification-dropdown.html.twig' %}
+
                             <!-- User dropdown -->
                             <div class="relative ml-3">
                                 <div>

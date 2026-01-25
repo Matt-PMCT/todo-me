@@ -618,4 +618,118 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     {
         // If you store any temporary, sensitive data on the user, clear it here
     }
+
+    /**
+     * Get notification settings from user settings.
+     *
+     * @return array<string, mixed>
+     */
+    public function getNotificationSettings(): array
+    {
+        return $this->settings['notifications'] ?? self::getDefaultNotificationSettings();
+    }
+
+    /**
+     * Set notification settings in user settings.
+     *
+     * @param array<string, mixed> $notificationSettings
+     */
+    public function setNotificationSettings(array $notificationSettings): static
+    {
+        $this->settings['notifications'] = array_merge(
+            self::getDefaultNotificationSettings(),
+            $notificationSettings
+        );
+
+        return $this;
+    }
+
+    /**
+     * Update specific notification settings without replacing all settings.
+     *
+     * @param array<string, mixed> $updates
+     */
+    public function updateNotificationSettings(array $updates): static
+    {
+        $current = $this->getNotificationSettings();
+        $this->settings['notifications'] = array_merge($current, $updates);
+
+        return $this;
+    }
+
+    /**
+     * Check if a specific notification type is enabled.
+     */
+    public function isNotificationEnabled(string $type, string $channel = 'email'): bool
+    {
+        $settings = $this->getNotificationSettings();
+
+        // First check if the channel is enabled
+        $channelKey = $channel . 'Enabled';
+        if (!($settings[$channelKey] ?? false)) {
+            return false;
+        }
+
+        // Then check if the specific notification type is enabled
+        return $settings[$type] ?? false;
+    }
+
+    /**
+     * Check if current time is within quiet hours (respects user timezone).
+     */
+    public function isInQuietHours(?\DateTimeImmutable $now = null): bool
+    {
+        $settings = $this->getNotificationSettings();
+
+        if (!($settings['quietHoursEnabled'] ?? false)) {
+            return false;
+        }
+
+        $start = $settings['quietHoursStart'] ?? '22:00';
+        $end = $settings['quietHoursEnd'] ?? '08:00';
+
+        $timezone = new \DateTimeZone($this->getTimezone());
+        $now = ($now ?? new \DateTimeImmutable())->setTimezone($timezone);
+
+        $currentTime = $now->format('H:i');
+
+        // Handle overnight quiet hours (e.g., 22:00 - 08:00)
+        if ($start > $end) {
+            return $currentTime >= $start || $currentTime < $end;
+        }
+
+        // Handle same-day quiet hours (e.g., 13:00 - 14:00)
+        return $currentTime >= $start && $currentTime < $end;
+    }
+
+    /**
+     * Get due soon hours setting for notifications.
+     */
+    public function getDueSoonHours(): int
+    {
+        $settings = $this->getNotificationSettings();
+
+        return $settings['dueSoonHours'] ?? 24;
+    }
+
+    /**
+     * Get default notification settings.
+     *
+     * @return array<string, mixed>
+     */
+    public static function getDefaultNotificationSettings(): array
+    {
+        return [
+            'emailEnabled' => true,
+            'pushEnabled' => false,
+            'taskDueSoon' => true,
+            'taskOverdue' => true,
+            'taskDueToday' => true,
+            'recurringCreated' => false,
+            'quietHoursEnabled' => false,
+            'quietHoursStart' => '22:00',
+            'quietHoursEnd' => '08:00',
+            'dueSoonHours' => 24,
+        ];
+    }
 }

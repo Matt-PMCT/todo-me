@@ -8,6 +8,9 @@ parameters:
     api_token_ttl_hours: '%env(int:API_TOKEN_TTL_HOURS)%'
     search_locale_default: 'english'
     search_locale: '%env(default:search_locale_default:SEARCH_LOCALE)%'
+    vapid_public_key: '%env(VAPID_PUBLIC_KEY)%'
+    vapid_private_key: '%env(VAPID_PRIVATE_KEY)%'
+    vapid_subject: '%env(VAPID_SUBJECT)%'
 
 services:
     # default configuration for services in this file
@@ -79,3 +82,9 @@ services:
             $appUrl: '%env(APP_URL)%'
             $mailFromAddress: '%env(MAIL_FROM_ADDRESS)%'
             $mailFromName: '%env(MAIL_FROM_NAME)%'
+
+    App\Service\PushNotificationService:
+        arguments:
+            $vapidPublicKey: '%vapid_public_key%'
+            $vapidPrivateKey: '%vapid_private_key%'
+            $vapidSubject: '%vapid_subject%'
