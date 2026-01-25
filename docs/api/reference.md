@@ -227,6 +227,169 @@ Resend the email verification link to the authenticated user.
 
 ---
 
+## Two-Factor Authentication Endpoints
+
+### Get 2FA Status
+```
+GET /2fa/status
+```
+
+Get the current 2FA status for the authenticated user.
+
+**Response:** `200 OK`
+```json
+{
+  "enabled": true,
+  "enabledAt": "2026-01-20T10:30:00+00:00",
+  "backupCodesRemaining": 8,
+  "backupCodesGeneratedAt": "2026-01-20T10:30:00+00:00"
+}
+```
+
+---
+
+### Initialize 2FA Setup
+```
+POST /2fa/setup
+```
+
+Start the 2FA setup process. Returns a setup token, TOTP secret, and QR code URI for authenticator apps.
+
+**Response:** `200 OK`
+```json
+{
+  "setupToken": "abc123...",
+  "secret": "JBSWY3DPEHPK3PXP",
+  "qrCodeUri": "otpauth://totp/TodoMe:user@example.com?secret=JBSWY3DPEHPK3PXP&issuer=TodoMe",
+  "expiresIn": 600
+}
+```
+
+---
+
+### Complete 2FA Setup
+```
+POST /2fa/setup/verify
+```
+
+Complete 2FA setup by verifying a TOTP code from the authenticator app.
+
+**Request Body:**
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `setupToken` | string | Yes | Token from setup initialization |
+| `code` | string | Yes | 6-digit TOTP code from authenticator app |
+
+**Response:** `200 OK`
+```json
+{
+  "enabled": true,
+  "backupCodes": ["ABCD-1234", "EFGH-5678", "..."]
+}
+```
+
+**Note:** Backup codes are shown only once. Users should store them securely.
+
+---
+
+### Disable 2FA
+```
+POST /2fa/disable
+```
+
+Disable 2FA for the account. Requires password confirmation.
+
+**Request Body:**
+| Field | Type | Required |
+|-------|------|----------|
+| `password` | string | Yes |
+
+**Response:** `200 OK`
+
+---
+
+### Regenerate Backup Codes
+```
+POST /2fa/backup-codes
+```
+
+Generate new backup codes. Invalidates all previous backup codes. Requires password confirmation.
+
+**Request Body:**
+| Field | Type | Required |
+|-------|------|----------|
+| `password` | string | Yes |
+
+**Response:** `200 OK`
+```json
+{
+  "backupCodes": ["ABCD-1234", "EFGH-5678", "..."]
+}
+```
+
+---
+
+### Request 2FA Recovery
+```
+POST /2fa/recovery/request
+```
+
+Request a 2FA recovery email. Returns a generic success message regardless of whether the email exists (prevents email enumeration).
+
+**Request Body:**
+| Field | Type | Required |
+|-------|------|----------|
+| `email` | string | Yes |
+
+**Response:** `200 OK`
+```json
+{
+  "message": "If an account exists with 2FA enabled, a recovery link has been sent."
+}
+```
+
+---
+
+### Complete 2FA Recovery
+```
+POST /2fa/recovery/complete
+```
+
+Complete 2FA recovery using the token from the recovery email. Disables 2FA and invalidates the current API token.
+
+**Request Body:**
+| Field | Type | Required |
+|-------|------|----------|
+| `token` | string | Yes |
+
+**Response:** `200 OK`
+
+---
+
+### Login with 2FA
+
+When a user with 2FA enabled logs in via `POST /auth/token`, the response includes a challenge instead of a token:
+
+```json
+{
+  "twoFactorRequired": true,
+  "challengeToken": "abc123...",
+  "expiresIn": 300
+}
+```
+
+To complete login, send another request to `POST /auth/token` with:
+
+**Request Body:**
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `challengeToken` | string | Yes | Token from 2FA challenge response |
+| `code` | string | Yes | 6-digit TOTP code or backup code |
+
+**Response:** `200 OK` - Same as normal login (returns API token)
+
+---
+
 ## Task Endpoints
 
 ### List Tasks

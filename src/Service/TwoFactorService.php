@@ -5,16 +5,18 @@ declare(strict_types=1);
 namespace App\Service;
 
 use App\Entity\User;
+use App\Interface\BackupCodeServiceInterface;
+use App\Interface\TotpServiceInterface;
 use Doctrine\ORM\EntityManagerInterface;
 
-class TwoFactorService
+final class TwoFactorService
 {
     private const SETUP_TOKEN_TTL = 600; // 10 minutes
     private const SETUP_KEY_PREFIX = '2fa_setup';
 
     public function __construct(
-        private readonly TotpService $totpService,
-        private readonly BackupCodeService $backupCodeService,
+        private readonly TotpServiceInterface $totpService,
+        private readonly BackupCodeServiceInterface $backupCodeService,
         private readonly RedisService $redisService,
         private readonly EntityManagerInterface $entityManager,
     ) {
@@ -76,7 +78,6 @@ class TwoFactorService
         $user->setTwoFactorEnabled(true);
         $user->setTotpSecret($secret);
         $user->setBackupCodes($backupCodeData['hashedCodes']);
-        $user->setTwoFactorEnabledAt(new \DateTimeImmutable());
         $user->setBackupCodesGeneratedAt(new \DateTimeImmutable());
 
         $this->entityManager->flush();
@@ -147,7 +148,7 @@ class TwoFactorService
     /**
      * Get 2FA status for a user.
      *
-     * @return array{enabled: bool, enabledAt: string|null, backupCodesRemaining: int}
+     * @return array{enabled: bool, enabledAt: string|null, backupCodesRemaining: int, backupCodesGeneratedAt: string|null}
      */
     public function getStatus(User $user): array
     {
@@ -155,6 +156,7 @@ class TwoFactorService
             'enabled' => $user->isTwoFactorEnabled(),
             'enabledAt' => $user->getTwoFactorEnabledAt()?->format(\DateTimeInterface::ATOM),
             'backupCodesRemaining' => $user->getBackupCodesRemaining(),
+            'backupCodesGeneratedAt' => $user->getBackupCodesGeneratedAt()?->format(\DateTimeInterface::ATOM),
         ];
     }
 

@@ -8,6 +8,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Phase 11: Two-Factor Authentication
+  - TOTP-based 2FA with authenticator app support
+  - Backup codes for account recovery (10 single-use codes)
+  - Challenge token flow for 2FA login
+  - Email-based 2FA recovery
+
 - Phase 9: Documentation & Deployment
   - Comprehensive README with Quick Start guide
   - CONTRIBUTING.md with development guidelines

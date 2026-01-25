@@ -52,8 +52,59 @@ The `'auto'` setting uses the best available algorithm for the current PHP versi
 
 ### Requirements
 
-- Minimum 8 characters
-- No common password restrictions (complexity handled by user education)
+- Minimum 12 characters
+- At least one uppercase letter
+- At least one lowercase letter
+- At least one number
+- Cannot be a common password
+- Cannot contain the user's email or username
+
+## Two-Factor Authentication
+
+### TOTP Implementation
+
+Two-factor authentication uses Time-based One-Time Passwords (TOTP) per RFC 6238:
+
+| Property | Value |
+|----------|-------|
+| Algorithm | SHA-1 |
+| Digits | 6 |
+| Period | 30 seconds |
+| Drift tolerance | ±1 period |
+| Issuer | TodoMe |
+
+Users scan a QR code with an authenticator app (Google Authenticator, Authy, etc.) to register their device.
+
+### Backup Codes
+
+When 2FA is enabled, users receive 10 backup codes for account recovery:
+
+- Each code is 8 alphanumeric characters (format: `XXXX-XXXX`)
+- Codes are single-use and marked as consumed after verification
+- Codes are hashed before storage using the same hasher as passwords
+- Users can regenerate codes at any time (invalidates previous codes)
+
+### Challenge Token Flow
+
+When a user with 2FA enabled attempts to log in:
+
+1. User submits email/password to `/auth/token`
+2. Server validates credentials and returns a challenge token (valid 5 minutes)
+3. User submits challenge token + TOTP code to `/auth/token`
+4. Server validates TOTP (or backup code) and returns API token
+
+This flow ensures the password is verified before requesting the second factor.
+
+### Recovery
+
+Users who lose access to their authenticator can recover via email:
+
+1. User requests recovery at `/2fa/recovery/request`
+2. Server sends recovery link to registered email (valid 24 hours)
+3. User clicks link and completes recovery at `/2fa/recovery/complete`
+4. 2FA is disabled and API token is invalidated
+
+Users must then log in again and can re-enable 2FA if desired.
 
 ## Rate Limiting
 

@@ -5,9 +5,10 @@ declare(strict_types=1);
 namespace App\Service;
 
 use App\Entity\User;
+use App\Interface\BackupCodeServiceInterface;
 use Symfony\Component\PasswordHasher\Hasher\PasswordHasherFactoryInterface;
 
-class BackupCodeService
+final class BackupCodeService implements BackupCodeServiceInterface
 {
     private const CODE_COUNT = 10;
     private const CODE_LENGTH = 8;
