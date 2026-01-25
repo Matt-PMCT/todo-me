@@ -58,6 +58,7 @@ final class TaskController extends AbstractController
      * - due_after: Filter tasks due after date (ISO 8601)
      * - has_no_due_date: Filter tasks with/without due date
      * - include_completed: Include completed tasks (default: true)
+     * - exclude_subtasks: Exclude subtasks from results (default: true)
      * - sort/sort_by: Sort field (due_date, priority, created_at, updated_at, title, position)
      * - direction/order: Sort direction (ASC, DESC)
      */
@@ -71,6 +72,9 @@ final class TaskController extends AbstractController
         $page = (int) $request->query->get('page', '1');
         $limit = (int) $request->query->get('limit', '20');
 
+        // Check if we should exclude subtasks (default: true)
+        $excludeSubtasks = $request->query->getBoolean('exclude_subtasks', true);
+
         // Build filter and sort request DTOs
         $filterRequest = TaskFilterRequest::fromRequest($request);
         $sortRequest = TaskSortRequest::fromRequest($request);
@@ -79,7 +83,11 @@ final class TaskController extends AbstractController
         $this->validationHelper->validate($filterRequest);
 
         // Build query with advanced filtering
-        $queryBuilder = $this->taskRepository->createAdvancedFilteredQueryBuilder($user, $filterRequest, $sortRequest);
+        if ($excludeSubtasks) {
+            $queryBuilder = $this->taskRepository->createTopLevelFilteredQueryBuilder($user, $filterRequest, $sortRequest);
+        } else {
+            $queryBuilder = $this->taskRepository->createAdvancedFilteredQueryBuilder($user, $filterRequest, $sortRequest);
+        }
         $result = $this->paginationHelper->paginate($queryBuilder, $page, $limit);
         $meta = $this->paginationHelper->calculateMeta($result['total'], $page, $limit);
 
@@ -281,7 +289,8 @@ final class TaskController extends AbstractController
         $user = $this->getUser();
 
         $task = $this->taskService->findByIdOrFail($id, $user);
-        $response = TaskResponse::fromTask($task);
+        $subtaskCounts = $this->taskRepository->getSubtaskCounts($task);
+        $response = TaskResponse::fromTask($task, null, $subtaskCounts);
 
         return $this->responseFormatter->success($response->toArray());
     }
@@ -450,6 +459,62 @@ final class TaskController extends AbstractController
         $this->taskService->reorder($user, $data['taskIds']);
 
         return $this->responseFormatter->noContent();
+    }
+
+    /**
+     * Get subtasks of a task.
+     */
+    #[Route('/{id}/subtasks', name: 'subtasks_list', methods: ['GET'], requirements: ['id' => '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}'])]
+    public function listSubtasks(string $id): JsonResponse
+    {
+        /** @var User $user */
+        $user = $this->getUser();
+
+        $parentTask = $this->taskService->findByIdOrFail($id, $user);
+
+        $subtasks = $this->taskRepository->findSubtasksByParent($parentTask);
+
+        $taskResponses = array_map(
+            fn($task) => TaskResponse::fromTask($task)->toArray(),
+            $subtasks
+        );
+
+        return $this->responseFormatter->success([
+            'tasks' => $taskResponses,
+            'total' => count($subtasks),
+            'completedCount' => count(array_filter($subtasks, fn($t) => $t->isCompleted())),
+        ]);
+    }
+
+    /**
+     * Create a subtask for a task.
+     */
+    #[Route('/{id}/subtasks', name: 'subtasks_create', methods: ['POST'], requirements: ['id' => '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}'])]
+    public function createSubtask(Request $request, string $id): JsonResponse
+    {
+        /** @var User $user */
+        $user = $this->getUser();
+
+        // Verify parent task exists and user owns it
+        $parentTask = $this->taskService->findByIdOrFail($id, $user);
+
+        // Prevent deep nesting
+        if ($parentTask->getParentTask() !== null) {
+            throw ValidationException::forField('parentTaskId', 'Cannot create subtasks of subtasks (max 1 level of nesting)');
+        }
+
+        $data = $this->validationHelper->decodeJsonBody($request);
+
+        // Override parentTaskId with the URL parameter
+        $data['parentTaskId'] = $id;
+
+        $dto = CreateTaskRequest::fromArray($data);
+
+        $task = $this->taskService->create($user, $dto);
+
+        $response = TaskResponse::fromTask($task);
+
+        return $this->responseFormatter->created($response->toArray());
     }
 
     /**

@@ -36,6 +36,9 @@ class TaskRepository extends ServiceEntityRepository
     public function findByOwner(User $owner, ?string $status = null): array
     {
         $qb = $this->createQueryBuilder('t')
+            ->select('t', 'p', 'tags')
+            ->leftJoin('t.project', 'p')
+            ->leftJoin('t.tags', 'tags')
             ->where('t.owner = :owner')
             ->setParameter('owner', $owner)
             ->orderBy('t.position', 'ASC')
@@ -67,6 +70,7 @@ class TaskRepository extends ServiceEntityRepository
     public function createFilteredQueryBuilder(User $owner, array $filters = []): QueryBuilder
     {
         $qb = $this->createQueryBuilder('t')
+            ->select('t', 'p', 'tag')
             ->leftJoin('t.project', 'p')
             ->leftJoin('t.tags', 'tag')
             ->where('t.owner = :owner')
@@ -159,6 +163,7 @@ class TaskRepository extends ServiceEntityRepository
     public function findByProjectPaginatedQueryBuilder(Project $project): QueryBuilder
     {
         return $this->createQueryBuilder('t')
+            ->select('t', 'tag')
             ->leftJoin('t.tags', 'tag')
             ->where('t.project = :project')
             ->setParameter('project', $project)
@@ -172,6 +177,8 @@ class TaskRepository extends ServiceEntityRepository
     public function findByProject(Project $project, ?string $status = null): array
     {
         $qb = $this->createQueryBuilder('t')
+            ->select('t', 'tags')
+            ->leftJoin('t.tags', 'tags')
             ->where('t.project = :project')
             ->setParameter('project', $project)
             ->orderBy('t.position', 'ASC')
@@ -291,6 +298,9 @@ class TaskRepository extends ServiceEntityRepository
         }
 
         return $this->createQueryBuilder('t')
+            ->select('t', 'p', 'tags')
+            ->leftJoin('t.project', 'p')
+            ->leftJoin('t.tags', 'tags')
             ->where('t.id IN (:ids)')
             ->setParameter('ids', $ids)
             ->getQuery()
@@ -332,9 +342,12 @@ class TaskRepository extends ServiceEntityRepository
             return [];
         }
 
-        // Fetch Task entities by ID
+        // Fetch Task entities by ID with eager loading
         $ids = array_column($rows, 'id');
         $tasks = $this->createQueryBuilder('t')
+            ->select('t', 'p', 'tags')
+            ->leftJoin('t.project', 'p')
+            ->leftJoin('t.tags', 'tags')
             ->where('t.id IN (:ids)')
             ->setParameter('ids', $ids)
             ->getQuery()
@@ -510,6 +523,7 @@ class TaskRepository extends ServiceEntityRepository
         TaskSortRequest $sortRequest
     ): QueryBuilder {
         $qb = $this->createQueryBuilder('t')
+            ->select('t', 'p', 'tag')
             ->leftJoin('t.project', 'p')
             ->leftJoin('t.tags', 'tag')
             ->where('t.owner = :owner')
@@ -897,6 +911,86 @@ class TaskRepository extends ServiceEntityRepository
     }
 
     /**
+     * Find all subtasks of a parent task.
+     *
+     * @param Task $parent The parent task
+     * @return Task[]
+     */
+    public function findSubtasksByParent(Task $parent): array
+    {
+        return $this->createQueryBuilder('t')
+            ->select('t', 'p', 'tags')
+            ->leftJoin('t.project', 'p')
+            ->leftJoin('t.tags', 'tags')
+            ->where('t.parentTask = :parent')
+            ->setParameter('parent', $parent)
+            ->orderBy('t.position', 'ASC')
+            ->addOrderBy('t.createdAt', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
+     * Get the count of subtasks for a task (total and completed).
+     *
+     * @param Task $task The parent task
+     * @return array{total: int, completed: int}
+     */
+    public function getSubtaskCounts(Task $task): array
+    {
+        $result = $this->createQueryBuilder('t')
+            ->select('COUNT(t.id) as total')
+            ->addSelect('SUM(CASE WHEN t.status = :completed THEN 1 ELSE 0 END) as completedCount')
+            ->where('t.parentTask = :parent')
+            ->setParameter('parent', $task)
+            ->setParameter('completed', Task::STATUS_COMPLETED)
+            ->getQuery()
+            ->getSingleResult();
+
+        return [
+            'total' => (int) $result['total'],
+            'completed' => (int) ($result['completedCount'] ?? 0),
+        ];
+    }
+
+    /**
+     * Find top-level tasks (tasks without a parent) for an owner with filters.
+     *
+     * @param User $owner The task owner
+     * @param array{
+     *     status?: string,
+     *     priority?: int,
+     *     projectId?: string,
+     *     search?: string,
+     *     dueBefore?: string,
+     *     dueAfter?: string,
+     *     tagIds?: string[]
+     * } $filters
+     * @return Task[]
+     */
+    public function findTopLevelTasks(User $owner, array $filters = []): array
+    {
+        $qb = $this->createFilteredQueryBuilder($owner, $filters);
+        $qb->andWhere('t.parentTask IS NULL');
+
+        return $qb->getQuery()->getResult();
+    }
+
+    /**
+     * Creates a QueryBuilder for top-level tasks (no parent) with advanced filtering.
+     */
+    public function createTopLevelFilteredQueryBuilder(
+        User $owner,
+        TaskFilterRequest $filterRequest,
+        TaskSortRequest $sortRequest
+    ): QueryBuilder {
+        $qb = $this->createAdvancedFilteredQueryBuilder($owner, $filterRequest, $sortRequest);
+        $qb->andWhere('t.parentTask IS NULL');
+
+        return $qb;
+    }
+
+    /**
      * Find tasks by project, optionally including tasks from child projects.
      *
      * @param Project $project The parent project
@@ -923,9 +1017,11 @@ class TaskRepository extends ServiceEntityRepository
         // Include the parent project itself
         $projectIds = array_merge([$project->getId()], $descendantIds);
 
-        // Build query
+        // Build query with eager loading
         $qb = $this->createQueryBuilder('t')
+            ->select('t', 'p', 'tags')
             ->leftJoin('t.project', 'p')
+            ->leftJoin('t.tags', 'tags')
             ->where('t.project IN (:projectIds)')
             ->setParameter('projectIds', $projectIds)
             ->orderBy('t.position', 'ASC')
@@ -942,5 +1038,47 @@ class TaskRepository extends ServiceEntityRepository
         }
 
         return $qb->getQuery()->getResult();
+    }
+
+    /**
+     * Find tasks by owner with subtask counts using a subquery approach.
+     * Returns an array of arrays with 'task' and 'subtaskCount' keys.
+     * This avoids N+1 queries when displaying task lists with subtask counts.
+     *
+     * @param User $owner The task owner
+     * @param string|null $status Optional status filter
+     * @return array<array{task: Task, subtaskCount: int}>
+     */
+    public function findByOwnerWithSubtaskCounts(User $owner, ?string $status = null): array
+    {
+        $qb = $this->createQueryBuilder('t')
+            ->select('t', 'p', 'tags')
+            ->addSelect('(SELECT COUNT(st.id) FROM App\Entity\Task st WHERE st.parentTask = t) as subtaskCount')
+            ->leftJoin('t.project', 'p')
+            ->leftJoin('t.tags', 'tags')
+            ->where('t.owner = :owner')
+            ->andWhere('t.parentTask IS NULL')
+            ->setParameter('owner', $owner)
+            ->orderBy('t.position', 'ASC')
+            ->addOrderBy('t.priority', 'DESC')
+            ->addOrderBy('t.createdAt', 'DESC');
+
+        if ($status !== null) {
+            $qb->andWhere('t.status = :status')
+                ->setParameter('status', $status);
+        }
+
+        $results = $qb->getQuery()->getResult();
+
+        // Convert to structured array
+        $output = [];
+        foreach ($results as $row) {
+            $output[] = [
+                'task' => $row[0],
+                'subtaskCount' => (int) $row['subtaskCount'],
+            ];
+        }
+
+        return $output;
     }
 }

@@ -1,7 +1,12 @@
 {# Task item partial - reusable component for task display #}
 {# Expects: task (Task entity) #}
 
-<div class="bg-white shadow rounded-lg p-4 hover:shadow-md transition-shadow duration-200 {% if overdueInfo is defined and overdueInfo.isOverdue %}{{ overdueInfo.borderClass }}{% elseif task.isOverdue %}border-l-4 border-l-red-500{% endif %}" x-data="{ showDeleteModal: false }">
+<div data-task-item
+     data-task-id="{{ task.id }}"
+     class="bg-white shadow rounded-lg p-4 hover:shadow-md transition-shadow duration-200 {% if overdueInfo is defined and overdueInfo.isOverdue %}{{ overdueInfo.borderClass }}{% elseif task.isOverdue %}border-l-4 border-l-red-500{% endif %}"
+     x-data="{ showDeleteModal: false }"
+     @closeAll.window="showDeleteModal = false"
+     tabindex="-1">
     <div class="flex items-start justify-between">
         <div class="flex-1 min-w-0">
             {# Task title and status #}
@@ -11,8 +16,8 @@
                     <form action="{{ path('app_task_status', {id: task.id}) }}" method="POST" class="inline">
                         <input type="hidden" name="_csrf_token" value="{{ csrf_token('task_status_' ~ task.id) }}">
                         <input type="hidden" name="status" value="pending">
-                        <button type="submit" class="flex-shrink-0 w-6 h-6 rounded-full bg-green-500 flex items-center justify-center hover:bg-green-600 transition-colors" title="Mark as pending">
-                            <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <button type="submit" class="flex-shrink-0 min-h-11 min-w-11 sm:min-h-0 sm:min-w-0 h-6 w-6 sm:h-5 sm:w-5 rounded-full bg-green-500 flex items-center justify-center hover:bg-green-600 transition-colors" title="Mark as pending">
+                            <svg class="w-4 h-4 sm:w-3 sm:h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                             </svg>
                         </button>
@@ -21,7 +26,7 @@
                     <form action="{{ path('app_task_status', {id: task.id}) }}" method="POST" class="inline">
                         <input type="hidden" name="_csrf_token" value="{{ csrf_token('task_status_' ~ task.id) }}">
                         <input type="hidden" name="status" value="completed">
-                        <button type="submit" class="flex-shrink-0 w-6 h-6 rounded-full border-2 {% if task.status == 'in_progress' %}border-blue-500 bg-blue-50{% else %}border-gray-300{% endif %} hover:border-green-500 hover:bg-green-50 transition-colors" title="Mark as completed">
+                        <button type="submit" class="flex-shrink-0 min-h-11 min-w-11 sm:min-h-0 sm:min-w-0 h-6 w-6 sm:h-5 sm:w-5 rounded-full border-2 {% if task.status == 'in_progress' %}border-blue-500 bg-blue-50{% else %}border-gray-300{% endif %} hover:border-green-500 hover:bg-green-50 transition-colors flex items-center justify-center" title="Mark as completed">
                         </button>
                     </form>
                 {% endif %}
@@ -33,7 +38,7 @@
             </div>
 
             {# Task meta info #}
-            <div class="mt-2 flex flex-wrap items-center gap-2 ml-9">
+            <div class="mt-2 flex flex-col sm:flex-row flex-wrap items-start sm:items-center gap-2 ml-9">
                 {# Status badge #}
                 {% if task.status == 'pending' %}
                     <span class="inline-flex items-center rounded-full bg-yellow-100 px-2.5 py-0.5 text-xs font-medium text-yellow-800">
@@ -97,6 +102,18 @@
                         <span class="sr-only">Recurring: {{ task.recurrenceRule }}</span>
                     </span>
                 {% endif %}
+
+                {# Subtask progress badge #}
+                {% set subtasks = task.subtasks %}
+                {% if subtasks|length > 0 %}
+                    {% set completedSubtasks = subtasks|filter(s => s.status == 'completed')|length %}
+                    <span class="inline-flex items-center gap-1 rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-700" title="{{ completedSubtasks }}/{{ subtasks|length }} subtasks completed">
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"></path>
+                        </svg>
+                        {{ completedSubtasks }}/{{ subtasks|length }} subtasks
+                    </span>
+                {% endif %}
             </div>
 
             {# Description preview #}
@@ -106,9 +123,10 @@
         </div>
 
         {# Actions dropdown #}
-        <div class="flex-shrink-0 ml-4" x-data="{ open: false }">
+        <div class="flex-shrink-0 ml-4" x-data="{ open: false }" @closeAll.window="open = false">
             <div class="relative">
-                <button @click="open = !open" type="button" class="inline-flex items-center rounded-md bg-white px-2 py-1 text-gray-400 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+                <button @click="open = !open" type="button" class="min-h-11 min-w-11 sm:min-h-0 sm:min-w-0 inline-flex items-center justify-center rounded-md bg-white px-2 py-1 text-gray-400 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+                    <span class="sr-only">Open task menu</span>
                     <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                         <path d="M10 3a1.5 1.5 0 110 3 1.5 1.5 0 010-3zM10 8.5a1.5 1.5 0 110 3 1.5 1.5 0 010-3zM11.5 15.5a1.5 1.5 0 10-3 0 1.5 1.5 0 003 0z" />
                     </svg>

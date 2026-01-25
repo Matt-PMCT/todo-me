@@ -44,6 +44,9 @@ final class CreateTaskRequest
         #[Assert\Uuid(message: 'Project ID must be a valid UUID')]
         public readonly ?string $projectId = null,
 
+        #[Assert\Uuid(message: 'Parent task ID must be a valid UUID')]
+        public readonly ?string $parentTaskId = null,
+
         /**
          * @var string[]|null
          */
@@ -82,6 +85,7 @@ final class CreateTaskRequest
             priority: isset($data['priority']) ? (int) $data['priority'] : Task::PRIORITY_DEFAULT,
             dueDate: isset($data['dueDate']) ? (string) $data['dueDate'] : null,
             projectId: isset($data['projectId']) ? (string) $data['projectId'] : null,
+            parentTaskId: isset($data['parentTaskId']) ? (string) $data['parentTaskId'] : null,
             tagIds: isset($data['tagIds']) && is_array($data['tagIds'])
                 ? array_map('strval', $data['tagIds'])
                 : null,
