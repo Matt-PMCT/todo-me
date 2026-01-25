@@ -157,7 +157,7 @@ class SecurityControllerTest extends ApiTestCase
 
         // Should show error about password length
         $this->assertResponseStatusCode(Response::HTTP_OK, $this->client->getResponse());
-        $this->assertSelectorTextContains('body', '8 character');
+        $this->assertSelectorTextContains('body', '12 character');
     }
 
     public function testRegisterWithExistingEmail(): void
