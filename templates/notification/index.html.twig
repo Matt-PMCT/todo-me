@@ -1,0 +1,258 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Notifications - Todo App{% endblock %}
+
+{% block body %}
+<div class="py-10" x-data="notificationsPage()">
+    <div class="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
+        {# Page header #}
+        <div class="sm:flex sm:items-center sm:justify-between">
+            <div>
+                <h1 class="text-2xl font-bold leading-7 text-gray-900 sm:truncate sm:text-3xl sm:tracking-tight">
+                    Notifications
+                </h1>
+                <p class="mt-1 text-sm text-gray-500">
+                    {% if unreadCount > 0 %}
+                        You have {{ unreadCount }} unread notification{% if unreadCount != 1 %}s{% endif %}
+                    {% else %}
+                        All caught up!
+                    {% endif %}
+                </p>
+            </div>
+            {% if unreadCount > 0 %}
+            <div class="mt-4 sm:mt-0">
+                <button
+                    @click="markAllAsRead()"
+                    type="button"
+                    class="inline-flex items-center gap-2 rounded-md bg-white px-4 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
+                >
+                    <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                    </svg>
+                    Mark all as read
+                </button>
+            </div>
+            {% endif %}
+        </div>
+
+        {# Filter tabs #}
+        <div class="mt-6 border-b border-gray-200">
+            <nav class="-mb-px flex space-x-8" aria-label="Tabs">
+                <a href="{{ path('app_notifications', {filter: 'all'}) }}"
+                   class="{% if filter == 'all' %}border-indigo-500 text-indigo-600{% else %}border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700{% endif %} whitespace-nowrap border-b-2 py-4 px-1 text-sm font-medium">
+                    All
+                    <span class="ml-2 rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-600">
+                        {{ totalCount }}
+                    </span>
+                </a>
+                <a href="{{ path('app_notifications', {filter: 'unread'}) }}"
+                   class="{% if filter == 'unread' %}border-indigo-500 text-indigo-600{% else %}border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700{% endif %} whitespace-nowrap border-b-2 py-4 px-1 text-sm font-medium">
+                    Unread
+                    {% if unreadCount > 0 %}
+                    <span class="ml-2 rounded-full bg-indigo-100 px-2.5 py-0.5 text-xs font-medium text-indigo-600">
+                        {{ unreadCount }}
+                    </span>
+                    {% endif %}
+                </a>
+            </nav>
+        </div>
+
+        {# Notification list #}
+        <div class="mt-6">
+            {% if notifications|length > 0 %}
+            <ul role="list" class="divide-y divide-gray-200 bg-white shadow rounded-lg overflow-hidden">
+                {% for notification in notifications %}
+                <li id="notification-{{ notification.id }}"
+                    class="relative px-4 py-4 hover:bg-gray-50 transition-colors {% if not notification.isRead %}bg-indigo-50{% endif %}"
+                    :class="{ 'bg-white': readNotifications.includes('{{ notification.id }}') }"
+                >
+                    <div class="flex items-start gap-4">
+                        {# Type icon #}
+                        <div class="flex-shrink-0">
+                            {% if notification.type == 'task_due_soon' %}
+                            <span class="inline-flex h-10 w-10 items-center justify-center rounded-full bg-yellow-100">
+                                <svg class="h-5 w-5 text-yellow-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                            </span>
+                            {% elseif notification.type == 'task_overdue' %}
+                            <span class="inline-flex h-10 w-10 items-center justify-center rounded-full bg-red-100">
+                                <svg class="h-5 w-5 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                </svg>
+                            </span>
+                            {% elseif notification.type == 'task_due_today' %}
+                            <span class="inline-flex h-10 w-10 items-center justify-center rounded-full bg-blue-100">
+                                <svg class="h-5 w-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                </svg>
+                            </span>
+                            {% elseif notification.type == 'recurring_created' %}
+                            <span class="inline-flex h-10 w-10 items-center justify-center rounded-full bg-green-100">
+                                <svg class="h-5 w-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                </svg>
+                            </span>
+                            {% else %}
+                            <span class="inline-flex h-10 w-10 items-center justify-center rounded-full bg-gray-100">
+                                <svg class="h-5 w-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                            </span>
+                            {% endif %}
+                        </div>
+
+                        {# Content #}
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-center justify-between">
+                                <p class="text-sm font-medium text-gray-900">
+                                    {{ notification.title }}
+                                </p>
+                                {% if not notification.isRead %}
+                                <span class="ml-2 inline-flex h-2 w-2 flex-shrink-0 rounded-full bg-indigo-600"
+                                      x-show="!readNotifications.includes('{{ notification.id }}')"></span>
+                                {% endif %}
+                            </div>
+                            {% if notification.message %}
+                            <p class="mt-1 text-sm text-gray-500">
+                                {{ notification.message }}
+                            </p>
+                            {% endif %}
+                            <p class="mt-1 text-xs text-gray-400">
+                                {{ notification.createdAt|date('M j, Y \\a\\t g:i A') }}
+                            </p>
+                        </div>
+
+                        {# Actions #}
+                        <div class="flex-shrink-0 flex items-center gap-2">
+                            {% if notification.data.taskId is defined %}
+                            <a href="{{ path('app_task_list') }}#task-{{ notification.data.taskId }}"
+                               class="text-sm font-medium text-indigo-600 hover:text-indigo-500">
+                                View task
+                            </a>
+                            {% endif %}
+                            {% if not notification.isRead %}
+                            <button
+                                @click="markAsRead('{{ notification.id }}')"
+                                x-show="!readNotifications.includes('{{ notification.id }}')"
+                                type="button"
+                                class="text-sm font-medium text-gray-500 hover:text-gray-700"
+                            >
+                                Mark read
+                            </button>
+                            {% endif %}
+                        </div>
+                    </div>
+                </li>
+                {% endfor %}
+            </ul>
+
+            {# Pagination #}
+            {% if totalPages > 1 and filter != 'unread' %}
+            <nav class="mt-6 flex items-center justify-between border-t border-gray-200 bg-white px-4 py-3 sm:px-6 rounded-lg shadow" aria-label="Pagination">
+                <div class="hidden sm:block">
+                    <p class="text-sm text-gray-700">
+                        Showing page <span class="font-medium">{{ currentPage }}</span> of <span class="font-medium">{{ totalPages }}</span>
+                    </p>
+                </div>
+                <div class="flex flex-1 justify-between sm:justify-end gap-3">
+                    {% if currentPage > 1 %}
+                    <a href="{{ path('app_notifications', {filter: filter, page: currentPage - 1}) }}"
+                       class="relative inline-flex items-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50">
+                        Previous
+                    </a>
+                    {% endif %}
+                    {% if currentPage < totalPages %}
+                    <a href="{{ path('app_notifications', {filter: filter, page: currentPage + 1}) }}"
+                       class="relative inline-flex items-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50">
+                        Next
+                    </a>
+                    {% endif %}
+                </div>
+            </nav>
+            {% endif %}
+            {% else %}
+            {# Empty state #}
+            <div class="text-center py-12 bg-white rounded-lg shadow">
+                <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" />
+                </svg>
+                <h3 class="mt-2 text-sm font-semibold text-gray-900">
+                    {% if filter == 'unread' %}
+                    No unread notifications
+                    {% else %}
+                    No notifications
+                    {% endif %}
+                </h3>
+                <p class="mt-1 text-sm text-gray-500">
+                    {% if filter == 'unread' %}
+                    You're all caught up!
+                    {% else %}
+                    Notifications about your tasks will appear here.
+                    {% endif %}
+                </p>
+                {% if filter == 'unread' %}
+                <div class="mt-6">
+                    <a href="{{ path('app_notifications', {filter: 'all'}) }}"
+                       class="text-sm font-medium text-indigo-600 hover:text-indigo-500">
+                        View all notifications
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+function notificationsPage() {
+    return {
+        readNotifications: [],
+
+        async markAsRead(notificationId) {
+            try {
+                const response = await fetch(`/api/v1/notifications/${notificationId}/read`, {
+                    method: 'POST',
+                    headers: {
+                        'Accept': 'application/json',
+                    },
+                    credentials: 'same-origin'
+                });
+
+                if (response.ok) {
+                    this.readNotifications.push(notificationId);
+                    // Update the notification element's background
+                    const element = document.getElementById(`notification-${notificationId}`);
+                    if (element) {
+                        element.classList.remove('bg-indigo-50');
+                        element.classList.add('bg-white');
+                    }
+                }
+            } catch (error) {
+                console.error('Failed to mark notification as read:', error);
+            }
+        },
+
+        async markAllAsRead() {
+            try {
+                const response = await fetch('/api/v1/notifications/read-all', {
+                    method: 'POST',
+                    headers: {
+                        'Accept': 'application/json',
+                    },
+                    credentials: 'same-origin'
+                });
+
+                if (response.ok) {
+                    // Reload the page to reflect changes
+                    window.location.reload();
+                }
+            } catch (error) {
+                console.error('Failed to mark all as read:', error);
+            }
+        }
+    };
+}
+</script>
+{% endblock %}

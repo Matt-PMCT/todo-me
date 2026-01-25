@@ -4,6 +4,7 @@
 **Goal**: Implement a comprehensive notification system including due date reminders, email notifications, browser push notifications, and an in-app notification center. This is a critical feature for any todo application.
 
 ## Revision History
+- **2026-01-25**: Updated to match actual implementation (entity schema, message classes, user settings)
 - **2026-01-24**: Initial creation based on comprehensive project review
 
 ## Prerequisites
@@ -55,9 +56,13 @@ Create the database schema and core infrastructure for notifications.
       public const TYPE_RECURRING_CREATED = 'recurring_created';
       public const TYPE_SYSTEM = 'system';
 
-      public const CHANNEL_IN_APP = 'in_app';
-      public const CHANNEL_EMAIL = 'email';
-      public const CHANNEL_PUSH = 'push';
+      public const TYPES = [
+          self::TYPE_TASK_DUE_SOON,
+          self::TYPE_TASK_OVERDUE,
+          self::TYPE_TASK_DUE_TODAY,
+          self::TYPE_RECURRING_CREATED,
+          self::TYPE_SYSTEM,
+      ];
 
       #[ORM\Id]
       #[ORM\Column(type: 'guid')]
@@ -76,19 +81,10 @@ Create the database schema and core infrastructure for notifications.
       private string $title;
 
       #[ORM\Column(type: Types::TEXT, nullable: true)]
-      private ?string $body = null;
+      private ?string $message = null;
 
-      #[ORM\Column(type: Types::STRING, length: 50, nullable: true, name: 'entity_type')]
-      private ?string $entityType = null;
-
-      #[ORM\Column(type: Types::GUID, nullable: true, name: 'entity_id')]
-      private ?string $entityId = null;
-
-      #[ORM\Column(type: Types::JSON, nullable: true)]
-      private ?array $data = null;
-
-      #[ORM\Column(type: Types::JSON, name: 'channels_sent')]
-      private array $channelsSent = [];
+      #[ORM\Column(type: Types::JSON, options: ['default' => '{}'])]
+      private array $data = [];
 
       #[ORM\Column(type: Types::DATETIME_IMMUTABLE, name: 'created_at')]
       private \DateTimeImmutable $createdAt;
@@ -133,66 +129,37 @@ Create the database schema and core infrastructure for notifications.
           return $this->title;
       }
 
-      public function setTitle(string $title): self
+      public function setTitle(string $title): static
       {
           $this->title = $title;
           return $this;
       }
 
-      public function getBody(): ?string
+      public function getMessage(): ?string
       {
-          return $this->body;
+          return $this->message;
       }
 
-      public function setBody(?string $body): self
+      public function setMessage(?string $message): static
       {
-          $this->body = $body;
+          $this->message = $message;
           return $this;
       }
 
-      public function getEntityType(): ?string
-      {
-          return $this->entityType;
-      }
-
-      public function setEntityType(?string $entityType): self
-      {
-          $this->entityType = $entityType;
-          return $this;
-      }
-
-      public function getEntityId(): ?string
-      {
-          return $this->entityId;
-      }
-
-      public function setEntityId(?string $entityId): self
-      {
-          $this->entityId = $entityId;
-          return $this;
-      }
-
-      public function getData(): ?array
+      /**
+       * @return array<string, mixed>
+       */
+      public function getData(): array
       {
           return $this->data;
       }
 
-      public function setData(?array $data): self
+      /**
+       * @param array<string, mixed> $data
+       */
+      public function setData(array $data): static
       {
           $this->data = $data;
-          return $this;
-      }
-
-      public function getChannelsSent(): array
-      {
-          return $this->channelsSent;
-      }
-
-      public function addChannelSent(string $channel): self
-      {
-          if (!in_array($channel, $this->channelsSent, true)) {
-              $this->channelsSent[] = $channel;
-          }
           return $this;
       }
 
@@ -353,37 +320,24 @@ Allow users to configure their notification preferences.
 
 ### Tasks
 
-- [ ] **12.2.1** Add notification settings to User entity
+- [x] **12.2.1** Add notification settings to User entity
   ```php
-  // src/Entity/User.php - settings JSON structure
+  // src/Entity/User.php - settings JSON structure (FLAT STRUCTURE)
 
   /*
    * User settings JSON structure for notifications:
    * {
    *   "notifications": {
-   *     "email": {
-   *       "enabled": true,
-   *       "taskDueSoon": true,
-   *       "taskOverdue": true,
-   *       "dailyDigest": false
-   *     },
-   *     "push": {
-   *       "enabled": true,
-   *       "taskDueSoon": true,
-   *       "taskOverdue": true
-   *     },
-   *     "inApp": {
-   *       "enabled": true
-   *     },
-   *     "quietHours": {
-   *       "enabled": false,
-   *       "start": "22:00",
-   *       "end": "08:00"
-   *     },
-   *     "reminders": {
-   *       "defaultBefore": [1440, 60],  // minutes: 1 day, 1 hour
-   *       "dueTodayTime": "08:00"       // When to send "due today" notifications
-   *     }
+   *     "emailEnabled": true,
+   *     "pushEnabled": false,
+   *     "taskDueSoon": true,
+   *     "taskOverdue": true,
+   *     "taskDueToday": true,
+   *     "recurringCreated": false,
+   *     "quietHoursEnabled": false,
+   *     "quietHoursStart": "22:00",
+   *     "quietHoursEnd": "08:00",
+   *     "dueSoonHours": 24
    *   },
    *   "timezone": "America/New_York"
    * }
@@ -391,60 +345,44 @@ Allow users to configure their notification preferences.
 
   public function getNotificationSettings(): array
   {
-      $settings = $this->settings ?? [];
-      return $settings['notifications'] ?? $this->getDefaultNotificationSettings();
+      return $this->settings['notifications'] ?? self::getDefaultNotificationSettings();
   }
 
-  public function setNotificationSettings(array $notificationSettings): self
+  public function setNotificationSettings(array $notificationSettings): static
   {
-      $settings = $this->settings ?? [];
-      $settings['notifications'] = $notificationSettings;
-      $this->settings = $settings;
+      $this->settings['notifications'] = array_merge(
+          self::getDefaultNotificationSettings(),
+          $notificationSettings
+      );
       return $this;
   }
 
-  public function getDefaultNotificationSettings(): array
+  public function updateNotificationSettings(array $updates): static
   {
-      return [
-          'email' => [
-              'enabled' => true,
-              'taskDueSoon' => true,
-              'taskOverdue' => true,
-              'dailyDigest' => false,
-          ],
-          'push' => [
-              'enabled' => true,
-              'taskDueSoon' => true,
-              'taskOverdue' => true,
-          ],
-          'inApp' => [
-              'enabled' => true,
-          ],
-          'quietHours' => [
-              'enabled' => false,
-              'start' => '22:00',
-              'end' => '08:00',
-          ],
-          'reminders' => [
-              'defaultBefore' => [1440, 60], // 1 day, 1 hour
-              'dueTodayTime' => '08:00',
-          ],
-      ];
+      $current = $this->getNotificationSettings();
+      $this->settings['notifications'] = array_merge($current, $updates);
+      return $this;
   }
 
-  public function isNotificationEnabled(string $channel, string $type): bool
+  public function isNotificationEnabled(string $type, string $channel = 'email'): bool
   {
       $settings = $this->getNotificationSettings();
-      return ($settings[$channel]['enabled'] ?? true)
-          && ($settings[$channel][$type] ?? true);
+
+      // First check if the channel is enabled
+      $channelKey = $channel . 'Enabled';
+      if (!($settings[$channelKey] ?? false)) {
+          return false;
+      }
+
+      // Then check if the specific notification type is enabled
+      return $settings[$type] ?? true;
   }
 
   public function isInQuietHours(\DateTimeImmutable $time): bool
   {
       $settings = $this->getNotificationSettings();
-      $quietHours = $settings['quietHours'] ?? [];
 
-      if (!($quietHours['enabled'] ?? false)) {
+      if (!($settings['quietHoursEnabled'] ?? false)) {
           return false;
       }
 
@@ -452,8 +390,8 @@ Allow users to configure their notification preferences.
       $localTime = $time->setTimezone($timezone);
       $currentTime = $localTime->format('H:i');
 
-      $start = $quietHours['start'] ?? '22:00';
-      $end = $quietHours['end'] ?? '08:00';
+      $start = $settings['quietHoursStart'] ?? '22:00';
+      $end = $settings['quietHoursEnd'] ?? '08:00';
 
       // Handle overnight quiet hours
       if ($start > $end) {
@@ -461,6 +399,28 @@ Allow users to configure their notification preferences.
       }
 
       return $currentTime >= $start && $currentTime < $end;
+  }
+
+  public function getDueSoonHours(): int
+  {
+      $settings = $this->getNotificationSettings();
+      return $settings['dueSoonHours'] ?? 24;
+  }
+
+  public static function getDefaultNotificationSettings(): array
+  {
+      return [
+          'emailEnabled' => true,
+          'pushEnabled' => false,
+          'taskDueSoon' => true,
+          'taskOverdue' => true,
+          'taskDueToday' => true,
+          'recurringCreated' => false,
+          'quietHoursEnabled' => false,
+          'quietHoursStart' => '22:00',
+          'quietHoursEnd' => '08:00',
+          'dueSoonHours' => 24,
+      ];
   }
   ```
 
@@ -790,7 +750,7 @@ Create the core notification service that dispatches to multiple channels.
   }
   ```
 
-- [ ] **12.3.2** Create message classes for async dispatch
+- [x] **12.3.2** Create message classes for async dispatch
   ```php
   // src/Message/SendEmailNotification.php
 
@@ -801,8 +761,46 @@ Create the core notification service that dispatches to multiple channels.
   final class SendEmailNotification
   {
       public function __construct(
-          public readonly string $notificationId,
+          private readonly string $userId,
+          private readonly string $notificationId,
+          private readonly string $type,
+          private readonly string $title,
+          private readonly ?string $message = null,
+          private readonly array $data = [],
       ) {}
+
+      public function getUserId(): string
+      {
+          return $this->userId;
+      }
+
+      public function getNotificationId(): string
+      {
+          return $this->notificationId;
+      }
+
+      public function getType(): string
+      {
+          return $this->type;
+      }
+
+      public function getTitle(): string
+      {
+          return $this->title;
+      }
+
+      public function getMessage(): ?string
+      {
+          return $this->message;
+      }
+
+      /**
+       * @return array<string, mixed>
+       */
+      public function getData(): array
+      {
+          return $this->data;
+      }
   }
   ```
 
