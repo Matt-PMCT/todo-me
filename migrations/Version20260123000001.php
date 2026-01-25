@@ -28,11 +28,13 @@ final class Version20260123000001 extends AbstractMigration
         // Users table changes
         $this->addSql('ALTER TABLE users ADD username VARCHAR(100) NOT NULL DEFAULT \'\'');
         $this->addSql('ALTER TABLE users ADD settings JSON NOT NULL DEFAULT \'{}\'');
+
+        // Generate unique usernames from email for existing users BEFORE creating unique index
+        $this->addSql('UPDATE users SET username = SPLIT_PART(email, \'@\', 1) || \'_\' || SUBSTRING(id::text, 1, 8) WHERE username = \'\'');
+
+        // Now create unique index after data is populated
         $this->addSql('CREATE UNIQUE INDEX uniq_users_username ON users (username)');
         $this->addSql('CREATE INDEX idx_users_username ON users (username)');
-
-        // Generate unique usernames from email for existing users
-        $this->addSql('UPDATE users SET username = SPLIT_PART(email, \'@\', 1) || \'_\' || SUBSTRING(id::text, 1, 8) WHERE username = \'\'');
 
         // Remove the default after migration
         $this->addSql('ALTER TABLE users ALTER COLUMN username DROP DEFAULT');

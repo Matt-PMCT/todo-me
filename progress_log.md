@@ -146,3 +146,86 @@ Keep entries brief. Use task IDs from phase docs for reference.
 - Used parallel sub-agents for all 4 implementation waves
 - FTS integration uses native SQL to get matching IDs, then IN clause with QueryBuilder
 - Recurring undo only deletes next task if still pending (not completed/modified)
+
+---
+
+### 2026-01-25
+
+**Phase**: 10 - Email Infrastructure & Account Security
+**Status**: ✅ COMPLETE
+
+**Completed**:
+- [x] 10.1 Email Service Infrastructure
+  - Installed symfony/mailer with `config/packages/mailer.yaml`
+  - Created EmailService with sendPasswordResetEmail, sendEmailVerification, sendPasswordChangedNotification, sendAccountLockedNotification
+  - 5 email templates (base, password-reset, verify-email, password-changed, account-locked)
+- [x] 10.2 Email Verification
+  - User entity fields: emailVerified, emailVerificationToken, emailVerificationSentAt
+  - EmailVerificationService with 24h token expiry, 5-min resend cooldown
+  - Endpoints: POST /verify-email/{token}, POST /resend-verification
+  - Web page: /verify-email/{token}
+- [x] 10.3 Password Reset Flow
+  - User entity fields: passwordResetToken, passwordResetExpiresAt
+  - PasswordResetService with 60-min token expiry, no email enumeration
+  - Endpoints: POST /forgot-password, POST /reset-password, POST /reset-password/validate
+  - Web pages: /forgot-password, /reset-password
+  - API tokens invalidated on password reset
+- [x] 10.4 Password Change for Authenticated Users
+  - Endpoint: PATCH /me/password
+  - Current password verification, new password policy validation
+  - Email notification on change
+- [x] 10.5 Account Lockout Protection
+  - User entity fields: failedLoginAttempts, lockedUntil, lastFailedLoginAt
+  - AccountLockoutService: 5 max attempts, 15-min lockout, 30-min window
+  - AccountLockedException with HTTP 423
+  - LoginAuthenticationHandler event subscriber
+  - Email notification on lockout
+- [x] 10.6 Enhanced Password Policy
+  - PasswordPolicyValidator: 12+ chars, uppercase, lowercase, number required
+  - Common password blocking, email/username content checking
+  - Endpoint: GET /password-requirements
+- [x] 10.7 Testing
+  - Unit tests: PasswordPolicyValidatorTest, UserSecurityFieldsTest
+  - Functional tests: PasswordResetApiTest, PasswordChangeApiTest, EmailVerificationApiTest, AccountLockoutApiTest
+
+**Tests Added**:
+- 21 unit tests (PasswordPolicyValidator, User entity security fields)
+- 17 functional API tests (password reset, change, verification, lockout)
+- All 4032 tests passing
+
+**Key Files Created**:
+- `config/packages/mailer.yaml`
+- `src/Service/EmailService.php`
+- `src/Service/EmailVerificationService.php`
+- `src/Service/PasswordResetService.php`
+- `src/Service/AccountLockoutService.php`
+- `src/Service/PasswordPolicyValidator.php`
+- `src/Exception/AccountLockedException.php`
+- `src/EventSubscriber/LoginAuthenticationHandler.php`
+- `src/DTO/ChangePasswordRequest.php`, `ForgotPasswordRequest.php`, `ResetPasswordRequest.php`
+- `templates/email/` (5 templates)
+- `templates/security/forgot-password.html.twig`, `reset-password.html.twig`, `verify-email.html.twig`
+- `migrations/Version20260125Phase10.php`
+- 6 test files
+
+**Key Files Modified**:
+- `src/Entity/User.php` (9 new fields + helper methods)
+- `src/Repository/UserRepository.php` (2 finder methods)
+- `src/Service/TokenGenerator.php` (email verification token)
+- `src/Controller/Api/AuthController.php` (7 new endpoints, lockout integration)
+- `src/Controller/Web/SecurityController.php` (3 new routes)
+- `config/packages/security.yaml` (public access rules)
+- `config/services.yaml` (EmailService configuration)
+- `.env.local.example`, `.env.test` (email environment variables)
+
+**Security Features**:
+- All tokens hashed with SHA-256 before database storage
+- Password reset always returns success (no email enumeration)
+- API tokens invalidated on password reset
+- Account lockout after 5 failed attempts (15-min duration)
+- Email notifications for security-relevant events
+
+**Notes**:
+- Used 17 parallel sub-agents across 5 implementation groups
+- Fixed migration order bug: unique index created after populating usernames
+- Added email env vars to .env.test for test environment
