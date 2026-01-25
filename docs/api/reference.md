@@ -33,7 +33,7 @@ Create a new user account.
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
 | `email` | string | Yes | Valid email address |
-| `password` | string | Yes | Min 8 chars, 1 letter, 1 number |
+| `password` | string | Yes | Min 12 chars, 1 uppercase, 1 lowercase, 1 number |
 
 **Response:** `201 Created`
 ```json
@@ -106,6 +106,124 @@ Get the authenticated user's information.
   "createdAt": "2026-01-01T00:00:00+00:00"
 }
 ```
+
+---
+
+### Change Password
+```
+PATCH /auth/me/password
+```
+
+Change the authenticated user's password.
+
+**Request Body:**
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `current_password` | string | Yes | Current password |
+| `new_password` | string | Yes | New password (min 12 chars, 1 uppercase, 1 lowercase, 1 number) |
+
+**Response:** `200 OK`
+
+---
+
+### Forgot Password
+```
+POST /auth/forgot-password
+```
+
+Request a password reset email. Returns a generic success message regardless of whether the email exists (prevents email enumeration).
+
+**Request Body:**
+| Field | Type | Required |
+|-------|------|----------|
+| `email` | string | Yes |
+
+**Response:** `200 OK`
+```json
+{
+  "message": "If the email exists, a reset link has been sent."
+}
+```
+
+---
+
+### Validate Reset Token
+```
+POST /auth/reset-password/validate
+```
+
+Check if a password reset token is valid.
+
+**Request Body:**
+| Field | Type | Required |
+|-------|------|----------|
+| `token` | string | Yes |
+
+**Response:** `200 OK`
+```json
+{
+  "valid": true
+}
+```
+
+---
+
+### Reset Password
+```
+POST /auth/reset-password
+```
+
+Reset password using a valid reset token.
+
+**Request Body:**
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `token` | string | Yes | Reset token from email |
+| `password` | string | Yes | New password (min 12 chars, 1 uppercase, 1 lowercase, 1 number) |
+
+**Response:** `200 OK`
+
+---
+
+### Password Requirements
+```
+GET /auth/password-requirements
+```
+
+Get the current password policy requirements. No authentication required.
+
+**Response:** `200 OK`
+```json
+{
+  "minLength": 12,
+  "requireUppercase": true,
+  "requireLowercase": true,
+  "requireNumbers": true,
+  "requireSpecialChars": false
+}
+```
+
+---
+
+### Verify Email
+```
+POST /auth/verify-email/{token}
+```
+
+Verify a user's email address using the token sent via email. No authentication required.
+
+**Response:** `200 OK`
+
+---
+
+### Resend Verification Email
+```
+POST /auth/resend-verification
+```
+
+Resend the email verification link to the authenticated user.
+
+**Response:** `200 OK`
 
 ---
 
@@ -422,6 +540,7 @@ Shows how input will be parsed without creating a task.
 | 403 | Forbidden |
 | 404 | Not Found |
 | 422 | Validation Error |
+| 423 | Account Locked (too many failed login attempts) |
 | 429 | Rate Limited |
 | 500 | Server Error |
 
