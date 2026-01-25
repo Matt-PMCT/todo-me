@@ -38,8 +38,8 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-}
     volumes:
       - postgres_data:/var/lib/postgresql/data
-    ports:
-      - "127.0.0.1:5432:5432"  # Localhost only for development security
+    # Ports are not exposed by default (services communicate via internal network)
+    # In development, you can expose with Docker volume mounts for tools access
     networks:
       - todo-network
     healthcheck:
@@ -54,8 +54,8 @@ services:
     command: redis-server --appendonly yes
     volumes:
       - redis_data:/data
-    ports:
-      - "127.0.0.1:6379:6379"  # Localhost only for development security
+    # Ports are not exposed by default (services communicate via internal network)
+    # In development, you can expose with: docker compose -p todo-me --profile dev up
     networks:
       - todo-network
     healthcheck:
