@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Controller\Api;
 
+use App\DTO\UserSettingsRequest;
 use App\Entity\User;
 use App\Repository\ProjectRepository;
 use App\Repository\SavedFilterRepository;
@@ -12,6 +13,7 @@ use App\Repository\TaskRepository;
 use App\Service\ResponseFormatter;
 use App\Service\UserService;
 use App\Service\ValidationHelper;
+use Doctrine\ORM\EntityManagerInterface;
 use OpenApi\Attributes as OA;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -36,7 +38,83 @@ final class UserController extends AbstractController
         private readonly SavedFilterRepository $savedFilterRepository,
         private readonly ResponseFormatter $responseFormatter,
         private readonly ValidationHelper $validationHelper,
+        private readonly EntityManagerInterface $entityManager,
     ) {
+    }
+
+    /**
+     * Get the current user's settings.
+     */
+    #[Route('/me/settings', name: 'get_settings', methods: ['GET'])]
+    #[OA\Get(
+        summary: 'Get user settings',
+        description: 'Returns the current user\'s settings with defaults applied',
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: 'User settings',
+                content: new OA\JsonContent(ref: '#/components/schemas/ApiResponse')
+            ),
+            new OA\Response(response: 401, description: 'Not authenticated'),
+        ]
+    )]
+    public function getSettings(): JsonResponse
+    {
+        /** @var User $user */
+        $user = $this->getUser();
+
+        return $this->responseFormatter->success([
+            'settings' => $user->getSettingsWithDefaults(),
+        ]);
+    }
+
+    /**
+     * Update the current user's settings.
+     */
+    #[Route('/me/settings', name: 'update_settings', methods: ['PATCH'])]
+    #[OA\Patch(
+        summary: 'Update user settings',
+        description: 'Updates the current user\'s settings (timezone, date format, start of week)',
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(
+                properties: [
+                    new OA\Property(property: 'timezone', type: 'string', example: 'America/New_York'),
+                    new OA\Property(property: 'dateFormat', type: 'string', enum: ['MDY', 'DMY', 'YMD'], example: 'MDY'),
+                    new OA\Property(property: 'startOfWeek', type: 'integer', enum: [0, 1], example: 0),
+                ]
+            )
+        ),
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: 'Settings updated successfully',
+                content: new OA\JsonContent(ref: '#/components/schemas/ApiResponse')
+            ),
+            new OA\Response(response: 401, description: 'Not authenticated'),
+            new OA\Response(response: 422, description: 'Validation error'),
+        ]
+    )]
+    public function updateSettings(Request $request): JsonResponse
+    {
+        /** @var User $user */
+        $user = $this->getUser();
+
+        $data = $this->validationHelper->decodeJsonBody($request);
+        $dto = UserSettingsRequest::fromArray($data);
+
+        $this->validationHelper->validate($dto);
+
+        // Get current settings and merge with new values
+        $currentSettings = $user->getSettings();
+        $newSettings = array_merge($currentSettings, $dto->toSettingsArray());
+
+        $user->setSettings($newSettings);
+        $this->entityManager->flush();
+
+        return $this->responseFormatter->success([
+            'settings' => $user->getSettingsWithDefaults(),
+        ]);
     }
 
     /**

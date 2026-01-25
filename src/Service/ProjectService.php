@@ -17,6 +17,7 @@ use App\Exception\ProjectMoveToArchivedException;
 use App\Exception\ProjectMoveToDescendantException;
 use App\Exception\ProjectParentNotFoundException;
 use App\Exception\ProjectParentNotOwnedException;
+use App\Interface\ActivityLogServiceInterface;
 use App\Interface\OwnershipCheckerInterface;
 use App\Repository\ProjectRepository;
 use App\Transformer\ProjectTreeTransformer;
@@ -37,6 +38,7 @@ final class ProjectService
         private readonly ProjectUndoService $projectUndoService,
         private readonly ProjectCacheService $projectCacheService,
         private readonly ProjectTreeTransformer $projectTreeTransformer,
+        private readonly ActivityLogServiceInterface $activityLogService,
     ) {
     }
 
@@ -101,7 +103,12 @@ final class ProjectService
         // Set position at end of siblings
         $this->assignNextPosition($user, $dto->parentId, $project);
 
-        $this->projectRepository->save($project, true);
+        $this->entityManager->persist($project);
+
+        // Log the project creation
+        $this->activityLogService->logProjectCreated($project);
+
+        $this->entityManager->flush();
 
         // Invalidate cache
         $this->projectCacheService->invalidate($user->getId() ?? '');
@@ -128,6 +135,11 @@ final class ProjectService
             throw InvalidStateException::missingRequiredId('Project');
         }
 
+        // Track changes for activity log
+        $oldName = $project->getName();
+        $oldDescription = $project->getDescription();
+        $oldParentId = $project->getParent()?->getId();
+
         // Store previous state for undo
         $previousState = $this->projectStateService->serializeProjectState($project);
 
@@ -145,7 +157,6 @@ final class ProjectService
 
         // Handle parent change
         if ($dto->hasParentIdChange()) {
-            $oldParentId = $project->getParent()?->getId();
             $newParentId = $dto->parentId;
 
             if ($newParentId === null) {
@@ -164,6 +175,24 @@ final class ProjectService
             if ($oldParentId !== $newParentId) {
                 $this->projectRepository->normalizePositions($user, $oldParentId);
             }
+        }
+
+        // Build changes array for activity log
+        $changes = [];
+        if ($dto->name !== null && $project->getName() !== $oldName) {
+            $changes['name'] = ['old' => $oldName, 'new' => $project->getName()];
+        }
+        if ($dto->description !== null && $project->getDescription() !== $oldDescription) {
+            $changes['description'] = ['old' => $oldDescription, 'new' => $project->getDescription()];
+        }
+        $newParentId = $project->getParent()?->getId();
+        if ($dto->hasParentIdChange() && $newParentId !== $oldParentId) {
+            $changes['parentId'] = ['old' => $oldParentId, 'new' => $newParentId];
+        }
+
+        // Log the update if there were changes
+        if (!empty($changes)) {
+            $this->activityLogService->logProjectUpdated($project, $changes);
         }
 
         $this->entityManager->flush();
@@ -191,7 +220,15 @@ final class ProjectService
     {
         $ownerId = $this->getValidatedOwnerId($project);
 
+        // Capture info for activity log before deletion
+        $owner = $project->getOwner();
+        $projectId = $project->getId();
+        $projectName = $project->getName();
+
         $undoToken = $this->projectUndoService->createDeleteUndoToken($project);
+
+        // Log the deletion
+        $this->activityLogService->logProjectDeleted($owner, $projectId, $projectName);
 
         // Soft delete instead of hard delete
         $project->softDelete();

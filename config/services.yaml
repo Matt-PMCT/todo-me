@@ -88,3 +88,7 @@ services:
             $vapidPublicKey: '%vapid_public_key%'
             $vapidPrivateKey: '%vapid_private_key%'
             $vapidSubject: '%vapid_subject%'
+
+    # Alias for ApiTokenServiceInterface to enable autowiring
+    App\Interface\ApiTokenServiceInterface:
+        alias: App\Service\ApiTokenService

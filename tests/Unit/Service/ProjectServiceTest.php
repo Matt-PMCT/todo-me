@@ -17,6 +17,7 @@ use App\Exception\InvalidUndoTokenException;
 use App\Exception\ProjectMoveToDescendantException;
 use App\Interface\OwnershipCheckerInterface;
 use App\Repository\ProjectRepository;
+use App\Interface\ActivityLogServiceInterface;
 use App\Service\ProjectCacheService;
 use App\Service\ProjectService;
 use App\Service\ProjectStateService;
@@ -44,6 +45,7 @@ class ProjectServiceTest extends UnitTestCase
     private ProjectUndoService $projectUndoService;
     private ProjectCacheService $projectCacheService;
     private ProjectTreeTransformer $projectTreeTransformer;
+    private ActivityLogServiceInterface&MockObject $activityLogService;
     private ProjectService $projectService;
 
     protected function setUp(): void
@@ -75,6 +77,9 @@ class ProjectServiceTest extends UnitTestCase
             $this->projectCacheService,
         );
 
+        // Activity log service mock
+        $this->activityLogService = $this->createMock(ActivityLogServiceInterface::class);
+
         $this->projectService = new ProjectService(
             $this->projectRepository,
             $this->entityManager,
@@ -84,6 +89,7 @@ class ProjectServiceTest extends UnitTestCase
             $this->projectUndoService,
             $this->projectCacheService,
             $this->projectTreeTransformer,
+            $this->activityLogService,
         );
     }
 
@@ -100,9 +106,12 @@ class ProjectServiceTest extends UnitTestCase
             ->method('validate')
             ->with($dto);
 
-        $this->projectRepository->expects($this->once())
-            ->method('save')
-            ->with($this->isInstanceOf(Project::class), true);
+        $this->entityManager->expects($this->once())
+            ->method('persist')
+            ->with($this->isInstanceOf(Project::class));
+
+        $this->entityManager->expects($this->once())
+            ->method('flush');
 
         $project = $this->projectService->create($user, $dto);
 
@@ -124,9 +133,12 @@ class ProjectServiceTest extends UnitTestCase
             ->method('validate')
             ->with($dto);
 
-        $this->projectRepository->expects($this->once())
-            ->method('save')
-            ->with($this->isInstanceOf(Project::class), true);
+        $this->entityManager->expects($this->once())
+            ->method('persist')
+            ->with($this->isInstanceOf(Project::class));
+
+        $this->entityManager->expects($this->once())
+            ->method('flush');
 
         $project = $this->projectService->create($user, $dto);
 
@@ -141,7 +153,8 @@ class ProjectServiceTest extends UnitTestCase
         $dto = new CreateProjectRequest(name: 'Owned Project');
 
         $this->validationHelper->method('validate');
-        $this->projectRepository->method('save');
+        $this->entityManager->method('persist');
+        $this->entityManager->method('flush');
 
         $project = $this->projectService->create($user, $dto);
 

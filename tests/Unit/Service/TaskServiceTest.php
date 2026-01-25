@@ -15,6 +15,7 @@ use App\Interface\TaskUndoServiceInterface;
 use App\Repository\ProjectRepository;
 use App\Repository\TagRepository;
 use App\Repository\TaskRepository;
+use App\Interface\ActivityLogServiceInterface;
 use App\Service\Parser\NaturalLanguageParserService;
 use App\Service\Recurrence\NextDateCalculator;
 use App\Service\Recurrence\RecurrenceRuleParser;
@@ -46,6 +47,7 @@ class TaskServiceTest extends UnitTestCase
     private TaskUndoServiceInterface&MockObject $taskUndoService;
     private RecurrenceRuleParser $recurrenceRuleParser;
     private NextDateCalculator $nextDateCalculator;
+    private ActivityLogServiceInterface&MockObject $activityLogService;
     private TaskService $taskService;
 
     protected function setUp(): void
@@ -79,6 +81,9 @@ class TaskServiceTest extends UnitTestCase
         $this->recurrenceRuleParser = new RecurrenceRuleParser();
         $this->nextDateCalculator = new NextDateCalculator();
 
+        // Activity log service mock
+        $this->activityLogService = $this->createMock(ActivityLogServiceInterface::class);
+
         $this->taskService = new TaskService(
             $this->taskRepository,
             $this->projectRepository,
@@ -91,6 +96,7 @@ class TaskServiceTest extends UnitTestCase
             $this->taskUndoService,
             $this->recurrenceRuleParser,
             $this->nextDateCalculator,
+            $this->activityLogService,
         );
     }
 

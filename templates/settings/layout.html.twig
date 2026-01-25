@@ -1,0 +1,66 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ block('settings_title') }} - Settings - Todo App{% endblock %}
+
+{% block body %}
+<div class="py-10">
+    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div class="lg:grid lg:grid-cols-12 lg:gap-x-5">
+            {# Settings sidebar #}
+            <aside class="px-2 py-6 sm:px-6 lg:col-span-3 lg:px-0 lg:py-0">
+                <nav class="space-y-1">
+                    <a href="{{ path('app_settings_profile') }}"
+                       class="{% if app.request.attributes.get('_route') == 'app_settings_profile' %}bg-gray-50 text-indigo-700 hover:bg-white hover:text-indigo-700{% else %}text-gray-900 hover:bg-gray-50 hover:text-gray-900{% endif %} group flex items-center rounded-md px-3 py-2 text-sm font-medium"
+                       {% if app.request.attributes.get('_route') == 'app_settings_profile' %}aria-current="page"{% endif %}>
+                        <svg class="{% if app.request.attributes.get('_route') == 'app_settings_profile' %}text-indigo-500{% else %}text-gray-400 group-hover:text-gray-500{% endif %} -ml-1 mr-3 h-6 w-6 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+                        </svg>
+                        <span class="truncate">Profile</span>
+                    </a>
+
+                    <a href="{{ path('app_settings_security') }}"
+                       class="{% if app.request.attributes.get('_route') == 'app_settings_security' %}bg-gray-50 text-indigo-700 hover:bg-white hover:text-indigo-700{% else %}text-gray-900 hover:bg-gray-50 hover:text-gray-900{% endif %} group flex items-center rounded-md px-3 py-2 text-sm font-medium"
+                       {% if app.request.attributes.get('_route') == 'app_settings_security' %}aria-current="page"{% endif %}>
+                        <svg class="{% if app.request.attributes.get('_route') == 'app_settings_security' %}text-indigo-500{% else %}text-gray-400 group-hover:text-gray-500{% endif %} -ml-1 mr-3 h-6 w-6 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
+                        </svg>
+                        <span class="truncate">Security</span>
+                    </a>
+
+                    <a href="{{ path('app_settings_notifications') }}"
+                       class="{% if app.request.attributes.get('_route') == 'app_settings_notifications' %}bg-gray-50 text-indigo-700 hover:bg-white hover:text-indigo-700{% else %}text-gray-900 hover:bg-gray-50 hover:text-gray-900{% endif %} group flex items-center rounded-md px-3 py-2 text-sm font-medium"
+                       {% if app.request.attributes.get('_route') == 'app_settings_notifications' %}aria-current="page"{% endif %}>
+                        <svg class="{% if app.request.attributes.get('_route') == 'app_settings_notifications' %}text-indigo-500{% else %}text-gray-400 group-hover:text-gray-500{% endif %} -ml-1 mr-3 h-6 w-6 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" />
+                        </svg>
+                        <span class="truncate">Notifications</span>
+                    </a>
+
+                    <a href="{{ path('app_settings_api_tokens') }}"
+                       class="{% if app.request.attributes.get('_route') == 'app_settings_api_tokens' %}bg-gray-50 text-indigo-700 hover:bg-white hover:text-indigo-700{% else %}text-gray-900 hover:bg-gray-50 hover:text-gray-900{% endif %} group flex items-center rounded-md px-3 py-2 text-sm font-medium"
+                       {% if app.request.attributes.get('_route') == 'app_settings_api_tokens' %}aria-current="page"{% endif %}>
+                        <svg class="{% if app.request.attributes.get('_route') == 'app_settings_api_tokens' %}text-indigo-500{% else %}text-gray-400 group-hover:text-gray-500{% endif %} -ml-1 mr-3 h-6 w-6 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 5.25a3 3 0 013 3m3 0a6 6 0 01-7.029 5.912c-.563-.097-1.159.026-1.563.43L10.5 17.25H8.25v2.25H6v2.25H2.25v-2.818c0-.597.237-1.17.659-1.591l6.499-6.499c.404-.404.527-1 .43-1.563A6 6 0 1121.75 8.25z" />
+                        </svg>
+                        <span class="truncate">API Tokens</span>
+                    </a>
+
+                    <a href="{{ path('app_settings_data') }}"
+                       class="{% if app.request.attributes.get('_route') == 'app_settings_data' %}bg-gray-50 text-indigo-700 hover:bg-white hover:text-indigo-700{% else %}text-gray-900 hover:bg-gray-50 hover:text-gray-900{% endif %} group flex items-center rounded-md px-3 py-2 text-sm font-medium"
+                       {% if app.request.attributes.get('_route') == 'app_settings_data' %}aria-current="page"{% endif %}>
+                        <svg class="{% if app.request.attributes.get('_route') == 'app_settings_data' %}text-indigo-500{% else %}text-gray-400 group-hover:text-gray-500{% endif %} -ml-1 mr-3 h-6 w-6 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M20.25 6.375c0 2.278-3.694 4.125-8.25 4.125S3.75 8.653 3.75 6.375m16.5 0c0-2.278-3.694-4.125-8.25-4.125S3.75 4.097 3.75 6.375m16.5 0v11.25c0 2.278-3.694 4.125-8.25 4.125s-8.25-1.847-8.25-4.125V6.375m16.5 0v3.75m-16.5-3.75v3.75m16.5 0v3.75C20.25 16.153 16.556 18 12 18s-8.25-1.847-8.25-4.125v-3.75m16.5 0c0 2.278-3.694 4.125-8.25 4.125s-8.25-1.847-8.25-4.125" />
+                        </svg>
+                        <span class="truncate">Data</span>
+                    </a>
+                </nav>
+            </aside>
+
+            {# Main content area #}
+            <div class="space-y-6 sm:px-6 lg:col-span-9 lg:px-0">
+                {% block settings_content %}{% endblock %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

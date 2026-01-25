@@ -1,0 +1,145 @@
+{% extends 'settings/layout.html.twig' %}
+
+{% block settings_title %}Profile{% endblock %}
+
+{% block settings_content %}
+<div x-data="profileSettings({{ settings|json_encode }})">
+    {# Page header with save status #}
+    <div class="sm:flex sm:items-center sm:justify-between mb-6">
+        <div>
+            <h1 class="text-2xl font-bold leading-7 text-gray-900 sm:truncate sm:text-3xl sm:tracking-tight">
+                Profile Settings
+            </h1>
+            <p class="mt-1 text-sm text-gray-500">
+                Manage your regional and display preferences
+            </p>
+        </div>
+        {# Save status indicator #}
+        <div class="mt-4 sm:mt-0">
+            <span x-show="saveStatus === 'saving'" class="inline-flex items-center gap-1 text-sm text-gray-500">
+                <svg class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Saving...
+            </span>
+            <span x-show="saveStatus === 'saved'" x-cloak class="inline-flex items-center gap-1 text-sm text-green-600">
+                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                </svg>
+                Saved
+            </span>
+            <span x-show="saveStatus === 'error'" x-cloak class="inline-flex items-center gap-1 text-sm text-red-600">
+                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+                Error saving
+            </span>
+        </div>
+    </div>
+
+    {# Regional Settings #}
+    <div class="bg-white shadow rounded-lg overflow-hidden">
+        <div class="px-4 py-5 sm:px-6 border-b border-gray-200">
+            <h2 class="text-base font-semibold text-gray-900">Regional Settings</h2>
+            <p class="mt-1 text-sm text-gray-500">Configure how dates and times are displayed</p>
+        </div>
+        <div class="px-4 py-5 sm:p-6 space-y-6">
+            {# Timezone select #}
+            <div>
+                <label for="timezone" class="block text-sm font-medium text-gray-700">Timezone</label>
+                <select
+                    id="timezone"
+                    x-model="settings.timezone"
+                    @change="saveSettings()"
+                    class="mt-1 block w-full rounded-md border-0 py-2 pl-3 pr-10 text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                >
+                    {% for tz in timezones %}
+                    <option value="{{ tz }}">{{ tz }}</option>
+                    {% endfor %}
+                </select>
+                <p class="mt-2 text-sm text-gray-500">All times in the app will be displayed in this timezone</p>
+            </div>
+
+            {# Date format select #}
+            <div>
+                <label for="dateFormat" class="block text-sm font-medium text-gray-700">Date Format</label>
+                <select
+                    id="dateFormat"
+                    x-model="settings.date_format"
+                    @change="saveSettings()"
+                    class="mt-1 block w-full rounded-md border-0 py-2 pl-3 pr-10 text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                >
+                    <option value="MDY">MM/DD/YYYY (US)</option>
+                    <option value="DMY">DD/MM/YYYY (Europe)</option>
+                    <option value="YMD">YYYY-MM-DD (ISO)</option>
+                </select>
+                <p class="mt-2 text-sm text-gray-500">How dates are displayed throughout the application</p>
+            </div>
+
+            {# Start of week select #}
+            <div>
+                <label for="startOfWeek" class="block text-sm font-medium text-gray-700">Start of Week</label>
+                <select
+                    id="startOfWeek"
+                    x-model="settings.start_of_week"
+                    @change="saveSettings()"
+                    class="mt-1 block w-full rounded-md border-0 py-2 pl-3 pr-10 text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                >
+                    <option value="0">Sunday</option>
+                    <option value="1">Monday</option>
+                </select>
+                <p class="mt-2 text-sm text-gray-500">Which day calendars and week views start on</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function profileSettings(initialSettings) {
+    return {
+        settings: initialSettings,
+        saveStatus: null,
+        saveTimeout: null,
+
+        async saveSettings() {
+            // Clear any pending save timeout
+            if (this.saveTimeout) {
+                clearTimeout(this.saveTimeout);
+            }
+
+            this.saveStatus = 'saving';
+
+            try {
+                const response = await fetch('/api/v1/users/me/settings', {
+                    method: 'PATCH',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                    },
+                    credentials: 'same-origin',
+                    body: JSON.stringify({
+                        timezone: this.settings.timezone,
+                        dateFormat: this.settings.date_format,
+                        startOfWeek: parseInt(this.settings.start_of_week, 10)
+                    })
+                });
+
+                if (response.ok) {
+                    this.saveStatus = 'saved';
+                    // Clear the saved status after 2 seconds
+                    this.saveTimeout = setTimeout(() => {
+                        this.saveStatus = null;
+                    }, 2000);
+                } else {
+                    this.saveStatus = 'error';
+                }
+            } catch (error) {
+                console.error('Failed to save settings:', error);
+                this.saveStatus = 'error';
+            }
+        }
+    };
+}
+</script>
+{% endblock %}

@@ -62,4 +62,20 @@ final class EntityNotFoundException extends HttpException
     {
         return new self('User', $id);
     }
+
+    /**
+     * Creates an exception for an ApiToken entity.
+     */
+    public static function apiToken(string $id): self
+    {
+        return new self('ApiToken', $id);
+    }
+
+    /**
+     * Creates an exception for any resource type.
+     */
+    public static function forResource(string $resourceType, string $id): self
+    {
+        return new self($resourceType, $id);
+    }
 }

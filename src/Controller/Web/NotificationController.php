@@ -64,13 +64,6 @@ class NotificationController extends AbstractController
     #[Route('/settings/notifications', name: 'app_settings_notifications', methods: ['GET'])]
     public function settings(): Response
     {
-        /** @var User $user */
-        $user = $this->getUser();
-
-        $notificationSettings = $user->getNotificationSettings();
-
-        return $this->render('account/notification-settings.html.twig', [
-            'settings' => $notificationSettings,
-        ]);
+        return $this->render('settings/notifications.html.twig');
     }
 }

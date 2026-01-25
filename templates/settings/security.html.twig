@@ -1,0 +1,122 @@
+{% extends 'settings/layout.html.twig' %}
+
+{% block settings_title %}Security{% endblock %}
+
+{% block settings_content %}
+<div>
+    {# Page header #}
+    <div class="mb-6">
+        <h1 class="text-2xl font-bold leading-7 text-gray-900 sm:truncate sm:text-3xl sm:tracking-tight">
+            Security Settings
+        </h1>
+        <p class="mt-1 text-sm text-gray-500">
+            Manage your password and account security options
+        </p>
+    </div>
+
+    <div class="space-y-6">
+        {# Password section #}
+        <div class="bg-white shadow rounded-lg overflow-hidden">
+            <div class="px-4 py-5 sm:px-6 border-b border-gray-200">
+                <h2 class="text-base font-semibold text-gray-900">Password</h2>
+                <p class="mt-1 text-sm text-gray-500">Update your password to keep your account secure</p>
+            </div>
+            <div class="px-4 py-5 sm:p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-gray-700">Change your password</p>
+                        <p class="text-sm text-gray-500">We recommend using a strong, unique password</p>
+                    </div>
+                    <a href="{{ path('app_forgot_password') }}"
+                       class="inline-flex items-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
+                        Change Password
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        {# Two-Factor Authentication section #}
+        <div class="bg-white shadow rounded-lg overflow-hidden">
+            <div class="px-4 py-5 sm:px-6 border-b border-gray-200">
+                <h2 class="text-base font-semibold text-gray-900">Two-Factor Authentication</h2>
+                <p class="mt-1 text-sm text-gray-500">Add an extra layer of security to your account</p>
+            </div>
+            <div class="px-4 py-5 sm:p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <p class="text-sm font-medium text-gray-700">Status:</p>
+                            {% if twoFactorEnabled %}
+                            <span class="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800">
+                                <svg class="-ml-0.5 mr-1.5 h-2 w-2 text-green-500" fill="currentColor" viewBox="0 0 8 8">
+                                    <circle cx="4" cy="4" r="3" />
+                                </svg>
+                                Enabled
+                            </span>
+                            {% else %}
+                            <span class="inline-flex items-center rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-800">
+                                <svg class="-ml-0.5 mr-1.5 h-2 w-2 text-gray-400" fill="currentColor" viewBox="0 0 8 8">
+                                    <circle cx="4" cy="4" r="3" />
+                                </svg>
+                                Disabled
+                            </span>
+                            {% endif %}
+                        </div>
+                        {% if twoFactorEnabled %}
+                        <p class="mt-1 text-sm text-gray-500">
+                            Two-factor authentication is enabled.
+                            {% if backupCodesRemaining > 0 %}
+                            You have {{ backupCodesRemaining }} backup code{{ backupCodesRemaining != 1 ? 's' : '' }} remaining.
+                            {% else %}
+                            You have no backup codes remaining. Consider generating new ones.
+                            {% endif %}
+                        </p>
+                        {% else %}
+                        <p class="mt-1 text-sm text-gray-500">
+                            Protect your account with an authenticator app like Google Authenticator or Authy
+                        </p>
+                        {% endif %}
+                    </div>
+                    <div class="flex gap-2">
+                        {% if twoFactorEnabled %}
+                        {# Link to manage 2FA - will be implemented in Group B #}
+                        <button type="button"
+                                disabled
+                                class="inline-flex items-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 opacity-50 cursor-not-allowed">
+                            Manage 2FA
+                        </button>
+                        {% else %}
+                        {# Link to enable 2FA - will be implemented in Group B #}
+                        <button type="button"
+                                disabled
+                                class="inline-flex items-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm opacity-50 cursor-not-allowed">
+                            Enable 2FA
+                        </button>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {# Active Sessions section (placeholder for future) #}
+        <div class="bg-white shadow rounded-lg overflow-hidden">
+            <div class="px-4 py-5 sm:px-6 border-b border-gray-200">
+                <h2 class="text-base font-semibold text-gray-900">Active Sessions</h2>
+                <p class="mt-1 text-sm text-gray-500">Manage your active login sessions</p>
+            </div>
+            <div class="px-4 py-5 sm:p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-gray-700">Current session</p>
+                        <p class="text-sm text-gray-500">You are currently logged in</p>
+                    </div>
+                    <a href="{{ path('app_logout') }}"
+                       class="inline-flex items-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-red-600 shadow-sm ring-1 ring-inset ring-red-300 hover:bg-red-50">
+                        Sign Out
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
