@@ -32,7 +32,6 @@
 
 # Environment files with actual values (use .example templates instead)
 .env.dev
-.env.test
 
 # Docker environment with credentials
 docker/.env.docker
