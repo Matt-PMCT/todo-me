@@ -66,7 +66,7 @@ jobs:
           REDIS_URL: redis://127.0.0.1:6379
 
       - name: Run tests with coverage
-        run: php bin/phpunit --coverage-clover=coverage.xml
+        run: php vendor/bin/phpunit --coverage-clover=coverage.xml
         env:
           DATABASE_URL: postgresql://app:app@127.0.0.1:5432/app_test?serverVersion=15&charset=utf8
           REDIS_URL: redis://127.0.0.1:6379
