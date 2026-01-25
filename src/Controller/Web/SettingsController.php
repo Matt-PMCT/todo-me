@@ -32,7 +32,7 @@ class SettingsController extends AbstractController
 
         return $this->render('settings/profile.html.twig', [
             'settings' => $user->getSettingsWithDefaults(),
-            'timezones' => UserSettingsRequest::VALID_TIMEZONES,
+            'timezones' => \DateTimeZone::listIdentifiers(),
             'dateFormats' => UserSettingsRequest::VALID_DATE_FORMATS,
         ]);
     }
