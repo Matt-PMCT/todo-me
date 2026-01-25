@@ -255,7 +255,7 @@ class TaskFilterRepositoryTest extends IntegrationTestCase
         $this->entityManager->flush();
 
         $filterRequest = new TaskFilterRequest(
-            search: 'grocer'
+            search: 'grocery'
         );
         $sortRequest = new TaskSortRequest();
 

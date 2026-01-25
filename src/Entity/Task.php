@@ -556,6 +556,12 @@ class Task implements UserOwnedInterface
                 : null;
         }
 
+        if (array_key_exists('dueTime', $state)) {
+            $this->dueTime = $state['dueTime'] !== null
+                ? new \DateTimeImmutable($state['dueTime'])
+                : null;
+        }
+
         if (isset($state['position'])) {
             $this->position = $state['position'];
         }
