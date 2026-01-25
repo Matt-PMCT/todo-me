@@ -19,6 +19,7 @@ use App\Service\PaginationHelper;
 use App\Service\ProjectService;
 use App\Service\ResponseFormatter;
 use App\Service\ValidationHelper;
+use OpenApi\Attributes as OA;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -30,6 +31,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
  *
  * All endpoints require authentication and operate on the authenticated user's projects.
  */
+#[OA\Tag(name: 'Projects', description: 'Project management operations')]
 #[Route('/api/v1/projects', name: 'api_projects_')]
 #[IsGranted('IS_AUTHENTICATED_FULLY')]
 final class ProjectController extends AbstractController
@@ -71,6 +73,19 @@ final class ProjectController extends AbstractController
      * - include_archived: Include archived projects (default: false)
      */
     #[Route('', name: 'list', methods: ['GET'])]
+    #[OA\Get(
+        summary: 'List projects',
+        description: 'List all projects for the authenticated user',
+        parameters: [
+            new OA\Parameter(name: 'page', in: 'query', schema: new OA\Schema(type: 'integer', default: 1)),
+            new OA\Parameter(name: 'limit', in: 'query', schema: new OA\Schema(type: 'integer', default: 20, maximum: 100)),
+            new OA\Parameter(name: 'include_archived', in: 'query', schema: new OA\Schema(type: 'boolean', default: false)),
+        ],
+        responses: [
+            new OA\Response(response: 200, description: 'Project list'),
+            new OA\Response(response: 401, description: 'Not authenticated'),
+        ]
+    )]
     public function list(Request $request): JsonResponse
     {
         /** @var User $user */
@@ -119,6 +134,26 @@ final class ProjectController extends AbstractController
      * - description: Project description (optional, max 500 chars)
      */
     #[Route('', name: 'create', methods: ['POST'])]
+    #[OA\Post(
+        summary: 'Create project',
+        description: 'Create a new project',
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(
+                required: ['name'],
+                properties: [
+                    new OA\Property(property: 'name', type: 'string', maxLength: 100),
+                    new OA\Property(property: 'description', type: 'string', maxLength: 500),
+                    new OA\Property(property: 'parentId', type: 'string', format: 'uuid'),
+                ]
+            )
+        ),
+        responses: [
+            new OA\Response(response: 201, description: 'Project created'),
+            new OA\Response(response: 401, description: 'Not authenticated'),
+            new OA\Response(response: 422, description: 'Validation error'),
+        ]
+    )]
     public function create(Request $request): JsonResponse
     {
         /** @var User $user */

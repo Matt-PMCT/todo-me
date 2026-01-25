@@ -10,6 +10,7 @@ use App\Entity\User;
 use App\Service\Parser\NaturalLanguageParserService;
 use App\Service\ResponseFormatter;
 use App\Service\ValidationHelper;
+use OpenApi\Attributes as OA;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -20,6 +21,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 /**
  * Controller for parsing natural language task input.
  */
+#[OA\Tag(name: 'Parse', description: 'Natural language parsing')]
 #[Route('/api/v1', name: 'api_')]
 #[IsGranted('IS_AUTHENTICATED_FULLY')]
 final class ParseController extends AbstractController
@@ -39,6 +41,24 @@ final class ParseController extends AbstractController
      * Response: { title, due_date, due_time, project, tags, priority, highlights, warnings }
      */
     #[Route('/parse', name: 'parse', methods: ['POST'])]
+    #[OA\Post(
+        summary: 'Parse natural language',
+        description: 'Parse natural language input for task creation preview. Does not create a task.',
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(
+                required: ['input'],
+                properties: [
+                    new OA\Property(property: 'input', type: 'string', description: 'Natural language task description', example: 'Review proposal tomorrow at 3pm #work'),
+                ]
+            )
+        ),
+        responses: [
+            new OA\Response(response: 200, description: 'Parse result with extracted fields'),
+            new OA\Response(response: 401, description: 'Not authenticated'),
+            new OA\Response(response: 400, description: 'Invalid input'),
+        ]
+    )]
     public function parse(Request $request): JsonResponse
     {
         /** @var User $user */

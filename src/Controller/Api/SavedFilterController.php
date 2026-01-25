@@ -13,12 +13,14 @@ use App\Repository\SavedFilterRepository;
 use App\Service\ResponseFormatter;
 use App\Service\SavedFilterService;
 use App\Service\ValidationHelper;
+use OpenApi\Attributes as OA;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
+#[OA\Tag(name: 'Saved Filters', description: 'Saved filter management')]
 #[Route('/api/v1/saved-filters', name: 'api_saved_filters_')]
 #[IsGranted('IS_AUTHENTICATED_FULLY')]
 final class SavedFilterController extends AbstractController
@@ -35,6 +37,14 @@ final class SavedFilterController extends AbstractController
      * List all saved filters for the current user.
      */
     #[Route('', name: 'list', methods: ['GET'])]
+    #[OA\Get(
+        summary: 'List saved filters',
+        description: 'List all saved filters for the authenticated user',
+        responses: [
+            new OA\Response(response: 200, description: 'Saved filter list'),
+            new OA\Response(response: 401, description: 'Not authenticated'),
+        ]
+    )]
     public function list(): JsonResponse
     {
         /** @var User $user */
@@ -54,6 +64,25 @@ final class SavedFilterController extends AbstractController
      * Create a new saved filter.
      */
     #[Route('', name: 'create', methods: ['POST'])]
+    #[OA\Post(
+        summary: 'Create saved filter',
+        description: 'Create a new saved filter',
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(
+                required: ['name', 'filters'],
+                properties: [
+                    new OA\Property(property: 'name', type: 'string', maxLength: 100),
+                    new OA\Property(property: 'filters', type: 'object', description: 'Filter criteria'),
+                ]
+            )
+        ),
+        responses: [
+            new OA\Response(response: 201, description: 'Saved filter created'),
+            new OA\Response(response: 401, description: 'Not authenticated'),
+            new OA\Response(response: 422, description: 'Validation error'),
+        ]
+    )]
     public function create(Request $request): JsonResponse
     {
         /** @var User $user */
