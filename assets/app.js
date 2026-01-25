@@ -16,4 +16,7 @@ import './js/drag-drop.js';
 // Import search component
 import './js/search.js';
 
+// Import keyboard shortcuts
+import './js/keyboard-shortcuts.js';
+
 console.log('This log comes from assets/app.js - welcome to AssetMapper!');

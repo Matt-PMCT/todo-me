@@ -34,14 +34,24 @@ final class TaskResponse
         public readonly ?string $recurrenceType = null,
         public readonly ?string $recurrenceEndDate = null,
         public readonly ?string $originalTaskId = null,
+        public readonly ?string $parentTaskId = null,
+        public readonly int $subtaskCount = 0,
+        public readonly int $completedSubtaskCount = 0,
     ) {
     }
 
     /**
      * Creates a TaskResponse from a Task entity.
+     *
+     * @param Task $task The task entity
+     * @param string|null $undoToken Optional undo token
+     * @param array{total: int, completed: int}|null $subtaskCounts Optional subtask counts
      */
-    public static function fromTask(Task $task, ?string $undoToken = null): self
-    {
+    public static function fromTask(
+        Task $task,
+        ?string $undoToken = null,
+        ?array $subtaskCounts = null
+    ): self {
         $project = null;
         if ($task->getProject() !== null) {
             $project = [
@@ -78,6 +88,9 @@ final class TaskResponse
             recurrenceType: $task->getRecurrenceType(),
             recurrenceEndDate: $task->getRecurrenceEndDate()?->format('Y-m-d'),
             originalTaskId: $task->getOriginalTask()?->getId(),
+            parentTaskId: $task->getParentTask()?->getId(),
+            subtaskCount: $subtaskCounts['total'] ?? 0,
+            completedSubtaskCount: $subtaskCounts['completed'] ?? 0,
         );
     }
 
@@ -117,6 +130,13 @@ final class TaskResponse
         if ($this->originalTaskId !== null) {
             $data['originalTaskId'] = $this->originalTaskId;
         }
+
+        if ($this->parentTaskId !== null) {
+            $data['parentTaskId'] = $this->parentTaskId;
+        }
+
+        $data['subtaskCount'] = $this->subtaskCount;
+        $data['completedSubtaskCount'] = $this->completedSubtaskCount;
 
         return $data;
     }

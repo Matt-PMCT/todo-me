@@ -98,6 +98,27 @@ final class TaskService
             $task->setProject($project);
         }
 
+        // Handle parent task association (subtasks)
+        if ($dto->parentTaskId !== null) {
+            $parentTask = $this->taskRepository->find($dto->parentTaskId);
+
+            if ($parentTask === null) {
+                throw EntityNotFoundException::task($dto->parentTaskId);
+            }
+
+            // Verify ownership
+            if (!$this->ownershipChecker->isOwner($parentTask, $user)) {
+                throw ForbiddenException::notOwner('Task');
+            }
+
+            // Prevent deep nesting (max 1 level)
+            if ($parentTask->getParentTask() !== null) {
+                throw ValidationException::forField('parentTaskId', 'Cannot create subtasks of subtasks (max 1 level of nesting)');
+            }
+
+            $task->setParentTask($parentTask);
+        }
+
         // Set position to max + 1
         $maxPosition = $this->taskRepository->getMaxPosition($user, $project);
         $task->setPosition($maxPosition + 1);

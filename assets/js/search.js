@@ -84,21 +84,7 @@ function searchComponent() {
     };
 }
 
-// Global "/" shortcut to focus search
-document.addEventListener('keydown', (e) => {
-    // Don't trigger if already in an input
-    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.isContentEditable) {
-        return;
-    }
-
-    if (e.key === '/') {
-        e.preventDefault();
-        const searchInput = document.querySelector('[x-data*="searchComponent"]')?.querySelector('input');
-        if (searchInput) {
-            searchInput.focus();
-        }
-    }
-});
+// Note: "/" shortcut to focus search is now handled in keyboard-shortcuts.js
 
 // Make available globally
 window.searchComponent = searchComponent;

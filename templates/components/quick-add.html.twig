@@ -6,11 +6,11 @@
      @keydown.escape="clearInput()">
 
     {# Recurrence toggle and input #}
-    <div class="mb-3 flex items-center gap-4">
-        <label class="inline-flex items-center gap-2 text-sm text-gray-600 cursor-pointer">
+    <div class="mb-3 flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
+        <label class="min-h-11 inline-flex items-center gap-2 text-sm text-gray-600 cursor-pointer">
             <input type="checkbox"
                    x-model="isRecurring"
-                   class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-600">
+                   class="h-5 w-5 sm:h-4 sm:w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-600">
             <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
             </svg>
@@ -20,15 +20,15 @@
             <input type="text"
                    x-model="recurrenceRule"
                    placeholder="e.g., every day, every Monday, every 2 weeks, every! 3 days"
-                   class="block w-full rounded-md border-0 py-1.5 px-3 text-sm text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600">
+                   class="block w-full rounded-md border-0 py-2.5 sm:py-1.5 px-3 text-sm text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600">
         </div>
     </div>
 
     {# Input container with highlight overlay #}
-    <div class="relative flex gap-4">
+    <div class="relative flex flex-col sm:flex-row gap-3 sm:gap-4">
         <div class="flex-1 relative">
             {# Highlight overlay (behind input) #}
-            <div class="absolute inset-0 py-2 px-3 pointer-events-none overflow-hidden whitespace-pre text-transparent"
+            <div class="absolute inset-0 py-3 sm:py-2 px-3 pointer-events-none overflow-hidden whitespace-pre text-transparent"
                  aria-hidden="true">
                 <span x-html="highlightedText"></span>
             </div>
@@ -43,7 +43,7 @@
                    @keydown.arrow-up.prevent="navigateAutocomplete('up')"
                    @keydown.tab.prevent="selectAutocompleteItem()"
                    placeholder="What needs to be done? Try: 'Review proposal #work @urgent tomorrow p3'"
-                   class="block w-full rounded-md border-0 py-2 px-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6 bg-transparent relative z-10 caret-gray-900"
+                   class="block w-full rounded-md border-0 py-3 sm:py-2 px-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 text-base sm:text-sm sm:leading-6 bg-transparent relative z-10 caret-gray-900"
                    :class="{ 'ring-red-300 focus:ring-red-500': hasErrors }"
                    autocomplete="off"
                    spellcheck="false">
@@ -53,7 +53,7 @@
         <button type="button"
                 @click="submitTask()"
                 :disabled="isSubmitting || !inputText.trim()"
-                class="inline-flex items-center gap-2 rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 disabled:opacity-50 disabled:cursor-not-allowed">
+                class="min-h-11 w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-md bg-indigo-600 px-4 py-3 sm:py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 disabled:opacity-50 disabled:cursor-not-allowed">
             <template x-if="isSubmitting">
                 <svg class="animate-spin w-5 h-5" fill="none" viewBox="0 0 24 24">
                     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
