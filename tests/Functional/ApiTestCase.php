@@ -12,7 +12,6 @@ use App\Service\TokenGenerator;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
-use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
@@ -32,9 +31,6 @@ abstract class ApiTestCase extends WebTestCase
 
     protected function setUp(): void
     {
-        // Clear the rate limiter cache before each test to ensure isolation
-        $this->clearRateLimiterCache();
-
         parent::setUp();
 
         $this->client = static::createClient();
@@ -44,18 +40,6 @@ abstract class ApiTestCase extends WebTestCase
 
         // Begin transaction for test isolation
         $this->entityManager->getConnection()->beginTransaction();
-    }
-
-    /**
-     * Clears the rate limiter cache to ensure test isolation.
-     */
-    private function clearRateLimiterCache(): void
-    {
-        $poolsDir = dirname(__DIR__, 2) . '/var/cache/test/pools';
-        $filesystem = new Filesystem();
-        if ($filesystem->exists($poolsDir)) {
-            $filesystem->remove($poolsDir);
-        }
     }
 
     protected function tearDown(): void

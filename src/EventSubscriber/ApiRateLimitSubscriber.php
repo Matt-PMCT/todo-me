@@ -33,6 +33,7 @@ final class ApiRateLimitSubscriber implements EventSubscriberInterface
         private readonly RateLimiterFactory $anonymousApiLimiter,
         private readonly RateLimiterFactory $authenticatedApiLimiter,
         private readonly ResponseFormatter $responseFormatter,
+        private readonly string $environment,
     ) {
     }
 
@@ -46,6 +47,11 @@ final class ApiRateLimitSubscriber implements EventSubscriberInterface
 
     public function onKernelRequest(RequestEvent $event): void
     {
+        // Skip rate limiting in test environment
+        if ($this->environment === 'test') {
+            return;
+        }
+
         if (!$event->isMainRequest()) {
             return;
         }
