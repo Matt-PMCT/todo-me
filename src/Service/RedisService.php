@@ -402,4 +402,47 @@ class RedisService
             return null;
         }
     }
+
+    /**
+     * Get all keys matching a pattern.
+     * Uses SCAN to avoid blocking Redis with KEYS command.
+     *
+     * @param string $pattern The pattern to match (e.g., "user:123:*")
+     * @return string[] Array of matching keys
+     */
+    public function keys(string $pattern): array
+    {
+        try {
+            $client = $this->getClient();
+            if ($client === null) {
+                return [];
+            }
+
+            $allKeys = [];
+            $cursor = '0';
+
+            do {
+                $result = $client->scan($cursor, ['MATCH' => $pattern, 'COUNT' => 100]);
+                $cursor = $result[0];
+                $keys = $result[1];
+
+                if (!empty($keys)) {
+                    $allKeys = array_merge($allKeys, $keys);
+                }
+            } while ($cursor !== '0');
+
+            $this->logger->debug('Redis KEYS (SCAN)', [
+                'pattern' => $pattern,
+                'count' => count($allKeys),
+            ]);
+
+            return $allKeys;
+        } catch (Throwable $e) {
+            $this->logger->error('Redis KEYS failed', [
+                'pattern' => $pattern,
+                'error' => $e->getMessage(),
+            ]);
+            return [];
+        }
+    }
 }

@@ -54,7 +54,8 @@ class TaskViewControllerTest extends ApiTestCase
         $this->client->request('GET', '/today');
 
         $this->assertResponseIsSuccessful();
-        $this->assertSelectorTextContains('.text-red-600', 'Overdue');
+        // Use more specific selector for the overdue section h2 header
+        $this->assertSelectorTextContains('h2.text-red-600', 'Overdue');
         $this->assertSelectorTextContains('body', 'Overdue Task');
     }
 

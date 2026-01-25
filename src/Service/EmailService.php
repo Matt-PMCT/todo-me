@@ -79,6 +79,30 @@ final class EmailService
         $this->sendEmail($user->getEmail(), 'Disable Two-Factor Authentication', $html);
     }
 
+    /**
+     * Send a notification email.
+     *
+     * @param array<string, mixed> $data
+     */
+    public function sendNotificationEmail(
+        User $user,
+        string $type,
+        string $title,
+        ?string $message = null,
+        array $data = []
+    ): void {
+        $html = $this->twig->render('email/notification.html.twig', [
+            'user' => $user,
+            'type' => $type,
+            'title' => $title,
+            'message' => $message,
+            'data' => $data,
+            'appUrl' => $this->appUrl,
+        ]);
+
+        $this->sendEmail($user->getEmail(), $title, $html);
+    }
+
     private function sendEmail(string $to, string $subject, string $html): void
     {
         $email = (new Email())
