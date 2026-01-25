@@ -35,6 +35,30 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(type: Types::JSON, options: ['default' => '{}'])]
     private array $settings = [];
 
+    #[ORM\Column(type: Types::BOOLEAN, options: ['default' => false])]
+    private bool $emailVerified = false;
+
+    #[ORM\Column(type: Types::STRING, length: 64, nullable: true)]
+    private ?string $emailVerificationToken = null;
+
+    #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true)]
+    private ?\DateTimeImmutable $emailVerificationSentAt = null;
+
+    #[ORM\Column(type: Types::STRING, length: 64, nullable: true)]
+    private ?string $passwordResetToken = null;
+
+    #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true)]
+    private ?\DateTimeImmutable $passwordResetExpiresAt = null;
+
+    #[ORM\Column(type: Types::INTEGER, options: ['default' => 0])]
+    private int $failedLoginAttempts = 0;
+
+    #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true)]
+    private ?\DateTimeImmutable $lockedUntil = null;
+
+    #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true)]
+    private ?\DateTimeImmutable $lastFailedLoginAt = null;
+
     #[ORM\Column(type: Types::STRING, name: 'password_hash')]
     private string $passwordHash;
 
@@ -363,6 +387,135 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
             'date_format' => 'MDY',
             'start_of_week' => 0,
         ], $this->settings);
+    }
+
+    public function isEmailVerified(): bool
+    {
+        return $this->emailVerified;
+    }
+
+    public function setEmailVerified(bool $emailVerified): static
+    {
+        $this->emailVerified = $emailVerified;
+
+        return $this;
+    }
+
+    public function getEmailVerificationToken(): ?string
+    {
+        return $this->emailVerificationToken;
+    }
+
+    public function setEmailVerificationToken(?string $emailVerificationToken): static
+    {
+        $this->emailVerificationToken = $emailVerificationToken;
+
+        return $this;
+    }
+
+    public function getEmailVerificationSentAt(): ?\DateTimeImmutable
+    {
+        return $this->emailVerificationSentAt;
+    }
+
+    public function setEmailVerificationSentAt(?\DateTimeImmutable $emailVerificationSentAt): static
+    {
+        $this->emailVerificationSentAt = $emailVerificationSentAt;
+
+        return $this;
+    }
+
+    public function getPasswordResetToken(): ?string
+    {
+        return $this->passwordResetToken;
+    }
+
+    public function setPasswordResetToken(?string $passwordResetToken): static
+    {
+        $this->passwordResetToken = $passwordResetToken;
+
+        return $this;
+    }
+
+    public function getPasswordResetExpiresAt(): ?\DateTimeImmutable
+    {
+        return $this->passwordResetExpiresAt;
+    }
+
+    public function setPasswordResetExpiresAt(?\DateTimeImmutable $passwordResetExpiresAt): static
+    {
+        $this->passwordResetExpiresAt = $passwordResetExpiresAt;
+
+        return $this;
+    }
+
+    public function isPasswordResetTokenValid(): bool
+    {
+        return $this->passwordResetToken !== null
+            && $this->passwordResetExpiresAt !== null
+            && $this->passwordResetExpiresAt > new \DateTimeImmutable();
+    }
+
+    public function getFailedLoginAttempts(): int
+    {
+        return $this->failedLoginAttempts;
+    }
+
+    public function setFailedLoginAttempts(int $failedLoginAttempts): static
+    {
+        $this->failedLoginAttempts = $failedLoginAttempts;
+
+        return $this;
+    }
+
+    public function getLockedUntil(): ?\DateTimeImmutable
+    {
+        return $this->lockedUntil;
+    }
+
+    public function setLockedUntil(?\DateTimeImmutable $lockedUntil): static
+    {
+        $this->lockedUntil = $lockedUntil;
+
+        return $this;
+    }
+
+    public function getLastFailedLoginAt(): ?\DateTimeImmutable
+    {
+        return $this->lastFailedLoginAt;
+    }
+
+    public function setLastFailedLoginAt(?\DateTimeImmutable $lastFailedLoginAt): static
+    {
+        $this->lastFailedLoginAt = $lastFailedLoginAt;
+
+        return $this;
+    }
+
+    public function incrementFailedLoginAttempts(): void
+    {
+        $this->failedLoginAttempts++;
+        $this->lastFailedLoginAt = new \DateTimeImmutable();
+    }
+
+    public function resetFailedLoginAttempts(): void
+    {
+        $this->failedLoginAttempts = 0;
+        $this->lastFailedLoginAt = null;
+        $this->lockedUntil = null;
+    }
+
+    public function isLocked(): bool
+    {
+        return $this->lockedUntil !== null && $this->lockedUntil > new \DateTimeImmutable();
+    }
+
+    public function getLockoutRemainingSeconds(): int
+    {
+        if (!$this->isLocked()) {
+            return 0;
+        }
+        return max(0, $this->lockedUntil->getTimestamp() - time());
     }
 
     /**

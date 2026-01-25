@@ -4,6 +4,10 @@ declare(strict_types=1);
 
 namespace App\Controller\Web;
 
+use App\Exception\ValidationException;
+use App\Service\EmailVerificationService;
+use App\Service\PasswordPolicyValidator;
+use App\Service\PasswordResetService;
 use App\Service\UserService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -20,6 +24,9 @@ class SecurityController extends AbstractController
 {
     public function __construct(
         private readonly UserService $userService,
+        private readonly PasswordResetService $passwordResetService,
+        private readonly EmailVerificationService $emailVerificationService,
+        private readonly PasswordPolicyValidator $passwordPolicyValidator,
     ) {
     }
 
@@ -122,5 +129,105 @@ class SecurityController extends AbstractController
     {
         // This method will be intercepted by the logout key on your firewall
         throw new \LogicException('This method can be blank - it will be intercepted by the logout key on your firewall.');
+    }
+
+    #[Route('/forgot-password', name: 'app_forgot_password', methods: ['GET', 'POST'])]
+    public function forgotPassword(Request $request): Response
+    {
+        if ($request->isMethod('POST')) {
+            $token = $request->request->get('_csrf_token');
+            if (!$this->isCsrfTokenValid('forgot_password', $token)) {
+                return $this->render('security/forgot-password.html.twig', [
+                    'errors' => ['Invalid CSRF token'],
+                    'email' => $request->request->get('email', ''),
+                ]);
+            }
+
+            $email = $request->request->get('email', '');
+
+            if (empty($email) || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                return $this->render('security/forgot-password.html.twig', [
+                    'errors' => ['Please enter a valid email address'],
+                    'email' => $email,
+                ]);
+            }
+
+            $this->passwordResetService->requestReset($email);
+
+            return $this->render('security/forgot-password.html.twig', [
+                'success' => true,
+                'email' => $email,
+            ]);
+        }
+
+        return $this->render('security/forgot-password.html.twig');
+    }
+
+    #[Route('/reset-password', name: 'app_reset_password', methods: ['GET', 'POST'])]
+    public function resetPassword(Request $request): Response
+    {
+        $token = $request->query->get('token', '');
+
+        if ($request->isMethod('POST')) {
+            $csrfToken = $request->request->get('_csrf_token');
+            if (!$this->isCsrfTokenValid('reset_password', $csrfToken)) {
+                return $this->render('security/reset-password.html.twig', [
+                    'errors' => ['Invalid CSRF token'],
+                    'token' => $token,
+                ]);
+            }
+
+            $token = $request->request->get('token', '');
+            $password = $request->request->get('password', '');
+            $passwordConfirm = $request->request->get('password_confirm', '');
+
+            if ($password !== $passwordConfirm) {
+                return $this->render('security/reset-password.html.twig', [
+                    'errors' => ['Passwords do not match'],
+                    'token' => $token,
+                ]);
+            }
+
+            try {
+                $this->passwordResetService->resetPassword($token, $password);
+                $this->addFlash('success', 'Your password has been reset. Please log in with your new password.');
+                return $this->redirectToRoute('app_login');
+            } catch (ValidationException $e) {
+                return $this->render('security/reset-password.html.twig', [
+                    'errors' => [$e->getMessage()],
+                    'token' => $token,
+                ]);
+            }
+        }
+
+        // Validate token on GET request
+        if (!empty($token) && !$this->passwordResetService->validateToken($token)) {
+            return $this->render('security/reset-password.html.twig', [
+                'errors' => ['Invalid or expired reset link. Please request a new one.'],
+                'token' => '',
+                'tokenInvalid' => true,
+            ]);
+        }
+
+        return $this->render('security/reset-password.html.twig', [
+            'token' => $token,
+            'requirements' => $this->passwordPolicyValidator->getRequirements(),
+        ]);
+    }
+
+    #[Route('/verify-email/{token}', name: 'app_verify_email', methods: ['GET'])]
+    public function verifyEmail(string $token): Response
+    {
+        try {
+            $this->emailVerificationService->verifyEmail($token);
+            return $this->render('security/verify-email.html.twig', [
+                'success' => true,
+            ]);
+        } catch (ValidationException $e) {
+            return $this->render('security/verify-email.html.twig', [
+                'success' => false,
+                'error' => $e->getMessage(),
+            ]);
+        }
     }
 }

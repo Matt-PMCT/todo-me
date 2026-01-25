@@ -4,13 +4,21 @@ declare(strict_types=1);
 
 namespace App\Controller\Api;
 
+use App\DTO\ChangePasswordRequest;
+use App\DTO\ForgotPasswordRequest;
 use App\DTO\LoginRequest;
 use App\DTO\RegisterRequest;
+use App\DTO\ResetPasswordRequest;
 use App\DTO\TokenResponse;
 use App\DTO\UserResponse;
 use App\Entity\User;
 use App\Exception\ValidationException;
+use App\Service\AccountLockoutService;
 use App\Service\ApiLogger;
+use App\Service\EmailService;
+use App\Service\EmailVerificationService;
+use App\Service\PasswordPolicyValidator;
+use App\Service\PasswordResetService;
 use App\Service\ResponseFormatter;
 use App\Service\UserService;
 use App\Service\ValidationHelper;
@@ -35,6 +43,11 @@ final class AuthController extends AbstractController
         private readonly RateLimiterFactory $loginLimiter,
         private readonly RateLimiterFactory $registrationLimiter,
         private readonly ValidationHelper $validationHelper,
+        private readonly PasswordResetService $passwordResetService,
+        private readonly PasswordPolicyValidator $passwordPolicyValidator,
+        private readonly EmailVerificationService $emailVerificationService,
+        private readonly EmailService $emailService,
+        private readonly AccountLockoutService $accountLockoutService,
     ) {
     }
 
@@ -261,8 +274,13 @@ final class AuthController extends AbstractController
             );
         }
 
+        // Check account lockout
+        $this->accountLockoutService->checkLockout($user);
+
         // Validate password
         if (!$this->userService->validatePassword($user, $loginRequest->password)) {
+            $this->accountLockoutService->recordFailedAttempt($user);
+
             $this->apiLogger->logWarning('Login attempt with invalid password', [
                 'email_hash' => ApiLogger::hashEmail($loginRequest->email),
                 'ip' => $request->getClientIp(),
@@ -277,6 +295,8 @@ final class AuthController extends AbstractController
 
         // Generate new token
         $apiToken = $this->userService->generateNewApiToken($user);
+
+        $this->accountLockoutService->recordSuccessfulLogin($user);
 
         $this->apiLogger->logInfo('User logged in successfully', [
             'user_id' => $user->getId(),
@@ -451,5 +471,160 @@ final class AuthController extends AbstractController
         $userResponse = UserResponse::fromUser($user);
 
         return $this->responseFormatter->success($userResponse->toArray());
+    }
+
+    #[Route('/forgot-password', name: 'forgot_password', methods: ['POST'])]
+    public function forgotPassword(Request $request): JsonResponse
+    {
+        $data = $this->validationHelper->decodeJsonBody($request);
+        $dto = ForgotPasswordRequest::fromArray($data);
+
+        $errors = $this->validator->validate($dto);
+        if (count($errors) > 0) {
+            $validationErrors = [];
+            foreach ($errors as $error) {
+                $field = $error->getPropertyPath();
+                $validationErrors[$field][] = $error->getMessage();
+            }
+            return $this->responseFormatter->error(
+                'Validation failed',
+                'VALIDATION_ERROR',
+                Response::HTTP_UNPROCESSABLE_ENTITY,
+                ['fields' => $validationErrors]
+            );
+        }
+
+        $this->passwordResetService->requestReset($dto->email);
+
+        return $this->responseFormatter->success([
+            'message' => 'If an account exists with this email, a reset link has been sent.',
+        ]);
+    }
+
+    #[Route('/reset-password', name: 'reset_password', methods: ['POST'])]
+    public function resetPassword(Request $request): JsonResponse
+    {
+        $data = $this->validationHelper->decodeJsonBody($request);
+        $dto = ResetPasswordRequest::fromArray($data);
+
+        $errors = $this->validator->validate($dto);
+        if (count($errors) > 0) {
+            $validationErrors = [];
+            foreach ($errors as $error) {
+                $field = $error->getPropertyPath();
+                $validationErrors[$field][] = $error->getMessage();
+            }
+            return $this->responseFormatter->error(
+                'Validation failed',
+                'VALIDATION_ERROR',
+                Response::HTTP_UNPROCESSABLE_ENTITY,
+                ['fields' => $validationErrors]
+            );
+        }
+
+        $this->passwordResetService->resetPassword($dto->token, $dto->password);
+
+        return $this->responseFormatter->success([
+            'message' => 'Password has been reset successfully.',
+        ]);
+    }
+
+    #[Route('/reset-password/validate', name: 'validate_reset_token', methods: ['POST'])]
+    public function validateResetToken(Request $request): JsonResponse
+    {
+        $data = $this->validationHelper->decodeJsonBody($request);
+        $token = (string) ($data['token'] ?? '');
+
+        $isValid = $this->passwordResetService->validateToken($token);
+
+        return $this->responseFormatter->success(['valid' => $isValid]);
+    }
+
+    #[Route('/password-requirements', name: 'password_requirements', methods: ['GET'])]
+    public function passwordRequirements(): JsonResponse
+    {
+        return $this->responseFormatter->success(
+            $this->passwordPolicyValidator->getRequirements()
+        );
+    }
+
+    #[Route('/me/password', name: 'change_password', methods: ['PATCH'])]
+    public function changePassword(Request $request): JsonResponse
+    {
+        /** @var User $user */
+        $user = $this->getUser();
+
+        $data = $this->validationHelper->decodeJsonBody($request);
+        $dto = ChangePasswordRequest::fromArray($data);
+
+        $errors = $this->validator->validate($dto);
+        if (count($errors) > 0) {
+            $validationErrors = [];
+            foreach ($errors as $error) {
+                $field = $error->getPropertyPath();
+                $validationErrors[$field][] = $error->getMessage();
+            }
+            return $this->responseFormatter->error(
+                'Validation failed',
+                'VALIDATION_ERROR',
+                Response::HTTP_UNPROCESSABLE_ENTITY,
+                ['fields' => $validationErrors]
+            );
+        }
+
+        // Verify current password
+        if (!$this->userService->validatePassword($user, $dto->currentPassword)) {
+            return $this->responseFormatter->error(
+                'Current password is incorrect',
+                'INVALID_PASSWORD',
+                Response::HTTP_BAD_REQUEST
+            );
+        }
+
+        // Validate new password policy
+        $policyErrors = $this->passwordPolicyValidator->validate(
+            $dto->newPassword,
+            $user->getEmail(),
+            $user->getUsername()
+        );
+
+        if (!empty($policyErrors)) {
+            return $this->responseFormatter->error(
+                'Password does not meet requirements',
+                'WEAK_PASSWORD',
+                Response::HTTP_UNPROCESSABLE_ENTITY,
+                ['errors' => $policyErrors]
+            );
+        }
+
+        $this->userService->changePassword($user, $dto->newPassword);
+        $this->emailService->sendPasswordChangedNotification($user);
+
+        return $this->responseFormatter->success([
+            'message' => 'Password changed successfully',
+        ]);
+    }
+
+    #[Route('/verify-email/{token}', name: 'verify_email', methods: ['POST'])]
+    public function verifyEmail(string $token): JsonResponse
+    {
+        $this->emailVerificationService->verifyEmail($token);
+
+        return $this->responseFormatter->success([
+            'message' => 'Email verified successfully',
+        ]);
+    }
+
+    #[Route('/resend-verification', name: 'resend_verification', methods: ['POST'])]
+    public function resendVerification(): JsonResponse
+    {
+        /** @var User $user */
+        $user = $this->getUser();
+
+        $this->emailVerificationService->sendVerificationEmail($user);
+
+        return $this->responseFormatter->success([
+            'message' => 'Verification email sent',
+        ]);
     }
 }

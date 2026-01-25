@@ -11,6 +11,7 @@ class TokenGenerator
 {
     private const API_TOKEN_LENGTH = 32; // 32 bytes = 64 hex characters
     private const PASSWORD_RESET_TOKEN_LENGTH = 16; // 16 bytes = 32 hex characters
+    private const EMAIL_VERIFICATION_TOKEN_LENGTH = 32; // 32 bytes = 64 hex characters
 
     /**
      * Generates a cryptographically secure API token.
@@ -30,5 +31,15 @@ class TokenGenerator
     public function generatePasswordResetToken(): string
     {
         return bin2hex(random_bytes(self::PASSWORD_RESET_TOKEN_LENGTH));
+    }
+
+    /**
+     * Generates a cryptographically secure email verification token.
+     *
+     * @return string 64-character hexadecimal token
+     */
+    public function generateEmailVerificationToken(): string
+    {
+        return bin2hex(random_bytes(self::EMAIL_VERIFICATION_TOKEN_LENGTH));
     }
 }

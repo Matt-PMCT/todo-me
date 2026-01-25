@@ -1,0 +1,17 @@
+{% extends 'email/base.html.twig' %}
+
+{% block title %}Account Locked{% endblock %}
+
+{% block content %}
+    <h2>Your Account Has Been Temporarily Locked</h2>
+
+    <p>Hi {{ user.username }},</p>
+
+    <p>We detected multiple failed login attempts on your account. For your security, your account has been temporarily locked for <strong>{{ lockoutMinutes }} minutes</strong>.</p>
+
+    <div class="warning">
+        <strong>If this wasn't you</strong>, someone may be trying to access your account. We recommend changing your password once the lockout expires.
+    </div>
+
+    <p>If you made these login attempts, please wait for the lockout period to end and then try again with the correct password.</p>
+{% endblock %}

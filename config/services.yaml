@@ -73,3 +73,9 @@ services:
     # Alias for FormLoginAuthenticator to enable autowiring
     Symfony\Component\Security\Http\Authenticator\FormLoginAuthenticator:
         alias: 'security.authenticator.form_login.main'
+
+    App\Service\EmailService:
+        arguments:
+            $appUrl: '%env(APP_URL)%'
+            $mailFromAddress: '%env(MAIL_FROM_ADDRESS)%'
+            $mailFromName: '%env(MAIL_FROM_NAME)%'
