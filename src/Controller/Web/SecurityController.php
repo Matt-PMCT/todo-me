@@ -121,10 +121,13 @@ class SecurityController extends AbstractController
             return $this->render('security/register.html.twig', [
                 'errors' => $errors,
                 'email' => $email,
+                'requirements' => $this->passwordPolicyValidator->getRequirements(),
             ]);
         }
 
-        return $this->render('security/register.html.twig');
+        return $this->render('security/register.html.twig', [
+            'requirements' => $this->passwordPolicyValidator->getRequirements(),
+        ]);
     }
 
     #[Route('/logout', name: 'app_logout', methods: ['GET'])]

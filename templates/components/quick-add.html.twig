@@ -35,6 +35,7 @@
 
             {# Actual input (transparent text, shows caret) #}
             <input type="text"
+                   id="quick-add-input"
                    x-ref="input"
                    x-model="inputText"
                    @input.debounce.150ms="parseInput()"
