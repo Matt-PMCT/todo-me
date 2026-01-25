@@ -20,6 +20,7 @@ use App\Service\EmailVerificationService;
 use App\Service\PasswordPolicyValidator;
 use App\Service\PasswordResetService;
 use App\Service\ResponseFormatter;
+use App\Service\TwoFactorLoginService;
 use App\Service\UserService;
 use App\Service\ValidationHelper;
 use OpenApi\Attributes as OA;
@@ -48,6 +49,7 @@ final class AuthController extends AbstractController
         private readonly EmailVerificationService $emailVerificationService,
         private readonly EmailService $emailService,
         private readonly AccountLockoutService $accountLockoutService,
+        private readonly TwoFactorLoginService $twoFactorLoginService,
     ) {
     }
 
@@ -214,6 +216,12 @@ final class AuthController extends AbstractController
     {
         $data = $this->validationHelper->decodeJsonBody($request);
 
+        // Check if this is a 2FA challenge verification
+        $challengeToken = $data['challengeToken'] ?? null;
+        if ($challengeToken !== null) {
+            return $this->verify2faChallenge($data, $request);
+        }
+
         $loginRequest = LoginRequest::fromArray($data);
 
         // Validate the request
@@ -293,7 +301,64 @@ final class AuthController extends AbstractController
             );
         }
 
-        // Generate new token
+        // Check if 2FA is required
+        if ($this->twoFactorLoginService->requires2fa($user)) {
+            $challengeData = $this->twoFactorLoginService->createChallenge($user);
+
+            $this->apiLogger->logInfo('2FA challenge created for login', [
+                'user_id' => $user->getId(),
+                'email_hash' => ApiLogger::hashEmail($user->getEmail()),
+            ]);
+
+            return $this->responseFormatter->success([
+                'twoFactorRequired' => true,
+                'challengeToken' => $challengeData['challengeToken'],
+                'expiresIn' => $challengeData['expiresIn'],
+            ]);
+        }
+
+        return $this->completeLogin($user);
+    }
+
+    /**
+     * Verify 2FA challenge and complete login.
+     *
+     * @param array<string, mixed> $data
+     */
+    private function verify2faChallenge(array $data, Request $request): JsonResponse
+    {
+        $challengeToken = (string) ($data['challengeToken'] ?? '');
+        $code = (string) ($data['code'] ?? '');
+
+        if ($challengeToken === '' || $code === '') {
+            return $this->responseFormatter->error(
+                'Challenge token and code are required',
+                'VALIDATION_ERROR',
+                Response::HTTP_UNPROCESSABLE_ENTITY
+            );
+        }
+
+        $user = $this->twoFactorLoginService->verifyChallenge($challengeToken, $code);
+        if ($user === null) {
+            $this->apiLogger->logWarning('2FA challenge verification failed', [
+                'ip' => $request->getClientIp(),
+            ]);
+
+            return $this->responseFormatter->error(
+                'Invalid or expired challenge token, or incorrect code',
+                '2FA_VERIFICATION_FAILED',
+                Response::HTTP_UNAUTHORIZED
+            );
+        }
+
+        return $this->completeLogin($user);
+    }
+
+    /**
+     * Complete login by generating token and recording success.
+     */
+    private function completeLogin(User $user): JsonResponse
+    {
         $apiToken = $this->userService->generateNewApiToken($user);
 
         $this->accountLockoutService->recordSuccessfulLogin($user);

@@ -1,0 +1,31 @@
+{% extends 'email/base.html.twig' %}
+
+{% block title %}Disable Two-Factor Authentication{% endblock %}
+
+{% block content %}
+    <h2>Two-Factor Authentication Recovery</h2>
+
+    <p>Hi {{ user.username }},</p>
+
+    <p>We received a request to disable two-factor authentication on your account. If you've lost access to your authenticator app and backup codes, click the button below to disable 2FA:</p>
+
+    <p style="text-align: center;">
+        <a href="{{ recoveryUrl }}" class="button">Disable Two-Factor Authentication</a>
+    </p>
+
+    <div class="warning">
+        <strong>This link will expire in {{ expiresInHours }} hours.</strong>
+    </div>
+
+    <p>After clicking this link:</p>
+    <ul>
+        <li>Two-factor authentication will be disabled on your account</li>
+        <li>Your current API token will be invalidated</li>
+        <li>You will need to log in again</li>
+    </ul>
+
+    <p><strong>If you did not request this, someone may be trying to access your account.</strong> You can safely ignore this email if you still have access to your authenticator app.</p>
+
+    <p>If the button doesn't work, copy and paste this link into your browser:</p>
+    <p style="word-break: break-all; font-size: 14px; color: #6b7280;">{{ recoveryUrl }}</p>
+{% endblock %}

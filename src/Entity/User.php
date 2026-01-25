@@ -59,6 +59,21 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true)]
     private ?\DateTimeImmutable $lastFailedLoginAt = null;
 
+    #[ORM\Column(type: Types::BOOLEAN, options: ['default' => false])]
+    private bool $twoFactorEnabled = false;
+
+    #[ORM\Column(type: Types::STRING, length: 255, nullable: true)]
+    private ?string $totpSecret = null;
+
+    #[ORM\Column(type: Types::JSON, nullable: true)]
+    private ?array $backupCodes = null;
+
+    #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true)]
+    private ?\DateTimeImmutable $twoFactorEnabledAt = null;
+
+    #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true)]
+    private ?\DateTimeImmutable $backupCodesGeneratedAt = null;
+
     #[ORM\Column(type: Types::STRING, name: 'password_hash')]
     private string $passwordHash;
 
@@ -516,6 +531,81 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
             return 0;
         }
         return max(0, $this->lockedUntil->getTimestamp() - time());
+    }
+
+    public function isTwoFactorEnabled(): bool
+    {
+        return $this->twoFactorEnabled;
+    }
+
+    public function setTwoFactorEnabled(bool $twoFactorEnabled): static
+    {
+        $this->twoFactorEnabled = $twoFactorEnabled;
+
+        return $this;
+    }
+
+    public function getTotpSecret(): ?string
+    {
+        return $this->totpSecret;
+    }
+
+    public function setTotpSecret(?string $totpSecret): static
+    {
+        $this->totpSecret = $totpSecret;
+
+        return $this;
+    }
+
+    /**
+     * @return array<array{hash: string, used: bool}>|null
+     */
+    public function getBackupCodes(): ?array
+    {
+        return $this->backupCodes;
+    }
+
+    /**
+     * @param array<array{hash: string, used: bool}>|null $backupCodes
+     */
+    public function setBackupCodes(?array $backupCodes): static
+    {
+        $this->backupCodes = $backupCodes;
+
+        return $this;
+    }
+
+    public function getBackupCodesRemaining(): int
+    {
+        if ($this->backupCodes === null) {
+            return 0;
+        }
+
+        return count(array_filter($this->backupCodes, fn(array $code) => !$code['used']));
+    }
+
+    public function getTwoFactorEnabledAt(): ?\DateTimeImmutable
+    {
+        return $this->twoFactorEnabledAt;
+    }
+
+    public function setTwoFactorEnabledAt(?\DateTimeImmutable $twoFactorEnabledAt): static
+    {
+        $this->twoFactorEnabledAt = $twoFactorEnabledAt;
+
+        return $this;
+    }
+
+    public function getBackupCodesGeneratedAt(): ?\DateTimeImmutable
+    {
+        return $this->backupCodesGeneratedAt;
+    }
+
+    public function setBackupCodesGeneratedAt(?\DateTimeImmutable $backupCodesGeneratedAt): static
+    {
+        $this->backupCodesGeneratedAt = $backupCodesGeneratedAt;
+
+        return $this;
     }
 
     /**

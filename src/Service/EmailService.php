@@ -66,6 +66,19 @@ final class EmailService
         $this->sendEmail($user->getEmail(), 'Your Account Has Been Locked', $html);
     }
 
+    public function send2faRecoveryEmail(User $user, string $token): void
+    {
+        $recoveryUrl = $this->appUrl . '/2fa-recovery?token=' . $token;
+
+        $html = $this->twig->render('email/2fa-recovery.html.twig', [
+            'user' => $user,
+            'recoveryUrl' => $recoveryUrl,
+            'expiresInHours' => 24,
+        ]);
+
+        $this->sendEmail($user->getEmail(), 'Disable Two-Factor Authentication', $html);
+    }
+
     private function sendEmail(string $to, string $subject, string $html): void
     {
         $email = (new Email())
