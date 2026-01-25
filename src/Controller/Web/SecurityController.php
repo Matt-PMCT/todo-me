@@ -83,11 +83,14 @@ class SecurityController extends AbstractController
                 $errors[] = 'An account with this email already exists.';
             }
 
-            // Validate password
+            // Validate password using policy
             if (empty($password)) {
                 $errors[] = 'Password is required.';
-            } elseif (strlen($password) < 8) {
-                $errors[] = 'Password must be at least 8 characters long.';
+            } else {
+                $policyErrors = $this->passwordPolicyValidator->validate($password, $email);
+                foreach ($policyErrors as $policyError) {
+                    $errors[] = $policyError;
+                }
             }
 
             // Validate password confirmation
