@@ -24,7 +24,6 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\Index(columns: ['parent_task_id'], name: 'idx_tasks_parent')]
 #[ORM\Index(columns: ['original_task_id'], name: 'idx_tasks_original')]
 #[ORM\Index(columns: ['owner_id', 'is_recurring'], name: 'idx_tasks_owner_recurring')]
-#[ORM\Index(columns: ['owner_id', 'parent_task_id'], name: 'idx_tasks_owner_parent')]
 #[ORM\HasLifecycleCallbacks]
 class Task implements UserOwnedInterface
 {

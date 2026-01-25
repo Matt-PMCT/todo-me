@@ -12,19 +12,44 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ### Docker & Setup
 ```bash
-docker-compose -f docker/docker-compose.yml up -d      # Start services
-docker-compose -f docker/docker-compose.yml exec php bash  # Enter PHP container
-composer install                                        # Install deps (runs migrations)
-php bin/console cache:clear                            # Clear cache
+docker compose -f docker/docker-compose.yml up -d           # Start services
+docker compose -f docker/docker-compose.yml exec php bash   # Enter PHP container
+composer install                                             # Install deps (in container)
+php bin/console cache:clear                                  # Clear cache (in container)
 ```
 
 ### Testing
+
+**IMPORTANT:** Tests MUST be run inside the Docker PHP container. The database and Redis services are only accessible from within the Docker network.
+
 ```bash
-php bin/phpunit                           # All tests (450 tests)
-php bin/phpunit tests/Unit                # Unit tests only
-php bin/phpunit tests/Functional          # Functional API tests only
-php bin/phpunit --filter=TaskServiceTest  # Run single test class
-php bin/phpunit --filter=testCreateTask   # Run single test method
+# Enter the PHP container first
+docker compose -f docker/docker-compose.yml exec php bash
+
+# Then run tests inside the container:
+vendor/bin/phpunit                              # All tests
+vendor/bin/phpunit tests/Unit                   # Unit tests only
+vendor/bin/phpunit tests/Functional             # Functional tests only
+vendor/bin/phpunit --filter=TaskServiceTest     # Single test class
+vendor/bin/phpunit --filter=testCreateTask      # Single test method
+```
+
+**One-liner (without entering container):**
+```bash
+docker compose -f docker/docker-compose.yml exec php vendor/bin/phpunit tests/Unit
+```
+
+**Output to file (recommended for full test suite):**
+When running the full test suite, output results to a file to avoid losing output:
+```bash
+# JUnit XML format (machine-readable, good for CI)
+vendor/bin/phpunit --log-junit var/test-results.xml
+
+# TestDox text format (human-readable summary)
+vendor/bin/phpunit --testdox-text var/test-results.txt
+
+# Both console output and file logging
+vendor/bin/phpunit --testdox --log-junit var/test-results.xml
 ```
 
 ### Database
