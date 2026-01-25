@@ -39,16 +39,16 @@ The API uses token-based authentication with two supported methods:
 
 ### Hashing
 
-Passwords are hashed using bcrypt with cost factor 13:
+Passwords are hashed using Symfony's automatic algorithm selection:
 
 ```yaml
 # config/packages/security.yaml
 security:
     password_hashers:
-        App\Entity\User:
-            algorithm: bcrypt
-            cost: 13
+        Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface: 'auto'
 ```
+
+The `'auto'` setting uses the best available algorithm for the current PHP version (bcrypt or argon2), with Symfony managing cost factors and algorithm upgrades automatically.
 
 ### Requirements
 
@@ -172,7 +172,7 @@ The nginx configuration includes security headers:
 
 ```nginx
 # Prevent clickjacking
-add_header X-Frame-Options "SAMEORIGIN" always;
+add_header X-Frame-Options "DENY" always;
 
 # Prevent MIME type sniffing
 add_header X-Content-Type-Options "nosniff" always;
@@ -181,7 +181,7 @@ add_header X-Content-Type-Options "nosniff" always;
 add_header Referrer-Policy "strict-origin-when-cross-origin" always;
 
 # Content Security Policy
-add_header Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline';" always;
+add_header Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self';" always;
 ```
 
 ## Session Security (Web UI)

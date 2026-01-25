@@ -50,6 +50,10 @@ services:
     # The factory names are derived from the rate_limiter config keys in framework.yaml
     # (anonymous_api -> anonymousApiLimiter, authenticated_api -> authenticatedApiLimiter)
 
+    App\EventSubscriber\ApiRateLimitSubscriber:
+        arguments:
+            $environment: '%kernel.environment%'
+
     # Auth controller with login and registration rate limiters
     App\Controller\Api\AuthController:
         arguments:

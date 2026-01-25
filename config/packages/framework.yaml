@@ -30,17 +30,3 @@ when@test:
         test: true
         session:
             storage_factory_id: session.storage.factory.mock_file
-        rate_limiter:
-            # Low limits for testing 429 responses
-            # Uses filesystem cache for persistence between test requests
-            # Each test clears the cache in setUp for isolation
-            anonymous_api:
-                policy: 'sliding_window'
-                limit: 5
-                interval: '1 minute'
-                cache_pool: rate_limiter.cache
-            authenticated_api:
-                policy: 'sliding_window'
-                limit: 5
-                interval: '1 minute'
-                cache_pool: rate_limiter.cache
