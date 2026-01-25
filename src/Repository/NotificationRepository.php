@@ -101,6 +101,21 @@ class NotificationRepository extends ServiceEntityRepository
     }
 
     /**
+     * Count all notifications for a user.
+     */
+    public function countByOwner(User $owner): int
+    {
+        $result = $this->createQueryBuilder('n')
+            ->select('COUNT(n.id)')
+            ->where('n.owner = :owner')
+            ->setParameter('owner', $owner)
+            ->getQuery()
+            ->getSingleScalarResult();
+
+        return (int) $result;
+    }
+
+    /**
      * Delete old read notifications (older than specified days).
      *
      * @return int Number of deleted notifications
