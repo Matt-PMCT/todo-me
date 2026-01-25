@@ -43,7 +43,7 @@ final class ValidationException extends HttpException
     /**
      * Creates a ValidationException from a single field error.
      *
-     * @param string $field The field name
+     * @param string $field   The field name
      * @param string $message The error message
      */
     public static function forField(string $field, string $message): self

@@ -22,7 +22,7 @@ final class EmailService
 
     public function sendPasswordResetEmail(User $user, string $token): void
     {
-        $resetUrl = $this->appUrl . '/reset-password?token=' . $token;
+        $resetUrl = $this->appUrl.'/reset-password?token='.$token;
 
         $html = $this->twig->render('email/password-reset.html.twig', [
             'user' => $user,
@@ -35,7 +35,7 @@ final class EmailService
 
     public function sendEmailVerification(User $user, string $token): void
     {
-        $verifyUrl = $this->appUrl . '/verify-email/' . $token;
+        $verifyUrl = $this->appUrl.'/verify-email/'.$token;
 
         $html = $this->twig->render('email/verify-email.html.twig', [
             'user' => $user,
@@ -68,7 +68,7 @@ final class EmailService
 
     public function send2faRecoveryEmail(User $user, string $token): void
     {
-        $recoveryUrl = $this->appUrl . '/2fa-recovery?token=' . $token;
+        $recoveryUrl = $this->appUrl.'/2fa-recovery?token='.$token;
 
         $html = $this->twig->render('email/2fa-recovery.html.twig', [
             'user' => $user,
@@ -106,7 +106,7 @@ final class EmailService
     private function sendEmail(string $to, string $subject, string $html): void
     {
         $email = (new Email())
-            ->from($this->mailFromName . ' <' . $this->mailFromAddress . '>')
+            ->from($this->mailFromName.' <'.$this->mailFromAddress.'>')
             ->to($to)
             ->subject($subject)
             ->html($html);

@@ -85,3 +85,8 @@ docker-compose.override.yml
 .claude/settings.local.json
 .claude/*.local.*
 ###< claude ###
+
+###> friendsofphp/php-cs-fixer ###
+/.php-cs-fixer.php
+/.php-cs-fixer.cache
+###< friendsofphp/php-cs-fixer ###

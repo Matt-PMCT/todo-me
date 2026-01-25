@@ -5,8 +5,6 @@ declare(strict_types=1);
 namespace App\Service\Parser;
 
 use App\ValueObject\DateParseResult;
-use DateTimeImmutable;
-use DateTimeZone;
 
 class DateParserService
 {
@@ -179,7 +177,7 @@ class DateParserService
     {
         // Match "monday", "next monday", "this monday"
         $dayNamesPattern = implode('|', array_keys(self::DAY_NAMES));
-        $pattern = '/\b(next\s+|this\s+)?(' . $dayNamesPattern . ')\b/i';
+        $pattern = '/\b(next\s+|this\s+)?('.$dayNamesPattern.')\b/i';
 
         if (!preg_match($pattern, $input, $matches, PREG_OFFSET_CAPTURE)) {
             return null;
@@ -233,9 +231,9 @@ class DateParserService
         // Match "Jan 23", "January 23rd", "23 Jan", "23rd January"
         $patterns = [
             // Month Day: Jan 23, January 23rd
-            '/\b(' . $monthNames . ')\s+(\d{1,2})(?:st|nd|rd|th)?\b/i',
+            '/\b('.$monthNames.')\s+(\d{1,2})(?:st|nd|rd|th)?\b/i',
             // Day Month: 23 Jan, 23rd January
-            '/\b(\d{1,2})(?:st|nd|rd|th)?\s+(' . $monthNames . ')\b/i',
+            '/\b(\d{1,2})(?:st|nd|rd|th)?\s+('.$monthNames.')\b/i',
         ];
 
         foreach ($patterns as $index => $pattern) {
@@ -426,7 +424,7 @@ class DateParserService
                 return DateParseResult::create(
                     date: $dateWithTime,
                     time: $timeString,
-                    originalText: $dateResult->originalText . $matches[0],
+                    originalText: $dateResult->originalText.$matches[0],
                     startPosition: $dateResult->startPosition,
                     endPosition: $newEndPos,
                     hasTime: true,

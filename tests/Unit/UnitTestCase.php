@@ -9,7 +9,6 @@ use App\Entity\Task;
 use App\Entity\User;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
-use ReflectionProperty;
 
 /**
  * Base class for unit tests providing common helper methods.
@@ -24,7 +23,7 @@ abstract class UnitTestCase extends TestCase
         $user = new User();
         $user->setEmail($email);
         $user->setPasswordHash('hashed_password');
-        $user->setUsername('testuser_' . substr($id, 0, 8));
+        $user->setUsername('testuser_'.substr($id, 0, 8));
         $this->setEntityId($user, $id);
 
         return $user;
@@ -78,7 +77,7 @@ abstract class UnitTestCase extends TestCase
      */
     protected function setEntityId(object $entity, string $id): void
     {
-        $reflection = new ReflectionProperty($entity, 'id');
+        $reflection = new \ReflectionProperty($entity, 'id');
         $reflection->setValue($entity, $id);
     }
 
@@ -86,7 +85,9 @@ abstract class UnitTestCase extends TestCase
      * Creates a mock object for the given class.
      *
      * @template T of object
+     *
      * @param class-string<T> $className
+     *
      * @return T&MockObject
      */
     protected function createMockFor(string $className): MockObject
@@ -101,14 +102,14 @@ abstract class UnitTestCase extends TestCase
     {
         return sprintf(
             '%04x%04x-%04x-%04x-%04x-%04x%04x%04x',
-            random_int(0, 0xffff),
-            random_int(0, 0xffff),
-            random_int(0, 0xffff),
-            random_int(0, 0x0fff) | 0x4000,
-            random_int(0, 0x3fff) | 0x8000,
-            random_int(0, 0xffff),
-            random_int(0, 0xffff),
-            random_int(0, 0xffff)
+            random_int(0, 0xFFFF),
+            random_int(0, 0xFFFF),
+            random_int(0, 0xFFFF),
+            random_int(0, 0x0FFF) | 0x4000,
+            random_int(0, 0x3FFF) | 0x8000,
+            random_int(0, 0xFFFF),
+            random_int(0, 0xFFFF),
+            random_int(0, 0xFFFF)
         );
     }
 }

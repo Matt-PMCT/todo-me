@@ -20,8 +20,6 @@ final class UserResponse
 
     /**
      * Creates a UserResponse from a User entity.
-     *
-     * @param User $user
      */
     public static function fromUser(User $user): self
     {

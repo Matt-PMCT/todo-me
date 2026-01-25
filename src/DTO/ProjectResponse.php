@@ -12,22 +12,22 @@ use App\Entity\Project;
 final class ProjectResponse
 {
     /**
-     * @param string $id Project ID
-     * @param string $name Project name
-     * @param string|null $description Project description
-     * @param bool $isArchived Whether the project is archived
-     * @param \DateTimeImmutable $createdAt Creation timestamp
-     * @param \DateTimeImmutable $updatedAt Last update timestamp
-     * @param int $taskCount Total number of tasks in the project
-     * @param int $completedTaskCount Number of completed tasks
-     * @param int $pendingTaskCount Number of pending (non-completed) tasks
-     * @param string|null $parentId Parent project ID (null for root projects)
-     * @param int $depth Depth in the hierarchy (0 for root projects)
-     * @param array<array{id: string, name: string, isArchived: bool}> $path Path from root to this project
-     * @param bool $showChildrenTasks Whether to show children's tasks
-     * @param string|null $color Project color
-     * @param string|null $icon Project icon
-     * @param int $position Position within parent
+     * @param string                                                   $id                 Project ID
+     * @param string                                                   $name               Project name
+     * @param string|null                                              $description        Project description
+     * @param bool                                                     $isArchived         Whether the project is archived
+     * @param \DateTimeImmutable                                       $createdAt          Creation timestamp
+     * @param \DateTimeImmutable                                       $updatedAt          Last update timestamp
+     * @param int                                                      $taskCount          Total number of tasks in the project
+     * @param int                                                      $completedTaskCount Number of completed tasks
+     * @param int                                                      $pendingTaskCount   Number of pending (non-completed) tasks
+     * @param string|null                                              $parentId           Parent project ID (null for root projects)
+     * @param int                                                      $depth              Depth in the hierarchy (0 for root projects)
+     * @param array<array{id: string, name: string, isArchived: bool}> $path               Path from root to this project
+     * @param bool                                                     $showChildrenTasks  Whether to show children's tasks
+     * @param string|null                                              $color              Project color
+     * @param string|null                                              $icon               Project icon
+     * @param int                                                      $position           Position within parent
      */
     public function __construct(
         public readonly string $id,
@@ -52,9 +52,9 @@ final class ProjectResponse
     /**
      * Creates a ProjectResponse from a Project entity.
      *
-     * @param Project $project The project entity
-     * @param int $taskCount Total number of tasks in the project
-     * @param int $completedTaskCount Number of completed tasks in the project
+     * @param Project $project            The project entity
+     * @param int     $taskCount          Total number of tasks in the project
+     * @param int     $completedTaskCount Number of completed tasks in the project
      */
     public static function fromEntity(
         Project $project,

@@ -28,8 +28,9 @@ class ActivityLogRepository extends ServiceEntityRepository
      * Find activity logs for a user with pagination.
      *
      * @param User $owner The owner
-     * @param int $page Page number (1-indexed)
-     * @param int $limit Items per page
+     * @param int  $page  Page number (1-indexed)
+     * @param int  $limit Items per page
+     *
      * @return ActivityLog[]
      */
     public function findByOwnerPaginated(User $owner, int $page, int $limit): array
@@ -50,7 +51,6 @@ class ActivityLogRepository extends ServiceEntityRepository
      * Count total activity logs for a user.
      *
      * @param User $owner The owner
-     * @return int
      */
     public function countByOwner(User $owner): int
     {

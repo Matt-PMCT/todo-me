@@ -17,8 +17,6 @@ use App\Service\TagService;
 use App\Tests\Unit\UnitTestCase;
 use App\ValueObject\ParseHighlight;
 use App\ValueObject\TaskParseResult;
-use DateTimeImmutable;
-use DateTimeZone;
 use PHPUnit\Framework\MockObject\MockObject;
 
 class NaturalLanguageParserServiceTest extends UnitTestCase
@@ -28,14 +26,14 @@ class NaturalLanguageParserServiceTest extends UnitTestCase
     private TagService&MockObject $tagService;
     private TimezoneHelper&MockObject $timezoneHelper;
     private NaturalLanguageParserService $parser;
-    private DateTimeImmutable $fixedNow;
+    private \DateTimeImmutable $fixedNow;
 
     protected function setUp(): void
     {
         parent::setUp();
 
         // Fixed "now" for consistent testing: 2026-01-23 (Friday) at midnight UTC
-        $this->fixedNow = new DateTimeImmutable('2026-01-23 00:00:00', new DateTimeZone('UTC'));
+        $this->fixedNow = new \DateTimeImmutable('2026-01-23 00:00:00', new \DateTimeZone('UTC'));
 
         // Set up mocks
         $this->timezoneHelper = $this->createMock(TimezoneHelper::class);
@@ -212,6 +210,7 @@ class NaturalLanguageParserServiceTest extends UnitTestCase
                 if ($name === 'personal') {
                     return $project2;
                 }
+
                 return null;
             });
 
@@ -255,6 +254,7 @@ class NaturalLanguageParserServiceTest extends UnitTestCase
                 if (strtolower($name) === 'shopping') {
                     return ['tag' => $tag2, 'created' => true];
                 }
+
                 return ['tag' => null, 'created' => false];
             });
 
@@ -277,6 +277,7 @@ class NaturalLanguageParserServiceTest extends UnitTestCase
         $this->tagService->method('findOrCreate')
             ->willReturnCallback(function ($u, $name) use ($tags) {
                 $num = (int) substr($name, 3);
+
                 return ['tag' => $tags[$num] ?? null, 'created' => false];
             });
 
@@ -284,7 +285,7 @@ class NaturalLanguageParserServiceTest extends UnitTestCase
 
         $this->assertCount(3, $result->tags);
         // All three should have highlights
-        $tagHighlights = array_filter($result->highlights, fn($h) => $h->type === 'tag');
+        $tagHighlights = array_filter($result->highlights, fn ($h) => $h->type === 'tag');
         $this->assertCount(3, $tagHighlights);
     }
 
@@ -472,7 +473,7 @@ class NaturalLanguageParserServiceTest extends UnitTestCase
 
         $this->assertCount(4, $result->highlights);
         // Should be sorted by position
-        $positions = array_map(fn($h) => $h->startPosition, $result->highlights);
+        $positions = array_map(fn ($h) => $h->startPosition, $result->highlights);
         $sortedPositions = $positions;
         sort($sortedPositions);
         $this->assertEquals($sortedPositions, $positions);
@@ -524,7 +525,7 @@ class NaturalLanguageParserServiceTest extends UnitTestCase
 
         $resultWithDate = TaskParseResult::create(
             title: 'Test',
-            dueDate: new DateTimeImmutable(),
+            dueDate: new \DateTimeImmutable(),
         );
         $this->assertTrue($resultWithDate->hasMetadata());
 
@@ -565,7 +566,7 @@ class NaturalLanguageParserServiceTest extends UnitTestCase
     public function testTaskParseResultToArray(): void
     {
         $user = $this->createUserWithId();
-        $date = new DateTimeImmutable('2026-01-24');
+        $date = new \DateTimeImmutable('2026-01-24');
         $project = $this->createProjectWithId('proj-1', $user, 'work');
         $tag = $this->createTagWithId('tag-1', $user, 'urgent');
 

@@ -36,9 +36,10 @@ final class EmailVerificationService
         // Check cooldown
         $lastSent = $user->getEmailVerificationSentAt();
         if ($lastSent !== null) {
-            $cooldownEnd = $lastSent->modify('+' . self::RESEND_COOLDOWN_MINUTES . ' minutes');
+            $cooldownEnd = $lastSent->modify('+'.self::RESEND_COOLDOWN_MINUTES.' minutes');
             if (new \DateTimeImmutable() < $cooldownEnd) {
                 $remaining = $cooldownEnd->getTimestamp() - time();
+
                 throw ValidationException::forField(
                     'email',
                     sprintf('Please wait %d seconds before requesting another verification email', $remaining)
@@ -76,7 +77,7 @@ final class EmailVerificationService
         // Check expiry
         $sentAt = $user->getEmailVerificationSentAt();
         if ($sentAt !== null) {
-            $expiresAt = $sentAt->modify('+' . self::TOKEN_EXPIRY_HOURS . ' hours');
+            $expiresAt = $sentAt->modify('+'.self::TOKEN_EXPIRY_HOURS.' hours');
             if (new \DateTimeImmutable() > $expiresAt) {
                 throw ValidationException::forField('token', 'Verification token has expired');
             }

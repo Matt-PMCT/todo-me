@@ -39,9 +39,11 @@ final class TaskUndoService implements TaskUndoServiceInterface
     /**
      * Creates an undo token for a task update operation.
      *
-     * @param Task $task The task being updated
+     * @param Task                 $task          The task being updated
      * @param array<string, mixed> $previousState The state before the update
+     *
      * @return string|null The undo token string, or null if creation failed
+     *
      * @throws InvalidStateException If task has no owner or ID
      */
     public function createUpdateUndoToken(Task $task, array $previousState): ?string
@@ -71,7 +73,9 @@ final class TaskUndoService implements TaskUndoServiceInterface
      * Creates an undo token for a task delete operation.
      *
      * @param Task $task The task being deleted
+     *
      * @return UndoToken|null The undo token, or null if creation failed
+     *
      * @throws InvalidStateException If task has no owner or ID
      */
     public function createDeleteUndoToken(Task $task): ?UndoToken
@@ -101,9 +105,11 @@ final class TaskUndoService implements TaskUndoServiceInterface
     /**
      * Creates an undo token for a task status change operation.
      *
-     * @param Task $task The task with status being changed
+     * @param Task                 $task          The task with status being changed
      * @param array<string, mixed> $previousState The status state before the change
+     *
      * @return string|null The undo token string, or null if creation failed
+     *
      * @throws InvalidStateException If task has no owner or ID
      */
     public function createStatusChangeUndoToken(Task $task, array $previousState): ?string
@@ -132,11 +138,13 @@ final class TaskUndoService implements TaskUndoServiceInterface
     /**
      * Undoes a task operation (generic handler for all undo types).
      *
-     * @param User $user The user performing the undo
+     * @param User   $user  The user performing the undo
      * @param string $token The undo token
+     *
      * @return Task The restored/updated task
+     *
      * @throws InvalidUndoTokenException If the token is invalid or expired
-     * @throws EntityNotFoundException If the task no longer exists (for update operations)
+     * @throws EntityNotFoundException   If the task no longer exists (for update operations)
      */
     public function undo(User $user, string $token): Task
     {
@@ -160,9 +168,11 @@ final class TaskUndoService implements TaskUndoServiceInterface
     /**
      * Undoes a delete operation.
      *
-     * @param User $user The user performing the undo
+     * @param User   $user  The user performing the undo
      * @param string $token The undo token
+     *
      * @return Task The restored task
+     *
      * @throws InvalidUndoTokenException If the token is invalid or expired
      */
     public function undoDelete(User $user, string $token): Task
@@ -187,11 +197,13 @@ final class TaskUndoService implements TaskUndoServiceInterface
     /**
      * Undoes an update operation.
      *
-     * @param User $user The user performing the undo
+     * @param User   $user  The user performing the undo
      * @param string $token The undo token
+     *
      * @return Task The restored task
+     *
      * @throws InvalidUndoTokenException If the token is invalid or expired
-     * @throws EntityNotFoundException If the task no longer exists
+     * @throws EntityNotFoundException   If the task no longer exists
      */
     public function undoUpdate(User $user, string $token): Task
     {

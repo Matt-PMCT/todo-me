@@ -25,6 +25,7 @@ final class TokenHelper
         $authHeader = $request->headers->get('Authorization', '');
         if (str_starts_with($authHeader, self::BEARER_PREFIX)) {
             $token = substr($authHeader, strlen(self::BEARER_PREFIX));
+
             return $token !== '' ? $token : null;
         }
 

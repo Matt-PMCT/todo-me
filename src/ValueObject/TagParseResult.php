@@ -23,11 +23,11 @@ final readonly class TagParseResult
     /**
      * Create a new TagParseResult.
      *
-     * @param Tag|null $tag The tag entity (null if parsing failed)
-     * @param string $originalText The original matched text (e.g., "@urgent")
-     * @param int $startPosition The start position in the input string
-     * @param int $endPosition The end position in the input string
-     * @param bool $wasCreated Whether the tag was newly created
+     * @param Tag|null $tag           The tag entity (null if parsing failed)
+     * @param string   $originalText  The original matched text (e.g., "@urgent")
+     * @param int      $startPosition The start position in the input string
+     * @param int      $endPosition   The end position in the input string
+     * @param bool     $wasCreated    Whether the tag was newly created
      */
     public static function create(
         ?Tag $tag,

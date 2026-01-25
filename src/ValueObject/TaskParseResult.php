@@ -6,7 +6,6 @@ namespace App\ValueObject;
 
 use App\Entity\Project;
 use App\Entity\Tag;
-use DateTimeImmutable;
 
 /**
  * Immutable value object representing the complete result of parsing task input.
@@ -23,18 +22,18 @@ use DateTimeImmutable;
 final readonly class TaskParseResult
 {
     /**
-     * @param string $title The cleaned title with metadata removed
-     * @param DateTimeImmutable|null $dueDate The parsed due date
-     * @param string|null $dueTime The parsed time portion (e.g., "14:00")
-     * @param Project|null $project The matched project entity
-     * @param Tag[] $tags Array of matched/created Tag entities
-     * @param int|null $priority The parsed priority (0-4)
-     * @param ParseHighlight[] $highlights Array of highlights showing parsed portions
-     * @param string[] $warnings Array of warning messages for issues
+     * @param string                  $title      The cleaned title with metadata removed
+     * @param \DateTimeImmutable|null $dueDate    The parsed due date
+     * @param string|null             $dueTime    The parsed time portion (e.g., "14:00")
+     * @param Project|null            $project    The matched project entity
+     * @param Tag[]                   $tags       Array of matched/created Tag entities
+     * @param int|null                $priority   The parsed priority (0-4)
+     * @param ParseHighlight[]        $highlights Array of highlights showing parsed portions
+     * @param string[]                $warnings   Array of warning messages for issues
      */
     private function __construct(
         public string $title,
-        public ?DateTimeImmutable $dueDate,
+        public ?\DateTimeImmutable $dueDate,
         public ?string $dueTime,
         public ?Project $project,
         public array $tags,
@@ -47,18 +46,18 @@ final readonly class TaskParseResult
     /**
      * Create a new TaskParseResult.
      *
-     * @param string $title The cleaned title with metadata removed
-     * @param DateTimeImmutable|null $dueDate The parsed due date
-     * @param string|null $dueTime The parsed time portion
-     * @param Project|null $project The matched project entity
-     * @param Tag[] $tags Array of matched/created Tag entities
-     * @param int|null $priority The parsed priority (0-4)
-     * @param ParseHighlight[] $highlights Array of highlights showing parsed portions
-     * @param string[] $warnings Array of warning messages for issues
+     * @param string                  $title      The cleaned title with metadata removed
+     * @param \DateTimeImmutable|null $dueDate    The parsed due date
+     * @param string|null             $dueTime    The parsed time portion
+     * @param Project|null            $project    The matched project entity
+     * @param Tag[]                   $tags       Array of matched/created Tag entities
+     * @param int|null                $priority   The parsed priority (0-4)
+     * @param ParseHighlight[]        $highlights Array of highlights showing parsed portions
+     * @param string[]                $warnings   Array of warning messages for issues
      */
     public static function create(
         string $title,
-        ?DateTimeImmutable $dueDate = null,
+        ?\DateTimeImmutable $dueDate = null,
         ?string $dueTime = null,
         ?Project $project = null,
         array $tags = [],
@@ -122,7 +121,7 @@ final readonly class TaskParseResult
                 'name' => $this->project->getName(),
             ] : null,
             'tags' => array_map(
-                fn(Tag $tag) => [
+                fn (Tag $tag) => [
                     'id' => $tag->getId(),
                     'name' => $tag->getName(),
                     'color' => $tag->getColor(),
@@ -131,7 +130,7 @@ final readonly class TaskParseResult
             ),
             'priority' => $this->priority,
             'highlights' => array_map(
-                fn(ParseHighlight $h) => $h->toArray(),
+                fn (ParseHighlight $h) => $h->toArray(),
                 $this->highlights
             ),
             'warnings' => $this->warnings,

@@ -21,17 +21,15 @@ final class TaskFilterRequest
             new Assert\Choice(
                 choices: Task::STATUSES,
                 message: 'Each status must be one of: {{ choices }}'
-            )
+            ),
         ])]
         public readonly ?array $statuses = null,
-
         #[Assert\Range(
             min: Task::PRIORITY_MIN,
             max: Task::PRIORITY_MAX,
             notInRangeMessage: 'Priority min must be between {{ min }} and {{ max }}'
         )]
         public readonly ?int $priorityMin = null,
-
         #[Assert\Range(
             min: Task::PRIORITY_MIN,
             max: Task::PRIORITY_MAX,
@@ -47,10 +45,9 @@ final class TaskFilterRequest
             maxMessage: 'Cannot filter by more than {{ limit }} projects'
         )]
         #[Assert\All([
-            new Assert\Uuid(message: 'Each project ID must be a valid UUID')
+            new Assert\Uuid(message: 'Each project ID must be a valid UUID'),
         ])]
         public readonly ?array $projectIds = null,
-
         public readonly bool $includeChildProjects = false,
 
         /**
@@ -61,28 +58,20 @@ final class TaskFilterRequest
             maxMessage: 'Cannot filter by more than {{ limit }} tags'
         )]
         #[Assert\All([
-            new Assert\Uuid(message: 'Each tag ID must be a valid UUID')
+            new Assert\Uuid(message: 'Each tag ID must be a valid UUID'),
         ])]
         public readonly ?array $tagIds = null,
-
         #[Assert\Choice(
             choices: ['AND', 'OR'],
             message: 'Tag mode must be one of: {{ choices }}'
         )]
         public readonly string $tagMode = 'OR',
-
         public readonly ?string $dueBefore = null,
-
         public readonly ?string $dueAfter = null,
-
         public readonly ?bool $hasNoDueDate = null,
-
         public readonly ?string $search = null,
-
         public readonly bool $includeCompleted = true,
-
         public readonly ?bool $isRecurring = null,
-
         #[Assert\Uuid(message: 'Original task ID must be a valid UUID')]
         public readonly ?string $originalTaskId = null,
     ) {
@@ -115,6 +104,7 @@ final class TaskFilterRequest
      * Parses a query parameter that can be comma-separated or an array.
      *
      * @param string[] $keys Query parameter keys to check (first match wins)
+     *
      * @return string[]|null
      */
     private static function parseStringArray(Request $request, array $keys): ?array

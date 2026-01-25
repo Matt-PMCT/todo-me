@@ -26,9 +26,10 @@ final class SessionService
     /**
      * Creates a new session record for a user login.
      *
-     * @param User $user The user
-     * @param string $apiToken The plain API token (will be hashed)
-     * @param Request $request The current request
+     * @param User    $user     The user
+     * @param string  $apiToken The plain API token (will be hashed)
+     * @param Request $request  The current request
+     *
      * @return UserSession The created session
      */
     public function createSession(User $user, string $apiToken, Request $request): UserSession
@@ -51,6 +52,7 @@ final class SessionService
      * Lists all sessions for a user.
      *
      * @param User $user The user
+     *
      * @return UserSession[]
      */
     public function listSessions(User $user): array
@@ -61,10 +63,11 @@ final class SessionService
     /**
      * Revokes a specific session.
      *
-     * @param User $user The user (for ownership verification)
+     * @param User   $user      The user (for ownership verification)
      * @param string $sessionId The session ID to revoke
+     *
      * @throws EntityNotFoundException If session not found
-     * @throws ForbiddenException If user doesn't own the session
+     * @throws ForbiddenException      If user doesn't own the session
      */
     public function revokeSession(User $user, string $sessionId): void
     {
@@ -85,8 +88,9 @@ final class SessionService
     /**
      * Revokes all sessions for a user except the current one.
      *
-     * @param User $user The user
+     * @param User   $user         The user
      * @param string $currentToken The current API token (plain text)
+     *
      * @return int Number of sessions revoked
      */
     public function revokeOtherSessions(User $user, string $currentToken): int
@@ -110,7 +114,6 @@ final class SessionService
      * Finds a session by token hash.
      *
      * @param string $tokenHash SHA256 hash of the API token
-     * @return UserSession|null
      */
     public function findByTokenHash(string $tokenHash): ?UserSession
     {
@@ -137,6 +140,7 @@ final class SessionService
      * Parses the device type from user agent.
      *
      * @param string|null $userAgent The user agent string
+     *
      * @return string|null Device type (Mobile, Tablet, Desktop)
      */
     private function parseDevice(?string $userAgent): ?string
@@ -149,28 +153,28 @@ final class SessionService
 
         // Check for mobile devices first
         if (
-            str_contains($userAgentLower, 'mobile') ||
-            str_contains($userAgentLower, 'iphone') ||
-            str_contains($userAgentLower, 'android') && str_contains($userAgentLower, 'mobile')
+            str_contains($userAgentLower, 'mobile')
+            || str_contains($userAgentLower, 'iphone')
+            || str_contains($userAgentLower, 'android') && str_contains($userAgentLower, 'mobile')
         ) {
             return 'Mobile';
         }
 
         // Check for tablets
         if (
-            str_contains($userAgentLower, 'tablet') ||
-            str_contains($userAgentLower, 'ipad') ||
-            str_contains($userAgentLower, 'android') && !str_contains($userAgentLower, 'mobile')
+            str_contains($userAgentLower, 'tablet')
+            || str_contains($userAgentLower, 'ipad')
+            || str_contains($userAgentLower, 'android') && !str_contains($userAgentLower, 'mobile')
         ) {
             return 'Tablet';
         }
 
         // Check for desktop platforms
         if (
-            str_contains($userAgentLower, 'windows') ||
-            str_contains($userAgentLower, 'macintosh') ||
-            str_contains($userAgentLower, 'mac os') ||
-            str_contains($userAgentLower, 'linux') && !str_contains($userAgentLower, 'android')
+            str_contains($userAgentLower, 'windows')
+            || str_contains($userAgentLower, 'macintosh')
+            || str_contains($userAgentLower, 'mac os')
+            || str_contains($userAgentLower, 'linux') && !str_contains($userAgentLower, 'android')
         ) {
             return 'Desktop';
         }
@@ -182,6 +186,7 @@ final class SessionService
      * Parses the browser name from user agent.
      *
      * @param string|null $userAgent The user agent string
+     *
      * @return string|null Browser name
      */
     private function parseBrowser(?string $userAgent): ?string
@@ -228,6 +233,7 @@ final class SessionService
      * Truncates user agent to fit database column.
      *
      * @param string|null $userAgent The user agent string
+     *
      * @return string|null Truncated user agent
      */
     private function truncateUserAgent(?string $userAgent): ?string

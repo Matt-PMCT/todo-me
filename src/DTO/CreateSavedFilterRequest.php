@@ -15,15 +15,11 @@ final class CreateSavedFilterRequest
         #[Assert\NotBlank(message: 'Name is required')]
         #[Assert\Length(max: 100, maxMessage: 'Name must be at most {{ limit }} characters')]
         public readonly string $name = '',
-
         #[Assert\NotNull(message: 'Criteria is required')]
         public readonly array $criteria = [],
-
         public readonly bool $isDefault = false,
-
         #[Assert\Length(max: 50, maxMessage: 'Icon must be at most {{ limit }} characters')]
         public readonly ?string $icon = null,
-
         #[Assert\Length(max: 7, maxMessage: 'Color must be at most {{ limit }} characters')]
         #[Assert\Regex(pattern: '/^#[0-9A-Fa-f]{6}$/', message: 'Color must be a valid hex color (e.g., #FF5733)')]
         public readonly ?string $color = null,

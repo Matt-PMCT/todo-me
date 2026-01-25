@@ -61,8 +61,6 @@ final class CreateApiTokenRequest
 
     /**
      * Parses the expiresAt string into a DateTimeImmutable.
-     *
-     * @return \DateTimeImmutable|null
      */
     public function getExpiresAtDateTime(): ?\DateTimeImmutable
     {

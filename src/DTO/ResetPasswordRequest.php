@@ -14,7 +14,6 @@ final class ResetPasswordRequest
     public function __construct(
         #[Assert\NotBlank(message: 'Token is required')]
         public readonly string $token = '',
-
         #[Assert\NotBlank(message: 'Password is required')]
         #[Assert\Length(min: 12, minMessage: 'Password must be at least {{ limit }} characters')]
         public readonly string $password = '',

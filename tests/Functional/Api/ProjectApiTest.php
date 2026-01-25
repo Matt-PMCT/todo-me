@@ -299,7 +299,7 @@ class ProjectApiTest extends ApiTestCase
         $response = $this->authenticatedApiRequest(
             $user,
             'GET',
-            '/api/v1/projects/' . $project->getId()
+            '/api/v1/projects/'.$project->getId()
         );
 
         $this->assertResponseStatusCode(Response::HTTP_OK, $response);
@@ -324,7 +324,7 @@ class ProjectApiTest extends ApiTestCase
         $response = $this->authenticatedApiRequest(
             $user,
             'GET',
-            '/api/v1/projects/' . $project->getId()
+            '/api/v1/projects/'.$project->getId()
         );
 
         $this->assertResponseStatusCode(Response::HTTP_OK, $response);
@@ -360,7 +360,7 @@ class ProjectApiTest extends ApiTestCase
         $response = $this->authenticatedApiRequest(
             $user1,
             'GET',
-            '/api/v1/projects/' . $project->getId()
+            '/api/v1/projects/'.$project->getId()
         );
 
         $this->assertResponseStatusCode(Response::HTTP_NOT_FOUND, $response);
@@ -378,7 +378,7 @@ class ProjectApiTest extends ApiTestCase
         $response = $this->authenticatedApiRequest(
             $user,
             'PUT',
-            '/api/v1/projects/' . $project->getId(),
+            '/api/v1/projects/'.$project->getId(),
             [
                 'name' => 'Updated Name',
                 'description' => 'Updated Description',
@@ -402,7 +402,7 @@ class ProjectApiTest extends ApiTestCase
         $response = $this->authenticatedApiRequest(
             $user,
             'PUT',
-            '/api/v1/projects/' . $project->getId(),
+            '/api/v1/projects/'.$project->getId(),
             ['name' => 'Only Name Updated']
         );
 
@@ -422,7 +422,7 @@ class ProjectApiTest extends ApiTestCase
         $response = $this->authenticatedApiRequest(
             $user,
             'PUT',
-            '/api/v1/projects/' . $project->getId(),
+            '/api/v1/projects/'.$project->getId(),
             ['name' => 'Updated Name']
         );
 
@@ -456,7 +456,7 @@ class ProjectApiTest extends ApiTestCase
         $response = $this->authenticatedApiRequest(
             $user,
             'PUT',
-            '/api/v1/projects/' . $project->getId(),
+            '/api/v1/projects/'.$project->getId(),
             ['name' => str_repeat('a', 150)]
         );
 
@@ -478,7 +478,7 @@ class ProjectApiTest extends ApiTestCase
         $response = $this->authenticatedApiRequest(
             $user,
             'DELETE',
-            '/api/v1/projects/' . $projectId
+            '/api/v1/projects/'.$projectId
         );
 
         $this->assertResponseStatusCode(Response::HTTP_OK, $response);
@@ -512,7 +512,7 @@ class ProjectApiTest extends ApiTestCase
         $response = $this->authenticatedApiRequest(
             $user,
             'DELETE',
-            '/api/v1/projects/' . $project->getId()
+            '/api/v1/projects/'.$project->getId()
         );
 
         $this->assertResponseStatusCode(Response::HTTP_OK, $response);
@@ -545,7 +545,7 @@ class ProjectApiTest extends ApiTestCase
         $response = $this->authenticatedApiRequest(
             $user1,
             'DELETE',
-            '/api/v1/projects/' . $project->getId()
+            '/api/v1/projects/'.$project->getId()
         );
 
         $this->assertResponseStatusCode(Response::HTTP_NOT_FOUND, $response);
@@ -563,7 +563,7 @@ class ProjectApiTest extends ApiTestCase
         $response = $this->authenticatedApiRequest(
             $user,
             'PATCH',
-            '/api/v1/projects/' . $project->getId() . '/archive'
+            '/api/v1/projects/'.$project->getId().'/archive'
         );
 
         $this->assertResponseStatusCode(Response::HTTP_OK, $response);
@@ -581,7 +581,7 @@ class ProjectApiTest extends ApiTestCase
         $response = $this->authenticatedApiRequest(
             $user,
             'PATCH',
-            '/api/v1/projects/' . $project->getId() . '/archive'
+            '/api/v1/projects/'.$project->getId().'/archive'
         );
 
         $this->assertResponseStatusCode(Response::HTTP_OK, $response);
@@ -599,7 +599,7 @@ class ProjectApiTest extends ApiTestCase
         $response = $this->authenticatedApiRequest(
             $user,
             'PATCH',
-            '/api/v1/projects/' . $project->getId() . '/unarchive'
+            '/api/v1/projects/'.$project->getId().'/unarchive'
         );
 
         $this->assertResponseStatusCode(Response::HTTP_OK, $response);
@@ -617,7 +617,7 @@ class ProjectApiTest extends ApiTestCase
         $response = $this->authenticatedApiRequest(
             $user,
             'PATCH',
-            '/api/v1/projects/' . $project->getId() . '/unarchive'
+            '/api/v1/projects/'.$project->getId().'/unarchive'
         );
 
         $this->assertResponseStatusCode(Response::HTTP_OK, $response);
@@ -653,7 +653,7 @@ class ProjectApiTest extends ApiTestCase
         $updateResponse = $this->authenticatedApiRequest(
             $user,
             'PUT',
-            '/api/v1/projects/' . $project->getId(),
+            '/api/v1/projects/'.$project->getId(),
             ['name' => 'New Name']
         );
 
@@ -664,7 +664,7 @@ class ProjectApiTest extends ApiTestCase
         $response = $this->authenticatedApiRequest(
             $user,
             'POST',
-            '/api/v1/projects/undo/' . $undoToken
+            '/api/v1/projects/undo/'.$undoToken
         );
 
         $this->assertResponseStatusCode(Response::HTTP_OK, $response);
@@ -684,7 +684,7 @@ class ProjectApiTest extends ApiTestCase
         $archiveResponse = $this->authenticatedApiRequest(
             $user,
             'PATCH',
-            '/api/v1/projects/' . $project->getId() . '/archive'
+            '/api/v1/projects/'.$project->getId().'/archive'
         );
 
         $meta = $this->getResponseMeta($archiveResponse);
@@ -694,7 +694,7 @@ class ProjectApiTest extends ApiTestCase
         $response = $this->authenticatedApiRequest(
             $user,
             'POST',
-            '/api/v1/projects/undo/' . $undoToken
+            '/api/v1/projects/undo/'.$undoToken
         );
 
         $this->assertResponseStatusCode(Response::HTTP_OK, $response);
@@ -715,7 +715,7 @@ class ProjectApiTest extends ApiTestCase
         $deleteResponse = $this->authenticatedApiRequest(
             $user,
             'DELETE',
-            '/api/v1/projects/' . $project->getId()
+            '/api/v1/projects/'.$project->getId()
         );
 
         $meta = $this->getResponseMeta($deleteResponse);
@@ -725,7 +725,7 @@ class ProjectApiTest extends ApiTestCase
         $response = $this->authenticatedApiRequest(
             $user,
             'POST',
-            '/api/v1/projects/undo/' . $undoToken
+            '/api/v1/projects/undo/'.$undoToken
         );
 
         $this->assertResponseStatusCode(Response::HTTP_OK, $response);
@@ -761,7 +761,7 @@ class ProjectApiTest extends ApiTestCase
         $updateResponse = $this->authenticatedApiRequest(
             $user1,
             'PUT',
-            '/api/v1/projects/' . $project->getId(),
+            '/api/v1/projects/'.$project->getId(),
             ['name' => 'Updated Name']
         );
 
@@ -772,7 +772,7 @@ class ProjectApiTest extends ApiTestCase
         $response = $this->authenticatedApiRequest(
             $user2,
             'POST',
-            '/api/v1/projects/undo/' . $undoToken
+            '/api/v1/projects/undo/'.$undoToken
         );
 
         // Should fail - token belongs to different user
@@ -795,7 +795,7 @@ class ProjectApiTest extends ApiTestCase
         $response = $this->authenticatedApiRequest(
             $user,
             'GET',
-            '/api/v1/projects/' . $project->getId()
+            '/api/v1/projects/'.$project->getId()
         );
 
         $this->assertResponseStatusCode(Response::HTTP_OK, $response);
@@ -852,7 +852,7 @@ class ProjectApiTest extends ApiTestCase
         $response = $this->authenticatedApiRequest(
             $user,
             'GET',
-            '/api/v1/projects/' . $project->getId()
+            '/api/v1/projects/'.$project->getId()
         );
 
         $this->assertResponseStatusCode(Response::HTTP_OK, $response);
@@ -874,14 +874,14 @@ class ProjectApiTest extends ApiTestCase
         $this->authenticatedApiRequest(
             $user,
             'PATCH',
-            '/api/v1/projects/' . $project->getId() . '/archive'
+            '/api/v1/projects/'.$project->getId().'/archive'
         );
 
         // Task should still be accessible
         $response = $this->authenticatedApiRequest(
             $user,
             'GET',
-            '/api/v1/tasks/' . $task->getId()
+            '/api/v1/tasks/'.$task->getId()
         );
 
         $this->assertResponseStatusCode(Response::HTTP_OK, $response);
@@ -919,7 +919,7 @@ class ProjectApiTest extends ApiTestCase
         $response = $this->authenticatedApiRequest(
             $user,
             'PATCH',
-            '/api/v1/projects/' . $project->getId() . '/settings',
+            '/api/v1/projects/'.$project->getId().'/settings',
             ['showChildrenTasks' => false]
         );
 
@@ -932,7 +932,7 @@ class ProjectApiTest extends ApiTestCase
         $response = $this->authenticatedApiRequest(
             $user,
             'PATCH',
-            '/api/v1/projects/' . $project->getId() . '/settings',
+            '/api/v1/projects/'.$project->getId().'/settings',
             ['showChildrenTasks' => true]
         );
 
@@ -961,7 +961,7 @@ class ProjectApiTest extends ApiTestCase
         $response = $this->authenticatedApiRequest(
             $user,
             'GET',
-            '/api/v1/projects/' . $project->getId()
+            '/api/v1/projects/'.$project->getId()
         );
 
         $this->assertResponseStatusCode(Response::HTTP_OK, $response);
@@ -992,7 +992,7 @@ class ProjectApiTest extends ApiTestCase
         $response = $this->authenticatedApiRequest(
             $user,
             'GET',
-            '/api/v1/projects/' . $parent->getId()
+            '/api/v1/projects/'.$parent->getId()
         );
 
         $this->assertResponseStatusCode(Response::HTTP_OK, $response);
@@ -1012,7 +1012,7 @@ class ProjectApiTest extends ApiTestCase
         $response = $this->authenticatedApiRequest(
             $user,
             'GET',
-            '/api/v1/projects/' . $project->getId()
+            '/api/v1/projects/'.$project->getId()
         );
 
         $this->assertResponseStatusCode(Response::HTTP_OK, $response);
@@ -1040,13 +1040,13 @@ class ProjectApiTest extends ApiTestCase
         $this->authenticatedApiRequest(
             $user,
             'PATCH',
-            '/api/v1/projects/' . $parent->getId() . '/archive'
+            '/api/v1/projects/'.$parent->getId().'/archive'
         );
 
         $this->authenticatedApiRequest(
             $user,
             'PATCH',
-            '/api/v1/projects/' . $child->getId() . '/archive'
+            '/api/v1/projects/'.$child->getId().'/archive'
         );
 
         // Try to unarchive child while parent is still archived
@@ -1054,7 +1054,7 @@ class ProjectApiTest extends ApiTestCase
         $response = $this->authenticatedApiRequest(
             $user,
             'PATCH',
-            '/api/v1/projects/' . $child->getId() . '/unarchive'
+            '/api/v1/projects/'.$child->getId().'/unarchive'
         );
 
         // The response depends on implementation:
@@ -1079,7 +1079,7 @@ class ProjectApiTest extends ApiTestCase
         $response = $this->authenticatedApiRequest(
             $user,
             'PATCH',
-            '/api/v1/projects/' . $parent->getId() . '/archive?cascade=true'
+            '/api/v1/projects/'.$parent->getId().'/archive?cascade=true'
         );
 
         $this->assertResponseStatusCode(Response::HTTP_OK, $response);
@@ -1099,6 +1099,7 @@ class ProjectApiTest extends ApiTestCase
         foreach ($treeData['projects'] as $project) {
             if ($project['name'] === 'Parent Project') {
                 $parentInTree = $project;
+
                 break;
             }
         }

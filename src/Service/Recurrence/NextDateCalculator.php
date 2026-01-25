@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Service\Recurrence;
 
-use App\Enum\RecurrenceType;
 use App\ValueObject\RecurrenceRule;
 
 /**
@@ -15,8 +14,9 @@ final class NextDateCalculator
     /**
      * Calculate the next occurrence date.
      *
-     * @param RecurrenceRule $rule The recurrence rule
+     * @param RecurrenceRule     $rule          The recurrence rule
      * @param \DateTimeImmutable $referenceDate The reference date (due date for absolute, completion date for relative)
+     *
      * @return \DateTimeImmutable The next occurrence date
      */
     public function calculate(RecurrenceRule $rule, \DateTimeImmutable $referenceDate): \DateTimeImmutable
@@ -33,8 +33,9 @@ final class NextDateCalculator
     /**
      * Check if a next instance should be created based on the end date.
      *
-     * @param RecurrenceRule $rule The recurrence rule
+     * @param RecurrenceRule     $rule     The recurrence rule
      * @param \DateTimeImmutable $nextDate The calculated next date
+     *
      * @return bool True if a next instance should be created
      */
     public function shouldCreateNextInstance(RecurrenceRule $rule, \DateTimeImmutable $nextDate): bool
@@ -98,6 +99,7 @@ final class NextDateCalculator
         foreach ($days as $targetDay) {
             if ($targetDay > $currentDayOfWeek) {
                 $daysToAdd = $targetDay - $currentDayOfWeek;
+
                 break;
             }
         }

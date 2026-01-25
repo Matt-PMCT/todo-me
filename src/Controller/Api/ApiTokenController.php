@@ -60,7 +60,7 @@ final class ApiTokenController extends AbstractController
 
         $tokens = $this->tokenService->listTokens($user);
 
-        $tokenData = array_map(fn($token) => [
+        $tokenData = array_map(fn ($token) => [
             'id' => $token->getId(),
             'name' => $token->getName(),
             'tokenPrefix' => $token->getTokenPrefix(),

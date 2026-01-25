@@ -49,6 +49,7 @@ class TagRepository extends ServiceEntityRepository
 
     /**
      * @param string[] $names
+     *
      * @return Tag[]
      */
     public function findByOwnerAndNames(User $owner, array $names): array
@@ -83,8 +84,9 @@ class TagRepository extends ServiceEntityRepository
     /**
      * Find a tag by name (case-insensitive).
      *
-     * @param User $owner The tag owner
-     * @param string $name The tag name to search for
+     * @param User   $owner The tag owner
+     * @param string $name  The tag name to search for
+     *
      * @return Tag|null The tag if found, null otherwise
      */
     public function findByNameInsensitive(User $owner, string $name): ?Tag
@@ -101,9 +103,10 @@ class TagRepository extends ServiceEntityRepository
     /**
      * Search tags by name prefix for autocomplete.
      *
-     * @param User $owner The tag owner
+     * @param User   $owner  The tag owner
      * @param string $prefix The name prefix to search for
-     * @param int $limit Maximum number of results to return
+     * @param int    $limit  Maximum number of results to return
+     *
      * @return Tag[]
      */
     public function searchByPrefix(User $owner, string $prefix, int $limit = 10): array
@@ -112,7 +115,7 @@ class TagRepository extends ServiceEntityRepository
             ->where('t.owner = :owner')
             ->andWhere('LOWER(t.name) LIKE LOWER(:prefix)')
             ->setParameter('owner', $owner)
-            ->setParameter('prefix', $prefix . '%')
+            ->setParameter('prefix', $prefix.'%')
             ->orderBy('t.name', 'ASC')
             ->setMaxResults($limit)
             ->getQuery()
@@ -122,9 +125,10 @@ class TagRepository extends ServiceEntityRepository
     /**
      * Search tags by name (case-insensitive ILIKE search).
      *
-     * @param User $owner The tag owner
+     * @param User   $owner The tag owner
      * @param string $query The search query
-     * @param int $limit Maximum number of results
+     * @param int    $limit Maximum number of results
+     *
      * @return Tag[] Matching tags
      */
     public function searchByName(User $owner, string $query, int $limit = 20): array
@@ -133,7 +137,7 @@ class TagRepository extends ServiceEntityRepository
             ->where('t.owner = :owner')
             ->andWhere('LOWER(t.name) LIKE LOWER(:query)')
             ->setParameter('owner', $owner)
-            ->setParameter('query', '%' . $query . '%')
+            ->setParameter('query', '%'.$query.'%')
             ->orderBy('t.name', 'ASC')
             ->setMaxResults($limit)
             ->getQuery()

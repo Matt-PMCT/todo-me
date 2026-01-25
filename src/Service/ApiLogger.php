@@ -32,7 +32,7 @@ final class ApiLogger implements ApiLoggerInterface
     /**
      * Logs an incoming API request.
      *
-     * @param Request $request The HTTP request
+     * @param Request              $request           The HTTP request
      * @param array<string, mixed> $additionalContext Additional context data
      */
     public function logRequest(Request $request, array $additionalContext = []): void
@@ -55,7 +55,7 @@ final class ApiLogger implements ApiLoggerInterface
     /**
      * Logs an API response.
      *
-     * @param Response $response The HTTP response
+     * @param Response             $response          The HTTP response
      * @param array<string, mixed> $additionalContext Additional context data
      */
     public function logResponse(Response $response, array $additionalContext = []): void
@@ -78,7 +78,7 @@ final class ApiLogger implements ApiLoggerInterface
     /**
      * Logs an API error.
      *
-     * @param \Throwable $exception The exception that occurred
+     * @param \Throwable           $exception         The exception that occurred
      * @param array<string, mixed> $additionalContext Additional context data
      */
     public function logError(\Throwable $exception, array $additionalContext = []): void
@@ -102,7 +102,7 @@ final class ApiLogger implements ApiLoggerInterface
     /**
      * Logs a warning message.
      *
-     * @param string $message The warning message
+     * @param string               $message The warning message
      * @param array<string, mixed> $context Additional context data
      */
     public function logWarning(string $message, array $context = []): void
@@ -115,7 +115,7 @@ final class ApiLogger implements ApiLoggerInterface
     /**
      * Logs an info message.
      *
-     * @param string $message The info message
+     * @param string               $message The info message
      * @param array<string, mixed> $context Additional context data
      */
     public function logInfo(string $message, array $context = []): void
@@ -128,7 +128,7 @@ final class ApiLogger implements ApiLoggerInterface
     /**
      * Logs a debug message.
      *
-     * @param string $message The debug message
+     * @param string               $message The debug message
      * @param array<string, mixed> $context Additional context data
      */
     public function logDebug(string $message, array $context = []): void
@@ -185,6 +185,7 @@ final class ApiLogger implements ApiLoggerInterface
      * of log entries without exposing the full email address.
      *
      * @param string $email The email address to hash
+     *
      * @return string 16-character truncated hash
      */
     public static function hashEmail(string $email): string

@@ -211,7 +211,7 @@ class ApiTokenApiTest extends ApiTestCase
             'GET',
             '/api/v1/auth/me',
             null,
-            ['Authorization' => 'Bearer ' . $plainToken]
+            ['Authorization' => 'Bearer '.$plainToken]
         );
 
         $this->assertResponseStatusCode(Response::HTTP_OK, $response);
@@ -245,7 +245,7 @@ class ApiTokenApiTest extends ApiTestCase
             'GET',
             '/api/v1/auth/me',
             null,
-            ['Authorization' => 'Bearer ' . $plainToken]
+            ['Authorization' => 'Bearer '.$plainToken]
         );
 
         $this->assertResponseStatusCode(Response::HTTP_UNAUTHORIZED, $response);
@@ -274,7 +274,7 @@ class ApiTokenApiTest extends ApiTestCase
         $response = $this->authenticatedApiRequest(
             $user,
             'DELETE',
-            '/api/v1/users/me/tokens/' . $tokenId
+            '/api/v1/users/me/tokens/'.$tokenId
         );
 
         $this->assertResponseStatusCode(Response::HTTP_OK, $response);
@@ -303,7 +303,7 @@ class ApiTokenApiTest extends ApiTestCase
         $this->authenticatedApiRequest(
             $user,
             'DELETE',
-            '/api/v1/users/me/tokens/' . $tokenId
+            '/api/v1/users/me/tokens/'.$tokenId
         );
 
         // Try to use the revoked token
@@ -311,7 +311,7 @@ class ApiTokenApiTest extends ApiTestCase
             'GET',
             '/api/v1/auth/me',
             null,
-            ['Authorization' => 'Bearer ' . $plainToken]
+            ['Authorization' => 'Bearer '.$plainToken]
         );
 
         $this->assertResponseStatusCode(Response::HTTP_UNAUTHORIZED, $response);
@@ -349,7 +349,7 @@ class ApiTokenApiTest extends ApiTestCase
         $response = $this->authenticatedApiRequest(
             $user2,
             'DELETE',
-            '/api/v1/users/me/tokens/' . $tokenId
+            '/api/v1/users/me/tokens/'.$tokenId
         );
 
         // Should be forbidden or not found
@@ -421,6 +421,7 @@ class ApiTokenApiTest extends ApiTestCase
         foreach ($tokens as $token) {
             if ($token['name'] === 'Listed Token') {
                 $foundToken = $token;
+
                 break;
             }
         }

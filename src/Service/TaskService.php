@@ -25,7 +25,6 @@ use App\Repository\TaskRepository;
 use App\Service\Parser\NaturalLanguageParserService;
 use App\Service\Recurrence\NextDateCalculator;
 use App\Service\Recurrence\RecurrenceRuleParser;
-use App\ValueObject\RecurrenceRule;
 use App\ValueObject\UndoToken;
 use Doctrine\ORM\EntityManagerInterface;
 
@@ -56,12 +55,14 @@ final class TaskService
     /**
      * Creates a new task.
      *
-     * @param User $user The task owner
-     * @param CreateTaskRequest $dto The task creation data
+     * @param User              $user The task owner
+     * @param CreateTaskRequest $dto  The task creation data
+     *
      * @return Task The created task
-     * @throws ValidationException If validation fails
+     *
+     * @throws ValidationException     If validation fails
      * @throws EntityNotFoundException If project or tags are not found
-     * @throws ForbiddenException If user doesn't own the project
+     * @throws ForbiddenException      If user doesn't own the project
      */
     public function create(User $user, CreateTaskRequest $dto): Task
     {
@@ -148,9 +149,11 @@ final class TaskService
     /**
      * Creates a task from natural language input.
      *
-     * @param User $user The task owner
-     * @param NaturalLanguageTaskRequest $dto The natural language input
+     * @param User                       $user The task owner
+     * @param NaturalLanguageTaskRequest $dto  The natural language input
+     *
      * @return TaskCreationResult The created task with parse result
+     *
      * @throws ValidationException If the title is empty after parsing
      */
     public function createFromNaturalLanguage(User $user, NaturalLanguageTaskRequest $dto): TaskCreationResult
@@ -225,10 +228,12 @@ final class TaskService
     /**
      * Reschedule a task using natural language or ISO date.
      *
-     * @param Task $task The task to reschedule
+     * @param Task   $task      The task to reschedule
      * @param string $dateInput The date input (natural language or ISO format)
-     * @param User $user The user context for date parsing
+     * @param User   $user      The user context for date parsing
+     *
      * @return array{task: Task, undoToken: string|null}
+     *
      * @throws ValidationException If the date cannot be parsed
      */
     public function reschedule(Task $task, string $dateInput, User $user): array
@@ -247,7 +252,7 @@ final class TaskService
             if ($parseResult->dueDate !== null) {
                 $date = $parseResult->dueDate;
             } else {
-                throw ValidationException::forField('due_date', 'Could not parse date: ' . $dateInput);
+                throw ValidationException::forField('due_date', 'Could not parse date: '.$dateInput);
             }
         }
 
@@ -267,7 +272,6 @@ final class TaskService
      * Try to parse a date string, returning null on failure.
      *
      * @param string $dateString ISO 8601 date string
-     * @return \DateTimeImmutable|null
      */
     private function tryParseDueDate(string $dateString): ?\DateTimeImmutable
     {
@@ -297,12 +301,14 @@ final class TaskService
     /**
      * Updates an existing task.
      *
-     * @param Task $task The task to update
-     * @param UpdateTaskRequest $dto The update data
+     * @param Task              $task The task to update
+     * @param UpdateTaskRequest $dto  The update data
+     *
      * @return array{task: Task, undoToken: string|null}
-     * @throws ValidationException If validation fails
+     *
+     * @throws ValidationException     If validation fails
      * @throws EntityNotFoundException If project or tags are not found
-     * @throws ForbiddenException If user doesn't own the project
+     * @throws ForbiddenException      If user doesn't own the project
      */
     public function update(Task $task, UpdateTaskRequest $dto): array
     {
@@ -438,6 +444,7 @@ final class TaskService
      * Deletes a task and returns an undo token.
      *
      * @param Task $task The task to delete
+     *
      * @return UndoToken|null The undo token for restoring the task
      */
     public function delete(Task $task): ?UndoToken
@@ -464,8 +471,9 @@ final class TaskService
      * Changes the status of a task.
      * For recurring tasks that are completed, creates the next instance.
      *
-     * @param Task $task The task to update
+     * @param Task   $task      The task to update
      * @param string $newStatus The new status
+     *
      * @return TaskStatusResult The result including the task, optional next task, and undo token
      */
     public function changeStatus(Task $task, string $newStatus): TaskStatusResult
@@ -516,6 +524,7 @@ final class TaskService
      * Completes a recurring task permanently (stops recurrence).
      *
      * @param Task $task The recurring task to complete forever
+     *
      * @return TaskStatusResult The result with no next task
      */
     public function completeForever(Task $task): TaskStatusResult
@@ -543,6 +552,7 @@ final class TaskService
      * Creates the next instance of a recurring task.
      *
      * @param Task $completedTask The task that was just completed
+     *
      * @return Task|null The next instance, or null if recurrence has ended
      */
     public function createNextRecurringInstance(Task $completedTask): ?Task
@@ -606,7 +616,7 @@ final class TaskService
     /**
      * Reorders tasks.
      *
-     * @param User $user The task owner
+     * @param User     $user    The task owner
      * @param string[] $taskIds The task IDs in the desired order
      */
     public function reorder(User $user, array $taskIds): void
@@ -617,10 +627,12 @@ final class TaskService
     /**
      * Undoes a task operation (generic handler for all undo types).
      *
-     * @param User $user The user performing the undo
+     * @param User   $user  The user performing the undo
      * @param string $token The undo token
+     *
      * @return Task The restored/updated task
-     * @throws ValidationException If the token is invalid or expired
+     *
+     * @throws ValidationException     If the token is invalid or expired
      * @throws EntityNotFoundException If the task no longer exists (for update operations)
      */
     public function undo(User $user, string $token): Task
@@ -631,9 +643,11 @@ final class TaskService
     /**
      * Undoes a delete operation.
      *
-     * @param User $user The user performing the undo
+     * @param User   $user  The user performing the undo
      * @param string $token The undo token
+     *
      * @return Task The restored task
+     *
      * @throws ValidationException If the token is invalid or expired
      */
     public function undoDelete(User $user, string $token): Task
@@ -644,10 +658,12 @@ final class TaskService
     /**
      * Undoes an update operation.
      *
-     * @param User $user The user performing the undo
+     * @param User   $user  The user performing the undo
      * @param string $token The undo token
+     *
      * @return Task The restored task
-     * @throws ValidationException If the token is invalid or expired
+     *
+     * @throws ValidationException     If the token is invalid or expired
      * @throws EntityNotFoundException If the task no longer exists
      */
     public function undoUpdate(User $user, string $token): Task
@@ -658,11 +674,13 @@ final class TaskService
     /**
      * Finds a task by ID and verifies ownership.
      *
-     * @param string $id The task ID
-     * @param User $user The expected owner
+     * @param string $id   The task ID
+     * @param User   $user The expected owner
+     *
      * @return Task The task
+     *
      * @throws EntityNotFoundException If the task is not found
-     * @throws ForbiddenException If the user doesn't own the task
+     * @throws ForbiddenException      If the user doesn't own the task
      */
     public function findByIdOrFail(string $id, User $user): Task
     {
@@ -683,7 +701,7 @@ final class TaskService
      * Parses a due date string into a DateTimeImmutable.
      *
      * @param string $dateString ISO 8601 date string
-     * @return \DateTimeImmutable
+     *
      * @throws ValidationException If the date format is invalid
      */
     private function parseDueDate(string $dateString): \DateTimeImmutable
@@ -708,11 +726,12 @@ final class TaskService
     /**
      * Attaches tags to a task.
      *
-     * @param Task $task The task
-     * @param User $user The user (for ownership verification)
+     * @param Task     $task   The task
+     * @param User     $user   The user (for ownership verification)
      * @param string[] $tagIds The tag IDs
+     *
      * @throws EntityNotFoundException If a tag is not found
-     * @throws ForbiddenException If user doesn't own a tag
+     * @throws ForbiddenException      If user doesn't own a tag
      */
     private function attachTags(Task $task, User $user, array $tagIds): void
     {
@@ -734,8 +753,9 @@ final class TaskService
     /**
      * Applies recurrence settings to a task.
      *
-     * @param Task $task The task
+     * @param Task   $task           The task
      * @param string $recurrenceRule The natural language recurrence rule
+     *
      * @throws InvalidRecurrenceException If the rule cannot be parsed
      */
     private function applyRecurrence(Task $task, string $recurrenceRule): void

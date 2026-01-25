@@ -16,6 +16,7 @@ interface TaskStateServiceInterface
      * Serializes a task state for undo operations.
      *
      * @param Task $task The task to serialize
+     *
      * @return array<string, mixed> The serialized state
      */
     public function serializeTaskState(Task $task): array;
@@ -24,6 +25,7 @@ interface TaskStateServiceInterface
      * Serializes only the status-related state for undo operations.
      *
      * @param Task $task The task to serialize
+     *
      * @return array<string, mixed> The serialized status state
      */
     public function serializeStatusState(Task $task): array;
@@ -34,8 +36,9 @@ interface TaskStateServiceInterface
      * Creates a new Task entity with all properties set from the state.
      * Used when undoing delete operations.
      *
-     * @param User $user The task owner
+     * @param User                 $user  The task owner
      * @param array<string, mixed> $state The serialized state
+     *
      * @return Task The restored task
      */
     public function restoreTaskFromState(User $user, array $state): Task;
@@ -43,7 +46,7 @@ interface TaskStateServiceInterface
     /**
      * Applies a serialized state to an existing task.
      *
-     * @param Task $task The task to update
+     * @param Task                 $task  The task to update
      * @param array<string, mixed> $state The state to apply
      */
     public function applyStateToTask(Task $task, array $state): void;

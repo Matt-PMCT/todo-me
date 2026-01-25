@@ -6,9 +6,9 @@ namespace App\Controller\Api;
 
 use App\Entity\User;
 use App\Exception\InvalidUndoTokenException;
+use App\Service\ProjectUndoService;
 use App\Service\ResponseFormatter;
 use App\Service\TaskUndoService;
-use App\Service\ProjectUndoService;
 use App\Service\UndoService;
 use OpenApi\Attributes as OA;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;

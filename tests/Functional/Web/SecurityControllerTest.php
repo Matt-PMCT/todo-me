@@ -95,7 +95,7 @@ class SecurityControllerTest extends ApiTestCase
         $crawler = $this->client->request('GET', '/register');
 
         $form = $crawler->selectButton('Create account')->form([
-            'email' => 'newwebuser' . uniqid() . '@example.com',
+            'email' => 'newwebuser'.uniqid().'@example.com',
             'password' => 'SecurePassword123',
             'password_confirm' => 'SecurePassword123',
         ]);
@@ -114,7 +114,7 @@ class SecurityControllerTest extends ApiTestCase
         $crawler = $this->client->request('GET', '/register');
 
         $form = $crawler->selectButton('Create account')->form([
-            'email' => 'mismatch' . uniqid() . '@example.com',
+            'email' => 'mismatch'.uniqid().'@example.com',
             'password' => 'Password123',
             'password_confirm' => 'DifferentPassword',
         ]);
@@ -148,7 +148,7 @@ class SecurityControllerTest extends ApiTestCase
         $crawler = $this->client->request('GET', '/register');
 
         $form = $crawler->selectButton('Create account')->form([
-            'email' => 'shortpwd' . uniqid() . '@example.com',
+            'email' => 'shortpwd'.uniqid().'@example.com',
             'password' => 'short',
             'password_confirm' => 'short',
         ]);

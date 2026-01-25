@@ -69,13 +69,14 @@ final class AccountLockoutService
             return true;
         }
 
-        $windowEnd = $lastFailed->modify('+' . self::ATTEMPT_WINDOW_MINUTES . ' minutes');
+        $windowEnd = $lastFailed->modify('+'.self::ATTEMPT_WINDOW_MINUTES.' minutes');
+
         return new \DateTimeImmutable() > $windowEnd;
     }
 
     private function lockAccount(User $user): void
     {
-        $user->setLockedUntil(new \DateTimeImmutable('+' . self::LOCKOUT_DURATION_MINUTES . ' minutes'));
+        $user->setLockedUntil(new \DateTimeImmutable('+'.self::LOCKOUT_DURATION_MINUTES.' minutes'));
 
         // Send notification email
         $this->emailService->sendAccountLockedNotification($user, self::LOCKOUT_DURATION_MINUTES);

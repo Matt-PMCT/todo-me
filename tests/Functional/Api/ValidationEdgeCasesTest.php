@@ -423,7 +423,7 @@ class ValidationEdgeCasesTest extends ApiTestCase
 
     public function testRegisterWithTooLongEmail(): void
     {
-        $tooLongEmail = str_repeat('a', 170) . '@example.com';
+        $tooLongEmail = str_repeat('a', 170).'@example.com';
 
         $response = $this->apiRequest('POST', '/api/v1/auth/register', [
             'email' => $tooLongEmail,

@@ -314,6 +314,7 @@ class Project implements UserOwnedInterface
     {
         if ($parent === null) {
             $this->parent = null;
+
             return $this;
         }
 

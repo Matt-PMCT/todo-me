@@ -8,6 +8,7 @@ use App\Entity\User;
 use App\Service\PushNotificationService;
 use App\Service\ResponseFormatter;
 use App\Service\ValidationHelper;
+use OpenApi\Attributes as OA;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -15,6 +16,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
+#[OA\Tag(name: 'Push Notifications', description: 'Web push notification subscription management')]
 #[Route('/api/v1/push')]
 #[IsGranted('IS_AUTHENTICATED_FULLY')]
 final class PushController extends AbstractController
@@ -30,6 +32,19 @@ final class PushController extends AbstractController
      * Get VAPID public key for client-side subscription.
      */
     #[Route('/vapid-key', name: 'api_push_vapid_key', methods: ['GET'])]
+    #[OA\Get(
+        summary: 'Get VAPID public key',
+        description: 'Returns the VAPID public key needed for push notification subscription',
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: 'VAPID public key',
+                content: new OA\JsonContent(ref: '#/components/schemas/ApiResponse')
+            ),
+            new OA\Response(response: 401, description: 'Not authenticated'),
+            new OA\Response(response: 503, description: 'Push notifications not configured'),
+        ]
+    )]
     public function getVapidKey(): JsonResponse
     {
         if (!$this->pushNotificationService->isConfigured()) {
@@ -49,6 +64,38 @@ final class PushController extends AbstractController
      * Subscribe to push notifications.
      */
     #[Route('/subscribe', name: 'api_push_subscribe', methods: ['POST'])]
+    #[OA\Post(
+        summary: 'Subscribe to push notifications',
+        description: 'Registers a new push notification subscription for the authenticated user',
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(
+                required: ['endpoint', 'keys'],
+                properties: [
+                    new OA\Property(property: 'endpoint', type: 'string', description: 'Push subscription endpoint URL'),
+                    new OA\Property(
+                        property: 'keys',
+                        type: 'object',
+                        required: ['p256dh', 'auth'],
+                        properties: [
+                            new OA\Property(property: 'p256dh', type: 'string', description: 'User public key'),
+                            new OA\Property(property: 'auth', type: 'string', description: 'Auth secret'),
+                        ]
+                    ),
+                ]
+            )
+        ),
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: 'Subscription created',
+                content: new OA\JsonContent(ref: '#/components/schemas/ApiResponse')
+            ),
+            new OA\Response(response: 400, description: 'Validation error'),
+            new OA\Response(response: 401, description: 'Not authenticated'),
+            new OA\Response(response: 503, description: 'Push notifications not configured'),
+        ]
+    )]
     public function subscribe(Request $request): JsonResponse
     {
         /** @var User $user */
@@ -102,6 +149,29 @@ final class PushController extends AbstractController
      * Unsubscribe from push notifications.
      */
     #[Route('/unsubscribe', name: 'api_push_unsubscribe', methods: ['POST'])]
+    #[OA\Post(
+        summary: 'Unsubscribe from push notifications',
+        description: 'Removes a push notification subscription for the authenticated user',
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(
+                required: ['endpoint'],
+                properties: [
+                    new OA\Property(property: 'endpoint', type: 'string', description: 'Push subscription endpoint URL to remove'),
+                ]
+            )
+        ),
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: 'Subscription removed',
+                content: new OA\JsonContent(ref: '#/components/schemas/ApiResponse')
+            ),
+            new OA\Response(response: 400, description: 'Validation error'),
+            new OA\Response(response: 401, description: 'Not authenticated'),
+            new OA\Response(response: 404, description: 'Subscription not found'),
+        ]
+    )]
     public function unsubscribe(Request $request): JsonResponse
     {
         /** @var User $user */

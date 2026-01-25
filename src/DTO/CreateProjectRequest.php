@@ -18,22 +18,18 @@ final class CreateProjectRequest
             maxMessage: 'Name cannot be longer than {{ limit }} characters'
         )]
         public readonly string $name = '',
-
         #[Assert\Length(
             max: 500,
             maxMessage: 'Description cannot be longer than {{ limit }} characters'
         )]
         public readonly ?string $description = null,
-
         #[Assert\Uuid(message: 'Parent ID must be a valid UUID')]
         public readonly ?string $parentId = null,
-
         #[Assert\Regex(
             pattern: '/^#[0-9A-Fa-f]{6}$/',
             message: 'Color must be a valid hex color'
         )]
         public readonly ?string $color = null,
-
         #[Assert\Regex(
             pattern: '/^[a-zA-Z0-9_-]*$/',
             message: 'Icon must contain only alphanumeric characters, dashes, and underscores'

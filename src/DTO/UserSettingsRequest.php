@@ -24,10 +24,8 @@ final class UserSettingsRequest
     public function __construct(
         #[Assert\Timezone(message: 'Invalid timezone')]
         public readonly ?string $timezone = null,
-
         #[Assert\Choice(choices: self::VALID_DATE_FORMATS, message: 'Invalid date format. Must be MDY, DMY, or YMD')]
         public readonly ?string $dateFormat = null,
-
         #[Assert\Choice(choices: self::VALID_START_OF_WEEK, message: 'Invalid start of week. Must be 0 (Sunday) or 1 (Monday)')]
         public readonly ?int $startOfWeek = null,
     ) {

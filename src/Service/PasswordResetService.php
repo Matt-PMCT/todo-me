@@ -43,7 +43,7 @@ final class PasswordResetService
 
         $user->setPasswordResetToken($hashedToken);
         $user->setPasswordResetExpiresAt(
-            new \DateTimeImmutable('+' . self::TOKEN_EXPIRY_MINUTES . ' minutes')
+            new \DateTimeImmutable('+'.self::TOKEN_EXPIRY_MINUTES.' minutes')
         );
 
         $this->entityManager->flush();

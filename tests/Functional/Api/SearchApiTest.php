@@ -409,8 +409,8 @@ class SearchApiTest extends ApiTestCase
 
         // At least one should have the <mark> tag since we searched for 'important'
         $hasHighlight = (
-            ($task['titleHighlight'] !== null && str_contains($task['titleHighlight'], '<mark>')) ||
-            ($task['descriptionHighlight'] !== null && str_contains($task['descriptionHighlight'], '<mark>'))
+            ($task['titleHighlight'] !== null && str_contains($task['titleHighlight'], '<mark>'))
+            || ($task['descriptionHighlight'] !== null && str_contains($task['descriptionHighlight'], '<mark>'))
         );
         $this->assertTrue($hasHighlight, 'Expected at least one field to have <mark> highlight tags');
     }

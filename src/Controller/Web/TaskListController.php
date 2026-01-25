@@ -127,7 +127,7 @@ class TaskListController extends AbstractController
 
             $this->addFlash('success', 'Task created successfully.');
         } catch (\Exception $e) {
-            $this->addFlash('error', 'Failed to create task: ' . $e->getMessage());
+            $this->addFlash('error', 'Failed to create task: '.$e->getMessage());
         }
 
         return $this->redirectToRoute('app_task_list');
@@ -141,7 +141,7 @@ class TaskListController extends AbstractController
 
         // Validate CSRF token
         $csrfToken = (string) $request->request->get('_csrf_token', '');
-        if (!$this->isCsrfTokenValid('task_status_' . $id, $csrfToken)) {
+        if (!$this->isCsrfTokenValid('task_status_'.$id, $csrfToken)) {
             $this->addFlash('error', 'Invalid security token. Please try again.');
 
             return $this->redirectToRoute('app_task_list');
@@ -161,7 +161,7 @@ class TaskListController extends AbstractController
 
             $this->addFlash('success', 'Task status updated.');
         } catch (\Exception $e) {
-            $this->addFlash('error', 'Failed to update task status: ' . $e->getMessage());
+            $this->addFlash('error', 'Failed to update task status: '.$e->getMessage());
         }
 
         return $this->redirectToRoute('app_task_list');
@@ -175,7 +175,7 @@ class TaskListController extends AbstractController
 
         // Validate CSRF token
         $csrfToken = (string) $request->request->get('_csrf_token', '');
-        if (!$this->isCsrfTokenValid('delete_task_' . $id, $csrfToken)) {
+        if (!$this->isCsrfTokenValid('delete_task_'.$id, $csrfToken)) {
             $this->addFlash('error', 'Invalid security token. Please try again.');
 
             return $this->redirectToRoute('app_task_list');
@@ -188,7 +188,7 @@ class TaskListController extends AbstractController
 
             $this->addFlash('success', sprintf('Task "%s" has been deleted.', $taskTitle));
         } catch (\Exception $e) {
-            $this->addFlash('error', 'Failed to delete task: ' . $e->getMessage());
+            $this->addFlash('error', 'Failed to delete task: '.$e->getMessage());
         }
 
         return $this->redirectToRoute('app_task_list');

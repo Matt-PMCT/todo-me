@@ -32,27 +32,23 @@ final class SearchRequest
             maxMessage: 'Search query must be at most {{ limit }} characters'
         )]
         public readonly string $query,
-
         #[Assert\Choice(
             choices: self::VALID_TYPES,
             message: 'Type must be one of: {{ choices }}'
         )]
         public readonly string $type = self::TYPE_ALL,
-
         #[Assert\Range(
             min: 1,
             max: 100,
             notInRangeMessage: 'Page must be between {{ min }} and {{ max }}'
         )]
         public readonly int $page = 1,
-
         #[Assert\Range(
             min: 1,
             max: 100,
             notInRangeMessage: 'Limit must be between {{ min }} and {{ max }}'
         )]
         public readonly int $limit = 20,
-
         public readonly bool $highlight = true,
     ) {
     }

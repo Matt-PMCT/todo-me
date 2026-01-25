@@ -14,9 +14,9 @@ use App\Entity\Task;
 final class SearchResponse
 {
     /**
-     * @param array<array<string, mixed>> $tasks
-     * @param array<array<string, mixed>> $projects
-     * @param array<array<string, mixed>> $tags
+     * @param array<array<string, mixed>>                                                                                              $tasks
+     * @param array<array<string, mixed>>                                                                                              $projects
+     * @param array<array<string, mixed>>                                                                                              $tags
      * @param array{total: int, page: int, limit: int, totalPages: int, hasNextPage: bool, hasPreviousPage: bool, searchTimeMs: float} $meta
      */
     public function __construct(
@@ -30,15 +30,9 @@ final class SearchResponse
     /**
      * Creates a SearchResponse from entity arrays.
      *
-     * @param Task[] $tasks
+     * @param Task[]    $tasks
      * @param Project[] $projects
-     * @param Tag[] $tags
-     * @param int $totalTasks
-     * @param int $totalProjects
-     * @param int $totalTags
-     * @param int $page
-     * @param int $limit
-     * @param float $searchTimeMs
+     * @param Tag[]     $tags
      */
     public static function fromEntities(
         array $tasks,
@@ -51,9 +45,9 @@ final class SearchResponse
         int $limit,
         float $searchTimeMs = 0.0,
     ): self {
-        $taskResults = array_map(fn(Task $task) => self::serializeTask($task), $tasks);
-        $projectResults = array_map(fn(Project $project) => self::serializeProject($project), $projects);
-        $tagResults = array_map(fn(Tag $tag) => self::serializeTag($tag), $tags);
+        $taskResults = array_map(fn (Task $task) => self::serializeTask($task), $tasks);
+        $projectResults = array_map(fn (Project $project) => self::serializeProject($project), $projects);
+        $tagResults = array_map(fn (Tag $tag) => self::serializeTag($tag), $tags);
 
         $total = $totalTasks + $totalProjects + $totalTags;
         $totalPages = $limit > 0 ? (int) ceil($total / $limit) : 0;
@@ -83,14 +77,8 @@ final class SearchResponse
      * Creates a SearchResponse from entity arrays with highlight data for tasks.
      *
      * @param array<array{task: Task, rank: float, titleHighlight: string|null, descriptionHighlight: string|null}> $tasksWithHighlights
-     * @param Project[] $projects
-     * @param Tag[] $tags
-     * @param int $totalTasks
-     * @param int $totalProjects
-     * @param int $totalTags
-     * @param int $page
-     * @param int $limit
-     * @param float $searchTimeMs
+     * @param Project[]                                                                                             $projects
+     * @param Tag[]                                                                                                 $tags
      */
     public static function fromEntitiesWithHighlights(
         array $tasksWithHighlights,
@@ -104,7 +92,7 @@ final class SearchResponse
         float $searchTimeMs = 0.0,
     ): self {
         $taskResults = array_map(
-            fn(array $item) => self::serializeTaskWithHighlight(
+            fn (array $item) => self::serializeTaskWithHighlight(
                 $item['task'],
                 $item['rank'],
                 $item['titleHighlight'],
@@ -112,8 +100,8 @@ final class SearchResponse
             ),
             $tasksWithHighlights
         );
-        $projectResults = array_map(fn(Project $project) => self::serializeProject($project), $projects);
-        $tagResults = array_map(fn(Tag $tag) => self::serializeTag($tag), $tags);
+        $projectResults = array_map(fn (Project $project) => self::serializeProject($project), $projects);
+        $tagResults = array_map(fn (Tag $tag) => self::serializeTag($tag), $tags);
 
         $total = $totalTasks + $totalProjects + $totalTags;
         $totalPages = $limit > 0 ? (int) ceil($total / $limit) : 0;

@@ -489,13 +489,14 @@ class ProjectUndoServiceTest extends UnitTestCase
         // ProjectStateService.applyStateToProject also calls findOneByOwnerAndId to restore the parent
         $this->projectRepository
             ->method('findOneByOwnerAndId')
-            ->willReturnCallback(function ($owner, $projectId) use ($user, $project, $originalParent) {
+            ->willReturnCallback(function ($owner, $projectId) use ($project, $originalParent) {
                 if ($projectId === 'project-123') {
                     return $project;
                 }
                 if ($projectId === 'original-parent') {
                     return $originalParent;
                 }
+
                 return null;
             });
 

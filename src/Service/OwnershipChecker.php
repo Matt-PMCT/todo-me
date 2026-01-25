@@ -30,7 +30,7 @@ final class OwnershipChecker implements OwnershipCheckerInterface
      * @param UserOwnedInterface $entity The entity to check ownership of
      *
      * @throws UnauthorizedException If no user is authenticated
-     * @throws ForbiddenException If the current user does not own the entity
+     * @throws ForbiddenException    If the current user does not own the entity
      */
     public function checkOwnership(UserOwnedInterface $entity): void
     {
@@ -38,6 +38,7 @@ final class OwnershipChecker implements OwnershipCheckerInterface
 
         if (!$this->isOwner($entity, $currentUser)) {
             $entityType = $this->getEntityTypeName($entity);
+
             throw ForbiddenException::notOwner($entityType);
         }
     }
@@ -46,7 +47,7 @@ final class OwnershipChecker implements OwnershipCheckerInterface
      * Checks if a specific user owns the entity.
      *
      * @param UserOwnedInterface $entity The entity to check
-     * @param User $user The user to check ownership for
+     * @param User               $user   The user to check ownership for
      *
      * @return bool True if the user owns the entity
      */
@@ -64,9 +65,9 @@ final class OwnershipChecker implements OwnershipCheckerInterface
     /**
      * Ensures a user is authenticated and returns the user.
      *
-     * @throws UnauthorizedException If no user is authenticated
-     *
      * @return User The authenticated user
+     *
+     * @throws UnauthorizedException If no user is authenticated
      */
     public function ensureAuthenticated(): User
     {

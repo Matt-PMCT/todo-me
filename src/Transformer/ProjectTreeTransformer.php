@@ -14,8 +14,9 @@ final class ProjectTreeTransformer
     /**
      * Transform a flat array of projects into a nested tree structure.
      *
-     * @param Project[] $projects Flat array of projects
+     * @param Project[]                                        $projects   Flat array of projects
      * @param array<string, array{total: int, completed: int}> $taskCounts Optional task counts indexed by project ID
+     *
      * @return array<int, array{
      *     id: string,
      *     name: string,
@@ -61,6 +62,7 @@ final class ProjectTreeTransformer
                 if ($posCompare !== 0) {
                     return $posCompare;
                 }
+
                 return $a->getId() <=> $b->getId();
             });
         }
@@ -77,9 +79,10 @@ final class ProjectTreeTransformer
     /**
      * Build a single node with its children recursively.
      *
-     * @param Project $project The project to transform
-     * @param array<string, Project[]> $childrenMap Map of parent ID to children
-     * @param array<string, array{total: int, completed: int}> $taskCounts Task counts by project ID
+     * @param Project                                          $project     The project to transform
+     * @param array<string, Project[]>                         $childrenMap Map of parent ID to children
+     * @param array<string, array{total: int, completed: int}> $taskCounts  Task counts by project ID
+     *
      * @return array{
      *     id: string,
      *     name: string,
@@ -128,9 +131,10 @@ final class ProjectTreeTransformer
     /**
      * Transform a single project node with optional children.
      *
-     * @param Project $project The project to transform
-     * @param array<int, array> $children Pre-built children nodes
+     * @param Project                                $project   The project to transform
+     * @param array<int, array>                      $children  Pre-built children nodes
      * @param array{total: int, completed: int}|null $taskCount Task count for this project
+     *
      * @return array{
      *     id: string,
      *     name: string,

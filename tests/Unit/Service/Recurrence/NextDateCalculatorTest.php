@@ -8,7 +8,6 @@ use App\Enum\RecurrenceType;
 use App\Service\Recurrence\NextDateCalculator;
 use App\ValueObject\RecurrenceRule;
 use PHPUnit\Framework\Attributes\CoversClass;
-use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 #[CoversClass(NextDateCalculator::class)]

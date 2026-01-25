@@ -196,7 +196,7 @@ class SavedFilterApiTest extends ApiTestCase
         $response = $this->authenticatedApiRequest(
             $user,
             'GET',
-            '/api/v1/saved-filters/' . $filter->getId()
+            '/api/v1/saved-filters/'.$filter->getId()
         );
 
         $this->assertResponseStatusCode(Response::HTTP_OK, $response);
@@ -232,7 +232,7 @@ class SavedFilterApiTest extends ApiTestCase
         $response = $this->authenticatedApiRequest(
             $user1,
             'GET',
-            '/api/v1/saved-filters/' . $filter->getId()
+            '/api/v1/saved-filters/'.$filter->getId()
         );
 
         // Should return 404 or 403 depending on implementation
@@ -255,7 +255,7 @@ class SavedFilterApiTest extends ApiTestCase
         $response = $this->authenticatedApiRequest(
             $user,
             'PATCH',
-            '/api/v1/saved-filters/' . $filter->getId(),
+            '/api/v1/saved-filters/'.$filter->getId(),
             [
                 'name' => 'Updated Name',
                 'criteria' => ['statuses' => ['completed']],
@@ -280,7 +280,7 @@ class SavedFilterApiTest extends ApiTestCase
         $response = $this->authenticatedApiRequest(
             $user,
             'PATCH',
-            '/api/v1/saved-filters/' . $filter->getId(),
+            '/api/v1/saved-filters/'.$filter->getId(),
             ['name' => 'Only Name Updated']
         );
 
@@ -317,7 +317,7 @@ class SavedFilterApiTest extends ApiTestCase
         $response = $this->authenticatedApiRequest(
             $user1,
             'PATCH',
-            '/api/v1/saved-filters/' . $filter->getId(),
+            '/api/v1/saved-filters/'.$filter->getId(),
             ['name' => 'Trying to Update']
         );
 
@@ -341,7 +341,7 @@ class SavedFilterApiTest extends ApiTestCase
         $response = $this->authenticatedApiRequest(
             $user,
             'DELETE',
-            '/api/v1/saved-filters/' . $filterId
+            '/api/v1/saved-filters/'.$filterId
         );
 
         $this->assertResponseStatusCode(Response::HTTP_OK, $response);
@@ -353,7 +353,7 @@ class SavedFilterApiTest extends ApiTestCase
         $response = $this->authenticatedApiRequest(
             $user,
             'GET',
-            '/api/v1/saved-filters/' . $filterId
+            '/api/v1/saved-filters/'.$filterId
         );
 
         $this->assertResponseStatusCode(Response::HTTP_NOT_FOUND, $response);
@@ -382,7 +382,7 @@ class SavedFilterApiTest extends ApiTestCase
         $response = $this->authenticatedApiRequest(
             $user1,
             'DELETE',
-            '/api/v1/saved-filters/' . $filter->getId()
+            '/api/v1/saved-filters/'.$filter->getId()
         );
 
         $this->assertContains($response->getStatusCode(), [
@@ -410,7 +410,7 @@ class SavedFilterApiTest extends ApiTestCase
         $response = $this->authenticatedApiRequest(
             $user,
             'POST',
-            '/api/v1/saved-filters/' . $filter2->getId() . '/default'
+            '/api/v1/saved-filters/'.$filter2->getId().'/default'
         );
 
         $this->assertResponseStatusCode(Response::HTTP_OK, $response);
@@ -423,7 +423,7 @@ class SavedFilterApiTest extends ApiTestCase
         $response = $this->authenticatedApiRequest(
             $user,
             'GET',
-            '/api/v1/saved-filters/' . $filter1->getId()
+            '/api/v1/saved-filters/'.$filter1->getId()
         );
 
         $data = $this->getResponseData($response);
@@ -634,7 +634,7 @@ class SavedFilterApiTest extends ApiTestCase
         $response = $this->authenticatedApiRequest(
             $user,
             'GET',
-            '/api/v1/saved-filters/' . $filter->getId()
+            '/api/v1/saved-filters/'.$filter->getId()
         );
 
         $this->assertResponseStatusCode(Response::HTTP_OK, $response);

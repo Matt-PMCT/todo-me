@@ -23,8 +23,9 @@ class TagService
     /**
      * Find an existing tag or create a new one.
      *
-     * @param User $user The tag owner
+     * @param User   $user The tag owner
      * @param string $name The tag name (will be stored lowercase)
+     *
      * @return array{tag: Tag, created: bool}
      */
     public function findOrCreate(User $user, string $name): array
@@ -58,8 +59,9 @@ class TagService
     /**
      * Find a tag by name (case-insensitive).
      *
-     * @param User $user The tag owner
+     * @param User   $user The tag owner
      * @param string $name The tag name to search for
+     *
      * @return Tag|null The tag if found, null otherwise
      */
     public function findByName(User $user, string $name): ?Tag

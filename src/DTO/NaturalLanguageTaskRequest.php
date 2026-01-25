@@ -20,6 +20,7 @@ final class NaturalLanguageTaskRequest
      * Creates a NaturalLanguageTaskRequest from an array.
      *
      * @param array<string, mixed> $data
+     *
      * @throws \InvalidArgumentException If input_text is missing or not a string
      */
     public static function fromArray(array $data): self

@@ -269,7 +269,7 @@ class AuthApiTest extends ApiTestCase
             'GET',
             '/api/v1/auth/me',
             null,
-            ['Authorization' => 'Bearer ' . $user->getApiToken()]
+            ['Authorization' => 'Bearer '.$user->getApiToken()]
         );
 
         $this->assertResponseStatusCode(Response::HTTP_OK, $response);
@@ -306,7 +306,7 @@ class AuthApiTest extends ApiTestCase
             '/api/v1/auth/me',
             null,
             [
-                'Authorization' => 'Bearer ' . $user1->getApiToken(),
+                'Authorization' => 'Bearer '.$user1->getApiToken(),
                 'X-API-Key' => $user2->getApiToken(),
             ]
         );
@@ -407,7 +407,7 @@ class AuthApiTest extends ApiTestCase
 
     public function testRegisterWithVeryLongEmail(): void
     {
-        $longEmail = str_repeat('a', 200) . '@example.com';
+        $longEmail = str_repeat('a', 200).'@example.com';
 
         $response = $this->apiRequest('POST', '/api/v1/auth/register', [
             'email' => $longEmail,
@@ -557,7 +557,7 @@ class AuthApiTest extends ApiTestCase
             'POST',
             '/api/v1/auth/refresh',
             null,
-            ['Authorization' => 'Bearer ' . $originalToken]
+            ['Authorization' => 'Bearer '.$originalToken]
         );
 
         $this->assertResponseStatusCode(Response::HTTP_OK, $response);
@@ -600,7 +600,7 @@ class AuthApiTest extends ApiTestCase
             'POST',
             '/api/v1/auth/refresh',
             null,
-            ['Authorization' => 'Bearer ' . $originalToken]
+            ['Authorization' => 'Bearer '.$originalToken]
         );
 
         $this->assertResponseStatusCode(Response::HTTP_OK, $response);
@@ -643,7 +643,7 @@ class AuthApiTest extends ApiTestCase
             'POST',
             '/api/v1/auth/refresh',
             null,
-            ['Authorization' => 'Bearer ' . $originalToken]
+            ['Authorization' => 'Bearer '.$originalToken]
         );
 
         $this->assertResponseStatusCode(Response::HTTP_UNAUTHORIZED, $response);

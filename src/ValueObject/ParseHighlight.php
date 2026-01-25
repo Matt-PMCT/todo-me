@@ -25,12 +25,12 @@ final readonly class ParseHighlight
     /**
      * Create a new ParseHighlight.
      *
-     * @param string $type The type of highlight ('date', 'project', 'tag', 'priority')
-     * @param string $text The matched text from the input
-     * @param int $startPosition The start position in the input string
-     * @param int $endPosition The end position in the input string
-     * @param mixed $value The parsed value (depends on type)
-     * @param bool $valid Whether the parsed value is valid (false for invalid priority, not-found project, etc.)
+     * @param string $type          The type of highlight ('date', 'project', 'tag', 'priority')
+     * @param string $text          The matched text from the input
+     * @param int    $startPosition The start position in the input string
+     * @param int    $endPosition   The end position in the input string
+     * @param mixed  $value         The parsed value (depends on type)
+     * @param bool   $valid         Whether the parsed value is valid (false for invalid priority, not-found project, etc.)
      */
     public static function create(
         string $type,

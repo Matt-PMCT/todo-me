@@ -44,8 +44,9 @@ final class BatchOperationService
     /**
      * Executes a batch of operations.
      *
-     * @param User $user The user executing the batch
+     * @param User                   $user    The user executing the batch
      * @param BatchOperationsRequest $request The batch request
+     *
      * @return BatchResult The results of all operations
      */
     public function execute(User $user, BatchOperationsRequest $request): BatchResult
@@ -97,6 +98,7 @@ final class BatchOperationService
                 // In atomic mode, fail fast on first error
                 if (!$result->success) {
                     $this->entityManager->rollback();
+
                     return BatchResult::fromResults($results);
                 }
             }
@@ -112,6 +114,7 @@ final class BatchOperationService
             return BatchResult::fromResults($results, $undoToken);
         } catch (\Throwable $e) {
             $this->entityManager->rollback();
+
             throw $e;
         }
     }
@@ -119,10 +122,11 @@ final class BatchOperationService
     /**
      * Executes a single operation and captures state for undo.
      *
-     * @param User $user The user
-     * @param BatchOperationRequest $operation The operation
-     * @param int $index The operation index
+     * @param User                             $user           The user
+     * @param BatchOperationRequest            $operation      The operation
+     * @param int                              $index          The operation index
      * @param array<int, array<string, mixed>> $previousStates Captured states for undo (modified by reference)
+     *
      * @return BatchOperationResult The operation result
      */
     private function executeSingleOperation(
@@ -138,7 +142,7 @@ final class BatchOperationService
                 return BatchOperationResult::failure(
                     $index,
                     $operation->action,
-                    'Operation validation failed: ' . implode(', ', $errors),
+                    'Operation validation failed: '.implode(', ', $errors),
                     'VALIDATION_ERROR'
                 );
             }
@@ -149,7 +153,7 @@ final class BatchOperationService
                 BatchOperationRequest::ACTION_DELETE => $this->executeDelete($user, $operation, $index, $previousStates),
                 BatchOperationRequest::ACTION_COMPLETE => $this->executeComplete($user, $operation, $index, $previousStates),
                 BatchOperationRequest::ACTION_RESCHEDULE => $this->executeReschedule($user, $operation, $index, $previousStates),
-                default => throw new \InvalidArgumentException('Unknown action: ' . $operation->action),
+                default => throw new \InvalidArgumentException('Unknown action: '.$operation->action),
             };
 
             return BatchOperationResult::success($index, $operation->action, $taskId);
@@ -173,7 +177,7 @@ final class BatchOperationService
             return BatchOperationResult::failure(
                 $index,
                 $operation->action,
-                'Validation failed: ' . json_encode($e->getErrors()),
+                'Validation failed: '.json_encode($e->getErrors()),
                 'VALIDATION_ERROR',
                 $operation->taskId
             );
@@ -318,8 +322,9 @@ final class BatchOperationService
     /**
      * Creates a batch undo token.
      *
-     * @param User $user The user
+     * @param User                             $user           The user
      * @param array<int, array<string, mixed>> $previousStates The states to restore on undo
+     *
      * @return string|null The undo token
      */
     private function createBatchUndoToken(User $user, array $previousStates): ?string
@@ -328,7 +333,7 @@ final class BatchOperationService
             userId: $user->getId(),
             action: UndoAction::BATCH->value,
             entityType: self::BATCH_ENTITY_TYPE,
-            entityId: 'batch-' . bin2hex(random_bytes(8)),
+            entityId: 'batch-'.bin2hex(random_bytes(8)),
             previousState: ['operations' => $previousStates],
         );
 
@@ -338,8 +343,9 @@ final class BatchOperationService
     /**
      * Undoes a batch operation.
      *
-     * @param User $user The user
+     * @param User   $user  The user
      * @param string $token The undo token
+     *
      * @return array<string, mixed> The undo results
      */
     public function undoBatch(User $user, string $token): array
@@ -376,7 +382,7 @@ final class BatchOperationService
     /**
      * Undoes a single operation from the batch.
      *
-     * @param User $user The user
+     * @param User                 $user    The user
      * @param array<string, mixed> $opState The operation state
      */
     private function undoSingleOperation(User $user, array $opState): void
@@ -390,7 +396,7 @@ final class BatchOperationService
             BatchOperationRequest::ACTION_UPDATE,
             BatchOperationRequest::ACTION_COMPLETE,
             BatchOperationRequest::ACTION_RESCHEDULE => $this->undoUpdate($taskId, $opState['state']),
-            default => throw new \InvalidArgumentException('Unknown action to undo: ' . $action),
+            default => throw new \InvalidArgumentException('Unknown action to undo: '.$action),
         };
     }
 
@@ -409,7 +415,7 @@ final class BatchOperationService
     /**
      * Undoes a delete by restoring the task.
      *
-     * @param User $user The user
+     * @param User                 $user  The user
      * @param array<string, mixed> $state The task state
      */
     private function undoDelete(User $user, array $state): void
@@ -422,8 +428,8 @@ final class BatchOperationService
     /**
      * Undoes an update by restoring previous state.
      *
-     * @param string $taskId The task ID
-     * @param array<string, mixed> $state The previous state
+     * @param string               $taskId The task ID
+     * @param array<string, mixed> $state  The previous state
      */
     private function undoUpdate(string $taskId, array $state): void
     {

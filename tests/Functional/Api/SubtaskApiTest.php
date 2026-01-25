@@ -32,7 +32,7 @@ class SubtaskApiTest extends ApiTestCase
         $response = $this->authenticatedApiRequest(
             $user,
             'POST',
-            '/api/v1/tasks/' . $parentTask->getId() . '/subtasks',
+            '/api/v1/tasks/'.$parentTask->getId().'/subtasks',
             [
                 'title' => 'Subtask 1',
                 'description' => 'First subtask',
@@ -63,7 +63,7 @@ class SubtaskApiTest extends ApiTestCase
         $response = $this->authenticatedApiRequest(
             $user1,
             'POST',
-            '/api/v1/tasks/' . $user2Task->getId() . '/subtasks',
+            '/api/v1/tasks/'.$user2Task->getId().'/subtasks',
             ['title' => 'Unauthorized Subtask']
         );
 
@@ -83,7 +83,7 @@ class SubtaskApiTest extends ApiTestCase
         $subtaskResponse = $this->authenticatedApiRequest(
             $user,
             'POST',
-            '/api/v1/tasks/' . $parentTask->getId() . '/subtasks',
+            '/api/v1/tasks/'.$parentTask->getId().'/subtasks',
             ['title' => 'Subtask 1']
         );
 
@@ -95,7 +95,7 @@ class SubtaskApiTest extends ApiTestCase
         $response = $this->authenticatedApiRequest(
             $user,
             'POST',
-            '/api/v1/tasks/' . $subtaskId . '/subtasks',
+            '/api/v1/tasks/'.$subtaskId.'/subtasks',
             ['title' => 'Sub-subtask']
         );
 
@@ -121,21 +121,21 @@ class SubtaskApiTest extends ApiTestCase
         $this->authenticatedApiRequest(
             $user,
             'POST',
-            '/api/v1/tasks/' . $parentTask->getId() . '/subtasks',
+            '/api/v1/tasks/'.$parentTask->getId().'/subtasks',
             ['title' => 'Subtask 1']
         );
 
         $this->authenticatedApiRequest(
             $user,
             'POST',
-            '/api/v1/tasks/' . $parentTask->getId() . '/subtasks',
+            '/api/v1/tasks/'.$parentTask->getId().'/subtasks',
             ['title' => 'Subtask 2']
         );
 
         $this->authenticatedApiRequest(
             $user,
             'POST',
-            '/api/v1/tasks/' . $parentTask->getId() . '/subtasks',
+            '/api/v1/tasks/'.$parentTask->getId().'/subtasks',
             ['title' => 'Subtask 3']
         );
 
@@ -143,7 +143,7 @@ class SubtaskApiTest extends ApiTestCase
         $response = $this->authenticatedApiRequest(
             $user,
             'GET',
-            '/api/v1/tasks/' . $parentTask->getId() . '/subtasks'
+            '/api/v1/tasks/'.$parentTask->getId().'/subtasks'
         );
 
         $this->assertResponseStatusCode(Response::HTTP_OK, $response);
@@ -176,7 +176,7 @@ class SubtaskApiTest extends ApiTestCase
         $subtask1Response = $this->authenticatedApiRequest(
             $user,
             'POST',
-            '/api/v1/tasks/' . $parentTask->getId() . '/subtasks',
+            '/api/v1/tasks/'.$parentTask->getId().'/subtasks',
             ['title' => 'Subtask 1']
         );
         $subtask1Id = $this->getResponseData($subtask1Response)['id'];
@@ -184,14 +184,14 @@ class SubtaskApiTest extends ApiTestCase
         $this->authenticatedApiRequest(
             $user,
             'POST',
-            '/api/v1/tasks/' . $parentTask->getId() . '/subtasks',
+            '/api/v1/tasks/'.$parentTask->getId().'/subtasks',
             ['title' => 'Subtask 2']
         );
 
         $subtask3Response = $this->authenticatedApiRequest(
             $user,
             'POST',
-            '/api/v1/tasks/' . $parentTask->getId() . '/subtasks',
+            '/api/v1/tasks/'.$parentTask->getId().'/subtasks',
             ['title' => 'Subtask 3']
         );
         $subtask3Id = $this->getResponseData($subtask3Response)['id'];
@@ -200,14 +200,14 @@ class SubtaskApiTest extends ApiTestCase
         $this->authenticatedApiRequest(
             $user,
             'PATCH',
-            '/api/v1/tasks/' . $subtask1Id . '/status',
+            '/api/v1/tasks/'.$subtask1Id.'/status',
             ['status' => Task::STATUS_COMPLETED]
         );
 
         $this->authenticatedApiRequest(
             $user,
             'PATCH',
-            '/api/v1/tasks/' . $subtask3Id . '/status',
+            '/api/v1/tasks/'.$subtask3Id.'/status',
             ['status' => Task::STATUS_COMPLETED]
         );
 
@@ -215,7 +215,7 @@ class SubtaskApiTest extends ApiTestCase
         $response = $this->authenticatedApiRequest(
             $user,
             'GET',
-            '/api/v1/tasks/' . $parentTask->getId()
+            '/api/v1/tasks/'.$parentTask->getId()
         );
 
         $this->assertResponseStatusCode(Response::HTTP_OK, $response);
@@ -241,7 +241,7 @@ class SubtaskApiTest extends ApiTestCase
         $subtask1Response = $this->authenticatedApiRequest(
             $user,
             'POST',
-            '/api/v1/tasks/' . $parentTask->getId() . '/subtasks',
+            '/api/v1/tasks/'.$parentTask->getId().'/subtasks',
             ['title' => 'Subtask 1']
         );
         $subtask1Id = $this->getResponseData($subtask1Response)['id'];
@@ -249,7 +249,7 @@ class SubtaskApiTest extends ApiTestCase
         $subtask2Response = $this->authenticatedApiRequest(
             $user,
             'POST',
-            '/api/v1/tasks/' . $parentTask->getId() . '/subtasks',
+            '/api/v1/tasks/'.$parentTask->getId().'/subtasks',
             ['title' => 'Subtask 2']
         );
         $subtask2Id = $this->getResponseData($subtask2Response)['id'];
@@ -258,7 +258,7 @@ class SubtaskApiTest extends ApiTestCase
         $deleteResponse = $this->authenticatedApiRequest(
             $user,
             'DELETE',
-            '/api/v1/tasks/' . $parentTask->getId()
+            '/api/v1/tasks/'.$parentTask->getId()
         );
 
         $this->assertResponseStatusCode(Response::HTTP_OK, $deleteResponse);
@@ -267,14 +267,14 @@ class SubtaskApiTest extends ApiTestCase
         $response1 = $this->authenticatedApiRequest(
             $user,
             'GET',
-            '/api/v1/tasks/' . $subtask1Id
+            '/api/v1/tasks/'.$subtask1Id
         );
         $this->assertResponseStatusCode(Response::HTTP_NOT_FOUND, $response1);
 
         $response2 = $this->authenticatedApiRequest(
             $user,
             'GET',
-            '/api/v1/tasks/' . $subtask2Id
+            '/api/v1/tasks/'.$subtask2Id
         );
         $this->assertResponseStatusCode(Response::HTTP_NOT_FOUND, $response2);
     }
@@ -296,14 +296,14 @@ class SubtaskApiTest extends ApiTestCase
         $this->authenticatedApiRequest(
             $user,
             'POST',
-            '/api/v1/tasks/' . $parentTask->getId() . '/subtasks',
+            '/api/v1/tasks/'.$parentTask->getId().'/subtasks',
             ['title' => 'Subtask 1']
         );
 
         $this->authenticatedApiRequest(
             $user,
             'POST',
-            '/api/v1/tasks/' . $parentTask->getId() . '/subtasks',
+            '/api/v1/tasks/'.$parentTask->getId().'/subtasks',
             ['title' => 'Subtask 2']
         );
 
@@ -340,14 +340,14 @@ class SubtaskApiTest extends ApiTestCase
         $this->authenticatedApiRequest(
             $user,
             'POST',
-            '/api/v1/tasks/' . $parentTask->getId() . '/subtasks',
+            '/api/v1/tasks/'.$parentTask->getId().'/subtasks',
             ['title' => 'Subtask 1']
         );
 
         $this->authenticatedApiRequest(
             $user,
             'POST',
-            '/api/v1/tasks/' . $parentTask->getId() . '/subtasks',
+            '/api/v1/tasks/'.$parentTask->getId().'/subtasks',
             ['title' => 'Subtask 2']
         );
 
@@ -367,7 +367,7 @@ class SubtaskApiTest extends ApiTestCase
         $this->assertEquals(4, $data['meta']['total']);
 
         // Verify that at least some items have parentTaskId
-        $subtasks = array_filter($data['items'], fn($task) => isset($task['parentTaskId']));
+        $subtasks = array_filter($data['items'], fn ($task) => isset($task['parentTaskId']));
         $this->assertCount(2, $subtasks);
     }
 }

@@ -61,7 +61,7 @@ final class TaskCreationResult
             'tags' => $tags,
             'parseResult' => [
                 'highlights' => array_map(
-                    fn($h) => $h->toArray(),
+                    fn ($h) => $h->toArray(),
                     $this->parseResult->highlights
                 ),
                 'warnings' => $this->parseResult->warnings,

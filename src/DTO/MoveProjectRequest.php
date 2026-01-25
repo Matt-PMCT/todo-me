@@ -14,7 +14,6 @@ final class MoveProjectRequest
     public function __construct(
         #[Assert\Uuid(message: 'Parent ID must be a valid UUID')]
         public readonly ?string $parentId = null,
-
         #[Assert\PositiveOrZero(message: 'Position must be a non-negative integer')]
         #[Assert\Range(min: 0, max: 10000)]
         public readonly ?int $position = null,

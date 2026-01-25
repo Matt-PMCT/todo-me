@@ -23,10 +23,12 @@ final class ProjectStateService
         private readonly LoggerInterface $logger,
     ) {
     }
+
     /**
      * Serializes a project state for undo operations.
      *
      * @param Project $project The project to serialize
+     *
      * @return array<string, mixed> The serialized state
      */
     public function serializeProjectState(Project $project): array
@@ -48,6 +50,7 @@ final class ProjectStateService
      * Serializes only archive-related state for archive/unarchive undo.
      *
      * @param Project $project The project
+     *
      * @return array<string, mixed> The archive-related state
      */
     public function serializeArchiveState(Project $project): array
@@ -61,8 +64,8 @@ final class ProjectStateService
     /**
      * Applies a serialized state to an existing project.
      *
-     * @param Project $project The project to update
-     * @param array<string, mixed> $state The state to apply
+     * @param Project              $project The project to update
+     * @param array<string, mixed> $state   The state to apply
      */
     public function applyStateToProject(Project $project, array $state): void
     {

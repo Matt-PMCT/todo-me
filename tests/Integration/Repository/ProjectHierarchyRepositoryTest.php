@@ -163,7 +163,7 @@ class ProjectHierarchyRepositoryTest extends IntegrationTestCase
         $roots = $this->projectRepository->findRootsByOwner($user);
 
         $this->assertCount(2, $roots);
-        $rootIds = array_map(fn($p) => $p->getId(), $roots);
+        $rootIds = array_map(fn ($p) => $p->getId(), $roots);
         $this->assertContains($root1->getId(), $rootIds);
         $this->assertContains($root2->getId(), $rootIds);
         $this->assertNotContains($child->getId(), $rootIds);
@@ -243,7 +243,7 @@ class ProjectHierarchyRepositoryTest extends IntegrationTestCase
         $this->entityManager->clear();
         $projects = $this->projectRepository->findRootsByOwner($user);
 
-        $positions = array_map(fn($p) => $p->getPosition(), $projects);
+        $positions = array_map(fn ($p) => $p->getPosition(), $projects);
         sort($positions);
 
         $this->assertEquals([0, 1, 2], $positions);
@@ -264,7 +264,7 @@ class ProjectHierarchyRepositoryTest extends IntegrationTestCase
         $children = $this->projectRepository->findChildrenByParent($parent);
 
         $this->assertCount(2, $children);
-        $childIds = array_map(fn($p) => $p->getId(), $children);
+        $childIds = array_map(fn ($p) => $p->getId(), $children);
         $this->assertContains($child1->getId(), $childIds);
         $this->assertContains($child2->getId(), $childIds);
         $this->assertNotContains($grandchild->getId(), $childIds);

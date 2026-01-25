@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Tests\Functional\Web;
 
 use App\Tests\Functional\ApiTestCase;
-use Symfony\Component\HttpFoundation\Response;
 
 /**
  * Functional tests for HomeController.

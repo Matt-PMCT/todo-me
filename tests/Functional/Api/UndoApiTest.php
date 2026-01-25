@@ -35,7 +35,7 @@ class UndoApiTest extends ApiTestCase
         $updateResponse = $this->authenticatedApiRequest(
             $user,
             'PATCH',
-            '/api/v1/tasks/' . $task->getId(),
+            '/api/v1/tasks/'.$task->getId(),
             ['title' => 'Updated task title']
         );
 
@@ -75,7 +75,7 @@ class UndoApiTest extends ApiTestCase
         $completeResponse = $this->authenticatedApiRequest(
             $user,
             'PATCH',
-            '/api/v1/tasks/' . $task->getId() . '/status',
+            '/api/v1/tasks/'.$task->getId().'/status',
             ['status' => Task::STATUS_COMPLETED]
         );
 
@@ -91,7 +91,7 @@ class UndoApiTest extends ApiTestCase
         $undoResponse = $this->authenticatedApiRequest(
             $user,
             'POST',
-            '/api/v1/tasks/undo/' . $undoToken
+            '/api/v1/tasks/undo/'.$undoToken
         );
 
         $this->assertResponseStatusCode(Response::HTTP_OK, $undoResponse);
@@ -126,7 +126,7 @@ class UndoApiTest extends ApiTestCase
         $completeResponse = $this->authenticatedApiRequest(
             $user,
             'PATCH',
-            '/api/v1/tasks/' . $taskId . '/status',
+            '/api/v1/tasks/'.$taskId.'/status',
             ['status' => Task::STATUS_COMPLETED]
         );
 
@@ -145,7 +145,7 @@ class UndoApiTest extends ApiTestCase
         $undoResponse = $this->authenticatedApiRequest(
             $user,
             'POST',
-            '/api/v1/tasks/undo/' . $undoToken
+            '/api/v1/tasks/undo/'.$undoToken
         );
 
         $this->assertResponseStatusCode(Response::HTTP_OK, $undoResponse);
@@ -158,7 +158,7 @@ class UndoApiTest extends ApiTestCase
         $nextTaskResponse = $this->authenticatedApiRequest(
             $user,
             'GET',
-            '/api/v1/tasks/' . $nextTaskId
+            '/api/v1/tasks/'.$nextTaskId
         );
 
         $this->assertResponseStatusCode(Response::HTTP_NOT_FOUND, $nextTaskResponse);
@@ -189,7 +189,7 @@ class UndoApiTest extends ApiTestCase
         $completeResponse = $this->authenticatedApiRequest(
             $user,
             'PATCH',
-            '/api/v1/tasks/' . $taskId . '/status',
+            '/api/v1/tasks/'.$taskId.'/status',
             ['status' => Task::STATUS_COMPLETED]
         );
 
@@ -202,7 +202,7 @@ class UndoApiTest extends ApiTestCase
         $completeNextResponse = $this->authenticatedApiRequest(
             $user,
             'PATCH',
-            '/api/v1/tasks/' . $nextTaskId . '/status',
+            '/api/v1/tasks/'.$nextTaskId.'/status',
             ['status' => Task::STATUS_COMPLETED]
         );
 
@@ -212,7 +212,7 @@ class UndoApiTest extends ApiTestCase
         $undoResponse = $this->authenticatedApiRequest(
             $user,
             'POST',
-            '/api/v1/tasks/undo/' . $undoToken
+            '/api/v1/tasks/undo/'.$undoToken
         );
 
         $this->assertResponseStatusCode(Response::HTTP_OK, $undoResponse);
@@ -221,7 +221,7 @@ class UndoApiTest extends ApiTestCase
         $nextTaskResponse = $this->authenticatedApiRequest(
             $user,
             'GET',
-            '/api/v1/tasks/' . $nextTaskId
+            '/api/v1/tasks/'.$nextTaskId
         );
 
         $this->assertResponseStatusCode(Response::HTTP_OK, $nextTaskResponse);
@@ -254,7 +254,7 @@ class UndoApiTest extends ApiTestCase
         $completeResponse = $this->authenticatedApiRequest(
             $user,
             'PATCH',
-            '/api/v1/tasks/' . $taskId . '/status',
+            '/api/v1/tasks/'.$taskId.'/status',
             ['status' => Task::STATUS_COMPLETED]
         );
 
@@ -267,7 +267,7 @@ class UndoApiTest extends ApiTestCase
         $updateNextResponse = $this->authenticatedApiRequest(
             $user,
             'PATCH',
-            '/api/v1/tasks/' . $nextTaskId . '/status',
+            '/api/v1/tasks/'.$nextTaskId.'/status',
             ['status' => Task::STATUS_IN_PROGRESS]
         );
 
@@ -277,7 +277,7 @@ class UndoApiTest extends ApiTestCase
         $undoResponse = $this->authenticatedApiRequest(
             $user,
             'POST',
-            '/api/v1/tasks/undo/' . $undoToken
+            '/api/v1/tasks/undo/'.$undoToken
         );
 
         $this->assertResponseStatusCode(Response::HTTP_OK, $undoResponse);
@@ -286,7 +286,7 @@ class UndoApiTest extends ApiTestCase
         $nextTaskResponse = $this->authenticatedApiRequest(
             $user,
             'GET',
-            '/api/v1/tasks/' . $nextTaskId
+            '/api/v1/tasks/'.$nextTaskId
         );
 
         $this->assertResponseStatusCode(Response::HTTP_OK, $nextTaskResponse);
@@ -309,7 +309,7 @@ class UndoApiTest extends ApiTestCase
         $deleteResponse = $this->authenticatedApiRequest(
             $user,
             'DELETE',
-            '/api/v1/tasks/' . $taskId
+            '/api/v1/tasks/'.$taskId
         );
 
         $this->assertResponseStatusCode(Response::HTTP_OK, $deleteResponse);
@@ -321,7 +321,7 @@ class UndoApiTest extends ApiTestCase
         $getResponse = $this->authenticatedApiRequest(
             $user,
             'GET',
-            '/api/v1/tasks/' . $taskId
+            '/api/v1/tasks/'.$taskId
         );
         $this->assertResponseStatusCode(Response::HTTP_NOT_FOUND, $getResponse);
 
@@ -329,7 +329,7 @@ class UndoApiTest extends ApiTestCase
         $undoResponse = $this->authenticatedApiRequest(
             $user,
             'POST',
-            '/api/v1/tasks/undo/' . $undoToken
+            '/api/v1/tasks/undo/'.$undoToken
         );
 
         $this->assertResponseStatusCode(Response::HTTP_OK, $undoResponse);
@@ -362,7 +362,7 @@ class UndoApiTest extends ApiTestCase
         $updateResponse = $this->authenticatedApiRequest(
             $user,
             'PATCH',
-            '/api/v1/tasks/' . $task->getId(),
+            '/api/v1/tasks/'.$task->getId(),
             [
                 'title' => 'Updated title',
                 'description' => 'Updated description',
@@ -384,7 +384,7 @@ class UndoApiTest extends ApiTestCase
         $undoResponse = $this->authenticatedApiRequest(
             $user,
             'POST',
-            '/api/v1/tasks/undo/' . $undoToken
+            '/api/v1/tasks/undo/'.$undoToken
         );
 
         $this->assertResponseStatusCode(Response::HTTP_OK, $undoResponse);
@@ -410,7 +410,7 @@ class UndoApiTest extends ApiTestCase
         $archiveResponse = $this->authenticatedApiRequest(
             $user,
             'PATCH',
-            '/api/v1/projects/' . $project->getId() . '/archive'
+            '/api/v1/projects/'.$project->getId().'/archive'
         );
 
         $this->assertResponseStatusCode(Response::HTTP_OK, $archiveResponse);
@@ -427,7 +427,7 @@ class UndoApiTest extends ApiTestCase
         $undoResponse = $this->authenticatedApiRequest(
             $user,
             'POST',
-            '/api/v1/projects/undo/' . $undoToken
+            '/api/v1/projects/undo/'.$undoToken
         );
 
         $this->assertResponseStatusCode(Response::HTTP_OK, $undoResponse);
@@ -436,7 +436,7 @@ class UndoApiTest extends ApiTestCase
         $getResponse = $this->authenticatedApiRequest(
             $user,
             'GET',
-            '/api/v1/projects/' . $project->getId()
+            '/api/v1/projects/'.$project->getId()
         );
 
         $this->assertResponseStatusCode(Response::HTTP_OK, $getResponse);
@@ -453,7 +453,7 @@ class UndoApiTest extends ApiTestCase
         $user = $this->createUser('undo-expired@example.com', 'Password123');
 
         // Use an invalid/malformed token that won't match any stored token
-        $invalidToken = 'definitely-not-a-real-token-' . uniqid();
+        $invalidToken = 'definitely-not-a-real-token-'.uniqid();
 
         $response = $this->authenticatedApiRequest(
             $user,
@@ -495,7 +495,7 @@ class UndoApiTest extends ApiTestCase
         $updateResponse = $this->authenticatedApiRequest(
             $user1,
             'PATCH',
-            '/api/v1/tasks/' . $task->getId(),
+            '/api/v1/tasks/'.$task->getId(),
             ['title' => 'Updated by user1']
         );
 

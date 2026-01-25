@@ -42,7 +42,7 @@ class TotpServiceTest extends UnitTestCase
         $uri = $this->totpService->getProvisioningUri($user, $secret);
 
         $this->assertStringStartsWith('otpauth://totp/', $uri);
-        $this->assertStringContainsString('secret=' . $secret, $uri);
+        $this->assertStringContainsString('secret='.$secret, $uri);
         $this->assertStringContainsString('issuer=TodoMe', $uri);
         $this->assertStringContainsString(urlencode('test@example.com'), $uri);
     }

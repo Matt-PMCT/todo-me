@@ -14,7 +14,6 @@ final class ChangePasswordRequest
     public function __construct(
         #[Assert\NotBlank(message: 'Current password is required')]
         public readonly string $currentPassword = '',
-
         #[Assert\NotBlank(message: 'New password is required')]
         #[Assert\Length(min: 12, minMessage: 'Password must be at least {{ limit }} characters')]
         public readonly string $newPassword = '',

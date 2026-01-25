@@ -29,9 +29,9 @@ final class ResponseFormatter
     /**
      * Creates a successful response.
      *
-     * @param mixed $data The response data
-     * @param int $statusCode HTTP status code (default: 200)
-     * @param array<string, mixed> $meta Additional metadata
+     * @param mixed                $data       The response data
+     * @param int                  $statusCode HTTP status code (default: 200)
+     * @param array<string, mixed> $meta       Additional metadata
      */
     public function success(mixed $data = null, int $statusCode = 200, array $meta = []): JsonResponse
     {
@@ -48,10 +48,10 @@ final class ResponseFormatter
     /**
      * Creates an error response.
      *
-     * @param string $message Human-readable error message
-     * @param string $errorCode Machine-readable error code
-     * @param int $statusCode HTTP status code
-     * @param array<string, mixed> $details Additional error details
+     * @param string               $message    Human-readable error message
+     * @param string               $errorCode  Machine-readable error code
+     * @param int                  $statusCode HTTP status code
+     * @param array<string, mixed> $details    Additional error details
      */
     public function error(
         string $message,
@@ -81,11 +81,11 @@ final class ResponseFormatter
     /**
      * Creates a paginated response.
      *
-     * @param array<int, mixed> $items The items for the current page
-     * @param int $total Total number of items across all pages
-     * @param int $page Current page number (1-indexed)
-     * @param int $limit Items per page
-     * @param string $baseUrl Optional base URL for pagination links
+     * @param array<int, mixed> $items   The items for the current page
+     * @param int               $total   Total number of items across all pages
+     * @param int               $page    Current page number (1-indexed)
+     * @param int               $limit   Items per page
+     * @param string            $baseUrl Optional base URL for pagination links
      */
     public function paginated(array $items, int $total, int $page, int $limit, string $baseUrl = ''): JsonResponse
     {
@@ -130,15 +130,16 @@ final class ResponseFormatter
     private function buildPaginationUrl(string $baseUrl, int $page, int $limit): string
     {
         $separator = str_contains($baseUrl, '?') ? '&' : '?';
+
         return sprintf('%s%spage=%d&per_page=%d', $baseUrl, $separator, $page, $limit);
     }
 
     /**
      * Creates a "created" response (HTTP 201).
      *
-     * @param mixed $data The created resource data
-     * @param string|null $location Optional Location header URL
-     * @param array<string, mixed> $meta Additional metadata
+     * @param mixed                $data     The created resource data
+     * @param string|null          $location Optional Location header URL
+     * @param array<string, mixed> $meta     Additional metadata
      */
     public function created(mixed $data = null, ?string $location = null, array $meta = []): JsonResponse
     {
@@ -164,6 +165,7 @@ final class ResponseFormatter
      * Builds the meta object with standard fields.
      *
      * @param array<string, mixed> $additional Additional metadata to include
+     *
      * @return array<string, mixed>
      */
     private function buildMeta(array $additional = []): array

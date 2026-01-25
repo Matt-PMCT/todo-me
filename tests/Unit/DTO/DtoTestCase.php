@@ -41,6 +41,7 @@ abstract class DtoTestCase extends UnitTestCase
         foreach ($violations as $violation) {
             if ($violation->getPropertyPath() === $propertyPath) {
                 $this->assertTrue(true);
+
                 return;
             }
         }

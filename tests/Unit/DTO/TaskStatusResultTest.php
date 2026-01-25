@@ -34,7 +34,7 @@ final class TaskStatusResultTest extends TestCase
         $this->task->method('getUpdatedAt')->willReturn(new \DateTimeImmutable('2026-01-15T10:00:00+00:00'));
         $this->task->method('getCompletedAt')->willReturn(new \DateTimeImmutable('2026-01-15T10:00:00+00:00'));
         $this->task->method('getProject')->willReturn(null);
-        $this->task->method('getTags')->willReturn(new \Doctrine\Common\Collections\ArrayCollection());
+        $this->task->method('getTags')->willReturn(new ArrayCollection());
         $this->task->method('isRecurring')->willReturn(false);
         $this->task->method('getRecurrenceRule')->willReturn(null);
         $this->task->method('getRecurrenceType')->willReturn(null);

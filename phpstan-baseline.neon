@@ -1,0 +1,2455 @@
+parameters:
+	ignoreErrors:
+		-
+			message: '#^Parameter \#2 \$originalTaskId of method App\\Repository\\TaskRepository\:\:findRecurringChain\(\) expects string, string\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Controller/Api/TaskController.php
+
+		-
+			message: '#^Method App\\Controller\\Api\\UndoController\:\:handleProjectUndo\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Controller/Api/UndoController.php
+
+		-
+			message: '#^Method App\\Controller\\Api\\UndoController\:\:handleTaskUndo\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Controller/Api/UndoController.php
+
+		-
+			message: '#^Call to an undefined method object\:\:getColor\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: src/Controller/Api/UserController.php
+
+		-
+			message: '#^Call to an undefined method object\:\:getCompletedAt\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: src/Controller/Api/UserController.php
+
+		-
+			message: '#^Call to an undefined method object\:\:getCreatedAt\(\)\.$#'
+			identifier: method.notFound
+			count: 4
+			path: src/Controller/Api/UserController.php
+
+		-
+			message: '#^Call to an undefined method object\:\:getDescription\(\)\.$#'
+			identifier: method.notFound
+			count: 2
+			path: src/Controller/Api/UserController.php
+
+		-
+			message: '#^Call to an undefined method object\:\:getDueDate\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: src/Controller/Api/UserController.php
+
+		-
+			message: '#^Call to an undefined method object\:\:getFilters\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: src/Controller/Api/UserController.php
+
+		-
+			message: '#^Call to an undefined method object\:\:getId\(\)\.$#'
+			identifier: method.notFound
+			count: 4
+			path: src/Controller/Api/UserController.php
+
+		-
+			message: '#^Call to an undefined method object\:\:getName\(\)\.$#'
+			identifier: method.notFound
+			count: 3
+			path: src/Controller/Api/UserController.php
+
+		-
+			message: '#^Call to an undefined method object\:\:getParent\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: src/Controller/Api/UserController.php
+
+		-
+			message: '#^Call to an undefined method object\:\:getParentTask\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: src/Controller/Api/UserController.php
+
+		-
+			message: '#^Call to an undefined method object\:\:getPriority\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: src/Controller/Api/UserController.php
+
+		-
+			message: '#^Call to an undefined method object\:\:getProject\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: src/Controller/Api/UserController.php
+
+		-
+			message: '#^Call to an undefined method object\:\:getRecurrenceRule\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: src/Controller/Api/UserController.php
+
+		-
+			message: '#^Call to an undefined method object\:\:getRecurrenceType\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: src/Controller/Api/UserController.php
+
+		-
+			message: '#^Call to an undefined method object\:\:getStatus\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: src/Controller/Api/UserController.php
+
+		-
+			message: '#^Call to an undefined method object\:\:getTags\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: src/Controller/Api/UserController.php
+
+		-
+			message: '#^Call to an undefined method object\:\:getTitle\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: src/Controller/Api/UserController.php
+
+		-
+			message: '#^Call to an undefined method object\:\:getUpdatedAt\(\)\.$#'
+			identifier: method.notFound
+			count: 3
+			path: src/Controller/Api/UserController.php
+
+		-
+			message: '#^Call to an undefined method object\:\:isArchived\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: src/Controller/Api/UserController.php
+
+		-
+			message: '#^Method App\\Controller\\Api\\UserController\:\:serializeProject\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Controller/Api/UserController.php
+
+		-
+			message: '#^Method App\\Controller\\Api\\UserController\:\:serializeSavedFilter\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Controller/Api/UserController.php
+
+		-
+			message: '#^Method App\\Controller\\Api\\UserController\:\:serializeTag\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Controller/Api/UserController.php
+
+		-
+			message: '#^Method App\\Controller\\Api\\UserController\:\:serializeTask\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Controller/Api/UserController.php
+
+		-
+			message: '#^Using nullsafe method call on non\-nullable type DateTimeImmutable\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 2
+			path: src/Controller/Api/UserController.php
+
+		-
+			message: '#^Parameter \#1 \$email of method App\\Service\\PasswordResetService\:\:requestReset\(\) expects string, float\|int\<min, \-1\>\|int\<1, max\>\|string\|true given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Controller/Web/SecurityController.php
+
+		-
+			message: '#^Parameter \#1 \$token of method App\\Service\\PasswordResetService\:\:resetPassword\(\) expects string, bool\|float\|int\|string given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Controller/Web/SecurityController.php
+
+		-
+			message: '#^Parameter \#2 \$newPassword of method App\\Service\\PasswordResetService\:\:resetPassword\(\) expects string, bool\|float\|int\|string given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Controller/Web/SecurityController.php
+
+		-
+			message: '#^Parameter \#2 \$token of method Symfony\\Bundle\\FrameworkBundle\\Controller\\AbstractController\:\:isCsrfTokenValid\(\) expects string\|null, bool\|float\|int\|string\|null given\.$#'
+			identifier: argument.type
+			count: 2
+			path: src/Controller/Web/SecurityController.php
+
+		-
+			message: '#^Parameter \#2 \$filters of method App\\Repository\\TaskRepository\:\:createFilteredQueryBuilder\(\) expects array\{status\?\: string, priority\?\: int, projectId\?\: string, search\?\: string, dueBefore\?\: string, dueAfter\?\: string, tagIds\?\: array\<string\>\}, array\{status\: non\-falsy\-string\|null, priority\: int\|null, projectId\: non\-falsy\-string\|null, isRecurring\: bool\|null\} given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Controller/Web/TaskListController.php
+
+		-
+			message: '#^Property App\\Controller\\Web\\TaskViewController\:\:\$projectRepository is never read, only written\.$#'
+			identifier: property.onlyWritten
+			count: 1
+			path: src/Controller/Web/TaskViewController.php
+
+		-
+			message: '#^Method App\\DTO\\CreateSavedFilterRequest\:\:__construct\(\) has parameter \$criteria with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/DTO/CreateSavedFilterRequest.php
+
+		-
+			message: '#^Parameter \$highlights of class App\\DTO\\ParseResponse constructor expects array\<array\{type\: string, text\: string, startPosition\: int, endPosition\: int, value\: mixed, valid\: bool\}\>, array\<array\{type\: string, text\: string, start\: int, end\: int, value\: mixed, valid\: bool\}\> given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/DTO/ParseResponse.php
+
+		-
+			message: '#^Parameter \$project of class App\\DTO\\ParseResponse constructor expects array\{id\: string, name\: string, fullPath\: string, color\: string\}\|null, array\{id\: string\|null, name\: string, fullPath\: string, color\: string\}\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/DTO/ParseResponse.php
+
+		-
+			message: '#^Parameter \$tags of class App\\DTO\\ParseResponse constructor expects array\<array\{id\: string, name\: string, color\: string\}\>, array\<array\{id\: string\|null, name\: string, color\: string\}\> given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/DTO/ParseResponse.php
+
+		-
+			message: '#^Parameter \$path of class App\\DTO\\ProjectResponse constructor expects array\<array\{id\: string, name\: string, isArchived\: bool\}\>, array\<array\{id\: string\|null, name\: string, isArchived\: bool\}\> given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/DTO/ProjectResponse.php
+
+		-
+			message: '#^Method App\\DTO\\SavedFilterResponse\:\:__construct\(\) has parameter \$criteria with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/DTO/SavedFilterResponse.php
+
+		-
+			message: '#^Parameter \$id of class App\\DTO\\SavedFilterResponse constructor expects string, string\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/DTO/SavedFilterResponse.php
+
+		-
+			message: '#^Parameter \$id of class App\\DTO\\TaskResponse constructor expects string, string\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/DTO/TaskResponse.php
+
+		-
+			message: '#^Parameter \$project of class App\\DTO\\TaskResponse constructor expects array\{id\: string, name\: string\}\|null, array\{id\: string\|null, name\: string\}\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/DTO/TaskResponse.php
+
+		-
+			message: '#^Parameter \$tags of class App\\DTO\\TaskResponse constructor expects array\<array\{id\: string, name\: string, color\: string\}\>, list\<array\{id\: string\|null, name\: string, color\: string\}\> given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/DTO/TaskResponse.php
+
+		-
+			message: '#^Method App\\DTO\\UpdateSavedFilterRequest\:\:__construct\(\) has parameter \$criteria with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/DTO/UpdateSavedFilterRequest.php
+
+		-
+			message: '#^Method App\\Entity\\ActivityLog\:\:getChanges\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Entity/ActivityLog.php
+
+		-
+			message: '#^Method App\\Entity\\ActivityLog\:\:setChanges\(\) has parameter \$changes with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Entity/ActivityLog.php
+
+		-
+			message: '#^Property App\\Entity\\ActivityLog\:\:\$changes type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Entity/ActivityLog.php
+
+		-
+			message: '#^Property App\\Entity\\ActivityLog\:\:\$id \(string\|null\) is never assigned string so it can be removed from the property type\.$#'
+			identifier: property.unusedType
+			count: 1
+			path: src/Entity/ActivityLog.php
+
+		-
+			message: '#^Property App\\Entity\\ApiToken\:\:\$id \(string\|null\) is never assigned string so it can be removed from the property type\.$#'
+			identifier: property.unusedType
+			count: 1
+			path: src/Entity/ApiToken.php
+
+		-
+			message: '#^Property App\\Entity\\ApiToken\:\:\$scopes type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Entity/ApiToken.php
+
+		-
+			message: '#^Property App\\Entity\\Notification\:\:\$data type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Entity/Notification.php
+
+		-
+			message: '#^Property App\\Entity\\Notification\:\:\$id \(string\|null\) is never assigned string so it can be removed from the property type\.$#'
+			identifier: property.unusedType
+			count: 1
+			path: src/Entity/Notification.php
+
+		-
+			message: '#^Expression on left side of \?\? is not nullable\.$#'
+			identifier: nullCoalesce.expr
+			count: 2
+			path: src/Entity/Project.php
+
+		-
+			message: '#^Property App\\Entity\\Project\:\:\$id \(string\|null\) is never assigned string so it can be removed from the property type\.$#'
+			identifier: property.unusedType
+			count: 1
+			path: src/Entity/Project.php
+
+		-
+			message: '#^Property App\\Entity\\PushSubscription\:\:\$id \(string\|null\) is never assigned string so it can be removed from the property type\.$#'
+			identifier: property.unusedType
+			count: 1
+			path: src/Entity/PushSubscription.php
+
+		-
+			message: '#^Method App\\Entity\\SavedFilter\:\:getCriteria\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Entity/SavedFilter.php
+
+		-
+			message: '#^Method App\\Entity\\SavedFilter\:\:setCriteria\(\) has parameter \$criteria with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Entity/SavedFilter.php
+
+		-
+			message: '#^Property App\\Entity\\SavedFilter\:\:\$criteria type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Entity/SavedFilter.php
+
+		-
+			message: '#^Property App\\Entity\\SavedFilter\:\:\$id \(string\|null\) is never assigned string so it can be removed from the property type\.$#'
+			identifier: property.unusedType
+			count: 1
+			path: src/Entity/SavedFilter.php
+
+		-
+			message: '#^Property App\\Entity\\Tag\:\:\$id \(string\|null\) is never assigned string so it can be removed from the property type\.$#'
+			identifier: property.unusedType
+			count: 1
+			path: src/Entity/Tag.php
+
+		-
+			message: '#^Property App\\Entity\\Task\:\:\$id \(string\|null\) is never assigned string so it can be removed from the property type\.$#'
+			identifier: property.unusedType
+			count: 1
+			path: src/Entity/Task.php
+
+		-
+			message: '#^Cannot call method getTimestamp\(\) on DateTimeImmutable\|null\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: src/Entity/User.php
+
+		-
+			message: '#^Method App\\Entity\\User\:\:getUserIdentifier\(\) should return non\-empty\-string but returns string\.$#'
+			identifier: return.type
+			count: 1
+			path: src/Entity/User.php
+
+		-
+			message: '#^Property App\\Entity\\User\:\:\$backupCodes type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Entity/User.php
+
+		-
+			message: '#^Property App\\Entity\\User\:\:\$id \(string\|null\) is never assigned string so it can be removed from the property type\.$#'
+			identifier: property.unusedType
+			count: 1
+			path: src/Entity/User.php
+
+		-
+			message: '#^Property App\\Entity\\User\:\:\$settings type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Entity/User.php
+
+		-
+			message: '#^Property App\\Entity\\UserSession\:\:\$id \(string\|null\) is never assigned string so it can be removed from the property type\.$#'
+			identifier: property.unusedType
+			count: 1
+			path: src/Entity/UserSession.php
+
+		-
+			message: '#^Method App\\Interface\\ActivityLogServiceInterface\:\:getActivity\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 2
+			path: src/Interface/ActivityLogServiceInterface.php
+
+		-
+			message: '#^Method App\\Interface\\ActivityLogServiceInterface\:\:log\(\) has parameter \$changes with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Interface/ActivityLogServiceInterface.php
+
+		-
+			message: '#^Method App\\Interface\\ActivityLogServiceInterface\:\:logProjectUpdated\(\) has parameter \$changes with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Interface/ActivityLogServiceInterface.php
+
+		-
+			message: '#^Method App\\Interface\\ActivityLogServiceInterface\:\:logTaskUpdated\(\) has parameter \$changes with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Interface/ActivityLogServiceInterface.php
+
+		-
+			message: '#^Method App\\Message\\SendEmailNotification\:\:__construct\(\) has parameter \$data with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Message/SendEmailNotification.php
+
+		-
+			message: '#^Method App\\Message\\SendPushNotification\:\:__construct\(\) has parameter \$data with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Message/SendPushNotification.php
+
+		-
+			message: '#^Class App\\Repository\\ActivityLogRepository has PHPDoc tag @method for method findBy\(\) parameter \#1 \$criteria with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Repository/ActivityLogRepository.php
+
+		-
+			message: '#^Class App\\Repository\\ActivityLogRepository has PHPDoc tag @method for method findBy\(\) parameter \#2 \$orderBy with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Repository/ActivityLogRepository.php
+
+		-
+			message: '#^Class App\\Repository\\ActivityLogRepository has PHPDoc tag @method for method findOneBy\(\) parameter \#1 \$criteria with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Repository/ActivityLogRepository.php
+
+		-
+			message: '#^Class App\\Repository\\ActivityLogRepository has PHPDoc tag @method for method findOneBy\(\) parameter \#2 \$orderBy with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Repository/ActivityLogRepository.php
+
+		-
+			message: '#^Class App\\Repository\\ApiTokenRepository has PHPDoc tag @method for method findBy\(\) parameter \#1 \$criteria with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Repository/ApiTokenRepository.php
+
+		-
+			message: '#^Class App\\Repository\\ApiTokenRepository has PHPDoc tag @method for method findBy\(\) parameter \#2 \$orderBy with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Repository/ApiTokenRepository.php
+
+		-
+			message: '#^Class App\\Repository\\ApiTokenRepository has PHPDoc tag @method for method findOneBy\(\) parameter \#1 \$criteria with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Repository/ApiTokenRepository.php
+
+		-
+			message: '#^Class App\\Repository\\ApiTokenRepository has PHPDoc tag @method for method findOneBy\(\) parameter \#2 \$orderBy with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Repository/ApiTokenRepository.php
+
+		-
+			message: '#^Class App\\Repository\\NotificationRepository has PHPDoc tag @method for method findBy\(\) parameter \#1 \$criteria with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Repository/NotificationRepository.php
+
+		-
+			message: '#^Class App\\Repository\\NotificationRepository has PHPDoc tag @method for method findBy\(\) parameter \#2 \$orderBy with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Repository/NotificationRepository.php
+
+		-
+			message: '#^Class App\\Repository\\NotificationRepository has PHPDoc tag @method for method findOneBy\(\) parameter \#1 \$criteria with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Repository/NotificationRepository.php
+
+		-
+			message: '#^Class App\\Repository\\NotificationRepository has PHPDoc tag @method for method findOneBy\(\) parameter \#2 \$orderBy with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Repository/NotificationRepository.php
+
+		-
+			message: '#^Class App\\Repository\\ProjectRepository has PHPDoc tag @method for method findBy\(\) parameter \#1 \$criteria with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Repository/ProjectRepository.php
+
+		-
+			message: '#^Class App\\Repository\\ProjectRepository has PHPDoc tag @method for method findBy\(\) parameter \#2 \$orderBy with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Repository/ProjectRepository.php
+
+		-
+			message: '#^Class App\\Repository\\ProjectRepository has PHPDoc tag @method for method findOneBy\(\) parameter \#1 \$criteria with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Repository/ProjectRepository.php
+
+		-
+			message: '#^Class App\\Repository\\ProjectRepository has PHPDoc tag @method for method findOneBy\(\) parameter \#2 \$orderBy with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Repository/ProjectRepository.php
+
+		-
+			message: '#^Class App\\Repository\\PushSubscriptionRepository has PHPDoc tag @method for method findBy\(\) parameter \#1 \$criteria with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Repository/PushSubscriptionRepository.php
+
+		-
+			message: '#^Class App\\Repository\\PushSubscriptionRepository has PHPDoc tag @method for method findBy\(\) parameter \#2 \$orderBy with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Repository/PushSubscriptionRepository.php
+
+		-
+			message: '#^Class App\\Repository\\PushSubscriptionRepository has PHPDoc tag @method for method findOneBy\(\) parameter \#1 \$criteria with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Repository/PushSubscriptionRepository.php
+
+		-
+			message: '#^Class App\\Repository\\PushSubscriptionRepository has PHPDoc tag @method for method findOneBy\(\) parameter \#2 \$orderBy with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Repository/PushSubscriptionRepository.php
+
+		-
+			message: '#^Class App\\Repository\\SavedFilterRepository has PHPDoc tag @method for method findBy\(\) parameter \#1 \$criteria with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Repository/SavedFilterRepository.php
+
+		-
+			message: '#^Class App\\Repository\\SavedFilterRepository has PHPDoc tag @method for method findBy\(\) parameter \#2 \$orderBy with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Repository/SavedFilterRepository.php
+
+		-
+			message: '#^Class App\\Repository\\SavedFilterRepository has PHPDoc tag @method for method findOneBy\(\) parameter \#1 \$criteria with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Repository/SavedFilterRepository.php
+
+		-
+			message: '#^Class App\\Repository\\SavedFilterRepository has PHPDoc tag @method for method findOneBy\(\) parameter \#2 \$orderBy with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Repository/SavedFilterRepository.php
+
+		-
+			message: '#^Class App\\Repository\\TagRepository has PHPDoc tag @method for method findBy\(\) parameter \#1 \$criteria with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Repository/TagRepository.php
+
+		-
+			message: '#^Class App\\Repository\\TagRepository has PHPDoc tag @method for method findBy\(\) parameter \#2 \$orderBy with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Repository/TagRepository.php
+
+		-
+			message: '#^Class App\\Repository\\TagRepository has PHPDoc tag @method for method findOneBy\(\) parameter \#1 \$criteria with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Repository/TagRepository.php
+
+		-
+			message: '#^Class App\\Repository\\TagRepository has PHPDoc tag @method for method findOneBy\(\) parameter \#2 \$orderBy with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Repository/TagRepository.php
+
+		-
+			message: '#^Class App\\Repository\\TaskRepository has PHPDoc tag @method for method findBy\(\) parameter \#1 \$criteria with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Repository/TaskRepository.php
+
+		-
+			message: '#^Class App\\Repository\\TaskRepository has PHPDoc tag @method for method findBy\(\) parameter \#2 \$orderBy with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Repository/TaskRepository.php
+
+		-
+			message: '#^Class App\\Repository\\TaskRepository has PHPDoc tag @method for method findOneBy\(\) parameter \#1 \$criteria with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Repository/TaskRepository.php
+
+		-
+			message: '#^Class App\\Repository\\TaskRepository has PHPDoc tag @method for method findOneBy\(\) parameter \#2 \$orderBy with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Repository/TaskRepository.php
+
+		-
+			message: '#^Strict comparison using \!\=\= between mixed and null will always evaluate to true\.$#'
+			identifier: notIdentical.alwaysTrue
+			count: 1
+			path: src/Repository/TaskRepository.php
+
+		-
+			message: '#^Class App\\Repository\\UserRepository has PHPDoc tag @method for method findBy\(\) parameter \#1 \$criteria with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Repository/UserRepository.php
+
+		-
+			message: '#^Class App\\Repository\\UserRepository has PHPDoc tag @method for method findBy\(\) parameter \#2 \$orderBy with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Repository/UserRepository.php
+
+		-
+			message: '#^Class App\\Repository\\UserRepository has PHPDoc tag @method for method findOneBy\(\) parameter \#1 \$criteria with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Repository/UserRepository.php
+
+		-
+			message: '#^Class App\\Repository\\UserRepository has PHPDoc tag @method for method findOneBy\(\) parameter \#2 \$orderBy with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Repository/UserRepository.php
+
+		-
+			message: '#^Class App\\Repository\\UserSessionRepository has PHPDoc tag @method for method findBy\(\) parameter \#1 \$criteria with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Repository/UserSessionRepository.php
+
+		-
+			message: '#^Class App\\Repository\\UserSessionRepository has PHPDoc tag @method for method findBy\(\) parameter \#2 \$orderBy with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Repository/UserSessionRepository.php
+
+		-
+			message: '#^Class App\\Repository\\UserSessionRepository has PHPDoc tag @method for method findOneBy\(\) parameter \#1 \$criteria with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Repository/UserSessionRepository.php
+
+		-
+			message: '#^Class App\\Repository\\UserSessionRepository has PHPDoc tag @method for method findOneBy\(\) parameter \#2 \$orderBy with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Repository/UserSessionRepository.php
+
+		-
+			message: '#^Cannot call method getId\(\) on App\\Entity\\User\|null\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: src/Security/ApiTokenAuthenticator.php
+
+		-
+			message: '#^Method App\\Security\\ApiTokenAuthenticator\:\:onAuthenticationFailure\(\) never returns null so it can be removed from the return type\.$#'
+			identifier: return.unusedType
+			count: 1
+			path: src/Security/ApiTokenAuthenticator.php
+
+		-
+			message: '#^Method App\\Security\\ApiTokenAuthenticator\:\:supports\(\) never returns null so it can be removed from the return type\.$#'
+			identifier: return.unusedType
+			count: 1
+			path: src/Security/ApiTokenAuthenticator.php
+
+		-
+			message: '#^Method App\\Service\\ActivityLogService\:\:formatActivityLog\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Service/ActivityLogService.php
+
+		-
+			message: '#^Method App\\Service\\ActivityLogService\:\:getActivity\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 2
+			path: src/Service/ActivityLogService.php
+
+		-
+			message: '#^Method App\\Service\\ActivityLogService\:\:log\(\) has parameter \$changes with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Service/ActivityLogService.php
+
+		-
+			message: '#^Method App\\Service\\ActivityLogService\:\:logProjectUpdated\(\) has parameter \$changes with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Service/ActivityLogService.php
+
+		-
+			message: '#^Method App\\Service\\ActivityLogService\:\:logTaskUpdated\(\) has parameter \$changes with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Service/ActivityLogService.php
+
+		-
+			message: '#^Parameter \#1 \$owner of method App\\Service\\ActivityLogService\:\:log\(\) expects App\\Entity\\User, App\\Entity\\User\|null given\.$#'
+			identifier: argument.type
+			count: 5
+			path: src/Service/ActivityLogService.php
+
+		-
+			message: '#^Method App\\Service\\BatchOperationService\:\:executeComplete\(\) has parameter \$previousStates with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Service/BatchOperationService.php
+
+		-
+			message: '#^Method App\\Service\\BatchOperationService\:\:executeComplete\(\) should return string but returns string\|null\.$#'
+			identifier: return.type
+			count: 1
+			path: src/Service/BatchOperationService.php
+
+		-
+			message: '#^Method App\\Service\\BatchOperationService\:\:executeCreate\(\) has parameter \$previousStates with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Service/BatchOperationService.php
+
+		-
+			message: '#^Method App\\Service\\BatchOperationService\:\:executeCreate\(\) should return string but returns string\|null\.$#'
+			identifier: return.type
+			count: 1
+			path: src/Service/BatchOperationService.php
+
+		-
+			message: '#^Method App\\Service\\BatchOperationService\:\:executeDelete\(\) has parameter \$previousStates with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Service/BatchOperationService.php
+
+		-
+			message: '#^Method App\\Service\\BatchOperationService\:\:executeDelete\(\) should return string but returns string\|null\.$#'
+			identifier: return.type
+			count: 1
+			path: src/Service/BatchOperationService.php
+
+		-
+			message: '#^Method App\\Service\\BatchOperationService\:\:executeReschedule\(\) has parameter \$previousStates with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Service/BatchOperationService.php
+
+		-
+			message: '#^Method App\\Service\\BatchOperationService\:\:executeReschedule\(\) should return string but returns string\|null\.$#'
+			identifier: return.type
+			count: 1
+			path: src/Service/BatchOperationService.php
+
+		-
+			message: '#^Method App\\Service\\BatchOperationService\:\:executeUpdate\(\) has parameter \$previousStates with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Service/BatchOperationService.php
+
+		-
+			message: '#^Method App\\Service\\BatchOperationService\:\:executeUpdate\(\) should return string but returns string\|null\.$#'
+			identifier: return.type
+			count: 1
+			path: src/Service/BatchOperationService.php
+
+		-
+			message: '#^Parameter \#1 \$id of method App\\Service\\TaskService\:\:findByIdOrFail\(\) expects string, string\|null given\.$#'
+			identifier: argument.type
+			count: 4
+			path: src/Service/BatchOperationService.php
+
+		-
+			message: '#^Parameter \#1 \$userId of method App\\Service\\UndoService\:\:consumeUndoToken\(\) expects string, string\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Service/BatchOperationService.php
+
+		-
+			message: '#^Parameter \$userId of method App\\Service\\UndoService\:\:createUndoToken\(\) expects string, string\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Service/BatchOperationService.php
+
+		-
+			message: '#^Parameter &\$previousStates by\-ref type of method App\\Service\\BatchOperationService\:\:executeSingleOperation\(\) expects array\<int, array\<string, mixed\>\>, array given\.$#'
+			identifier: parameterByRef.type
+			count: 5
+			path: src/Service/BatchOperationService.php
+
+		-
+			message: '#^Parameter \#1 \$string of function str_getcsv expects string, string\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Service/ImportService.php
+
+		-
+			message: '#^Parameter \#1 \$string of function trim expects string, string\|null given\.$#'
+			identifier: argument.type
+			count: 2
+			path: src/Service/ImportService.php
+
+		-
+			message: '#^Parameter \#2 \$data of method App\\Service\\ImportService\:\:importCsvRow\(\) expects array\<string, string\>, array\<string, string\|null\> given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Service/ImportService.php
+
+		-
+			message: '#^Strict comparison using \=\=\= between array and false will always evaluate to false\.$#'
+			identifier: identical.alwaysFalse
+			count: 1
+			path: src/Service/ImportService.php
+
+		-
+			message: '#^Variable \$lines in empty\(\) always exists and is not falsy\.$#'
+			identifier: empty.variable
+			count: 1
+			path: src/Service/ImportService.php
+
+		-
+			message: '#^Method App\\Service\\NotificationService\:\:notifySystem\(\) has parameter \$data with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Service/NotificationService.php
+
+		-
+			message: '#^Parameter \#1 \$type of method App\\Entity\\User\:\:isNotificationEnabled\(\) expects string, string\|null given\.$#'
+			identifier: argument.type
+			count: 2
+			path: src/Service/NotificationService.php
+
+		-
+			message: '#^Parameter \$notificationId of class App\\Message\\SendEmailNotification constructor expects string, string\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Service/NotificationService.php
+
+		-
+			message: '#^Parameter \$notificationId of class App\\Message\\SendPushNotification constructor expects string, string\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Service/NotificationService.php
+
+		-
+			message: '#^Parameter \$userId of class App\\Message\\SendEmailNotification constructor expects string, string\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Service/NotificationService.php
+
+		-
+			message: '#^Parameter \$userId of class App\\Message\\SendPushNotification constructor expects string, string\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Service/NotificationService.php
+
+		-
+			message: '#^Cannot call method setTime\(\) on DateTimeImmutable\|null\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: src/Service/Parser/DateParserService.php
+
+		-
+			message: '#^Match expression does not handle remaining value\: non\-falsy\-string$#'
+			identifier: match.unhandled
+			count: 1
+			path: src/Service/Parser/DateParserService.php
+
+		-
+			message: '#^Method App\\Service\\Parser\\DateParserService\:\:interpretNumericParts\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Service/Parser/DateParserService.php
+
+		-
+			message: '#^Method App\\Service\\Parser\\DateParserService\:\:interpretNumericPartsNoYear\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Service/Parser/DateParserService.php
+
+		-
+			message: '#^Offset 0 on array\{string, int\<\-1, max\>\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: src/Service/Parser/DateParserService.php
+
+		-
+			message: '#^Offset 2 might not exist on array\{0\: array\{non\-falsy\-string, int\<\-1, max\>\}, 1\: array\{non\-falsy\-string\|numeric\-string, int\<\-1, max\>\}, 2\?\: array\{non\-falsy\-string, int\<\-1, max\>\}\}\.$#'
+			identifier: offsetAccess.notFound
+			count: 1
+			path: src/Service/Parser/DateParserService.php
+
+		-
+			message: '#^Offset 3 might not exist on array\{0\: array\{non\-falsy\-string, int\<\-1, max\>\}, 1\: array\{numeric\-string, int\<\-1, max\>\}, 2\: array\{numeric\-string, int\<\-1, max\>\}, 3\?\: array\{non\-falsy\-string&numeric\-string, int\<\-1, max\>\}\}\.$#'
+			identifier: offsetAccess.notFound
+			count: 1
+			path: src/Service/Parser/DateParserService.php
+
+		-
+			message: '#^Property App\\Service\\Parser\\DateParserService\:\:\$startOfWeek is never read, only written\.$#'
+			identifier: property.onlyWritten
+			count: 1
+			path: src/Service/Parser/DateParserService.php
+
+		-
+			message: '#^Parameter \#1 \$string of function trim expects string, string\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Service/Parser/NaturalLanguageParserService.php
+
+		-
+			message: '#^Method App\\Service\\ProjectCacheService\:\:get\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Service/ProjectCacheService.php
+
+		-
+			message: '#^Method App\\Service\\ProjectCacheService\:\:set\(\) has parameter \$tree with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Service/ProjectCacheService.php
+
+		-
+			message: '#^Method App\\Service\\ProjectService\:\:archiveWithOptions\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Service/ProjectService.php
+
+		-
+			message: '#^Method App\\Service\\ProjectService\:\:getTree\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Service/ProjectService.php
+
+		-
+			message: '#^Method App\\Service\\ProjectService\:\:unarchiveWithOptions\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Service/ProjectService.php
+
+		-
+			message: '#^Parameter \#1 \$owner of method App\\Interface\\ActivityLogServiceInterface\:\:logProjectDeleted\(\) expects App\\Entity\\User, App\\Entity\\User\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Service/ProjectService.php
+
+		-
+			message: '#^Parameter \#2 \$parentId of method App\\Service\\ProjectService\:\:assignNextPosition\(\) expects string\|null, string\|false\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Service/ProjectService.php
+
+		-
+			message: '#^Parameter \#2 \$parentId of method App\\Service\\ProjectService\:\:validateAndGetParent\(\) expects string, string\|false given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Service/ProjectService.php
+
+		-
+			message: '#^Parameter \#2 \$projectId of method App\\Interface\\ActivityLogServiceInterface\:\:logProjectDeleted\(\) expects string, string\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Service/ProjectService.php
+
+		-
+			message: '#^Property App\\Service\\ProjectService\:\:\$ownershipChecker is never read, only written\.$#'
+			identifier: property.onlyWritten
+			count: 1
+			path: src/Service/ProjectService.php
+
+		-
+			message: '#^Parameter \#1 \$owner of method App\\Repository\\ProjectRepository\:\:findOneByOwnerAndId\(\) expects App\\Entity\\User, App\\Entity\\User\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Service/ProjectStateService.php
+
+		-
+			message: '#^Instanceof between string and Symfony\\Component\\Uid\\Uuid will always evaluate to false\.$#'
+			identifier: instanceof.alwaysFalse
+			count: 1
+			path: src/Service/ProjectUndoService.php
+
+		-
+			message: '#^Parameter \#2 \$payload of method Minishlink\\WebPush\\WebPush\:\:queueNotification\(\) expects string\|null, string\|false given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Service/PushNotificationService.php
+
+		-
+			message: '#^Argument of an invalid type list\<string\>\|false supplied for foreach, only iterables are supported\.$#'
+			identifier: foreach.nonIterable
+			count: 1
+			path: src/Service/Recurrence/RecurrenceRuleParser.php
+
+		-
+			message: '#^Parameter \#1 \$datetime of class DateTimeImmutable constructor expects string, string\|null given\.$#'
+			identifier: argument.type
+			count: 2
+			path: src/Service/Recurrence/RecurrenceRuleParser.php
+
+		-
+			message: '#^Parameter \#1 \$rule of method App\\Service\\Recurrence\\RecurrenceRuleParser\:\:extractTime\(\) expects string, string\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Service/Recurrence/RecurrenceRuleParser.php
+
+		-
+			message: '#^Parameter \#1 \$rule of method App\\Service\\Recurrence\\RecurrenceRuleParser\:\:handleShortcuts\(\) expects string, string\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Service/Recurrence/RecurrenceRuleParser.php
+
+		-
+			message: '#^Parameter \#1 \$rule of method App\\Service\\Recurrence\\RecurrenceRuleParser\:\:parseMainPattern\(\) expects string, string\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Service/Recurrence/RecurrenceRuleParser.php
+
+		-
+			message: '#^Parameter \#2 \$dateStr of static method App\\Exception\\InvalidRecurrenceException\:\:invalidDate\(\) expects string, string\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Service/Recurrence/RecurrenceRuleParser.php
+
+		-
+			message: '#^Parameter \#2 \$subject of function preg_match expects string, string\|null given\.$#'
+			identifier: argument.type
+			count: 3
+			path: src/Service/Recurrence/RecurrenceRuleParser.php
+
+		-
+			message: '#^Parameter \#3 \$subject of function preg_replace expects array\<float\|int\|string\>\|string, string\|null given\.$#'
+			identifier: argument.type
+			count: 2
+			path: src/Service/Recurrence/RecurrenceRuleParser.php
+
+		-
+			message: '#^Parameter \#3 \$subject of function str_replace expects array\<string\>\|string, string\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Service/Recurrence/RecurrenceRuleParser.php
+
+		-
+			message: '#^Method App\\Service\\RedisService\:\:getJson\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Service/RedisService.php
+
+		-
+			message: '#^Method App\\Service\\RedisService\:\:getJsonAndDelete\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Service/RedisService.php
+
+		-
+			message: '#^Method App\\Service\\RedisService\:\:setJson\(\) has parameter \$data with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Service/RedisService.php
+
+		-
+			message: '#^Parameter \#1 \$owner of method App\\Service\\SavedFilterService\:\:clearDefaultForOwner\(\) expects App\\Entity\\User, App\\Entity\\User\|null given\.$#'
+			identifier: argument.type
+			count: 2
+			path: src/Service/SavedFilterService.php
+
+		-
+			message: '#^Negated boolean expression is always true\.$#'
+			identifier: booleanNot.alwaysTrue
+			count: 1
+			path: src/Service/SessionService.php
+
+		-
+			message: '#^Right side of && is always false\.$#'
+			identifier: booleanAnd.rightAlwaysFalse
+			count: 1
+			path: src/Service/SessionService.php
+
+		-
+			message: '#^Cannot call method format\(\) on DateTimeImmutable\|false\.$#'
+			identifier: method.nonObject
+			count: 2
+			path: src/Service/TaskGroupingService.php
+
+		-
+			message: '#^Parameter \#1 \$dueDate of method App\\Entity\\Task\:\:setDueDate\(\) expects DateTimeImmutable\|null, DateTimeImmutable\|false given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Service/TaskService.php
+
+		-
+			message: '#^Parameter \#1 \$owner of method App\\Interface\\ActivityLogServiceInterface\:\:logTaskDeleted\(\) expects App\\Entity\\User, App\\Entity\\User\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Service/TaskService.php
+
+		-
+			message: '#^Parameter \#1 \$owner of method App\\Repository\\TaskRepository\:\:getMaxPosition\(\) expects App\\Entity\\User, App\\Entity\\User\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Service/TaskService.php
+
+		-
+			message: '#^Parameter \#2 \$taskId of method App\\Interface\\ActivityLogServiceInterface\:\:logTaskDeleted\(\) expects string, string\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Service/TaskService.php
+
+		-
+			message: '#^Parameter \#2 \$user of method App\\Service\\TaskService\:\:attachTags\(\) expects App\\Entity\\User, App\\Entity\\User\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Service/TaskService.php
+
+		-
+			message: '#^Parameter \#1 \$owner of method App\\Repository\\ProjectRepository\:\:findOneByOwnerAndId\(\) expects App\\Entity\\User, App\\Entity\\User\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Service/TaskStateService.php
+
+		-
+			message: '#^Parameter \#1 \$owner of method App\\Repository\\TagRepository\:\:findOneByOwnerAndId\(\) expects App\\Entity\\User, App\\Entity\\User\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Service/TaskStateService.php
+
+		-
+			message: '#^Strict comparison using \!\=\= between mixed and null will always evaluate to true\.$#'
+			identifier: notIdentical.alwaysTrue
+			count: 1
+			path: src/Service/TaskStateService.php
+
+		-
+			message: '#^Parameter \#1 \$userId of method App\\Service\\UndoService\:\:consumeUndoToken\(\) expects string, string\|null given\.$#'
+			identifier: argument.type
+			count: 3
+			path: src/Service/TaskUndoService.php
+
+		-
+			message: '#^Parameter \#1 \$label of method OTPHP\\OTP\:\:setLabel\(\) expects non\-empty\-string, string given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Service/TotpService.php
+
+		-
+			message: '#^Parameter \#1 \$otp of method OTPHP\\TOTP\:\:verify\(\) expects non\-empty\-string, string given\.$#'
+			identifier: argument.type
+			count: 1
+			path: src/Service/TotpService.php
+
+		-
+			message: '#^Parameter \#1 \$secret of static method OTPHP\\TOTP\:\:createFromSecret\(\) expects non\-empty\-string, string given\.$#'
+			identifier: argument.type
+			count: 3
+			path: src/Service/TotpService.php
+
+		-
+			message: '#^Method App\\Service\\UndoService\:\:createUndoToken\(\) has parameter \$previousState with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Service/UndoService.php
+
+		-
+			message: '#^Parameter \#1 \$data of static method App\\ValueObject\\UndoToken\:\:fromArray\(\) expects array\{token\: string, action\: string, entityType\: string, entityId\: string, previousState\: array, userId\: string, createdAt\: string, expiresAt\: string\}, array given\.$#'
+			identifier: argument.type
+			count: 2
+			path: src/Service/UndoService.php
+
+		-
+			message: '#^Method App\\Service\\UserService\:\:generateNewApiToken\(\) should return string but returns string\|null\.$#'
+			identifier: return.type
+			count: 1
+			path: src/Service/UserService.php
+
+		-
+			message: '#^Method App\\Transformer\\ProjectTreeTransformer\:\:buildNode\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Transformer/ProjectTreeTransformer.php
+
+		-
+			message: '#^Method App\\Transformer\\ProjectTreeTransformer\:\:buildNode\(\) should return array\{id\: string, name\: string, description\: string\|null, color\: string, icon\: string\|null, position\: int, isArchived\: bool, showChildrenTasks\: bool, \.\.\.\} but returns array\{id\: string\|null, name\: string, description\: string\|null, color\: string, icon\: string\|null, position\: int, isArchived\: bool, showChildrenTasks\: bool, \.\.\.\}\.$#'
+			identifier: return.type
+			count: 1
+			path: src/Transformer/ProjectTreeTransformer.php
+
+		-
+			message: '#^Method App\\Transformer\\ProjectTreeTransformer\:\:transformNode\(\) has parameter \$children with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Transformer/ProjectTreeTransformer.php
+
+		-
+			message: '#^Method App\\Transformer\\ProjectTreeTransformer\:\:transformNode\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Transformer/ProjectTreeTransformer.php
+
+		-
+			message: '#^Method App\\Transformer\\ProjectTreeTransformer\:\:transformNode\(\) should return array\{id\: string, name\: string, description\: string\|null, color\: string, icon\: string\|null, position\: int, isArchived\: bool, showChildrenTasks\: bool, \.\.\.\} but returns array\{id\: string\|null, name\: string, description\: string\|null, color\: string, icon\: string\|null, position\: int, isArchived\: bool, showChildrenTasks\: bool, \.\.\.\}\.$#'
+			identifier: return.type
+			count: 1
+			path: src/Transformer/ProjectTreeTransformer.php
+
+		-
+			message: '#^Method App\\Transformer\\ProjectTreeTransformer\:\:transformToTree\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/Transformer/ProjectTreeTransformer.php
+
+		-
+			message: '#^Method App\\ValueObject\\TaskParseResult\:\:toArray\(\) should return array\{title\: string, dueDate\: string\|null, dueTime\: string\|null, project\: array\{id\: string, name\: string\}\|null, tags\: array\<array\{id\: string, name\: string, color\: string\}\>, priority\: int\|null, highlights\: array\<array\{type\: string, text\: string, startPosition\: int, endPosition\: int, value\: mixed, valid\: bool\}\>, warnings\: array\<string\>\} but returns array\{title\: string, dueDate\: non\-falsy\-string\|null, dueTime\: string\|null, project\: array\{id\: string\|null, name\: string\}\|null, tags\: array\<array\{id\: string\|null, name\: string, color\: string\}\>, priority\: int\|null, highlights\: array\<array\{type\: string, text\: string, start\: int, end\: int, value\: mixed, valid\: bool\}\>, warnings\: array\<string\>\}\.$#'
+			identifier: return.type
+			count: 1
+			path: src/ValueObject/TaskParseResult.php
+
+		-
+			message: '#^Method App\\ValueObject\\UndoToken\:\:__construct\(\) has parameter \$previousState with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/ValueObject/UndoToken.php
+
+		-
+			message: '#^Method App\\ValueObject\\UndoToken\:\:create\(\) has parameter \$previousState with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/ValueObject/UndoToken.php
+
+		-
+			message: '#^Method App\\ValueObject\\UndoToken\:\:fromArray\(\) has parameter \$data with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/ValueObject/UndoToken.php
+
+		-
+			message: '#^Method App\\ValueObject\\UndoToken\:\:toArray\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: src/ValueObject/UndoToken.php
+
+		-
+			message: '#^Cannot call method clear\(\) on Doctrine\\ORM\\EntityManagerInterface\|null\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: tests/Functional/Api/AccountLockoutApiTest.php
+
+		-
+			message: '#^Cannot call method flush\(\) on Doctrine\\ORM\\EntityManagerInterface\|null\.$#'
+			identifier: method.nonObject
+			count: 2
+			path: tests/Functional/Api/AccountLockoutApiTest.php
+
+		-
+			message: '#^Cannot call method getFailedLoginAttempts\(\) on App\\Entity\\User\|null\.$#'
+			identifier: method.nonObject
+			count: 2
+			path: tests/Functional/Api/AccountLockoutApiTest.php
+
+		-
+			message: '#^Cannot call method isLocked\(\) on App\\Entity\\User\|null\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: tests/Functional/Api/AccountLockoutApiTest.php
+
+		-
+			message: '#^Call to method PHPUnit\\Framework\\Assert\:\:assertIsArray\(\) with array will always evaluate to true\.$#'
+			identifier: method.alreadyNarrowedType
+			count: 1
+			path: tests/Functional/Api/ApiTokenApiTest.php
+
+		-
+			message: '#^Cannot call method flush\(\) on Doctrine\\ORM\\EntityManagerInterface\|null\.$#'
+			identifier: method.nonObject
+			count: 4
+			path: tests/Functional/Api/AuthApiTest.php
+
+		-
+			message: '#^Cannot call method refresh\(\) on Doctrine\\ORM\\EntityManagerInterface\|null\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: tests/Functional/Api/AuthApiTest.php
+
+		-
+			message: '#^Parameter \#4 \$headers of method App\\Tests\\Functional\\ApiTestCase\:\:apiRequest\(\) expects array\<string, string\>, array\<string, string\|null\> given\.$#'
+			identifier: argument.type
+			count: 4
+			path: tests/Functional/Api/AuthApiTest.php
+
+		-
+			message: '#^Cannot call method flush\(\) on Doctrine\\ORM\\EntityManagerInterface\|null\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: tests/Functional/Api/AuthorizationEdgeCasesTest.php
+
+		-
+			message: '#^Cannot call method getResponse\(\) on Symfony\\Bundle\\FrameworkBundle\\KernelBrowser\|null\.$#'
+			identifier: method.nonObject
+			count: 2
+			path: tests/Functional/Api/AuthorizationEdgeCasesTest.php
+
+		-
+			message: '#^Cannot call method request\(\) on Symfony\\Bundle\\FrameworkBundle\\KernelBrowser\|null\.$#'
+			identifier: method.nonObject
+			count: 2
+			path: tests/Functional/Api/AuthorizationEdgeCasesTest.php
+
+		-
+			message: '#^Cannot call method flush\(\) on Doctrine\\ORM\\EntityManagerInterface\|null\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: tests/Functional/Api/AutocompleteApiTest.php
+
+		-
+			message: '#^Cannot call method persist\(\) on Doctrine\\ORM\\EntityManagerInterface\|null\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: tests/Functional/Api/AutocompleteApiTest.php
+
+		-
+			message: '#^Cannot call method find\(\) on Doctrine\\ORM\\EntityManagerInterface\|null\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: tests/Functional/Api/BatchApiTest.php
+
+		-
+			message: '#^Cannot call method format\(\) on DateTimeImmutable\|null\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: tests/Functional/Api/BatchApiTest.php
+
+		-
+			message: '#^Cannot call method getTitle\(\) on App\\Entity\\Task\|null\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: tests/Functional/Api/BatchApiTest.php
+
+		-
+			message: '#^Cannot call method flush\(\) on Doctrine\\ORM\\EntityManagerInterface\|null\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: tests/Functional/Api/EmailVerificationApiTest.php
+
+		-
+			message: '#^Cannot call method getResponse\(\) on Symfony\\Bundle\\FrameworkBundle\\KernelBrowser\|null\.$#'
+			identifier: method.nonObject
+			count: 5
+			path: tests/Functional/Api/ImportApiTest.php
+
+		-
+			message: '#^Cannot call method request\(\) on Symfony\\Bundle\\FrameworkBundle\\KernelBrowser\|null\.$#'
+			identifier: method.nonObject
+			count: 5
+			path: tests/Functional/Api/ImportApiTest.php
+
+		-
+			message: '#^Parameter \#1 \$json of function json_decode expects string, string\|false given\.$#'
+			identifier: argument.type
+			count: 3
+			path: tests/Functional/Api/ImportApiTest.php
+
+		-
+			message: '#^Cannot call method flush\(\) on Doctrine\\ORM\\EntityManagerInterface\|null\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: tests/Functional/Api/NaturalLanguageTaskTest.php
+
+		-
+			message: '#^Cannot call method flush\(\) on Doctrine\\ORM\\EntityManagerInterface\|null\.$#'
+			identifier: method.nonObject
+			count: 3
+			path: tests/Functional/Api/NotificationApiTest.php
+
+		-
+			message: '#^Cannot call method persist\(\) on Doctrine\\ORM\\EntityManagerInterface\|null\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: tests/Functional/Api/NotificationApiTest.php
+
+		-
+			message: '#^Cannot call method flush\(\) on Doctrine\\ORM\\EntityManagerInterface\|null\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: tests/Functional/Api/ParseApiTest.php
+
+		-
+			message: '#^Cannot call method clear\(\) on Doctrine\\ORM\\EntityManagerInterface\|null\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: tests/Functional/Api/PushApiTest.php
+
+		-
+			message: '#^Cannot call method find\(\) on Doctrine\\ORM\\EntityManagerInterface\|null\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: tests/Functional/Api/PushApiTest.php
+
+		-
+			message: '#^Cannot call method flush\(\) on Doctrine\\ORM\\EntityManagerInterface\|null\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: tests/Functional/Api/PushApiTest.php
+
+		-
+			message: '#^Cannot call method persist\(\) on Doctrine\\ORM\\EntityManagerInterface\|null\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: tests/Functional/Api/PushApiTest.php
+
+		-
+			message: '#^Parameter \#1 \$json of function json_decode expects string, string\|false given\.$#'
+			identifier: argument.type
+			count: 1
+			path: tests/Functional/Api/RecurringTaskApiTest.php
+
+		-
+			message: '#^Cannot call method flush\(\) on Doctrine\\ORM\\EntityManagerInterface\|null\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: tests/Functional/Api/SavedFilterApiTest.php
+
+		-
+			message: '#^Cannot call method persist\(\) on Doctrine\\ORM\\EntityManagerInterface\|null\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: tests/Functional/Api/SavedFilterApiTest.php
+
+		-
+			message: '#^Method App\\Tests\\Functional\\Api\\SavedFilterApiTest\:\:createSavedFilter\(\) has parameter \$criteria with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: tests/Functional/Api/SavedFilterApiTest.php
+
+		-
+			message: '#^Cannot call method flush\(\) on Doctrine\\ORM\\EntityManagerInterface\|null\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: tests/Functional/Api/TaskApiTest.php
+
+		-
+			message: '#^Cannot call method flush\(\) on Doctrine\\ORM\\EntityManagerInterface\|null\.$#'
+			identifier: method.nonObject
+			count: 3
+			path: tests/Functional/Api/TaskFilterApiTest.php
+
+		-
+			message: '#^Cannot call method flush\(\) on Doctrine\\ORM\\EntityManagerInterface\|null\.$#'
+			identifier: method.nonObject
+			count: 2
+			path: tests/Functional/Api/TwoFactorLoginApiTest.php
+
+		-
+			message: '#^Method App\\Tests\\Functional\\Api\\TwoFactorLoginApiTest\:\:enable2faForUser\(\) has parameter \$user with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: tests/Functional/Api/TwoFactorLoginApiTest.php
+
+		-
+			message: '#^Method App\\Tests\\Functional\\Api\\TwoFactorLoginApiTest\:\:enable2faForUserWithBackupCodes\(\) has parameter \$codes with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: tests/Functional/Api/TwoFactorLoginApiTest.php
+
+		-
+			message: '#^Method App\\Tests\\Functional\\Api\\TwoFactorLoginApiTest\:\:enable2faForUserWithBackupCodes\(\) has parameter \$user with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: tests/Functional/Api/TwoFactorLoginApiTest.php
+
+		-
+			message: '#^Cannot call method flush\(\) on Doctrine\\ORM\\EntityManagerInterface\|null\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: tests/Functional/Api/TwoFactorSetupApiTest.php
+
+		-
+			message: '#^Cannot call method refresh\(\) on Doctrine\\ORM\\EntityManagerInterface\|null\.$#'
+			identifier: method.nonObject
+			count: 2
+			path: tests/Functional/Api/TwoFactorSetupApiTest.php
+
+		-
+			message: '#^Method App\\Tests\\Functional\\Api\\TwoFactorSetupApiTest\:\:enable2faForUser\(\) has parameter \$user with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: tests/Functional/Api/TwoFactorSetupApiTest.php
+
+		-
+			message: '#^Cannot call method clear\(\) on Doctrine\\ORM\\EntityManagerInterface\|null\.$#'
+			identifier: method.nonObject
+			count: 4
+			path: tests/Functional/Api/UserApiTest.php
+
+		-
+			message: '#^Cannot call method getRepository\(\) on Doctrine\\ORM\\EntityManagerInterface\|null\.$#'
+			identifier: method.nonObject
+			count: 4
+			path: tests/Functional/Api/UserApiTest.php
+
+		-
+			message: '#^Method App\\Tests\\Functional\\ApiTestCase\:\:assertResponseStatusCode\(\) invoked with 3 parameters, 2 required\.$#'
+			identifier: arguments.count
+			count: 1
+			path: tests/Functional/Api/UserSettingsApiTest.php
+
+		-
+			message: '#^Method App\\Tests\\Functional\\Api\\ValidationEdgeCasesTest\:\:validDateFormatsProvider\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: tests/Functional/Api/ValidationEdgeCasesTest.php
+
+		-
+			message: '#^Method App\\Tests\\Functional\\Api\\ValidationEdgeCasesTest\:\:validPrioritiesProvider\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: tests/Functional/Api/ValidationEdgeCasesTest.php
+
+		-
+			message: '#^Method App\\Tests\\Functional\\Api\\ValidationEdgeCasesTest\:\:validStatusesProvider\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: tests/Functional/Api/ValidationEdgeCasesTest.php
+
+		-
+			message: '#^Cannot call method clear\(\) on Doctrine\\ORM\\EntityManagerInterface\|null\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: tests/Functional/ApiTestCase.php
+
+		-
+			message: '#^Cannot call method flush\(\) on Doctrine\\ORM\\EntityManagerInterface\|null\.$#'
+			identifier: method.nonObject
+			count: 4
+			path: tests/Functional/ApiTestCase.php
+
+		-
+			message: '#^Cannot call method getResponse\(\) on Symfony\\Bundle\\FrameworkBundle\\KernelBrowser\|null\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: tests/Functional/ApiTestCase.php
+
+		-
+			message: '#^Cannot call method persist\(\) on Doctrine\\ORM\\EntityManagerInterface\|null\.$#'
+			identifier: method.nonObject
+			count: 4
+			path: tests/Functional/ApiTestCase.php
+
+		-
+			message: '#^Cannot call method refresh\(\) on Doctrine\\ORM\\EntityManagerInterface\|null\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: tests/Functional/ApiTestCase.php
+
+		-
+			message: '#^Cannot call method request\(\) on Symfony\\Bundle\\FrameworkBundle\\KernelBrowser\|null\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: tests/Functional/ApiTestCase.php
+
+		-
+			message: '#^Method App\\Tests\\Functional\\ApiTestCase\:\:assertJsonResponse\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: tests/Functional/ApiTestCase.php
+
+		-
+			message: '#^Method App\\Tests\\Functional\\ApiTestCase\:\:assertSuccessResponse\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: tests/Functional/ApiTestCase.php
+
+		-
+			message: '#^Method App\\Tests\\Functional\\ApiTestCase\:\:getResponseData\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: tests/Functional/ApiTestCase.php
+
+		-
+			message: '#^Method App\\Tests\\Functional\\ApiTestCase\:\:getResponseError\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: tests/Functional/ApiTestCase.php
+
+		-
+			message: '#^Method App\\Tests\\Functional\\ApiTestCase\:\:getResponseMeta\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: tests/Functional/ApiTestCase.php
+
+		-
+			message: '#^Parameter \#1 \$actual of method PHPUnit\\Framework\\Assert\:\:assertJson\(\) expects string, string\|false given\.$#'
+			identifier: argument.type
+			count: 1
+			path: tests/Functional/ApiTestCase.php
+
+		-
+			message: '#^Parameter \#1 \$json of function json_decode expects string, string\|false given\.$#'
+			identifier: argument.type
+			count: 1
+			path: tests/Functional/ApiTestCase.php
+
+		-
+			message: '#^Parameter \#2 \$value of method Symfony\\Component\\BrowserKit\\AbstractBrowser\<Symfony\\Component\\HttpFoundation\\Request,Symfony\\Component\\HttpFoundation\\Response\>\:\:setServerParameter\(\) expects string, string\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: tests/Functional/ApiTestCase.php
+
+		-
+			message: '#^Call to method PHPUnit\\Framework\\Assert\:\:assertTrue\(\) with true and ''Access\-Control…'' will always evaluate to true\.$#'
+			identifier: method.alreadyNarrowedType
+			count: 1
+			path: tests/Functional/Security/CorsConfigurationTest.php
+
+		-
+			message: '#^Call to method PHPUnit\\Framework\\Assert\:\:assertTrue\(\) with true and ''Non\-API path…'' will always evaluate to true\.$#'
+			identifier: method.alreadyNarrowedType
+			count: 1
+			path: tests/Functional/Security/CorsConfigurationTest.php
+
+		-
+			message: '#^Cannot call method getResponse\(\) on Symfony\\Bundle\\FrameworkBundle\\KernelBrowser\|null\.$#'
+			identifier: method.nonObject
+			count: 10
+			path: tests/Functional/Security/CorsConfigurationTest.php
+
+		-
+			message: '#^Cannot call method request\(\) on Symfony\\Bundle\\FrameworkBundle\\KernelBrowser\|null\.$#'
+			identifier: method.nonObject
+			count: 10
+			path: tests/Functional/Security/CorsConfigurationTest.php
+
+		-
+			message: '#^Method App\\Tests\\Functional\\Security\\CorsConfigurationTest\:\:originTestCasesProvider\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: tests/Functional/Security/CorsConfigurationTest.php
+
+		-
+			message: '#^Cannot call method getResponse\(\) on Symfony\\Bundle\\FrameworkBundle\\KernelBrowser\|null\.$#'
+			identifier: method.nonObject
+			count: 4
+			path: tests/Functional/Web/HomeControllerTest.php
+
+		-
+			message: '#^Cannot call method loginUser\(\) on Symfony\\Bundle\\FrameworkBundle\\KernelBrowser\|null\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: tests/Functional/Web/HomeControllerTest.php
+
+		-
+			message: '#^Cannot call method request\(\) on Symfony\\Bundle\\FrameworkBundle\\KernelBrowser\|null\.$#'
+			identifier: method.nonObject
+			count: 2
+			path: tests/Functional/Web/HomeControllerTest.php
+
+		-
+			message: '#^Cannot call method followRedirect\(\) on Symfony\\Bundle\\FrameworkBundle\\KernelBrowser\|null\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: tests/Functional/Web/SecurityControllerTest.php
+
+		-
+			message: '#^Cannot call method getResponse\(\) on Symfony\\Bundle\\FrameworkBundle\\KernelBrowser\|null\.$#'
+			identifier: method.nonObject
+			count: 13
+			path: tests/Functional/Web/SecurityControllerTest.php
+
+		-
+			message: '#^Cannot call method loginUser\(\) on Symfony\\Bundle\\FrameworkBundle\\KernelBrowser\|null\.$#'
+			identifier: method.nonObject
+			count: 3
+			path: tests/Functional/Web/SecurityControllerTest.php
+
+		-
+			message: '#^Cannot call method request\(\) on Symfony\\Bundle\\FrameworkBundle\\KernelBrowser\|null\.$#'
+			identifier: method.nonObject
+			count: 12
+			path: tests/Functional/Web/SecurityControllerTest.php
+
+		-
+			message: '#^Cannot call method submit\(\) on Symfony\\Bundle\\FrameworkBundle\\KernelBrowser\|null\.$#'
+			identifier: method.nonObject
+			count: 7
+			path: tests/Functional/Web/SecurityControllerTest.php
+
+		-
+			message: '#^Cannot call method getResponse\(\) on Symfony\\Bundle\\FrameworkBundle\\KernelBrowser\|null\.$#'
+			identifier: method.nonObject
+			count: 12
+			path: tests/Functional/Web/SettingsControllerTest.php
+
+		-
+			message: '#^Cannot call method loginUser\(\) on Symfony\\Bundle\\FrameworkBundle\\KernelBrowser\|null\.$#'
+			identifier: method.nonObject
+			count: 5
+			path: tests/Functional/Web/SettingsControllerTest.php
+
+		-
+			message: '#^Cannot call method request\(\) on Symfony\\Bundle\\FrameworkBundle\\KernelBrowser\|null\.$#'
+			identifier: method.nonObject
+			count: 10
+			path: tests/Functional/Web/SettingsControllerTest.php
+
+		-
+			message: '#^Cannot call method clear\(\) on Doctrine\\ORM\\EntityManagerInterface\|null\.$#'
+			identifier: method.nonObject
+			count: 4
+			path: tests/Functional/Web/TaskListControllerTest.php
+
+		-
+			message: '#^Cannot call method find\(\) on Doctrine\\ORM\\EntityManagerInterface\|null\.$#'
+			identifier: method.nonObject
+			count: 4
+			path: tests/Functional/Web/TaskListControllerTest.php
+
+		-
+			message: '#^Cannot call method followRedirect\(\) on Symfony\\Bundle\\FrameworkBundle\\KernelBrowser\|null\.$#'
+			identifier: method.nonObject
+			count: 5
+			path: tests/Functional/Web/TaskListControllerTest.php
+
+		-
+			message: '#^Cannot call method getResponse\(\) on Symfony\\Bundle\\FrameworkBundle\\KernelBrowser\|null\.$#'
+			identifier: method.nonObject
+			count: 15
+			path: tests/Functional/Web/TaskListControllerTest.php
+
+		-
+			message: '#^Cannot call method getStatus\(\) on App\\Entity\\Task\|null\.$#'
+			identifier: method.nonObject
+			count: 2
+			path: tests/Functional/Web/TaskListControllerTest.php
+
+		-
+			message: '#^Cannot call method loginUser\(\) on Symfony\\Bundle\\FrameworkBundle\\KernelBrowser\|null\.$#'
+			identifier: method.nonObject
+			count: 14
+			path: tests/Functional/Web/TaskListControllerTest.php
+
+		-
+			message: '#^Cannot call method request\(\) on Symfony\\Bundle\\FrameworkBundle\\KernelBrowser\|null\.$#'
+			identifier: method.nonObject
+			count: 21
+			path: tests/Functional/Web/TaskListControllerTest.php
+
+		-
+			message: '#^Cannot call method flush\(\) on Doctrine\\ORM\\EntityManagerInterface\|null\.$#'
+			identifier: method.nonObject
+			count: 2
+			path: tests/Functional/Web/TaskViewControllerTest.php
+
+		-
+			message: '#^Cannot call method getResponse\(\) on Symfony\\Bundle\\FrameworkBundle\\KernelBrowser\|null\.$#'
+			identifier: method.nonObject
+			count: 10
+			path: tests/Functional/Web/TaskViewControllerTest.php
+
+		-
+			message: '#^Cannot call method loginUser\(\) on Symfony\\Bundle\\FrameworkBundle\\KernelBrowser\|null\.$#'
+			identifier: method.nonObject
+			count: 28
+			path: tests/Functional/Web/TaskViewControllerTest.php
+
+		-
+			message: '#^Cannot call method request\(\) on Symfony\\Bundle\\FrameworkBundle\\KernelBrowser\|null\.$#'
+			identifier: method.nonObject
+			count: 33
+			path: tests/Functional/Web/TaskViewControllerTest.php
+
+		-
+			message: '#^Cannot call method flush\(\) on Doctrine\\ORM\\EntityManagerInterface\|null\.$#'
+			identifier: method.nonObject
+			count: 4
+			path: tests/Integration/IntegrationTestCase.php
+
+		-
+			message: '#^Cannot call method persist\(\) on Doctrine\\ORM\\EntityManagerInterface\|null\.$#'
+			identifier: method.nonObject
+			count: 4
+			path: tests/Integration/IntegrationTestCase.php
+
+		-
+			message: '#^Call to method PHPUnit\\Framework\\Assert\:\:assertIsArray\(\) with array will always evaluate to true\.$#'
+			identifier: method.alreadyNarrowedType
+			count: 1
+			path: tests/Integration/ProjectCacheIntegrationTest.php
+
+		-
+			message: '#^Parameter \#1 \$userId of method App\\Service\\ProjectCacheService\:\:get\(\) expects string, string\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: tests/Integration/ProjectCacheIntegrationTest.php
+
+		-
+			message: '#^Parameter \#1 \$userId of method App\\Service\\ProjectCacheService\:\:invalidate\(\) expects string, string\|null given\.$#'
+			identifier: argument.type
+			count: 2
+			path: tests/Integration/ProjectCacheIntegrationTest.php
+
+		-
+			message: '#^Parameter \#3 \$projectIds of method App\\Service\\ProjectService\:\:batchReorder\(\) expects array\<string\>, array\<int, string\|null\> given\.$#'
+			identifier: argument.type
+			count: 1
+			path: tests/Integration/ProjectCacheIntegrationTest.php
+
+		-
+			message: '#^Property App\\Tests\\Integration\\ProjectCacheIntegrationTest\:\:\$cacheAdapter is never read, only written\.$#'
+			identifier: property.onlyWritten
+			count: 1
+			path: tests/Integration/ProjectCacheIntegrationTest.php
+
+		-
+			message: '#^Call to method PHPUnit\\Framework\\Assert\:\:assertIsArray\(\) with array will always evaluate to true\.$#'
+			identifier: method.alreadyNarrowedType
+			count: 3
+			path: tests/Integration/Repository/ProjectHierarchyRepositoryTest.php
+
+		-
+			message: '#^Cannot call method clear\(\) on Doctrine\\ORM\\EntityManagerInterface\|null\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: tests/Integration/Repository/ProjectHierarchyRepositoryTest.php
+
+		-
+			message: '#^Cannot call method flush\(\) on Doctrine\\ORM\\EntityManagerInterface\|null\.$#'
+			identifier: method.nonObject
+			count: 3
+			path: tests/Integration/Repository/ProjectHierarchyRepositoryTest.php
+
+		-
+			message: '#^Cannot call method flush\(\) on Doctrine\\ORM\\EntityManagerInterface\|null\.$#'
+			identifier: method.nonObject
+			count: 7
+			path: tests/Integration/Repository/ProjectRepositoryTest.php
+
+		-
+			message: '#^Parameter \#2 \$id of method App\\Repository\\ProjectRepository\:\:findOneByOwnerAndId\(\) expects string, string\|null given\.$#'
+			identifier: argument.type
+			count: 4
+			path: tests/Integration/Repository/ProjectRepositoryTest.php
+
+		-
+			message: '#^Call to method PHPUnit\\Framework\\Assert\:\:assertIsArray\(\) with array will always evaluate to true\.$#'
+			identifier: method.alreadyNarrowedType
+			count: 1
+			path: tests/Integration/Repository/TagRepositoryTest.php
+
+		-
+			message: '#^Parameter \#2 \$id of method App\\Repository\\TagRepository\:\:findOneByOwnerAndId\(\) expects string, string\|null given\.$#'
+			identifier: argument.type
+			count: 2
+			path: tests/Integration/Repository/TagRepositoryTest.php
+
+		-
+			message: '#^Cannot call method flush\(\) on Doctrine\\ORM\\EntityManagerInterface\|null\.$#'
+			identifier: method.nonObject
+			count: 7
+			path: tests/Integration/Repository/TaskFilterRepositoryTest.php
+
+		-
+			message: '#^Parameter \$projectIds of class App\\DTO\\TaskFilterRequest constructor expects array\<string\>\|null, array\<int, string\|null\> given\.$#'
+			identifier: argument.type
+			count: 3
+			path: tests/Integration/Repository/TaskFilterRepositoryTest.php
+
+		-
+			message: '#^Parameter \$tagIds of class App\\DTO\\TaskFilterRequest constructor expects array\<string\>\|null, array\<int, string\|null\> given\.$#'
+			identifier: argument.type
+			count: 3
+			path: tests/Integration/Repository/TaskFilterRepositoryTest.php
+
+		-
+			message: '#^Cannot call method clear\(\) on Doctrine\\ORM\\EntityManagerInterface\|null\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: tests/Integration/Repository/TaskRepositoryTest.php
+
+		-
+			message: '#^Cannot call method flush\(\) on Doctrine\\ORM\\EntityManagerInterface\|null\.$#'
+			identifier: method.nonObject
+			count: 8
+			path: tests/Integration/Repository/TaskRepositoryTest.php
+
+		-
+			message: '#^Cannot call method getPosition\(\) on App\\Entity\\Task\|null\.$#'
+			identifier: method.nonObject
+			count: 3
+			path: tests/Integration/Repository/TaskRepositoryTest.php
+
+		-
+			message: '#^Parameter \#2 \$filters of method App\\Repository\\TaskRepository\:\:createFilteredQueryBuilder\(\) expects array\{status\?\: string, priority\?\: int, projectId\?\: string, search\?\: string, dueBefore\?\: string, dueAfter\?\: string, tagIds\?\: array\<string\>\}, array\{projectId\: string\|null\} given\.$#'
+			identifier: argument.type
+			count: 1
+			path: tests/Integration/Repository/TaskRepositoryTest.php
+
+		-
+			message: '#^Parameter \#2 \$filters of method App\\Repository\\TaskRepository\:\:createFilteredQueryBuilder\(\) expects array\{status\?\: string, priority\?\: int, projectId\?\: string, search\?\: string, dueBefore\?\: string, dueAfter\?\: string, tagIds\?\: array\<string\>\}, array\{status\: ''pending'', priority\: 4, projectId\: string\|null\} given\.$#'
+			identifier: argument.type
+			count: 1
+			path: tests/Integration/Repository/TaskRepositoryTest.php
+
+		-
+			message: '#^Parameter \#2 \$filters of method App\\Repository\\TaskRepository\:\:createFilteredQueryBuilder\(\) expects array\{status\?\: string, priority\?\: int, projectId\?\: string, search\?\: string, dueBefore\?\: string, dueAfter\?\: string, tagIds\?\: array\<string\>\}, array\{tagIds\: array\{string\|null\}\} given\.$#'
+			identifier: argument.type
+			count: 1
+			path: tests/Integration/Repository/TaskRepositoryTest.php
+
+		-
+			message: '#^Parameter \#2 \$id of method App\\Repository\\TaskRepository\:\:findOneByOwnerAndId\(\) expects string, string\|null given\.$#'
+			identifier: argument.type
+			count: 2
+			path: tests/Integration/Repository/TaskRepositoryTest.php
+
+		-
+			message: '#^Parameter \#2 \$ids of method App\\Repository\\TaskRepository\:\:findByOwnerAndIds\(\) expects array\<string\>, array\<int, string\|null\> given\.$#'
+			identifier: argument.type
+			count: 1
+			path: tests/Integration/Repository/TaskRepositoryTest.php
+
+		-
+			message: '#^Parameter \#2 \$taskIds of method App\\Repository\\TaskRepository\:\:reorderTasks\(\) expects array\<string\>, array\<int, string\|null\> given\.$#'
+			identifier: argument.type
+			count: 1
+			path: tests/Integration/Repository/TaskRepositoryTest.php
+
+		-
+			message: '#^Method App\\Tests\\Unit\\DTO\\CreateTaskRequestTest\:\:validPrioritiesProvider\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: tests/Unit/DTO/CreateTaskRequestTest.php
+
+		-
+			message: '#^Method App\\Tests\\Unit\\DTO\\CreateTaskRequestTest\:\:validStatusesProvider\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: tests/Unit/DTO/CreateTaskRequestTest.php
+
+		-
+			message: '#^Call to method PHPUnit\\Framework\\Assert\:\:assertTrue\(\) with true will always evaluate to true\.$#'
+			identifier: method.alreadyNarrowedType
+			count: 2
+			path: tests/Unit/DTO/DtoTestCase.php
+
+		-
+			message: '#^Method App\\Tests\\Unit\\DTO\\LoginRequestTest\:\:validEmailsProvider\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: tests/Unit/DTO/LoginRequestTest.php
+
+		-
+			message: '#^Method App\\Tests\\Unit\\DTO\\RegisterRequestTest\:\:validEmailsProvider\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: tests/Unit/DTO/RegisterRequestTest.php
+
+		-
+			message: '#^Parameter \#1 \$haystack of function str_contains expects string, string\|Stringable given\.$#'
+			identifier: argument.type
+			count: 1
+			path: tests/Unit/DTO/RegisterRequestTest.php
+
+		-
+			message: '#^Parameter \#2 \$haystack of method PHPUnit\\Framework\\Assert\:\:assertContains\(\) expects iterable, array\<string\>\|null given\.$#'
+			identifier: argument.type
+			count: 2
+			path: tests/Unit/DTO/TaskFilterRequestTest.php
+
+		-
+			message: '#^Parameter \#2 \$haystack of method PHPUnit\\Framework\\Assert\:\:assertCount\(\) expects Countable\|iterable, array\<string\>\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: tests/Unit/DTO/TaskFilterRequestTest.php
+
+		-
+			message: '#^Method App\\Tests\\Unit\\DTO\\UpdateTaskRequestTest\:\:validPrioritiesProvider\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: tests/Unit/DTO/UpdateTaskRequestTest.php
+
+		-
+			message: '#^Method App\\Tests\\Unit\\DTO\\UpdateTaskRequestTest\:\:validStatusesProvider\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: tests/Unit/DTO/UpdateTaskRequestTest.php
+
+		-
+			message: '#^Call to method PHPUnit\\Framework\\Assert\:\:assertIsArray\(\) with array will always evaluate to true\.$#'
+			identifier: method.alreadyNarrowedType
+			count: 2
+			path: tests/Unit/Entity/ProjectHierarchyTest.php
+
+		-
+			message: '#^Method App\\Tests\\Unit\\Entity\\TaskTest\:\:invalidPriorityProvider\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: tests/Unit/Entity/TaskTest.php
+
+		-
+			message: '#^Method App\\Tests\\Unit\\Entity\\TaskTest\:\:invalidStatusProvider\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: tests/Unit/Entity/TaskTest.php
+
+		-
+			message: '#^Method App\\Tests\\Unit\\Entity\\TaskTest\:\:validPriorityProvider\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: tests/Unit/Entity/TaskTest.php
+
+		-
+			message: '#^Method App\\Tests\\Unit\\Entity\\TaskTest\:\:validStatusProvider\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: tests/Unit/Entity/TaskTest.php
+
+		-
+			message: '#^Call to method PHPUnit\\Framework\\Assert\:\:assertIsArray\(\) with array will always evaluate to true\.$#'
+			identifier: method.alreadyNarrowedType
+			count: 1
+			path: tests/Unit/Entity/UserTest.php
+
+		-
+			message: '#^Method App\\Tests\\Unit\\Enum\\RecurrenceTypeTest\:\:invalidTypesProvider\(\) return type has no value type specified in iterable type iterable\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: tests/Unit/Enum/RecurrenceTypeTest.php
+
+		-
+			message: '#^Method App\\Tests\\Unit\\Enum\\RecurrenceTypeTest\:\:validTypesProvider\(\) return type has no value type specified in iterable type iterable\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: tests/Unit/Enum/RecurrenceTypeTest.php
+
+		-
+			message: '#^Cannot call method format\(\) on DateTimeImmutable\|null\.$#'
+			identifier: method.nonObject
+			count: 60
+			path: tests/Unit/Parser/DateParserServiceTest.php
+
+		-
+			message: '#^Method App\\Tests\\Unit\\Parser\\DateParserServiceTest\:\:dayNameProvider\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: tests/Unit/Parser/DateParserServiceTest.php
+
+		-
+			message: '#^Method App\\Tests\\Unit\\Parser\\DateParserServiceTest\:\:monthNameProvider\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: tests/Unit/Parser/DateParserServiceTest.php
+
+		-
+			message: '#^Method App\\Tests\\Unit\\Parser\\DateParserServiceTest\:\:ordinalSuffixProvider\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: tests/Unit/Parser/DateParserServiceTest.php
+
+		-
+			message: '#^Parameter \#1 \$data of static method App\\ValueObject\\DateParseResult\:\:fromArray\(\) expects array\{date\: string\|null, time\: string\|null, originalText\: string, startPosition\: int, endPosition\: int, hasTime\: bool\}, array\{date\: ''2026\-01\-24T00\:00\:00…'', startPosition\: 0, endPosition\: 5, hasTime\: false\} given\.$#'
+			identifier: argument.type
+			count: 1
+			path: tests/Unit/Parser/DateParserServiceTest.php
+
+		-
+			message: '#^Cannot call method format\(\) on DateTimeImmutable\|null\.$#'
+			identifier: method.nonObject
+			count: 8
+			path: tests/Unit/Parser/NaturalLanguageParserServiceTest.php
+
+		-
+			message: '#^Cannot call method getName\(\) on App\\Entity\\Project\|null\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: tests/Unit/Parser/NaturalLanguageParserServiceTest.php
+
+		-
+			message: '#^Method App\\Tests\\Unit\\Parser\\NaturalLanguageParserServiceTest\:\:createTagWithId\(\) has parameter \$user with no type specified\.$#'
+			identifier: missingType.parameter
+			count: 1
+			path: tests/Unit/Parser/NaturalLanguageParserServiceTest.php
+
+		-
+			message: '#^Offset ''id'' might not exist on array\{id\: string, name\: string\}\|null\.$#'
+			identifier: offsetAccess.notFound
+			count: 1
+			path: tests/Unit/Parser/NaturalLanguageParserServiceTest.php
+
+		-
+			message: '#^Offset ''name'' might not exist on array\{id\: string, name\: string\}\|null\.$#'
+			identifier: offsetAccess.notFound
+			count: 1
+			path: tests/Unit/Parser/NaturalLanguageParserServiceTest.php
+
+		-
+			message: '#^Parameter \#1 \$data of static method App\\ValueObject\\ParseHighlight\:\:fromArray\(\) expects array\{type\: string, text\: string, start\: int, end\: int, value\: mixed, valid\: bool\}, array\{text\: ''test'', start\: 0, end\: 4, value\: ''test'', valid\: true\} given\.$#'
+			identifier: argument.type
+			count: 1
+			path: tests/Unit/Parser/NaturalLanguageParserServiceTest.php
+
+		-
+			message: '#^Property App\\Tests\\Unit\\Parser\\NaturalLanguageParserServiceTest\:\:\$tagRepository is never read, only written\.$#'
+			identifier: property.onlyWritten
+			count: 1
+			path: tests/Unit/Parser/NaturalLanguageParserServiceTest.php
+
+		-
+			message: '#^Method App\\Tests\\Unit\\Parser\\PriorityParserServiceTest\:\:caseInsensitivityProvider\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: tests/Unit/Parser/PriorityParserServiceTest.php
+
+		-
+			message: '#^Method App\\Tests\\Unit\\Parser\\PriorityParserServiceTest\:\:invalidPriorityProvider\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: tests/Unit/Parser/PriorityParserServiceTest.php
+
+		-
+			message: '#^Method App\\Tests\\Unit\\Parser\\PriorityParserServiceTest\:\:noPriorityProvider\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: tests/Unit/Parser/PriorityParserServiceTest.php
+
+		-
+			message: '#^Method App\\Tests\\Unit\\Parser\\PriorityParserServiceTest\:\:positionTrackingProvider\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: tests/Unit/Parser/PriorityParserServiceTest.php
+
+		-
+			message: '#^Method App\\Tests\\Unit\\Parser\\PriorityParserServiceTest\:\:validPriorityProvider\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: tests/Unit/Parser/PriorityParserServiceTest.php
+
+		-
+			message: '#^Method App\\Tests\\Unit\\Parser\\PriorityParserServiceTest\:\:wordBoundaryProvider\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: tests/Unit/Parser/PriorityParserServiceTest.php
+
+		-
+			message: '#^Cannot access property \$endPosition on App\\ValueObject\\ProjectParseResult\|null\.$#'
+			identifier: property.nonObject
+			count: 6
+			path: tests/Unit/Parser/ProjectParserServiceTest.php
+
+		-
+			message: '#^Cannot access property \$found on App\\ValueObject\\ProjectParseResult\|null\.$#'
+			identifier: property.nonObject
+			count: 14
+			path: tests/Unit/Parser/ProjectParserServiceTest.php
+
+		-
+			message: '#^Cannot access property \$matchedName on App\\ValueObject\\ProjectParseResult\|null\.$#'
+			identifier: property.nonObject
+			count: 18
+			path: tests/Unit/Parser/ProjectParserServiceTest.php
+
+		-
+			message: '#^Cannot access property \$originalText on App\\ValueObject\\ProjectParseResult\|null\.$#'
+			identifier: property.nonObject
+			count: 1
+			path: tests/Unit/Parser/ProjectParserServiceTest.php
+
+		-
+			message: '#^Cannot access property \$project on App\\ValueObject\\ProjectParseResult\|null\.$#'
+			identifier: property.nonObject
+			count: 2
+			path: tests/Unit/Parser/ProjectParserServiceTest.php
+
+		-
+			message: '#^Cannot access property \$startPosition on App\\ValueObject\\ProjectParseResult\|null\.$#'
+			identifier: property.nonObject
+			count: 8
+			path: tests/Unit/Parser/ProjectParserServiceTest.php
+
+		-
+			message: '#^Cannot call method getMatchLength\(\) on App\\ValueObject\\ProjectParseResult\|null\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: tests/Unit/Parser/ProjectParserServiceTest.php
+
+		-
+			message: '#^Cannot call method getMatchedText\(\) on App\\ValueObject\\ProjectParseResult\|null\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: tests/Unit/Parser/ProjectParserServiceTest.php
+
+		-
+			message: '#^Cannot call method toArray\(\) on App\\ValueObject\\ProjectParseResult\|null\.$#'
+			identifier: method.nonObject
+			count: 3
+			path: tests/Unit/Parser/ProjectParserServiceTest.php
+
+		-
+			message: '#^Parameter \#1 \$data of static method App\\ValueObject\\ProjectParseResult\:\:fromArray\(\) expects array\{projectId\?\: string\|null, projectName\?\: string\|null, projectFullPath\?\: string\|null, originalText\: string, startPosition\: int, endPosition\: int, matchedName\: string, found\: bool\}, array\{originalText\: ''test'', endPosition\: 5, matchedName\: ''test'', found\: false\} given\.$#'
+			identifier: argument.type
+			count: 1
+			path: tests/Unit/Parser/ProjectParserServiceTest.php
+
+		-
+			message: '#^Cannot call method getContent\(\) on Symfony\\Component\\HttpFoundation\\Response\|null\.$#'
+			identifier: method.nonObject
+			count: 2
+			path: tests/Unit/Security/ApiTokenAuthenticatorTest.php
+
+		-
+			message: '#^Cannot call method getUser\(\) on Symfony\\Component\\Security\\Http\\Authenticator\\Passport\\Badge\\UserBadge\|null\.$#'
+			identifier: method.nonObject
+			count: 5
+			path: tests/Unit/Security/ApiTokenAuthenticatorTest.php
+
+		-
+			message: '#^Parameter \#1 \$json of function json_decode expects string, string\|false given\.$#'
+			identifier: argument.type
+			count: 2
+			path: tests/Unit/Security/ApiTokenAuthenticatorTest.php
+
+		-
+			message: '#^Offset 0 might not exist on array\<array\{hash\: string, used\: bool\}\>\|null\.$#'
+			identifier: offsetAccess.notFound
+			count: 1
+			path: tests/Unit/Service/BackupCodeServiceTest.php
+
+		-
+			message: '#^Method App\\Tests\\Unit\\Service\\NotificationServiceTest\:\:createUserWithNotificationSettings\(\) has parameter \$settings with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: tests/Unit/Service/NotificationServiceTest.php
+
+		-
+			message: '#^Parameter \#2 \$haystack of method PHPUnit\\Framework\\Assert\:\:assertStringContainsString\(\) expects string, string\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: tests/Unit/Service/NotificationServiceTest.php
+
+		-
+			message: '#^Call to method PHPUnit\\Framework\\Assert\:\:assertIsArray\(\) with array will always evaluate to true\.$#'
+			identifier: method.alreadyNarrowedType
+			count: 2
+			path: tests/Unit/Service/ProjectServiceTest.php
+
+		-
+			message: '#^Method PHPUnit\\Framework\\MockObject\\Builder\\InvocationMocker\:\:with\(\) invoked with named argument \$includeDeleted, but it''s not allowed because of @no\-named\-arguments\.$#'
+			identifier: argument.named
+			count: 2
+			path: tests/Unit/Service/ProjectServiceTest.php
+
+		-
+			message: '#^Parameter \#1 \$userId of method App\\Service\\ProjectCacheService\:\:set\(\) expects string, string\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: tests/Unit/Service/ProjectServiceTest.php
+
+		-
+			message: '#^Method App\\Tests\\Unit\\Service\\Recurrence\\RecurrenceRuleParserTest\:\:caseInsensitiveProvider\(\) return type has no value type specified in iterable type iterable\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: tests/Unit/Service/Recurrence/RecurrenceRuleParserTest.php
+
+		-
+			message: '#^Method App\\Tests\\Unit\\Service\\Recurrence\\RecurrenceRuleParserTest\:\:dayAbbreviationProvider\(\) return type has no value type specified in iterable type iterable\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: tests/Unit/Service/Recurrence/RecurrenceRuleParserTest.php
+
+		-
+			message: '#^Method App\\Tests\\Unit\\Service\\Recurrence\\RecurrenceRuleParserTest\:\:monthAbbreviationProvider\(\) return type has no value type specified in iterable type iterable\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: tests/Unit/Service/Recurrence/RecurrenceRuleParserTest.php
+
+		-
+			message: '#^Call to method PHPUnit\\Framework\\Assert\:\:assertTrue\(\) with true and ''Skipped due to edge…'' will always evaluate to true\.$#'
+			identifier: method.alreadyNarrowedType
+			count: 1
+			path: tests/Unit/Service/TaskGroupingServiceTest.php
+
+		-
+			message: '#^Call to method PHPUnit\\Framework\\Assert\:\:assertIsArray\(\) with array will always evaluate to true\.$#'
+			identifier: method.alreadyNarrowedType
+			count: 2
+			path: tests/Unit/Service/ValidationHelperTest.php
+
+		-
+			message: '#^Method App\\Tests\\Unit\\Service\\ValidationHelperTest\:\:invalidDateFormatProvider\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: tests/Unit/Service/ValidationHelperTest.php
+
+		-
+			message: '#^Method App\\Tests\\Unit\\Service\\ValidationHelperTest\:\:invalidEmailProvider\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: tests/Unit/Service/ValidationHelperTest.php
+
+		-
+			message: '#^Method App\\Tests\\Unit\\Service\\ValidationHelperTest\:\:invalidPasswordProvider\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: tests/Unit/Service/ValidationHelperTest.php
+
+		-
+			message: '#^Method App\\Tests\\Unit\\Service\\ValidationHelperTest\:\:invalidPriorityProvider\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: tests/Unit/Service/ValidationHelperTest.php
+
+		-
+			message: '#^Method App\\Tests\\Unit\\Service\\ValidationHelperTest\:\:invalidStatusProvider\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: tests/Unit/Service/ValidationHelperTest.php
+
+		-
+			message: '#^Method App\\Tests\\Unit\\Service\\ValidationHelperTest\:\:invalidUuidProvider\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: tests/Unit/Service/ValidationHelperTest.php
+
+		-
+			message: '#^Method App\\Tests\\Unit\\Service\\ValidationHelperTest\:\:validDateFormatProvider\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: tests/Unit/Service/ValidationHelperTest.php
+
+		-
+			message: '#^Method App\\Tests\\Unit\\Service\\ValidationHelperTest\:\:validEmailProvider\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: tests/Unit/Service/ValidationHelperTest.php
+
+		-
+			message: '#^Method App\\Tests\\Unit\\Service\\ValidationHelperTest\:\:validPasswordProvider\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: tests/Unit/Service/ValidationHelperTest.php
+
+		-
+			message: '#^Method App\\Tests\\Unit\\Service\\ValidationHelperTest\:\:validPriorityProvider\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: tests/Unit/Service/ValidationHelperTest.php
+
+		-
+			message: '#^Method App\\Tests\\Unit\\Service\\ValidationHelperTest\:\:validStatusProvider\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: tests/Unit/Service/ValidationHelperTest.php
+
+		-
+			message: '#^Method App\\Tests\\Unit\\Service\\ValidationHelperTest\:\:validUuidProvider\(\) return type has no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: tests/Unit/Service/ValidationHelperTest.php
+
+		-
+			message: '#^Call to method PHPUnit\\Framework\\Assert\:\:assertIsArray\(\) with array will always evaluate to true\.$#'
+			identifier: method.alreadyNarrowedType
+			count: 1
+			path: tests/Unit/Transformer/ProjectTreeTransformerTest.php
+
+		-
+			message: '#^Method App\\Tests\\Unit\\ValueObject\\RecurrenceRuleTest\:\:descriptionProvider\(\) return type has no value type specified in iterable type iterable\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: tests/Unit/ValueObject/RecurrenceRuleTest.php
+
+		-
+			message: '#^Method App\\Tests\\Unit\\ValueObject\\RecurrenceRuleTest\:\:missingRequiredKeyProvider\(\) return type has no value type specified in iterable type iterable\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: tests/Unit/ValueObject/RecurrenceRuleTest.php
+
+		-
+			message: '#^Method App\\Tests\\Unit\\ValueObject\\RecurrenceRuleTest\:\:testFromArrayThrowsOnMissingRequiredKey\(\) has parameter \$data with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: tests/Unit/ValueObject/RecurrenceRuleTest.php
+
+		-
+			message: '#^Method App\\Tests\\Unit\\ValueObject\\RecurrenceRuleTest\:\:testGetDescription\(\) has parameter \$params with no value type specified in iterable type array\.$#'
+			identifier: missingType.iterableValue
+			count: 1
+			path: tests/Unit/ValueObject/RecurrenceRuleTest.php
+
+		-
+			message: '#^Parameter \#1 \$data of static method App\\ValueObject\\RecurrenceRule\:\:fromArray\(\) expects array\{originalText\: string, type\: string, interval\: string, count\?\: int, days\?\: array\<int\>, dayOfMonth\?\: int\|null, monthOfYear\?\: int\|null, time\?\: string\|null, \.\.\.\}, array given\.$#'
+			identifier: argument.type
+			count: 1
+			path: tests/Unit/ValueObject/RecurrenceRuleTest.php
+
+		-
+			message: '#^Parameter \#1 \$data of static method App\\ValueObject\\TagParseResult\:\:fromArray\(\) expects array\{originalText\: string, startPosition\: int, endPosition\: int, wasCreated\: bool, tagId\?\: string\|null, tagName\?\: string\|null, tagColor\?\: string\|null\}, array\{originalText\: ''@test'', endPosition\: 5, wasCreated\: false\} given\.$#'
+			identifier: argument.type
+			count: 1
+			path: tests/Unit/ValueObject/TagParseResultTest.php
+
+		-
+			message: '#^Parameter \#1 \$data of static method App\\ValueObject\\TagParseResult\:\:fromArray\(\) expects array\{originalText\: string, startPosition\: int, endPosition\: int, wasCreated\: bool, tagId\?\: string\|null, tagName\?\: string\|null, tagColor\?\: string\|null\}, array\{originalText\: ''@test'', startPosition\: 0, endPosition\: 5\} given\.$#'
+			identifier: argument.type
+			count: 1
+			path: tests/Unit/ValueObject/TagParseResultTest.php
+
+		-
+			message: '#^Parameter \#1 \$data of static method App\\ValueObject\\TagParseResult\:\:fromArray\(\) expects array\{originalText\: string, startPosition\: int, endPosition\: int, wasCreated\: bool, tagId\?\: string\|null, tagName\?\: string\|null, tagColor\?\: string\|null\}, array\{originalText\: ''@test'', startPosition\: 0, wasCreated\: false\} given\.$#'
+			identifier: argument.type
+			count: 1
+			path: tests/Unit/ValueObject/TagParseResultTest.php
+
+		-
+			message: '#^Parameter \#1 \$data of static method App\\ValueObject\\TagParseResult\:\:fromArray\(\) expects array\{originalText\: string, startPosition\: int, endPosition\: int, wasCreated\: bool, tagId\?\: string\|null, tagName\?\: string\|null, tagColor\?\: string\|null\}, array\{startPosition\: 0, endPosition\: 5, wasCreated\: false\} given\.$#'
+			identifier: argument.type
+			count: 1
+			path: tests/Unit/ValueObject/TagParseResultTest.php
+
+		-
+			message: '#^Call to function method_exists\(\) with ''Symfony\\\\Component\\\\Dotenv\\\\Dotenv'' and ''bootEnv'' will always evaluate to true\.$#'
+			identifier: function.alreadyNarrowedType
+			count: 1
+			path: tests/bootstrap.php

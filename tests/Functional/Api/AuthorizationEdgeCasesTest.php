@@ -30,7 +30,7 @@ class AuthorizationEdgeCasesTest extends ApiTestCase
         $response = $this->authenticatedApiRequest(
             $user2,
             'GET',
-            '/api/v1/tasks/' . $task->getId()
+            '/api/v1/tasks/'.$task->getId()
         );
 
         $this->assertResponseStatusCode(Response::HTTP_FORBIDDEN, $response);
@@ -47,7 +47,7 @@ class AuthorizationEdgeCasesTest extends ApiTestCase
         $response = $this->authenticatedApiRequest(
             $user2,
             'PATCH',
-            '/api/v1/tasks/' . $task->getId(),
+            '/api/v1/tasks/'.$task->getId(),
             ['title' => 'Hijacked Task']
         );
 
@@ -70,7 +70,7 @@ class AuthorizationEdgeCasesTest extends ApiTestCase
         $response = $this->authenticatedApiRequest(
             $user2,
             'DELETE',
-            '/api/v1/tasks/' . $taskId
+            '/api/v1/tasks/'.$taskId
         );
 
         $this->assertResponseStatusCode(Response::HTTP_FORBIDDEN, $response);
@@ -87,7 +87,7 @@ class AuthorizationEdgeCasesTest extends ApiTestCase
         $response = $this->authenticatedApiRequest(
             $user2,
             'PATCH',
-            '/api/v1/tasks/' . $task->getId() . '/status',
+            '/api/v1/tasks/'.$task->getId().'/status',
             ['status' => Task::STATUS_COMPLETED]
         );
 
@@ -112,7 +112,7 @@ class AuthorizationEdgeCasesTest extends ApiTestCase
         $response = $this->authenticatedApiRequest(
             $user2,
             'GET',
-            '/api/v1/projects/' . $project->getId()
+            '/api/v1/projects/'.$project->getId()
         );
 
         // Security-by-obscurity: returns 404 instead of 403 to prevent enumeration
@@ -132,7 +132,7 @@ class AuthorizationEdgeCasesTest extends ApiTestCase
         $response = $this->authenticatedApiRequest(
             $user2,
             'PATCH',
-            '/api/v1/projects/' . $project->getId(),
+            '/api/v1/projects/'.$project->getId(),
             ['name' => 'Hijacked Project']
         );
 
@@ -157,7 +157,7 @@ class AuthorizationEdgeCasesTest extends ApiTestCase
         $response = $this->authenticatedApiRequest(
             $user2,
             'DELETE',
-            '/api/v1/projects/' . $project->getId()
+            '/api/v1/projects/'.$project->getId()
         );
 
         // Security-by-obscurity: returns 404 instead of 403 to prevent enumeration
@@ -177,7 +177,7 @@ class AuthorizationEdgeCasesTest extends ApiTestCase
         $response = $this->authenticatedApiRequest(
             $user2,
             'PATCH',
-            '/api/v1/projects/' . $project->getId() . '/archive'
+            '/api/v1/projects/'.$project->getId().'/archive'
         );
 
         // Security-by-obscurity: returns 404 instead of 403 to prevent enumeration
@@ -222,7 +222,7 @@ class AuthorizationEdgeCasesTest extends ApiTestCase
         $response = $this->authenticatedApiRequest(
             $user2,
             'PATCH',
-            '/api/v1/tasks/' . $task->getId(),
+            '/api/v1/tasks/'.$task->getId(),
             ['projectId' => $project->getId()]
         );
 
@@ -305,7 +305,7 @@ class AuthorizationEdgeCasesTest extends ApiTestCase
             [],
             [],
             [
-                'HTTP_AUTHORIZATION' => 'Basic ' . base64_encode('user:pass'),
+                'HTTP_AUTHORIZATION' => 'Basic '.base64_encode('user:pass'),
                 'CONTENT_TYPE' => 'application/json',
             ]
         );
@@ -326,7 +326,7 @@ class AuthorizationEdgeCasesTest extends ApiTestCase
         $response = $this->authenticatedApiRequest(
             $user,
             'GET',
-            '/api/v1/tasks/' . $this->generateUuid()
+            '/api/v1/tasks/'.$this->generateUuid()
         );
 
         $this->assertResponseStatusCode(Response::HTTP_NOT_FOUND, $response);
@@ -340,7 +340,7 @@ class AuthorizationEdgeCasesTest extends ApiTestCase
         $response = $this->authenticatedApiRequest(
             $user,
             'GET',
-            '/api/v1/projects/' . $this->generateUuid()
+            '/api/v1/projects/'.$this->generateUuid()
         );
 
         $this->assertResponseStatusCode(Response::HTTP_NOT_FOUND, $response);
@@ -354,7 +354,7 @@ class AuthorizationEdgeCasesTest extends ApiTestCase
         $response = $this->authenticatedApiRequest(
             $user,
             'PATCH',
-            '/api/v1/tasks/' . $this->generateUuid(),
+            '/api/v1/tasks/'.$this->generateUuid(),
             ['title' => 'Updated Title']
         );
 
@@ -368,7 +368,7 @@ class AuthorizationEdgeCasesTest extends ApiTestCase
         $response = $this->authenticatedApiRequest(
             $user,
             'DELETE',
-            '/api/v1/tasks/' . $this->generateUuid()
+            '/api/v1/tasks/'.$this->generateUuid()
         );
 
         $this->assertResponseStatusCode(Response::HTTP_NOT_FOUND, $response);
@@ -475,7 +475,7 @@ class AuthorizationEdgeCasesTest extends ApiTestCase
         $deleteResponse = $this->authenticatedApiRequest(
             $user1,
             'DELETE',
-            '/api/v1/tasks/' . $task->getId()
+            '/api/v1/tasks/'.$task->getId()
         );
 
         $deleteData = $this->assertJsonResponse($deleteResponse);
@@ -486,7 +486,7 @@ class AuthorizationEdgeCasesTest extends ApiTestCase
             $response = $this->authenticatedApiRequest(
                 $user2,
                 'POST',
-                '/api/v1/tasks/undo/' . $undoToken
+                '/api/v1/tasks/undo/'.$undoToken
             );
 
             // Token belongs to different user - should return 400 Bad Request

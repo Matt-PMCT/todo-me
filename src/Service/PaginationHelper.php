@@ -19,9 +19,10 @@ final class PaginationHelper
     /**
      * Paginates a QueryBuilder and returns items with total count.
      *
-     * @param QueryBuilder $qb The query builder to paginate
-     * @param int $page The page number (1-indexed)
-     * @param int $limit The number of items per page
+     * @param QueryBuilder $qb    The query builder to paginate
+     * @param int          $page  The page number (1-indexed)
+     * @param int          $limit The number of items per page
+     *
      * @return array{items: array<mixed>, total: int}
      */
     public function paginate(QueryBuilder $qb, int $page = self::DEFAULT_PAGE, int $limit = self::DEFAULT_LIMIT): array
@@ -49,8 +50,9 @@ final class PaginationHelper
      * Calculates pagination metadata.
      *
      * @param int $total Total number of items
-     * @param int $page Current page number (1-indexed)
+     * @param int $page  Current page number (1-indexed)
      * @param int $limit Items per page
+     *
      * @return array{total: int, page: int, limit: int, totalPages: int, hasNextPage: bool, hasPreviousPage: bool}
      */
     public function calculateMeta(int $total, int $page = self::DEFAULT_PAGE, int $limit = self::DEFAULT_LIMIT): array

@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\Transformer;
 
-use App\Entity\Project;
 use App\Tests\Unit\UnitTestCase;
 use App\Transformer\ProjectTreeTransformer;
 

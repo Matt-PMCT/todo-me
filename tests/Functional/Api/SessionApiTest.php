@@ -41,7 +41,7 @@ class SessionApiTest extends ApiTestCase
             'GET',
             '/api/v1/sessions',
             null,
-            ['Authorization' => 'Bearer ' . $token]
+            ['Authorization' => 'Bearer '.$token]
         );
 
         $this->assertResponseStatusCode(Response::HTTP_OK, $response);
@@ -80,14 +80,14 @@ class SessionApiTest extends ApiTestCase
             'GET',
             '/api/v1/sessions',
             null,
-            ['Authorization' => 'Bearer ' . $token]
+            ['Authorization' => 'Bearer '.$token]
         );
 
         $data = $this->getResponseData($response);
         $sessions = $data['sessions'];
 
         // At least one session should be marked as current
-        $currentSessions = array_filter($sessions, fn($s) => $s['isCurrent'] ?? false);
+        $currentSessions = array_filter($sessions, fn ($s) => $s['isCurrent'] ?? false);
         $this->assertCount(1, $currentSessions);
     }
 
@@ -120,7 +120,7 @@ class SessionApiTest extends ApiTestCase
             'GET',
             '/api/v1/sessions',
             null,
-            ['Authorization' => 'Bearer ' . $token]
+            ['Authorization' => 'Bearer '.$token]
         );
 
         $sessions = $this->getResponseData($listResponse)['sessions'];
@@ -129,9 +129,9 @@ class SessionApiTest extends ApiTestCase
         // Revoke the session
         $response = $this->apiRequest(
             'DELETE',
-            '/api/v1/sessions/' . $sessionId,
+            '/api/v1/sessions/'.$sessionId,
             null,
-            ['Authorization' => 'Bearer ' . $token]
+            ['Authorization' => 'Bearer '.$token]
         );
 
         $this->assertResponseStatusCode(Response::HTTP_OK, $response);
@@ -163,7 +163,7 @@ class SessionApiTest extends ApiTestCase
             'GET',
             '/api/v1/sessions',
             null,
-            ['Authorization' => 'Bearer ' . $token1]
+            ['Authorization' => 'Bearer '.$token1]
         );
         $sessions1 = $this->getResponseData($list1Response)['sessions'];
         $session1Id = $sessions1[0]['id'];
@@ -171,9 +171,9 @@ class SessionApiTest extends ApiTestCase
         // Try to revoke user1's session using user2's token
         $response = $this->apiRequest(
             'DELETE',
-            '/api/v1/sessions/' . $session1Id,
+            '/api/v1/sessions/'.$session1Id,
             null,
-            ['Authorization' => 'Bearer ' . $token2]
+            ['Authorization' => 'Bearer '.$token2]
         );
 
         // Should be forbidden or not found
@@ -232,7 +232,7 @@ class SessionApiTest extends ApiTestCase
             'POST',
             '/api/v1/sessions/revoke-others',
             null,
-            ['Authorization' => 'Bearer ' . $token2]
+            ['Authorization' => 'Bearer '.$token2]
         );
 
         $this->assertResponseStatusCode(Response::HTTP_OK, $response);
@@ -264,7 +264,7 @@ class SessionApiTest extends ApiTestCase
             'POST',
             '/api/v1/sessions/revoke-others',
             null,
-            ['Authorization' => 'Bearer ' . $token2]
+            ['Authorization' => 'Bearer '.$token2]
         );
 
         // List sessions with token2 should still work
@@ -272,7 +272,7 @@ class SessionApiTest extends ApiTestCase
             'GET',
             '/api/v1/sessions',
             null,
-            ['Authorization' => 'Bearer ' . $token2]
+            ['Authorization' => 'Bearer '.$token2]
         );
 
         $this->assertResponseStatusCode(Response::HTTP_OK, $listResponse);
@@ -311,7 +311,7 @@ class SessionApiTest extends ApiTestCase
             'GET',
             '/api/v1/sessions',
             null,
-            ['Authorization' => 'Bearer ' . $token]
+            ['Authorization' => 'Bearer '.$token]
         );
 
         $this->assertResponseStatusCode(Response::HTTP_OK, $listResponse);

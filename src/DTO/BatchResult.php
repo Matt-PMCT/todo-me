@@ -62,7 +62,7 @@ final class BatchResult
             'totalOperations' => $this->totalOperations,
             'successfulOperations' => $this->successfulOperations,
             'failedOperations' => $this->failedOperations,
-            'results' => array_map(fn($r) => $r->toArray(), $this->results),
+            'results' => array_map(fn ($r) => $r->toArray(), $this->results),
         ];
 
         if ($this->undoToken !== null) {

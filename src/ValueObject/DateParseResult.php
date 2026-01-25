@@ -4,12 +4,10 @@ declare(strict_types=1);
 
 namespace App\ValueObject;
 
-use DateTimeImmutable;
-
 final readonly class DateParseResult
 {
     private function __construct(
-        public ?DateTimeImmutable $date,
+        public ?\DateTimeImmutable $date,
         public ?string $time,
         public string $originalText,
         public int $startPosition,
@@ -21,15 +19,15 @@ final readonly class DateParseResult
     /**
      * Create a new DateParseResult.
      *
-     * @param ?DateTimeImmutable $date The parsed date (null if parsing failed)
-     * @param ?string $time The time portion as string (e.g., "14:00", null if no time)
-     * @param string $originalText The original text that was matched
-     * @param int $startPosition Start position of the match in the input string
-     * @param int $endPosition End position of the match in the input string
-     * @param bool $hasTime Whether a time component was parsed
+     * @param ?\DateTimeImmutable $date          The parsed date (null if parsing failed)
+     * @param ?string             $time          The time portion as string (e.g., "14:00", null if no time)
+     * @param string              $originalText  The original text that was matched
+     * @param int                 $startPosition Start position of the match in the input string
+     * @param int                 $endPosition   End position of the match in the input string
+     * @param bool                $hasTime       Whether a time component was parsed
      */
     public static function create(
-        ?DateTimeImmutable $date,
+        ?\DateTimeImmutable $date,
         ?string $time,
         string $originalText,
         int $startPosition,
@@ -61,7 +59,7 @@ final readonly class DateParseResult
     public function toArray(): array
     {
         return [
-            'date' => $this->date?->format(DateTimeImmutable::ATOM),
+            'date' => $this->date?->format(\DateTimeImmutable::ATOM),
             'time' => $this->time,
             'originalText' => $this->originalText,
             'startPosition' => $this->startPosition,
@@ -92,7 +90,7 @@ final readonly class DateParseResult
         }
 
         return new self(
-            date: isset($data['date']) ? new DateTimeImmutable($data['date']) : null,
+            date: isset($data['date']) ? new \DateTimeImmutable($data['date']) : null,
             time: $data['time'] ?? null,
             originalText: $data['originalText'],
             startPosition: $data['startPosition'],

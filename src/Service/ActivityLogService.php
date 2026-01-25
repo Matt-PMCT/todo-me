@@ -26,12 +26,13 @@ final class ActivityLogService implements ActivityLogServiceInterface
     /**
      * Log an activity.
      *
-     * @param User $owner The user who performed the action
-     * @param string $action The action performed
-     * @param string $entityType The type of entity (task, project)
-     * @param string|null $entityId The entity ID (nullable for deleted entities)
-     * @param string $entityTitle The entity title for display
-     * @param array $changes The changes made (for updates)
+     * @param User        $owner       The user who performed the action
+     * @param string      $action      The action performed
+     * @param string      $entityType  The type of entity (task, project)
+     * @param string|null $entityId    The entity ID (nullable for deleted entities)
+     * @param string      $entityTitle The entity title for display
+     * @param array       $changes     The changes made (for updates)
+     *
      * @return ActivityLog
      */
     /**
@@ -69,15 +70,16 @@ final class ActivityLogService implements ActivityLogServiceInterface
             return $title;
         }
 
-        return mb_substr($title, 0, self::MAX_ENTITY_TITLE_LENGTH - 3) . '...';
+        return mb_substr($title, 0, self::MAX_ENTITY_TITLE_LENGTH - 3).'...';
     }
 
     /**
      * Get activity logs for a user with pagination.
      *
-     * @param User $user The user
-     * @param int $page Page number (1-indexed)
-     * @param int $limit Items per page
+     * @param User $user  The user
+     * @param int  $page  Page number (1-indexed)
+     * @param int  $limit Items per page
+     *
      * @return array{items: array, pagination: array}
      */
     public function getActivity(User $user, int $page = 1, int $limit = 20): array
@@ -87,7 +89,7 @@ final class ActivityLogService implements ActivityLogServiceInterface
         $pages = $limit > 0 ? (int) ceil($total / $limit) : 0;
 
         return [
-            'items' => array_map(fn(ActivityLog $log) => $this->formatActivityLog($log), $items),
+            'items' => array_map(fn (ActivityLog $log) => $this->formatActivityLog($log), $items),
             'pagination' => [
                 'page' => $page,
                 'limit' => $limit,
@@ -114,7 +116,7 @@ final class ActivityLogService implements ActivityLogServiceInterface
     /**
      * Log task update with changes.
      *
-     * @param Task $task The updated task
+     * @param Task  $task    The updated task
      * @param array $changes The changes made
      */
     public function logTaskUpdated(Task $task, array $changes): ActivityLog
@@ -146,8 +148,8 @@ final class ActivityLogService implements ActivityLogServiceInterface
     /**
      * Log task deletion.
      *
-     * @param User $owner The task owner
-     * @param string $taskId The task ID
+     * @param User   $owner     The task owner
+     * @param string $taskId    The task ID
      * @param string $taskTitle The task title
      */
     public function logTaskDeleted(User $owner, string $taskId, string $taskTitle): ActivityLog
@@ -179,7 +181,7 @@ final class ActivityLogService implements ActivityLogServiceInterface
      * Log project update with changes.
      *
      * @param Project $project The updated project
-     * @param array $changes The changes made
+     * @param array   $changes The changes made
      */
     public function logProjectUpdated(Project $project, array $changes): ActivityLog
     {
@@ -196,8 +198,8 @@ final class ActivityLogService implements ActivityLogServiceInterface
     /**
      * Log project deletion.
      *
-     * @param User $owner The project owner
-     * @param string $projectId The project ID
+     * @param User   $owner       The project owner
+     * @param string $projectId   The project ID
      * @param string $projectName The project name
      */
     public function logProjectDeleted(User $owner, string $projectId, string $projectName): ActivityLog

@@ -18,11 +18,11 @@ final readonly class PriorityParseResult
     /**
      * Create a new PriorityParseResult.
      *
-     * @param int|null $priority The parsed priority value (0-4), or null if invalid
-     * @param string $originalText The matched text from the input
-     * @param int $startPosition The start position of the match in the input
-     * @param int $endPosition The end position of the match in the input
-     * @param bool $valid Whether the parsed priority is valid (0-4)
+     * @param int|null $priority      The parsed priority value (0-4), or null if invalid
+     * @param string   $originalText  The matched text from the input
+     * @param int      $startPosition The start position of the match in the input
+     * @param int      $endPosition   The end position of the match in the input
+     * @param bool     $valid         Whether the parsed priority is valid (0-4)
      */
     public static function create(
         ?int $priority,

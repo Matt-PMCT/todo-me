@@ -12,7 +12,7 @@ use App\Entity\Task;
 final class TaskResponse
 {
     /**
-     * @param array{id: string, name: string}|null $project
+     * @param array{id: string, name: string}|null                  $project
      * @param array<array{id: string, name: string, color: string}> $tags
      */
     public function __construct(
@@ -43,8 +43,8 @@ final class TaskResponse
     /**
      * Creates a TaskResponse from a Task entity.
      *
-     * @param Task $task The task entity
-     * @param string|null $undoToken Optional undo token
+     * @param Task                                   $task          The task entity
+     * @param string|null                            $undoToken     Optional undo token
      * @param array{total: int, completed: int}|null $subtaskCounts Optional subtask counts
      */
     public static function fromTask(

@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\ValueObject;
 
 use App\Enum\UndoAction;
-use DateTimeImmutable;
 
 final readonly class UndoToken
 {
@@ -16,20 +15,20 @@ final readonly class UndoToken
         public string $entityId,
         public array $previousState,
         public string $userId,
-        public DateTimeImmutable $createdAt,
-        public DateTimeImmutable $expiresAt,
+        public \DateTimeImmutable $createdAt,
+        public \DateTimeImmutable $expiresAt,
     ) {
     }
 
     /**
      * Create a new UndoToken.
      *
-     * @param string $action The undo action (delete, update, status_change, archive)
-     * @param string $entityType The type of entity (e.g., 'todo', 'category')
-     * @param string $entityId The entity ID
-     * @param array $previousState The previous state of the entity for restoration
-     * @param string $userId The ID of the user who owns this token
-     * @param int $ttl Time to live in seconds (default 60)
+     * @param string $action        The undo action (delete, update, status_change, archive)
+     * @param string $entityType    The type of entity (e.g., 'todo', 'category')
+     * @param string $entityId      The entity ID
+     * @param array  $previousState The previous state of the entity for restoration
+     * @param string $userId        The ID of the user who owns this token
+     * @param int    $ttl           Time to live in seconds (default 60)
      */
     public static function create(
         string $action,
@@ -40,7 +39,7 @@ final readonly class UndoToken
         int $ttl = 60
     ): self {
         $token = bin2hex(random_bytes(16)); // 32 characters
-        $createdAt = new DateTimeImmutable();
+        $createdAt = new \DateTimeImmutable();
         $expiresAt = $createdAt->modify("+{$ttl} seconds");
 
         return new self(
@@ -78,8 +77,8 @@ final readonly class UndoToken
             'entityId' => $this->entityId,
             'previousState' => $this->previousState,
             'userId' => $this->userId,
-            'createdAt' => $this->createdAt->format(DateTimeImmutable::ATOM),
-            'expiresAt' => $this->expiresAt->format(DateTimeImmutable::ATOM),
+            'createdAt' => $this->createdAt->format(\DateTimeImmutable::ATOM),
+            'expiresAt' => $this->expiresAt->format(\DateTimeImmutable::ATOM),
         ];
     }
 
@@ -113,8 +112,8 @@ final readonly class UndoToken
             entityId: $data['entityId'],
             previousState: $data['previousState'],
             userId: $data['userId'] ?? '',
-            createdAt: new DateTimeImmutable($data['createdAt']),
-            expiresAt: new DateTimeImmutable($data['expiresAt']),
+            createdAt: new \DateTimeImmutable($data['createdAt']),
+            expiresAt: new \DateTimeImmutable($data['expiresAt']),
         );
     }
 
@@ -123,7 +122,7 @@ final readonly class UndoToken
      */
     public function isExpired(): bool
     {
-        return new DateTimeImmutable() > $this->expiresAt;
+        return new \DateTimeImmutable() > $this->expiresAt;
     }
 
     /**
@@ -139,7 +138,7 @@ final readonly class UndoToken
      */
     public function getRemainingSeconds(): int
     {
-        $now = new DateTimeImmutable();
+        $now = new \DateTimeImmutable();
         $diff = $this->expiresAt->getTimestamp() - $now->getTimestamp();
 
         return max(0, $diff);

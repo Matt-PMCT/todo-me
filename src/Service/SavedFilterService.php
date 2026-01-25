@@ -33,8 +33,9 @@ final class SavedFilterService
     /**
      * Creates a new saved filter.
      *
-     * @param User $user The filter owner
-     * @param CreateSavedFilterRequest $dto The filter creation data
+     * @param User                     $user The filter owner
+     * @param CreateSavedFilterRequest $dto  The filter creation data
+     *
      * @return SavedFilter The created filter
      */
     public function create(User $user, CreateSavedFilterRequest $dto): SavedFilter
@@ -67,8 +68,9 @@ final class SavedFilterService
     /**
      * Updates an existing saved filter.
      *
-     * @param SavedFilter $filter The filter to update
-     * @param UpdateSavedFilterRequest $dto The update data
+     * @param SavedFilter              $filter The filter to update
+     * @param UpdateSavedFilterRequest $dto    The update data
+     *
      * @return SavedFilter The updated filter
      */
     public function update(SavedFilter $filter, UpdateSavedFilterRequest $dto): SavedFilter
@@ -120,6 +122,7 @@ final class SavedFilterService
      * Sets a filter as the default for its owner.
      *
      * @param SavedFilter $filter The filter to set as default
+     *
      * @return SavedFilter The updated filter
      */
     public function setAsDefault(SavedFilter $filter): SavedFilter
@@ -134,7 +137,7 @@ final class SavedFilterService
     /**
      * Reorders filters for a user.
      *
-     * @param User $user The filter owner
+     * @param User     $user      The filter owner
      * @param string[] $filterIds The filter IDs in the desired order
      */
     public function reorder(User $user, array $filterIds): void
@@ -145,11 +148,13 @@ final class SavedFilterService
     /**
      * Finds a filter by ID and verifies ownership.
      *
-     * @param string $id The filter ID
-     * @param User $user The expected owner
+     * @param string $id   The filter ID
+     * @param User   $user The expected owner
+     *
      * @return SavedFilter The filter
+     *
      * @throws EntityNotFoundException If the filter is not found
-     * @throws ForbiddenException If the user doesn't own the filter
+     * @throws ForbiddenException      If the user doesn't own the filter
      */
     public function findByIdOrFail(string $id, User $user): SavedFilter
     {

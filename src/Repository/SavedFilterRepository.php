@@ -109,6 +109,7 @@ class SavedFilterRepository extends ServiceEntityRepository
      * Find filters by owner and multiple IDs.
      *
      * @param string[] $ids The filter IDs
+     *
      * @return SavedFilter[]
      */
     public function findByOwnerAndIds(User $owner, array $ids): array

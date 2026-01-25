@@ -131,7 +131,7 @@ class ImportApiTest extends ApiTestCase
             'POST',
             '/api/v1/import/json',
             null,
-            ['Authorization' => 'Bearer ' . $user->getApiToken()]
+            ['Authorization' => 'Bearer '.$user->getApiToken()]
         );
 
         // Empty body should be treated as invalid
@@ -278,15 +278,15 @@ class ImportApiTest extends ApiTestCase
         $user = $this->createUser('import-csv@example.com', 'Password123');
 
         $csvContent = "title,description,status,priority,dueDate,project,tags\n"
-            . "Task 1,Description 1,pending,3,2026-01-30,Work,urgent\n"
-            . "Task 2,Description 2,completed,2,,Personal,";
+            ."Task 1,Description 1,pending,3,2026-01-30,Work,urgent\n"
+            .'Task 2,Description 2,completed,2,,Personal,';
 
         $response = $this->apiRequest(
             'POST',
             '/api/v1/import/csv',
             null,
             [
-                'Authorization' => 'Bearer ' . $user->getApiToken(),
+                'Authorization' => 'Bearer '.$user->getApiToken(),
                 'Content-Type' => 'text/csv',
             ]
         );
@@ -299,7 +299,7 @@ class ImportApiTest extends ApiTestCase
             [],
             [
                 'CONTENT_TYPE' => 'text/csv',
-                'HTTP_AUTHORIZATION' => 'Bearer ' . $user->getApiToken(),
+                'HTTP_AUTHORIZATION' => 'Bearer '.$user->getApiToken(),
             ],
             $csvContent
         );
@@ -319,9 +319,9 @@ class ImportApiTest extends ApiTestCase
         $user = $this->createUser('import-csv-projects@example.com', 'Password123');
 
         $csvContent = "title,project\n"
-            . "Task 1,NewProject\n"
-            . "Task 2,NewProject\n"
-            . "Task 3,AnotherProject";
+            ."Task 1,NewProject\n"
+            ."Task 2,NewProject\n"
+            .'Task 3,AnotherProject';
 
         $this->client->request(
             'POST',
@@ -330,7 +330,7 @@ class ImportApiTest extends ApiTestCase
             [],
             [
                 'CONTENT_TYPE' => 'text/csv',
-                'HTTP_AUTHORIZATION' => 'Bearer ' . $user->getApiToken(),
+                'HTTP_AUTHORIZATION' => 'Bearer '.$user->getApiToken(),
             ],
             $csvContent
         );
@@ -350,8 +350,8 @@ class ImportApiTest extends ApiTestCase
         $user = $this->createUser('import-csv-tags@example.com', 'Password123');
 
         $csvContent = "title,tags\n"
-            . "Task 1,\"urgent,important\"\n"
-            . "Task 2,urgent";
+            ."Task 1,\"urgent,important\"\n"
+            .'Task 2,urgent';
 
         $this->client->request(
             'POST',
@@ -360,7 +360,7 @@ class ImportApiTest extends ApiTestCase
             [],
             [
                 'CONTENT_TYPE' => 'text/csv',
-                'HTTP_AUTHORIZATION' => 'Bearer ' . $user->getApiToken(),
+                'HTTP_AUTHORIZATION' => 'Bearer '.$user->getApiToken(),
             ],
             $csvContent
         );
@@ -386,7 +386,7 @@ class ImportApiTest extends ApiTestCase
             [],
             [
                 'CONTENT_TYPE' => 'text/csv',
-                'HTTP_AUTHORIZATION' => 'Bearer ' . $user->getApiToken(),
+                'HTTP_AUTHORIZATION' => 'Bearer '.$user->getApiToken(),
             ],
             ''
         );
@@ -445,6 +445,7 @@ class ImportApiTest extends ApiTestCase
         foreach ($tasks as $task) {
             if ($task['title'] === 'Ownership Test Task') {
                 $importedTask = $task;
+
                 break;
             }
         }
@@ -483,6 +484,7 @@ class ImportApiTest extends ApiTestCase
         foreach ($tasks as $task) {
             if ($task['title'] === 'User1 Imported Task') {
                 $foundTask = true;
+
                 break;
             }
         }
@@ -533,7 +535,7 @@ class ImportApiTest extends ApiTestCase
         $projects = $this->getResponseData($projectsResponse)['items'];
 
         // Count projects with this name - should be exactly 1
-        $matchingProjects = array_filter($projects, fn($p) => $p['name'] === 'Existing Project');
+        $matchingProjects = array_filter($projects, fn ($p) => $p['name'] === 'Existing Project');
         $this->assertCount(1, $matchingProjects);
     }
 

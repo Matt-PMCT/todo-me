@@ -82,6 +82,7 @@ class ActivityApiTest extends ApiTestCase
         foreach ($items as $item) {
             if ($item['action'] === 'task_created' && $item['entityTitle'] === 'Activity Test Task') {
                 $found = true;
+
                 break;
             }
         }
@@ -98,7 +99,7 @@ class ActivityApiTest extends ApiTestCase
         $this->authenticatedApiRequest(
             $user,
             'PUT',
-            '/api/v1/tasks/' . $task->getId(),
+            '/api/v1/tasks/'.$task->getId(),
             ['title' => 'Updated Task Title']
         );
 
@@ -117,6 +118,7 @@ class ActivityApiTest extends ApiTestCase
         foreach ($items as $item) {
             if ($item['action'] === 'task_updated') {
                 $found = true;
+
                 break;
             }
         }
@@ -133,7 +135,7 @@ class ActivityApiTest extends ApiTestCase
         $this->authenticatedApiRequest(
             $user,
             'PATCH',
-            '/api/v1/tasks/' . $task->getId() . '/status',
+            '/api/v1/tasks/'.$task->getId().'/status',
             ['status' => Task::STATUS_COMPLETED]
         );
 
@@ -152,6 +154,7 @@ class ActivityApiTest extends ApiTestCase
         foreach ($items as $item) {
             if ($item['action'] === 'task_completed') {
                 $found = true;
+
                 break;
             }
         }
@@ -169,7 +172,7 @@ class ActivityApiTest extends ApiTestCase
         $this->authenticatedApiRequest(
             $user,
             'DELETE',
-            '/api/v1/tasks/' . $task->getId()
+            '/api/v1/tasks/'.$task->getId()
         );
 
         // Check activity
@@ -187,6 +190,7 @@ class ActivityApiTest extends ApiTestCase
         foreach ($items as $item) {
             if ($item['action'] === 'task_deleted' && $item['entityTitle'] === $taskTitle) {
                 $found = true;
+
                 break;
             }
         }
@@ -225,6 +229,7 @@ class ActivityApiTest extends ApiTestCase
         foreach ($items as $item) {
             if ($item['action'] === 'project_created' && $item['entityTitle'] === 'Activity Test Project') {
                 $found = true;
+
                 break;
             }
         }
@@ -241,7 +246,7 @@ class ActivityApiTest extends ApiTestCase
         $this->authenticatedApiRequest(
             $user,
             'PUT',
-            '/api/v1/projects/' . $project->getId(),
+            '/api/v1/projects/'.$project->getId(),
             ['name' => 'Updated Project Name']
         );
 
@@ -260,6 +265,7 @@ class ActivityApiTest extends ApiTestCase
         foreach ($items as $item) {
             if ($item['action'] === 'project_updated') {
                 $found = true;
+
                 break;
             }
         }
@@ -282,10 +288,10 @@ class ActivityApiTest extends ApiTestCase
         $response = $this->authenticatedApiRequest(
             $user,
             'DELETE',
-            '/api/v1/projects/' . $project->getId()
+            '/api/v1/projects/'.$project->getId()
         );
 
-        $this->assertResponseStatusCode(\Symfony\Component\HttpFoundation\Response::HTTP_OK, $response);
+        $this->assertResponseStatusCode(Response::HTTP_OK, $response);
 
         $data = $this->getResponseData($response);
         $this->assertArrayHasKey('message', $data);
@@ -306,7 +312,7 @@ class ActivityApiTest extends ApiTestCase
                 $user,
                 'POST',
                 '/api/v1/tasks',
-                ['title' => 'Pagination Task ' . $i]
+                ['title' => 'Pagination Task '.$i]
             );
         }
 
@@ -408,7 +414,7 @@ class ActivityApiTest extends ApiTestCase
         $this->authenticatedApiRequest(
             $user,
             'PUT',
-            '/api/v1/tasks/' . $task->getId(),
+            '/api/v1/tasks/'.$task->getId(),
             [
                 'title' => 'New Title',
                 'description' => 'New Description',
@@ -430,6 +436,7 @@ class ActivityApiTest extends ApiTestCase
         foreach ($items as $item) {
             if ($item['action'] === 'task_updated') {
                 $updateItem = $item;
+
                 break;
             }
         }

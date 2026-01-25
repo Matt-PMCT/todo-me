@@ -134,7 +134,7 @@ final class AutocompleteController extends AbstractController
 
         $tags = $this->tagRepository->searchByPrefix($user, $query, $limit);
 
-        $results = array_map(fn($tag) => [
+        $results = array_map(fn ($tag) => [
             'id' => $tag->getId(),
             'name' => $tag->getName(),
             'color' => $tag->getColor(),
@@ -146,5 +146,4 @@ final class AutocompleteController extends AbstractController
             'count' => count($results),
         ]);
     }
-
 }

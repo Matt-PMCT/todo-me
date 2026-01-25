@@ -7,8 +7,6 @@ namespace App\Tests\Unit\Parser;
 use App\Service\Parser\DateParserService;
 use App\Service\Parser\TimezoneHelper;
 use App\ValueObject\DateParseResult;
-use DateTimeImmutable;
-use DateTimeZone;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 
@@ -16,7 +14,7 @@ class DateParserServiceTest extends TestCase
 {
     private TimezoneHelper&MockObject $timezoneHelper;
     private DateParserService $parser;
-    private DateTimeImmutable $fixedNow;
+    private \DateTimeImmutable $fixedNow;
 
     protected function setUp(): void
     {
@@ -26,7 +24,7 @@ class DateParserServiceTest extends TestCase
         $this->parser = new DateParserService($this->timezoneHelper);
 
         // Fixed "now" for consistent testing: 2026-01-23 (Friday) at midnight UTC
-        $this->fixedNow = new DateTimeImmutable('2026-01-23 00:00:00', new DateTimeZone('UTC'));
+        $this->fixedNow = new \DateTimeImmutable('2026-01-23 00:00:00', new \DateTimeZone('UTC'));
 
         $this->timezoneHelper->method('getStartOfDay')
             ->willReturn($this->fixedNow);
@@ -851,7 +849,7 @@ class DateParserServiceTest extends TestCase
         $result = $this->parser->parse($day);
 
         $this->assertNotNull($result);
-        $this->assertInstanceOf(DateTimeImmutable::class, $result->date);
+        $this->assertInstanceOf(\DateTimeImmutable::class, $result->date);
     }
 
     public static function dayNameProvider(): array

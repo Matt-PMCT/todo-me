@@ -16,8 +16,8 @@ final class InvalidPriorityException extends HttpException
 
     /**
      * @param int $invalidPriority The invalid priority value
-     * @param int $minPriority The minimum valid priority
-     * @param int $maxPriority The maximum valid priority
+     * @param int $minPriority     The minimum valid priority
+     * @param int $maxPriority     The maximum valid priority
      */
     public function __construct(
         public readonly int $invalidPriority,
