@@ -6,6 +6,7 @@ namespace App\Controller\Web;
 
 use App\DTO\CreateProjectRequest;
 use App\DTO\CreateTaskRequest;
+use App\Entity\Project;
 use App\Entity\User;
 use App\Repository\ProjectRepository;
 use App\Repository\TagRepository;
@@ -222,6 +223,33 @@ class TaskListController extends AbstractController
         ]);
     }
 
+    #[Route('/projects/{id}/unarchive', name: 'app_project_unarchive', methods: ['POST'])]
+    public function unarchiveProject(string $id, Request $request): Response
+    {
+        /** @var User $user */
+        $user = $this->getUser();
+
+        // Validate CSRF token
+        $csrfToken = (string) $request->request->get('_csrf_token', '');
+        if (!$this->isCsrfTokenValid('unarchive_project_'.$id, $csrfToken)) {
+            $this->addFlash('error', 'Invalid security token. Please try again.');
+
+            return $this->redirectToRoute('app_projects_archived');
+        }
+
+        try {
+            $project = $this->projectService->findByIdOrFail($id, $user);
+            $projectName = $project->getName();
+            $this->projectService->unarchiveWithOptions($project, false);
+
+            $this->addFlash('success', sprintf('Project "%s" has been restored.', $projectName));
+        } catch (\Exception $e) {
+            $this->addFlash('error', 'Failed to restore project: '.$e->getMessage());
+        }
+
+        return $this->redirectToRoute('app_projects_archived');
+    }
+
     #[Route('/projects', name: 'app_project_create', methods: ['POST'])]
     public function createProject(Request $request): Response
     {
@@ -267,7 +295,7 @@ class TaskListController extends AbstractController
      *
      * @return array<array{id: string, name: string}>
      */
-    private function buildProjectPath($project): array
+    private function buildProjectPath(Project $project): array
     {
         $path = [];
         $current = $project;

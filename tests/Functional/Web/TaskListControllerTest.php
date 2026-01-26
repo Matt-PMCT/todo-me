@@ -354,10 +354,90 @@ class TaskListControllerTest extends ApiTestCase
 
         $this->client->request('GET', '/projects/archived');
 
-        // The template uses Alpine.js for rendering, so check the JSON data instead
         $content = $this->client->getResponse()->getContent();
         $this->assertStringContainsString('User1 Archived', $content);
         $this->assertStringNotContainsString('User2 Archived', $content);
+    }
+
+    public function testUnarchiveProjectSuccessfully(): void
+    {
+        $user = $this->createUser();
+        $project = $this->createProject($user, 'Project to Restore', null, true);
+        $projectId = (string) $project->getId();
+        $this->client->loginUser($user);
+
+        // Get the archived projects page and find the form
+        $crawler = $this->client->request('GET', '/projects/archived');
+
+        // Verify project is shown on the page
+        $this->assertSelectorTextContains('body', 'Project to Restore');
+
+        // Find form with unarchive in the action
+        $form = $crawler->filter('form[action$="/projects/'.$projectId.'/unarchive"]');
+        $this->assertGreaterThan(0, $form->count(), 'Expected to find unarchive form for project');
+        $csrfToken = $form->filter('input[name="_csrf_token"]')->attr('value');
+
+        $this->client->request('POST', '/projects/'.$projectId.'/unarchive', [
+            '_csrf_token' => $csrfToken,
+        ]);
+
+        $this->assertTrue($this->client->getResponse()->isRedirect());
+
+        // Verify project is no longer archived
+        $this->entityManager->clear();
+        $restoredProject = $this->entityManager->find(Project::class, $projectId);
+        $this->assertNotNull($restoredProject);
+        $this->assertNull($restoredProject->getArchivedAt());
+    }
+
+    public function testUnarchiveProjectWithInvalidCsrfTokenShowsError(): void
+    {
+        $user = $this->createUser();
+        $project = $this->createProject($user, 'Project to Restore', null, true);
+        $this->client->loginUser($user);
+
+        $this->client->request('POST', '/projects/'.$project->getId().'/unarchive', [
+            '_csrf_token' => 'invalid-token',
+        ]);
+
+        $this->assertTrue($this->client->getResponse()->isRedirect());
+        $this->client->followRedirect();
+        $this->assertSelectorTextContains('body', 'security token');
+    }
+
+    public function testUnarchiveProjectRequiresAuthentication(): void
+    {
+        $user = $this->createUser();
+        $project = $this->createProject($user, 'Project to Restore', null, true);
+
+        $this->client->request('POST', '/projects/'.$project->getId().'/unarchive', [
+            '_csrf_token' => 'any-token',
+        ]);
+
+        $this->assertTrue($this->client->getResponse()->isRedirect());
+        $this->assertStringContainsString('/login', $this->client->getResponse()->headers->get('Location') ?? '');
+    }
+
+    public function testCannotUnarchiveOtherUsersProject(): void
+    {
+        $user1 = $this->createUser('user1-unarchive@example.com');
+        $user2 = $this->createUser('user2-unarchive@example.com');
+        $project = $this->createProject($user1, 'User1 Archived Project', null, true);
+        $this->client->loginUser($user2);
+
+        // Get page to establish session
+        $this->client->request('GET', '/projects/archived');
+
+        $this->client->request('POST', '/projects/'.$project->getId().'/unarchive', [
+            '_csrf_token' => 'forged-token',
+        ]);
+
+        $this->assertTrue($this->client->getResponse()->isRedirect());
+
+        // The project should still be archived
+        $this->entityManager->clear();
+        $unchangedProject = $this->entityManager->find(Project::class, $project->getId());
+        $this->assertTrue($unchangedProject->isArchived());
     }
 
     // =====================================================
