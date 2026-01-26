@@ -536,4 +536,35 @@ class TaskListControllerTest extends ApiTestCase
         $this->assertEquals('#FF5733', $project->getColor());
         $this->assertEquals($parentProject->getId(), $project->getParent()->getId());
     }
+
+    /**
+     * Bug: Project tree JSON in x-data attribute is not properly HTML-escaped,
+     * causing Alpine.js to fail parsing when project names contain special characters
+     * or when the JSON structure breaks HTML attribute parsing.
+     *
+     * Expected: The x-data attribute should contain valid, HTML-escaped JSON.
+     */
+    public function testProjectTreeJsonIsProperlyEscapedInHtmlAttribute(): void
+    {
+        $user = $this->createUser();
+        // Create a project - the JSON will be rendered in the sidebar
+        $this->createProject($user, 'Test Project');
+        $this->client->loginUser($user);
+
+        $crawler = $this->client->request('GET', '/tasks');
+
+        // Find the project tree component
+        $projectTree = $crawler->filter('.project-tree');
+        $this->assertGreaterThan(0, $projectTree->count(), 'Project tree should exist');
+
+        // Get the x-data attribute - it should be valid HTML (not corrupted)
+        $xData = $projectTree->attr('x-data');
+        $this->assertNotNull($xData, 'x-data attribute should exist');
+
+        // The x-data should contain "projectTree(" - if HTML is corrupted, this won't match
+        $this->assertStringContainsString('projectTree(', $xData, 'x-data should contain projectTree function call');
+
+        // The x-data should NOT contain broken HTML artifacts like ="" or extra quotes
+        $this->assertStringNotContainsString('=""', $xData, 'x-data should not contain HTML attribute artifacts');
+    }
 }
