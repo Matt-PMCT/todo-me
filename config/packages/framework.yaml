@@ -41,8 +41,6 @@ when@test:
 
 when@prod:
     framework:
-        # Asset base path configuration for production
-        # Prepends the APP_PATH_PREFIX to all generated asset URLs so assets work
-        # correctly when deployed to a subpath (e.g., /todo-me/)
-        assets:
-            base_path: '%env(APP_PATH_PREFIX)%'
+        # Asset configuration for production
+        # X-Forwarded-Prefix header from reverse proxy automatically handles path prefix
+        # No explicit base_path needed - Request::getBasePath() includes the prefix
