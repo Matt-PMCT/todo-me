@@ -9,12 +9,14 @@ use Symfony\Component\HttpKernel\Event\ResponseEvent;
 use Symfony\Component\HttpKernel\KernelEvents;
 
 /**
- * Listener to fix redirect URLs when application is behind a reverse proxy with path prefix.
+ * Listener to fix redirect URLs when Symfony generates redirects without path prefix.
  *
- * When nginx strips the /todo-me/ prefix before passing to the application,
- * Symfony generates redirects to /login instead of /todo-me/login.
+ * This is a fallback for any redirects generated through non-standard mechanisms
+ * that might not use the configured router context.
  *
- * This listener reads the X-Forwarded-Prefix header and adds it back to relative redirects.
+ * When APP_PATH_PREFIX is configured, redirects should automatically include it
+ * through Symfony's URL generation. This listener ensures any remaining redirects
+ * without the prefix are corrected using the X-Forwarded-Prefix header from proxy.
  */
 class PathPrefixRedirectListener implements EventSubscriberInterface
 {
