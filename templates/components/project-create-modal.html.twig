@@ -1,7 +1,7 @@
 {# Project Create Modal Component #}
 {# Modal dialog for creating a new project #}
 
-<div x-data="projectCreateModal({ projects: {{ sidebar_projects|default([])|json_encode|raw }} })"
+<div x-data="projectCreateModal({ projects: {{ sidebar_projects|default([])|json_encode }} })"
      @open-project-create-modal.window="open = true"
      @closeAll.window="open = false"
      @keydown.escape.window="open = false">

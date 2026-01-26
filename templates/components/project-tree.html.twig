@@ -7,7 +7,7 @@
   - showArchived: bool - Whether to show archived projects
 #}
 <div x-data="projectTree({
-    projects: {{ projects|json_encode|raw }},
+    projects: {{ projects|json_encode }},
     selectedProjectId: '{{ selectedProjectId ?? '' }}',
     showArchived: {{ showArchived|default(false) ? 'true' : 'false' }},
     apiBaseUrl: '{{ path('api_projects_tree') }}'
