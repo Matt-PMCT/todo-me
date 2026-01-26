@@ -95,7 +95,7 @@ class TaskListControllerTest extends ApiTestCase
      * Bug: Project sidebar link uses 'project' parameter but controller expects 'projectId'.
      * Expected: Filtering tasks by projectId should work correctly.
      */
-    public function testIssue46_TaskListFiltersByProjectId(): void
+    public function testIssue46TaskListFiltersByProjectId(): void
     {
         $user = $this->createUser();
         $project1 = $this->createProject($user, 'Project One');

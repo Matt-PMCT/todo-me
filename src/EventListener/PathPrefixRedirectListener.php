@@ -48,7 +48,7 @@ class PathPrefixRedirectListener implements EventSubscriberInterface
 
         // Only add prefix to relative URLs that don't already have it
         if ($location[0] === '/' && !str_starts_with($location, $prefix) && !preg_match('#^https?://#', $location)) {
-            $response->headers->set('Location', $prefix . $location);
+            $response->headers->set('Location', $prefix.$location);
         }
     }
 }
