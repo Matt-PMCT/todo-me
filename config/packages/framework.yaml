@@ -4,9 +4,10 @@ framework:
 
     # Trusted reverse proxy for X-Forwarded-* headers
     # Required for path prefix handling when behind nginx proxy
-    # Default: empty (no trusted proxies in dev/test), set to 127.0.0.1 in production
-    trusted_proxies: '%env(default::TRUSTED_PROXIES)%'
-    trusted_headers: ['x-forwarded-for', 'x-forwarded-host', 'x-forwarded-proto', 'x-forwarded-prefix']
+    # 127.0.0.1: Nginx is on the same machine
+    # REMOTE_ADDR: Trust the immediate preceding proxy (needed for Cloudflare or other reverse proxies)
+    trusted_proxies: '127.0.0.1,REMOTE_ADDR'
+    trusted_headers: ['x-forwarded-for', 'x-forwarded-host', 'x-forwarded-proto', 'x-forwarded-port', 'x-forwarded-prefix']
 
     # Note that the session will be started ONLY if you read or write from it.
     session:
