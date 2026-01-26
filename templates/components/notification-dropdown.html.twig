@@ -1,5 +1,5 @@
 {# Notification dropdown component for the navigation bar #}
-<div x-data="notificationDropdown()" class="relative">
+<div x-data="notificationDropdown('{{ apiToken|default('')|e('js') }}')" class="relative">
     {# Notification bell button #}
     <button
         @click="toggle()"
@@ -132,8 +132,9 @@
 </div>
 
 <script>
-function notificationDropdown() {
+function notificationDropdown(apiToken) {
     return {
+        apiToken: apiToken,
         open: false,
         loading: false,
         notifications: [],
@@ -168,8 +169,8 @@ function notificationDropdown() {
                 const response = await fetch(window.apiUrl('/api/v1/notifications/unread-count'), {
                     headers: {
                         'Accept': 'application/json',
-                    },
-                    credentials: 'same-origin'
+                        'Authorization': 'Bearer ' + this.apiToken
+                    }
                 });
 
                 if (response.ok) {
@@ -187,8 +188,8 @@ function notificationDropdown() {
                 const response = await fetch(window.apiUrl('/api/v1/notifications?limit=20'), {
                     headers: {
                         'Accept': 'application/json',
-                    },
-                    credentials: 'same-origin'
+                        'Authorization': 'Bearer ' + this.apiToken
+                    }
                 });
 
                 if (response.ok) {
@@ -216,8 +217,8 @@ function notificationDropdown() {
                     method: 'POST',
                     headers: {
                         'Accept': 'application/json',
-                    },
-                    credentials: 'same-origin'
+                        'Authorization': 'Bearer ' + this.apiToken
+                    }
                 });
 
                 if (response.ok) {
@@ -240,8 +241,8 @@ function notificationDropdown() {
                     method: 'POST',
                     headers: {
                         'Accept': 'application/json',
-                    },
-                    credentials: 'same-origin'
+                        'Authorization': 'Bearer ' + this.apiToken
+                    }
                 });
 
                 if (response.ok) {

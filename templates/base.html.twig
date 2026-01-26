@@ -46,7 +46,7 @@
                     <div class="hidden md:block">
                         <div class="ml-4 flex items-center md:ml-6">
                             <!-- Notification dropdown -->
-                            {% include 'components/notification-dropdown.html.twig' %}
+                            {% include 'components/notification-dropdown.html.twig' with { apiToken: app.user.apiToken } %}
 
                             <!-- User dropdown -->
                             <div class="relative ml-3">
