@@ -218,3 +218,49 @@
     </div>
 </div>
 {% endblock %}
+
+{% block javascripts %}
+{{ parent() }}
+<script>
+{# Issue #59: AJAX task status component #}
+function taskItem(taskId, initialStatus) {
+    return {
+        taskId: taskId,
+        status: initialStatus,
+        isUpdating: false,
+        showDeleteModal: false,
+
+        get subtasksExpanded() {
+            return Alpine.store('subtasks')?.expanded || {};
+        },
+
+        async toggleStatus() {
+            const newStatus = this.status === 'completed' ? 'pending' : 'completed';
+            await this.setStatus(newStatus);
+        },
+
+        async setStatus(newStatus) {
+            if (this.isUpdating || this.status === newStatus) return;
+
+            this.isUpdating = true;
+            const previousStatus = this.status;
+
+            try {
+                const response = await window.api.patch('/api/v1/tasks/' + this.taskId, { status: newStatus });
+                const data = await response.json();
+
+                if (data.success) {
+                    this.status = newStatus;
+                } else {
+                    console.error('Failed to update task status:', data.error);
+                }
+            } catch (error) {
+                console.error('Error updating task status:', error);
+            } finally {
+                this.isUpdating = false;
+            }
+        }
+    };
+}
+</script>
+{% endblock %}

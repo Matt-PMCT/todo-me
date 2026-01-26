@@ -180,20 +180,28 @@ class TaskListControllerTest extends ApiTestCase
         $task = $this->createTask($user, 'Status Task', null, Task::STATUS_PENDING);
         $this->client->loginUser($user);
 
-        // First get the page to establish session
+        // Get the page to establish session
         $crawler = $this->client->request('GET', '/tasks');
 
-        // Find the status form for this task and get its CSRF token
-        $statusForm = $crawler->filter('form[action*="/tasks/'.$task->getId().'/status"]');
-        $csrfToken = $statusForm->filter('input[name="_csrf_token"]')->attr('value');
+        // Use the API to change status (task status buttons are now AJAX-based)
+        // Extract API CSRF token from meta tag
+        $csrfToken = $crawler->filter('meta[name="csrf-token"]')->attr('content');
 
-        $this->client->request('POST', '/tasks/'.$task->getId().'/status', [
-            'status' => Task::STATUS_COMPLETED,
-            '_csrf_token' => $csrfToken,
-        ]);
+        // Make AJAX-style request to API endpoint
+        $this->client->request(
+            'PATCH',
+            '/api/v1/tasks/'.$task->getId(),
+            [],
+            [],
+            [
+                'CONTENT_TYPE' => 'application/json',
+                'HTTP_X_CSRF_TOKEN' => $csrfToken,
+            ],
+            json_encode(['status' => Task::STATUS_COMPLETED])
+        );
 
-        // Should redirect
-        $this->assertTrue($this->client->getResponse()->isRedirect());
+        // Should return success
+        $this->assertResponseIsSuccessful();
 
         // Verify task status was changed
         $this->entityManager->clear();

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Tests\Functional\Api;
 
+use App\Interface\EncryptionServiceInterface;
 use App\Service\TotpService;
 use App\Tests\Functional\ApiTestCase;
 use Symfony\Component\HttpFoundation\Response;
@@ -288,8 +289,11 @@ class TwoFactorSetupApiTest extends ApiTestCase
         $totpService = new TotpService();
         $secret = $totpService->generateSecret();
 
+        // Encrypt secret before storing
+        $encryptionService = static::getContainer()->get(EncryptionServiceInterface::class);
+
         $user->setTwoFactorEnabled(true);
-        $user->setTotpSecret($secret);
+        $user->setTotpSecret($encryptionService->encrypt($secret));
         $user->setBackupCodes([
             ['hash' => password_hash('AAAA-BBBB', PASSWORD_DEFAULT), 'used' => false],
             ['hash' => password_hash('CCCC-DDDD', PASSWORD_DEFAULT), 'used' => false],

@@ -21,6 +21,12 @@
             return document.querySelector('meta[name="csrf-token"]')?.content || '';
         };
 
+        // Issue #46: Routes for Alpine.js dynamic links (respects app base path)
+        window.routes = {
+            taskList: '{{ path('app_task_list') }}',
+            projects: '{{ path('app_task_list')|replace({'/tasks': '/projects'}) }}'
+        };
+
         // Session-based API client with CSRF protection
         // Replaces exposed Bearer token authentication for web UI AJAX calls
         window.api = {

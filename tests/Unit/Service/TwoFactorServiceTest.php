@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\Unit\Service;
 
 use App\Interface\BackupCodeServiceInterface;
+use App\Interface\EncryptionServiceInterface;
 use App\Interface\TotpServiceInterface;
 use App\Service\RedisService;
 use App\Service\TwoFactorService;
@@ -18,6 +19,7 @@ class TwoFactorServiceTest extends UnitTestCase
     private BackupCodeServiceInterface&MockObject $backupCodeService;
     private RedisService&MockObject $redisService;
     private EntityManagerInterface&MockObject $entityManager;
+    private EncryptionServiceInterface&MockObject $encryptionService;
     private TwoFactorService $twoFactorService;
 
     protected function setUp(): void
@@ -28,12 +30,18 @@ class TwoFactorServiceTest extends UnitTestCase
         $this->backupCodeService = $this->createMock(BackupCodeServiceInterface::class);
         $this->redisService = $this->createMock(RedisService::class);
         $this->entityManager = $this->createMock(EntityManagerInterface::class);
+        $this->encryptionService = $this->createMock(EncryptionServiceInterface::class);
+
+        // By default, encryption service returns the input unchanged for simplicity
+        $this->encryptionService->method('encrypt')->willReturnCallback(fn($s) => 'enc:' . $s);
+        $this->encryptionService->method('decrypt')->willReturnCallback(fn($s) => substr($s, 4));
 
         $this->twoFactorService = new TwoFactorService(
             $this->totpService,
             $this->backupCodeService,
             $this->redisService,
             $this->entityManager,
+            $this->encryptionService,
         );
     }
 
@@ -107,7 +115,8 @@ class TwoFactorServiceTest extends UnitTestCase
         $this->assertTrue($result['enabled']);
         $this->assertEquals($backupCodes, $result['backupCodes']);
         $this->assertTrue($user->isTwoFactorEnabled());
-        $this->assertEquals($secret, $user->getTotpSecret());
+        // Secret is encrypted before storage (enc: prefix added by mock)
+        $this->assertEquals('enc:' . $secret, $user->getTotpSecret());
     }
 
     public function testCompleteSetupReturnsNullOnInvalidToken(): void
@@ -172,7 +181,8 @@ class TwoFactorServiceTest extends UnitTestCase
     public function testVerifyReturnsTrueForValidCode(): void
     {
         $user = $this->createUserWithId();
-        $user->setTotpSecret('TESTSECRET');
+        // Store encrypted form - decrypt mock will strip 'enc:' prefix
+        $user->setTotpSecret('enc:TESTSECRET');
 
         $this->totpService->expects($this->once())
             ->method('verifyCode')
@@ -187,7 +197,8 @@ class TwoFactorServiceTest extends UnitTestCase
     public function testVerifyReturnsFalseForInvalidCode(): void
     {
         $user = $this->createUserWithId();
-        $user->setTotpSecret('TESTSECRET');
+        // Store encrypted form
+        $user->setTotpSecret('enc:TESTSECRET');
 
         $this->totpService->expects($this->once())
             ->method('verifyCode')

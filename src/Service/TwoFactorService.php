@@ -6,6 +6,7 @@ namespace App\Service;
 
 use App\Entity\User;
 use App\Interface\BackupCodeServiceInterface;
+use App\Interface\EncryptionServiceInterface;
 use App\Interface\TotpServiceInterface;
 use Doctrine\ORM\EntityManagerInterface;
 
@@ -19,6 +20,7 @@ final class TwoFactorService
         private readonly BackupCodeServiceInterface $backupCodeService,
         private readonly RedisService $redisService,
         private readonly EntityManagerInterface $entityManager,
+        private readonly EncryptionServiceInterface $encryptionService,
     ) {
     }
 
@@ -74,9 +76,9 @@ final class TwoFactorService
         // Generate backup codes
         $backupCodeData = $this->backupCodeService->generateBackupCodes();
 
-        // Enable 2FA
+        // Enable 2FA - encrypt the secret before storing
         $user->setTwoFactorEnabled(true);
-        $user->setTotpSecret($secret);
+        $user->setTotpSecret($this->encryptionService->encrypt($secret));
         $user->setBackupCodes($backupCodeData['hashedCodes']);
         $user->setBackupCodesGeneratedAt(new \DateTimeImmutable());
 
@@ -107,10 +109,13 @@ final class TwoFactorService
      */
     public function verify(User $user, string $code): bool
     {
-        $secret = $user->getTotpSecret();
-        if ($secret === null) {
+        $encryptedSecret = $user->getTotpSecret();
+        if ($encryptedSecret === null) {
             return false;
         }
+
+        // Decrypt the secret before verification
+        $secret = $this->encryptionService->decrypt($encryptedSecret);
 
         return $this->totpService->verifyCode($secret, $code);
     }
