@@ -172,7 +172,8 @@ function taskEditModal() {
                 // Fetch task data
                 const response = await fetch(window.apiUrl('/api/v1/tasks/' + taskId), {
                     headers: {
-                        'Accept': 'application/json'
+                        'Accept': 'application/json',
+                        'Authorization': 'Bearer {{ app.user.apiToken }}'
                     },
                     credentials: 'same-origin'
                 });
@@ -234,7 +235,8 @@ function taskEditModal() {
                     method: 'PATCH',
                     headers: {
                         'Content-Type': 'application/json',
-                        'Accept': 'application/json'
+                        'Accept': 'application/json',
+                        'Authorization': 'Bearer {{ app.user.apiToken }}'
                     },
                     credentials: 'same-origin',
                     body: JSON.stringify(payload)

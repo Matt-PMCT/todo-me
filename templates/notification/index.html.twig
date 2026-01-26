@@ -216,6 +216,7 @@ function notificationsPage() {
                     method: 'POST',
                     headers: {
                         'Accept': 'application/json',
+                        'Authorization': 'Bearer {{ app.user.apiToken }}'
                     },
                     credentials: 'same-origin'
                 });
@@ -240,6 +241,7 @@ function notificationsPage() {
                     method: 'POST',
                     headers: {
                         'Accept': 'application/json',
+                        'Authorization': 'Bearer {{ app.user.apiToken }}'
                     },
                     credentials: 'same-origin'
                 });
