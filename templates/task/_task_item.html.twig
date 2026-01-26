@@ -137,15 +137,15 @@
                         </svg>
                     </button>
                 {% else %}
-                    {# Issue #44: Add subtask button - made more prominent #}
+                    {# Issue #44: Add subtask button shown when no subtasks exist #}
                     <button type="button"
                             @click="$dispatch('toggle-subtasks', { taskId: '{{ task.id }}' })"
-                            class="inline-flex items-center gap-1 rounded-full bg-indigo-50 px-2.5 py-0.5 text-xs font-medium text-indigo-700 hover:bg-indigo-100 transition-colors ring-1 ring-inset ring-indigo-200"
+                            class="inline-flex items-center gap-1 rounded-full bg-gray-50 px-2 py-0.5 text-xs font-medium text-gray-500 hover:bg-gray-100 hover:text-gray-700 transition-colors"
                             title="Add subtask">
-                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
                         </svg>
-                        Add Subtask
+                        Subtask
                     </button>
                 {% endif %}
             </div>

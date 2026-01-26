@@ -7,6 +7,11 @@
 import Alpine from 'alpinejs';
 import './styles/app.css';
 
+// Import modules that register Alpine stores/components BEFORE Alpine.start()
+// These use 'alpine:init' event which must be set up before start()
+import './js/toast.js';
+import './js/subtasks.js';
+
 // Initialize Alpine stores before starting
 Alpine.store('sidebar', {
     open: false,
@@ -19,23 +24,11 @@ Alpine.store('sidebar', {
 window.Alpine = Alpine;
 Alpine.start();
 
-// Import toast notification system
-import './js/toast.js';
-
-// Import project tree components
+// Import other modules that don't need alpine:init
 import './js/project-tree.js';
 import './js/drag-drop.js';
-
-// Import search component
 import './js/search.js';
-
-// Import keyboard shortcuts
 import './js/keyboard-shortcuts.js';
-
-// Import subtask interactions
-import './js/subtasks.js';
-
-// Import mobile swipe gestures
 import './js/swipe-gestures.js';
 
 console.log('This log comes from assets/app.js - welcome to AssetMapper!');
