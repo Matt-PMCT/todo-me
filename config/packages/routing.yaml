@@ -1,17 +1,13 @@
-parameters:
-    # Path prefix for applications deployed to a subdirectory
-    # (e.g., /todo-me/ when behind reverse proxy)
-    app.path_prefix: '%env(default::APP_PATH_PREFIX)%'
-
 framework:
     router:
         # Configure how to generate URLs in non-HTTP contexts, such as CLI commands.
         # See https://symfony.com/doc/current/routing.html#generating-urls-in-commands
+        # This ensures URLs in emails, console commands, etc. include the full path
         default_uri: '%env(DEFAULT_URI)%'
-        # Set the base URL path for URL generation when deployed to a subdirectory
-        # This makes path() and asset() functions include the prefix
-        context:
-            base_url: '%app.path_prefix%'
+        #
+        # For web requests: Symfony 5.3+ automatically detects the base URL from
+        # X-Forwarded-Prefix header sent by the reverse proxy (nginx).
+        # This is enabled by the TRUSTED_PROXIES setting in framework.yaml
 
 when@prod:
     framework:
