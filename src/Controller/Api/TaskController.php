@@ -369,6 +369,18 @@ final class TaskController extends AbstractController
      * Issue #32: Render a task as HTML for AJAX insertion.
      */
     #[Route('/{id}/render', name: 'render_html', methods: ['GET'], requirements: ['id' => '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}'])]
+    #[OA\Get(
+        summary: 'Render task as HTML',
+        description: 'Render a task as HTML fragment for AJAX insertion',
+        parameters: [
+            new OA\Parameter(name: 'id', in: 'path', required: true, schema: new OA\Schema(type: 'string', format: 'uuid')),
+        ],
+        responses: [
+            new OA\Response(response: 200, description: 'HTML fragment'),
+            new OA\Response(response: 401, description: 'Not authenticated'),
+            new OA\Response(response: 404, description: 'Task not found'),
+        ]
+    )]
     public function renderHtml(string $id): JsonResponse
     {
         /** @var User $user */

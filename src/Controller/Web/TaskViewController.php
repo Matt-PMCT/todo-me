@@ -49,6 +49,7 @@ class TaskViewController extends AbstractController
             'tasks' => $tasks,
             'groupedTasks' => $grouped,
             'overdueService' => $this->overdueService,
+            'taskSpacing' => $user->getTaskSpacing(),
             'sidebar_projects' => $sidebarProjects,
             'sidebar_tags' => $tags,
         ]);
@@ -73,6 +74,7 @@ class TaskViewController extends AbstractController
         return $this->render('task/upcoming.html.twig', [
             'tasks' => $tasks,
             'groupedTasks' => $grouped,
+            'taskSpacing' => $user->getTaskSpacing(),
             'sidebar_projects' => $sidebarProjects,
             'sidebar_tags' => $tags,
         ]);
@@ -98,6 +100,7 @@ class TaskViewController extends AbstractController
             'tasks' => $tasks,
             'groupedTasks' => $grouped,
             'overdueService' => $this->overdueService,
+            'taskSpacing' => $user->getTaskSpacing(),
             'sidebar_projects' => $sidebarProjects,
             'sidebar_tags' => $tags,
         ]);
@@ -118,6 +121,7 @@ class TaskViewController extends AbstractController
 
         return $this->render('task/no-date.html.twig', [
             'tasks' => $tasks,
+            'taskSpacing' => $user->getTaskSpacing(),
             'sidebar_projects' => $sidebarProjects,
             'sidebar_tags' => $tags,
         ]);
@@ -138,6 +142,7 @@ class TaskViewController extends AbstractController
 
         return $this->render('task/completed.html.twig', [
             'tasks' => $tasks,
+            'taskSpacing' => $user->getTaskSpacing(),
             'sidebar_projects' => $sidebarProjects,
             'sidebar_tags' => $tags,
         ]);

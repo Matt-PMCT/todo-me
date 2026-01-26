@@ -5,7 +5,7 @@
 {% block use_sidebar %}true{% endblock %}
 
 {% block body %}
-<div class="py-10">
+<div class="py-6">
     <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         {# Page header #}
         <div class="sm:flex sm:items-center sm:justify-between">
@@ -29,7 +29,7 @@
         {# Task list #}
         <div class="mt-6">
             {% if tasks|length > 0 %}
-                <div class="space-y-3">
+                <div class="{{ taskSpacing == 'compact' ? 'space-y-2' : 'space-y-3' }}">
                     {% for task in tasks %}
                         <div class="opacity-75">
                             {{ include('task/_task_item.html.twig', {task: task}) }}

@@ -3,6 +3,7 @@
 
 <div x-data="taskEditModal()"
      @open-edit-modal.window="openModal($event.detail.taskId)"
+     @keydown.escape.window="if (isOpen) closeModal()"
      x-show="isOpen"
      x-cloak
      class="fixed inset-0 z-50 overflow-y-auto"

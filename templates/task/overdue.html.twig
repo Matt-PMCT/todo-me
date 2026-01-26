@@ -5,7 +5,7 @@
 {% block use_sidebar %}true{% endblock %}
 
 {% block body %}
-<div class="py-10">
+<div class="py-6">
     <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         {# Page header #}
         <div class="sm:flex sm:items-center sm:justify-between">
@@ -38,7 +38,7 @@
                                 {{ groupedTasks.high.label }}
                                 <span class="text-sm font-normal text-red-500">({{ groupedTasks.high.tasks|length }})</span>
                             </h2>
-                            <div class="space-y-3">
+                            <div class="{{ taskSpacing == 'compact' ? 'space-y-2' : 'space-y-3' }}">
                                 {% for task in groupedTasks.high.tasks %}
                                     {% set overdueInfo = overdueService.getOverdueDisplayInfo(task) %}
                                     <div class="border-l-4 border-l-red-500">
@@ -57,7 +57,7 @@
                                 {{ groupedTasks.medium.label }}
                                 <span class="text-sm font-normal text-orange-500">({{ groupedTasks.medium.tasks|length }})</span>
                             </h2>
-                            <div class="space-y-3">
+                            <div class="{{ taskSpacing == 'compact' ? 'space-y-2' : 'space-y-3' }}">
                                 {% for task in groupedTasks.medium.tasks %}
                                     {% set overdueInfo = overdueService.getOverdueDisplayInfo(task) %}
                                     <div class="border-l-4 border-l-orange-500">
@@ -76,7 +76,7 @@
                                 {{ groupedTasks.low.label }}
                                 <span class="text-sm font-normal text-yellow-500">({{ groupedTasks.low.tasks|length }})</span>
                             </h2>
-                            <div class="space-y-3">
+                            <div class="{{ taskSpacing == 'compact' ? 'space-y-2' : 'space-y-3' }}">
                                 {% for task in groupedTasks.low.tasks %}
                                     {% set overdueInfo = overdueService.getOverdueDisplayInfo(task) %}
                                     <div class="border-l-4 border-l-yellow-500">
