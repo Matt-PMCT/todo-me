@@ -45,6 +45,8 @@ class TaskListController extends AbstractController
         $priority = $request->query->get('priority');
         $projectId = $request->query->get('projectId');
         $isRecurring = $request->query->get('isRecurring');
+        // Issue #39: Show/hide completed tasks toggle (defaults to hiding completed)
+        $showCompleted = $request->query->getBoolean('showCompleted', false);
 
         $filters = [
             'status' => $status ?: null,
@@ -55,6 +57,13 @@ class TaskListController extends AbstractController
 
         // Get tasks with filters
         $queryBuilder = $this->taskRepository->createFilteredQueryBuilder($user, $filters);
+
+        // Issue #39: Hide completed tasks by default unless explicitly shown or status filter is set
+        if (!$showCompleted && $status !== 'completed') {
+            $queryBuilder->andWhere('t.status != :completedStatus')
+                ->setParameter('completedStatus', 'completed');
+        }
+
         $tasks = $queryBuilder->getQuery()->getResult();
 
         // Get user's projects for filter dropdown
@@ -91,6 +100,8 @@ class TaskListController extends AbstractController
             'currentFilters' => $filters,
             'groupByProject' => $groupByProject,
             'groupedTasks' => $groupedTasks,
+            'showCompleted' => $showCompleted,
+            'taskSpacing' => $user->getTaskSpacing(),
             'apiToken' => $user->getApiToken(),
             'sidebar_projects' => $sidebarProjects,
             'sidebar_tags' => $tags,

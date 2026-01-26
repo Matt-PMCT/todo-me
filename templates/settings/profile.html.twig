@@ -45,19 +45,57 @@
             <p class="mt-1 text-sm text-gray-500">Configure how dates and times are displayed</p>
         </div>
         <div class="px-4 py-5 sm:p-6 space-y-6">
-            {# Timezone select #}
-            <div>
-                <label for="timezone" class="block text-sm font-medium text-gray-700">Timezone</label>
-                <select
-                    id="timezone"
-                    x-model="settings.timezone"
-                    @change="saveSettings()"
-                    class="mt-1 block w-full rounded-md border-0 py-2 pl-3 pr-10 text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-indigo-600 sm:text-sm sm:leading-6"
+            {# Issue #31: Searchable timezone selector #}
+            <div x-data="timezoneSelector()" class="relative">
+                <label for="timezone-search" class="block text-sm font-medium text-gray-700">Timezone</label>
+                <div class="relative mt-1">
+                    <input
+                        type="text"
+                        id="timezone-search"
+                        x-model="search"
+                        @focus="open = true"
+                        @click="open = true"
+                        @input="open = true"
+                        @keydown.escape="open = false"
+                        @keydown.enter.prevent="selectHighlighted()"
+                        @keydown.arrow-down.prevent="highlightNext()"
+                        @keydown.arrow-up.prevent="highlightPrev()"
+                        :placeholder="settings.timezone || 'Search timezones...'"
+                        class="block w-full rounded-md border-0 py-2 pl-3 pr-10 text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                        autocomplete="off"
+                    >
+                    <button type="button" @click="open = !open" class="absolute inset-y-0 right-0 flex items-center pr-2">
+                        <svg class="h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clip-rule="evenodd" />
+                        </svg>
+                    </button>
+                </div>
+                <div
+                    x-show="open"
+                    x-cloak
+                    @click.away="open = false"
+                    x-transition
+                    class="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm"
                 >
-                    {% for tz in timezones %}
-                    <option value="{{ tz }}">{{ tz }}</option>
-                    {% endfor %}
-                </select>
+                    <template x-for="(tz, index) in filteredTimezones" :key="tz">
+                        <div
+                            @click="selectTimezone(tz)"
+                            @mouseenter="highlighted = index"
+                            :class="{ 'bg-indigo-600 text-white': highlighted === index, 'text-gray-900': highlighted !== index }"
+                            class="relative cursor-pointer select-none py-2 pl-3 pr-9"
+                        >
+                            <span x-text="tz" :class="{ 'font-semibold': settings.timezone === tz }"></span>
+                            <span x-show="settings.timezone === tz" class="absolute inset-y-0 right-0 flex items-center pr-4" :class="{ 'text-white': highlighted === index, 'text-indigo-600': highlighted !== index }">
+                                <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z" clip-rule="evenodd" />
+                                </svg>
+                            </span>
+                        </div>
+                    </template>
+                    <div x-show="filteredTimezones.length === 0" class="py-2 pl-3 pr-9 text-gray-500">
+                        No timezones found
+                    </div>
+                </div>
                 <p class="mt-2 text-sm text-gray-500">All times in the app will be displayed in this timezone</p>
             </div>
 
@@ -91,11 +129,72 @@
                 </select>
                 <p class="mt-2 text-sm text-gray-500">Which day calendars and week views start on</p>
             </div>
+
+            {# Issue #40: Task spacing preference #}
+            <div>
+                <label for="taskSpacing" class="block text-sm font-medium text-gray-700">Task Spacing</label>
+                <select
+                    id="taskSpacing"
+                    x-model="settings.task_spacing"
+                    @change="saveSettings()"
+                    class="mt-1 block w-full rounded-md border-0 py-2 pl-3 pr-10 text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                >
+                    <option value="comfortable">Comfortable (more spacing)</option>
+                    <option value="compact">Compact (less spacing)</option>
+                </select>
+                <p class="mt-2 text-sm text-gray-500">Controls the vertical spacing between tasks in your lists</p>
+            </div>
         </div>
     </div>
 </div>
 
 <script>
+// Issue #31: Searchable timezone selector
+const allTimezones = {{ timezones|json_encode|raw }};
+
+function timezoneSelector() {
+    return {
+        search: '',
+        open: false,
+        highlighted: 0,
+
+        get filteredTimezones() {
+            if (!this.search) return allTimezones;
+            const query = this.search.toLowerCase();
+            return allTimezones.filter(tz => tz.toLowerCase().includes(query));
+        },
+
+        selectTimezone(tz) {
+            this.settings.timezone = tz;
+            this.search = '';
+            this.open = false;
+            this.$parent.saveSettings();
+        },
+
+        selectHighlighted() {
+            if (this.filteredTimezones.length > 0) {
+                this.selectTimezone(this.filteredTimezones[this.highlighted]);
+            }
+        },
+
+        highlightNext() {
+            if (this.highlighted < this.filteredTimezones.length - 1) {
+                this.highlighted++;
+            }
+        },
+
+        highlightPrev() {
+            if (this.highlighted > 0) {
+                this.highlighted--;
+            }
+        },
+
+        get settings() {
+            return this.$parent.settings;
+        }
+    };
+}
+
 function profileSettings(initialSettings) {
     return {
         settings: initialSettings,
@@ -121,7 +220,8 @@ function profileSettings(initialSettings) {
                     body: JSON.stringify({
                         timezone: this.settings.timezone,
                         dateFormat: this.settings.date_format,
-                        startOfWeek: parseInt(this.settings.start_of_week, 10)
+                        startOfWeek: parseInt(this.settings.start_of_week, 10),
+                        taskSpacing: this.settings.task_spacing
                     })
                 });
 

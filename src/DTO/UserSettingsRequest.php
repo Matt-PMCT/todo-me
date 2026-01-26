@@ -21,6 +21,11 @@ final class UserSettingsRequest
      */
     public const VALID_START_OF_WEEK = [0, 1];
 
+    /**
+     * Issue #40: Valid task spacing choices.
+     */
+    public const VALID_TASK_SPACING = ['comfortable', 'compact'];
+
     public function __construct(
         #[Assert\Timezone(message: 'Invalid timezone')]
         public readonly ?string $timezone = null,
@@ -28,6 +33,8 @@ final class UserSettingsRequest
         public readonly ?string $dateFormat = null,
         #[Assert\Choice(choices: self::VALID_START_OF_WEEK, message: 'Invalid start of week. Must be 0 (Sunday) or 1 (Monday)')]
         public readonly ?int $startOfWeek = null,
+        #[Assert\Choice(choices: self::VALID_TASK_SPACING, message: 'Invalid task spacing. Must be comfortable or compact')]
+        public readonly ?string $taskSpacing = null,
     ) {
     }
 
@@ -42,6 +49,7 @@ final class UserSettingsRequest
             timezone: isset($data['timezone']) ? (string) $data['timezone'] : null,
             dateFormat: isset($data['dateFormat']) ? (string) $data['dateFormat'] : null,
             startOfWeek: isset($data['startOfWeek']) ? (int) $data['startOfWeek'] : null,
+            taskSpacing: isset($data['taskSpacing']) ? (string) $data['taskSpacing'] : null,
         );
     }
 
@@ -64,6 +72,11 @@ final class UserSettingsRequest
 
         if ($this->startOfWeek !== null) {
             $settings['start_of_week'] = $this->startOfWeek;
+        }
+
+        // Issue #40: Task spacing preference
+        if ($this->taskSpacing !== null) {
+            $settings['task_spacing'] = $this->taskSpacing;
         }
 
         return $settings;

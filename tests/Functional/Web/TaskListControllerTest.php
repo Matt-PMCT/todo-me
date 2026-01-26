@@ -88,6 +88,30 @@ class TaskListControllerTest extends ApiTestCase
         $this->assertSelectorTextNotContains('body', 'Low Priority Task');
     }
 
+    /**
+     * @covers \App\Controller\Web\TaskListController::list
+     * Issue #46: Clicking project in sidebar returns 404.
+     *
+     * Bug: Project sidebar link uses 'project' parameter but controller expects 'projectId'.
+     * Expected: Filtering tasks by projectId should work correctly.
+     */
+    public function testIssue46_TaskListFiltersByProjectId(): void
+    {
+        $user = $this->createUser();
+        $project1 = $this->createProject($user, 'Project One');
+        $project2 = $this->createProject($user, 'Project Two');
+        $this->createTask($user, 'Task in Project One', null, Task::STATUS_PENDING, Task::PRIORITY_DEFAULT, $project1);
+        $this->createTask($user, 'Task in Project Two', null, Task::STATUS_PENDING, Task::PRIORITY_DEFAULT, $project2);
+        $this->client->loginUser($user);
+
+        // Filter by projectId - this is the parameter the controller expects
+        $this->client->request('GET', '/tasks?projectId='.$project1->getId());
+
+        $this->assertResponseStatusCode(Response::HTTP_OK, $this->client->getResponse());
+        $this->assertSelectorTextContains('body', 'Task in Project One');
+        $this->assertSelectorTextNotContains('body', 'Task in Project Two');
+    }
+
     public function testCreateTaskWithValidData(): void
     {
         $user = $this->createUser();

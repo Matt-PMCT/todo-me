@@ -366,6 +366,28 @@ final class TaskController extends AbstractController
     }
 
     /**
+     * Issue #32: Render a task as HTML for AJAX insertion.
+     */
+    #[Route('/{id}/render', name: 'render_html', methods: ['GET'], requirements: ['id' => '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}'])]
+    public function renderHtml(string $id): JsonResponse
+    {
+        /** @var User $user */
+        $user = $this->getUser();
+
+        $task = $this->taskService->findByIdOrFail($id, $user);
+
+        // Render the task partial
+        $html = $this->renderView('task/_task_item.html.twig', [
+            'task' => $task,
+        ]);
+
+        return $this->responseFormatter->success([
+            'html' => $html,
+            'id' => $task->getId(),
+        ]);
+    }
+
+    /**
      * Update a task.
      */
     #[Route('/{id}', name: 'update', methods: ['PUT', 'PATCH'], requirements: ['id' => '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}'])]

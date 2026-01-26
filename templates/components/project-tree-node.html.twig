@@ -43,7 +43,8 @@
         </div>
 
         {# Project Name - Clickable Link #}
-        <a :href="'/tasks?project=' + project.id"
+        {# Issue #46: Parameter must be 'projectId' to match TaskListController #}
+        <a :href="'/tasks?projectId=' + project.id"
            class="flex-1 py-2 text-sm truncate"
            :class="{
                'font-medium': selectedProjectId === project.id,

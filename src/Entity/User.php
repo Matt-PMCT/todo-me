@@ -393,6 +393,26 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     }
 
     /**
+     * Issue #40: Get task spacing preference.
+     *
+     * @return string 'comfortable' or 'compact'
+     */
+    public function getTaskSpacing(): string
+    {
+        return $this->settings['task_spacing'] ?? 'comfortable';
+    }
+
+    /**
+     * Issue #40: Set task spacing preference.
+     */
+    public function setTaskSpacing(string $spacing): static
+    {
+        $this->settings['task_spacing'] = $spacing;
+
+        return $this;
+    }
+
+    /**
      * @return array<string, mixed>
      */
     public function getSettingsWithDefaults(): array
@@ -401,6 +421,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
             'timezone' => 'UTC',
             'date_format' => 'MDY',
             'start_of_week' => 0,
+            'task_spacing' => 'comfortable',
         ], $this->settings);
     }
 
