@@ -19,4 +19,7 @@ return [
     'alpinejs' => [
         'version' => '3.15.4',
     ],
+    'qrcode' => [
+        'version' => '1.5.4',
+    ],
 ];

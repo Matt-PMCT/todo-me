@@ -388,7 +388,9 @@
     </div>
 </div>
 
-<script>
+<script type="module">
+import QRCode from 'qrcode';
+
 function securitySettings() {
     return {
         // Setup modal state
@@ -437,8 +439,8 @@ function securitySettings() {
                 if (response.ok) {
                     this.setupToken = data.data.setupToken;
                     this.setupSecret = data.data.secret;
-                    // Generate QR code data URL using the qrCodeUri
-                    this.qrCodeDataUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=' + encodeURIComponent(data.data.qrCodeUri);
+                    // Generate QR code locally using qrcode library
+                    await this.generateQrCode(data.data.qrCodeUri);
                     this.showSetupModal = true;
                     this.setupStep = 'qr';
                 } else {
@@ -496,6 +498,23 @@ function securitySettings() {
                 setTimeout(() => { this.copiedCodes = false; }, 2000);
             } catch (error) {
                 console.error('Failed to copy codes:', error);
+            }
+        },
+
+        async generateQrCode(text) {
+            try {
+                this.qrCodeDataUrl = await QRCode.toDataURL(text, {
+                    width: 200,
+                    margin: 4,
+                    errorCorrectionLevel: 'M',
+                    color: {
+                        dark: '#000000',
+                        light: '#ffffff'
+                    }
+                });
+            } catch (err) {
+                console.error('QR code generation failed:', err);
+                this.qrCodeDataUrl = null;
             }
         },
 
@@ -600,5 +619,8 @@ function securitySettings() {
         }
     };
 }
+
+// Expose to global scope for Alpine.js x-data
+window.securitySettings = securitySettings;
 </script>
 {% endblock %}

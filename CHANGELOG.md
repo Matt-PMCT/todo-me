@@ -24,6 +24,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Security hardening documentation
   - Production deployment scripts
 
+### Fixed
+- Priority badges now use semantic P1-P5 labels with color-coded styling
+- Timezone selector Alpine.js scope issue in account settings
+- Authorization headers added to all settings page API calls
+- Subtask button made more prominent with indigo styling
+- API now accepts both 'project' and 'projectId' parameters for backwards compatibility
+- 2FA setup modal UI fully implemented with QR code and backup codes
+- APP_SECRET validation added for production security
+- Email addresses now hashed in authentication logs for privacy
+- CLAUDE.md migration rollback command corrected
+- Task filter views now use dedicated routes
+
 ## [0.8.0] - 2026-01-24
 
 ### Added
