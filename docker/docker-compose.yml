@@ -13,6 +13,8 @@ services:
       - todo-network
     environment:
       - PHP_OPCACHE_VALIDATE_TIMESTAMPS=1
+      # Trusted proxies for X-Forwarded-* headers (required for path prefix handling)
+      - TRUSTED_PROXIES=127.0.0.1
 
   web:
     image: nginx:1.24-alpine
