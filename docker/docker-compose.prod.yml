@@ -17,6 +17,8 @@ services:
       - PHP_OPCACHE_VALIDATE_TIMESTAMPS=0
       # Redis password for authenticated connections
       - REDIS_PASSWORD=${REDIS_PASSWORD:-}
+      # Trusted proxies for X-Forwarded-* headers (required for path prefix handling)
+      - TRUSTED_PROXIES=127.0.0.1
     deploy:
       resources:
         limits:
