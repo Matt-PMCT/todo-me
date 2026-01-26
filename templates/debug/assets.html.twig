@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Debug Assets</title>
+</head>
+<body>
+    <h1>Debug Assets Output</h1>
+
+    <h2>Generated asset() paths (in HTML comments for safe viewing):</h2>
+    <pre>
+CSS: {{ asset('styles/app.css') }}
+JS: {{ asset('app.js') }}
+    </pre>
+
+    <h2>Actual HTML tags (view page source):</h2>
+    <link rel="stylesheet" href="{{ asset('styles/app.css') }}">
+    <script type="module" src="{{ asset('app.js') }}"></script>
+
+    <h2>importmap() tags:</h2>
+    {{ importmap('app') }}
+
+    <p>Check page source to see the actual href/src attributes!</p>
+</body>
+</html>
