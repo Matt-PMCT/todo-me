@@ -84,7 +84,18 @@ docker-compose.override.yml
 # Only ignore user-specific local settings
 .claude/settings.local.json
 .claude/*.local.*
+# Production server skill (contains sensitive connection details)
+.claude/skills/connecting-to-production/
 ###< claude ###
+
+###> production secrets ###
+# Production environment file with credentials
+.env.prod
+# Production deployment script with domain references
+scripts/deploy/update-web.sh
+# AdminKit template directory (contains API keys)
+docs/adminkit-pro-3-4-0/
+###< production secrets ###
 
 ###> friendsofphp/php-cs-fixer ###
 /.php-cs-fixer.php
