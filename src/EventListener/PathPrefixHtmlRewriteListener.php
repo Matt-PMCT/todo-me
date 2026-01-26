@@ -47,8 +47,11 @@ class PathPrefixHtmlRewriteListener implements EventSubscriberInterface
         // Get the path prefix from the proxy
         $prefix = $request->headers->get('X-Forwarded-Prefix');
         if (!$prefix) {
+            error_log('PathPrefixHtmlRewriteListener: No X-Forwarded-Prefix header');
             return;
         }
+
+        error_log('PathPrefixHtmlRewriteListener: Processing HTML with prefix=' . $prefix);
 
         // Get the current response content
         $content = $response->getContent();
@@ -60,7 +63,10 @@ class PathPrefixHtmlRewriteListener implements EventSubscriberInterface
         $newContent = $this->rewriteUrls($content, $prefix);
 
         if ($newContent !== $content) {
+            error_log('PathPrefixHtmlRewriteListener: Rewritten URLs in response');
             $response->setContent($newContent);
+        } else {
+            error_log('PathPrefixHtmlRewriteListener: No URLs matched to rewrite');
         }
     }
 
