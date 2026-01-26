@@ -92,3 +92,9 @@ services:
     # Alias for ApiTokenServiceInterface to enable autowiring
     App\Interface\ApiTokenServiceInterface:
         alias: App\Service\ApiTokenService
+
+    # Issue #55: APP_SECRET validator
+    App\EventListener\AppSecretValidator:
+        arguments:
+            $appSecret: '%env(APP_SECRET)%'
+            $environment: '%kernel.environment%'

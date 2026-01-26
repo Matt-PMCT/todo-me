@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Todo-Me{% endblock %}</title>
+    <title>{% block title %}{{ app_name }}{% endblock %}</title>
 
     <!-- Tailwind CSS (compiled locally) -->
     <link rel="stylesheet" href="{{ asset('build/tailwind.css') }}">
@@ -25,7 +25,7 @@
                     <div class="flex items-center">
                         <div class="flex-shrink-0">
                             <a href="{{ path('app_task_list') }}" class="text-white font-bold text-xl">
-                                Todo-Me
+                                {{ app_name }}
                             </a>
                         </div>
                         {% if app.user %}
@@ -288,7 +288,7 @@
         <footer class="bg-white border-t mt-auto {% if app.user %}hidden md:block{% endif %}">
             <div class="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
                 <p class="text-center text-sm text-gray-500">
-                    Todo-Me - A simple task management application
+                    {{ app_name }} - A simple task management application
                 </p>
             </div>
         </footer>

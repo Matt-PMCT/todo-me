@@ -43,7 +43,8 @@ class TaskListController extends AbstractController
         // Get filter parameters - always provide all keys for template
         $status = $request->query->get('status');
         $priority = $request->query->get('priority');
-        $projectId = $request->query->get('projectId');
+        // Issue #46: Accept both 'project' and 'projectId' parameter names
+        $projectId = $request->query->get('projectId') ?? $request->query->get('project');
         $isRecurring = $request->query->get('isRecurring');
         // Issue #39: Show/hide completed tasks toggle (defaults to hiding completed)
         $showCompleted = $request->query->getBoolean('showCompleted', false);

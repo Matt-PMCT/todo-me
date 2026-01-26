@@ -37,9 +37,36 @@ gh issue list --repo Matt-PMCT/todo-me --label "Not Analyzed" --state open
 
 Only analyze issues with "Not Analyzed" label unless specifically asked otherwise.
 
-### 2. Apply Component Labels
+### 1b. Read Full Issue History
 
-Based on the issue, add appropriate labels:
+**CRITICAL:** Always read the complete issue including ALL comments:
+
+```bash
+gh issue view <number> --repo Matt-PMCT/todo-me --comments
+```
+
+**Why this matters:**
+- Initial issue description may be outdated
+- Later comments often contain crucial updates (e.g., "this was implemented but now has JS errors")
+- The LATEST comment reflects the CURRENT state of the issue
+- Features may have been partially implemented since the issue was opened
+
+**Analysis Priority:**
+1. Read newest comments FIRST to understand current state
+2. Work backwards to understand the full context
+3. If a fix was attempted, check if NEW problems emerged
+4. Don't close issues as "already implemented" without verifying the latest comments
+
+### 2. Apply Labels
+
+**Issue Type (required - pick one):**
+
+| Label | When to Apply |
+|-------|---------------|
+| **bug** | Problem, malfunction, unexpected behavior, error, broken functionality |
+| **enhancement** | Feature request, improvement, new capability, UI/UX suggestion |
+
+**Component (required - pick one or more):**
 
 | Label | When to Apply |
 |-------|---------------|
@@ -47,9 +74,10 @@ Based on the issue, add appropriate labels:
 | **API** | REST endpoints, DTOs, API authentication |
 | **Service** | Business logic, validation, repositories |
 | **Infrastructure** | Docker, database, Redis, deployment |
+| **Documentation** | README, CLAUDE.md, docs/, comments |
 
 ```bash
-gh issue edit <number> --repo Matt-PMCT/todo-me --add-label "Web UI"
+gh issue edit <number> --repo Matt-PMCT/todo-me --add-label "bug" --add-label "Web UI"
 ```
 
 ### 3. Validate Issue Quality

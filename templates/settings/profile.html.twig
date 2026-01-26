@@ -45,18 +45,18 @@
             <p class="mt-1 text-sm text-gray-500">Configure how dates and times are displayed</p>
         </div>
         <div class="px-4 py-5 sm:p-6 space-y-6">
-            {# Issue #31: Searchable timezone selector #}
-            <div x-data="timezoneSelector()" class="relative">
+            {# Issue #31: Searchable timezone selector - integrated into parent component #}
+            <div class="relative">
                 <label for="timezone-search" class="block text-sm font-medium text-gray-700">Timezone</label>
                 <div class="relative mt-1">
                     <input
                         type="text"
                         id="timezone-search"
-                        x-model="search"
-                        @focus="open = true"
-                        @click="open = true"
-                        @input="open = true"
-                        @keydown.escape="open = false"
+                        x-model="tzSearch"
+                        @focus="tzOpen = true"
+                        @click="tzOpen = true"
+                        @input="tzOpen = true"
+                        @keydown.escape="tzOpen = false"
                         @keydown.enter.prevent="selectHighlighted()"
                         @keydown.arrow-down.prevent="highlightNext()"
                         @keydown.arrow-up.prevent="highlightPrev()"
@@ -64,28 +64,28 @@
                         class="block w-full rounded-md border-0 py-2 pl-3 pr-10 text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-indigo-600 sm:text-sm sm:leading-6"
                         autocomplete="off"
                     >
-                    <button type="button" @click="open = !open" class="absolute inset-y-0 right-0 flex items-center pr-2">
+                    <button type="button" @click="tzOpen = !tzOpen" class="absolute inset-y-0 right-0 flex items-center pr-2">
                         <svg class="h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
                             <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clip-rule="evenodd" />
                         </svg>
                     </button>
                 </div>
                 <div
-                    x-show="open"
+                    x-show="tzOpen"
                     x-cloak
-                    @click.away="open = false"
+                    @click.away="tzOpen = false"
                     x-transition
                     class="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm"
                 >
                     <template x-for="(tz, index) in filteredTimezones" :key="tz">
                         <div
                             @click="selectTimezone(tz)"
-                            @mouseenter="highlighted = index"
-                            :class="{ 'bg-indigo-600 text-white': highlighted === index, 'text-gray-900': highlighted !== index }"
+                            @mouseenter="tzHighlighted = index"
+                            :class="{ 'bg-indigo-600 text-white': tzHighlighted === index, 'text-gray-900': tzHighlighted !== index }"
                             class="relative cursor-pointer select-none py-2 pl-3 pr-9"
                         >
                             <span x-text="tz" :class="{ 'font-semibold': settings.timezone === tz }"></span>
-                            <span x-show="settings.timezone === tz" class="absolute inset-y-0 right-0 flex items-center pr-4" :class="{ 'text-white': highlighted === index, 'text-indigo-600': highlighted !== index }">
+                            <span x-show="settings.timezone === tz" class="absolute inset-y-0 right-0 flex items-center pr-4" :class="{ 'text-white': tzHighlighted === index, 'text-indigo-600': tzHighlighted !== index }">
                                 <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                                     <path fill-rule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z" clip-rule="evenodd" />
                                 </svg>
@@ -149,57 +149,49 @@
 </div>
 
 <script>
-// Issue #31: Searchable timezone selector
+// Issue #31: Searchable timezone selector - all timezones list
 const allTimezones = {{ timezones|json_encode|raw }};
-
-function timezoneSelector() {
-    return {
-        search: '',
-        open: false,
-        highlighted: 0,
-
-        get filteredTimezones() {
-            if (!this.search) return allTimezones;
-            const query = this.search.toLowerCase();
-            return allTimezones.filter(tz => tz.toLowerCase().includes(query));
-        },
-
-        selectTimezone(tz) {
-            this.settings.timezone = tz;
-            this.search = '';
-            this.open = false;
-            this.$parent.saveSettings();
-        },
-
-        selectHighlighted() {
-            if (this.filteredTimezones.length > 0) {
-                this.selectTimezone(this.filteredTimezones[this.highlighted]);
-            }
-        },
-
-        highlightNext() {
-            if (this.highlighted < this.filteredTimezones.length - 1) {
-                this.highlighted++;
-            }
-        },
-
-        highlightPrev() {
-            if (this.highlighted > 0) {
-                this.highlighted--;
-            }
-        },
-
-        get settings() {
-            return this.$parent.settings;
-        }
-    };
-}
 
 function profileSettings(initialSettings) {
     return {
         settings: initialSettings,
         saveStatus: null,
         saveTimeout: null,
+        // Timezone selector state (Issue #31 fix - integrated to avoid $parent scope issues)
+        tzSearch: '',
+        tzOpen: false,
+        tzHighlighted: 0,
+
+        get filteredTimezones() {
+            if (!this.tzSearch) return allTimezones;
+            const query = this.tzSearch.toLowerCase();
+            return allTimezones.filter(tz => tz.toLowerCase().includes(query));
+        },
+
+        selectTimezone(tz) {
+            this.settings.timezone = tz;
+            this.tzSearch = '';
+            this.tzOpen = false;
+            this.saveSettings();
+        },
+
+        selectHighlighted() {
+            if (this.filteredTimezones.length > 0) {
+                this.selectTimezone(this.filteredTimezones[this.tzHighlighted]);
+            }
+        },
+
+        highlightNext() {
+            if (this.tzHighlighted < this.filteredTimezones.length - 1) {
+                this.tzHighlighted++;
+            }
+        },
+
+        highlightPrev() {
+            if (this.tzHighlighted > 0) {
+                this.tzHighlighted--;
+            }
+        },
 
         async saveSettings() {
             // Clear any pending save timeout
@@ -215,6 +207,7 @@ function profileSettings(initialSettings) {
                     headers: {
                         'Content-Type': 'application/json',
                         'Accept': 'application/json',
+                        'Authorization': 'Bearer {{ app.user.apiToken }}'
                     },
                     credentials: 'same-origin',
                     body: JSON.stringify({

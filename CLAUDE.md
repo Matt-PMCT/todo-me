@@ -57,7 +57,7 @@ vendor/bin/phpunit --testdox-text var/test-results.txt --log-junit var/test-resu
 ```bash
 php bin/console doctrine:migrations:migrate    # Run migrations
 php bin/console doctrine:migrations:generate   # Create new migration
-php bin/console doctrine:migrations:rollback   # Revert last migration
+php bin/console doctrine:migrations:migrate prev  # Revert last migration
 ```
 
 ## Architecture
@@ -69,7 +69,7 @@ src/
 ├── Controller/Web/     # Web UI controllers (Security, TaskList, Home)
 ├── Service/            # Business logic layer (TaskService, ProjectService, etc.)
 ├── Repository/         # Doctrine repositories with query methods
-├── Entity/             # Doctrine entities (User, Task, Project, Tag) - all use UUIDs
+├── Entity/             # Doctrine entities (User, Task, Project, Tag, ApiToken, Notification, SavedFilter, etc.) - all use UUIDs
 ├── DTO/                # Request/Response DTOs with validation constraints
 ├── Exception/          # Custom exceptions (ValidationException, EntityNotFoundException, etc.)
 ├── Security/           # ApiTokenAuthenticator for Bearer/X-API-Key auth
