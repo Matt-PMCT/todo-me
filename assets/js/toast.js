@@ -7,7 +7,7 @@
  * Usage:
  *   window.showToast('Message', 'success');
  *   window.showToast('Error occurred', 'error');
- *   window.showToastWithUndo('Task completed', 'success', 'undo_abc123', '/api/v1/undo');
+ *   window.showToastWithUndo('Task completed', 'success', 'undo_abc123', window.apiUrl('/api/v1/undo'));
  */
 
 document.addEventListener('alpine:init', () => {
@@ -35,10 +35,10 @@ document.addEventListener('alpine:init', () => {
          * @param {string} message - The message to display
          * @param {string} type - The type: 'success', 'error', 'warning', 'info'
          * @param {string} undoToken - The undo token for the API call
-         * @param {string} undoUrl - The undo API endpoint (default: '/api/v1/undo')
+         * @param {string} undoUrl - The undo API endpoint (default: window.apiUrl('/api/v1/undo'))
          * @param {number} duration - Duration in ms before auto-dismiss (default: 5000)
          */
-        showWithUndo(message, type, undoToken, undoUrl = '/api/v1/undo', duration = 5000) {
+        showWithUndo(message, type, undoToken, undoUrl = window.apiUrl('/api/v1/undo'), duration = 5000) {
             const id = ++this.counter;
             const countdown = Math.ceil(duration / 1000);
 
@@ -137,7 +137,7 @@ window.showToast = function(message, type = 'info') {
     }
 };
 
-window.showToastWithUndo = function(message, type, undoToken, undoUrl = '/api/v1/undo', duration = 5000) {
+window.showToastWithUndo = function(message, type, undoToken, undoUrl = window.apiUrl('/api/v1/undo'), duration = 5000) {
     if (typeof Alpine !== 'undefined' && Alpine.store('toasts')) {
         Alpine.store('toasts').showWithUndo(message, type, undoToken, undoUrl, duration);
     } else {

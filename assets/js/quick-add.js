@@ -59,7 +59,7 @@ export function quickAdd(apiToken) {
             this.isParsing = true;
 
             try {
-                const response = await fetch('/api/v1/parse', {
+                const response = await fetch(window.apiUrl('/api/v1/parse'), {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -194,7 +194,7 @@ export function quickAdd(apiToken) {
                     ? '/api/v1/autocomplete/projects'
                     : '/api/v1/autocomplete/tags';
 
-                const response = await fetch(`${endpoint}?q=${encodeURIComponent(this.autocompleteQuery)}`, {
+                const response = await fetch(window.apiUrl(`${endpoint}?q=${encodeURIComponent(this.autocompleteQuery)}`), {
                     headers: {
                         'Authorization': 'Bearer ' + this.apiToken
                     }
@@ -293,7 +293,7 @@ export function quickAdd(apiToken) {
 
             try {
                 if (this.apiToken) {
-                    const response = await fetch('/api/v1/tasks?parse_natural_language=true', {
+                    const response = await fetch(window.apiUrl('/api/v1/tasks?parse_natural_language=true'), {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',

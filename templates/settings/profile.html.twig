@@ -111,7 +111,7 @@ function profileSettings(initialSettings) {
             this.saveStatus = 'saving';
 
             try {
-                const response = await fetch('/api/v1/users/me/settings', {
+                const response = await fetch(window.apiUrl('/api/v1/users/me/settings'), {
                     method: 'PATCH',
                     headers: {
                         'Content-Type': 'application/json',

@@ -29,7 +29,7 @@ function searchComponent() {
             this.open = true;
 
             try {
-                const response = await fetch(`/api/v1/search?q=${encodeURIComponent(this.query)}&highlight=true&limit=5`);
+                const response = await fetch(window.apiUrl(`/api/v1/search?q=${encodeURIComponent(this.query)}&highlight=true&limit=5`));
                 if (response.ok) {
                     const data = await response.json();
                     if (data.success) {
@@ -67,13 +67,13 @@ function searchComponent() {
             const projectCount = this.results.projects.length;
 
             if (this.selectedIndex < taskCount) {
-                window.location.href = '/tasks/' + this.results.tasks[this.selectedIndex].id;
+                window.location.href = window.apiUrl('/tasks/' + this.results.tasks[this.selectedIndex].id);
             } else if (this.selectedIndex < taskCount + projectCount) {
                 const projectIndex = this.selectedIndex - taskCount;
-                window.location.href = '/projects/' + this.results.projects[projectIndex].id;
+                window.location.href = window.apiUrl('/projects/' + this.results.projects[projectIndex].id);
             } else {
                 const tagIndex = this.selectedIndex - taskCount - projectCount;
-                window.location.href = '/tasks?tagIds[]=' + this.results.tags[tagIndex].id;
+                window.location.href = window.apiUrl('/tasks?tagIds[]=' + this.results.tags[tagIndex].id);
             }
         },
 

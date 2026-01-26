@@ -165,7 +165,7 @@ function notificationDropdown() {
 
         async fetchUnreadCount() {
             try {
-                const response = await fetch('/api/v1/notifications/unread-count', {
+                const response = await fetch(window.apiUrl('/api/v1/notifications/unread-count'), {
                     headers: {
                         'Accept': 'application/json',
                     },
@@ -184,7 +184,7 @@ function notificationDropdown() {
         async fetchNotifications() {
             this.loading = true;
             try {
-                const response = await fetch('/api/v1/notifications?limit=20', {
+                const response = await fetch(window.apiUrl('/api/v1/notifications?limit=20'), {
                     headers: {
                         'Accept': 'application/json',
                     },
@@ -206,13 +206,13 @@ function notificationDropdown() {
             if (notification.isRead) {
                 // Navigate to task if there's a task ID
                 if (notification.data?.taskId) {
-                    window.location.href = `/tasks#task-${notification.data.taskId}`;
+                    window.location.href = window.apiUrl(`/tasks#task-${notification.data.taskId}`);
                 }
                 return;
             }
 
             try {
-                const response = await fetch(`/api/v1/notifications/${notification.id}/read`, {
+                const response = await fetch(window.apiUrl(`/api/v1/notifications/${notification.id}/read`), {
                     method: 'POST',
                     headers: {
                         'Accept': 'application/json',
@@ -226,7 +226,7 @@ function notificationDropdown() {
 
                     // Navigate to task if there's a task ID
                     if (notification.data?.taskId) {
-                        window.location.href = `/tasks#task-${notification.data.taskId}`;
+                        window.location.href = window.apiUrl(`/tasks#task-${notification.data.taskId}`);
                     }
                 }
             } catch (error) {
@@ -236,7 +236,7 @@ function notificationDropdown() {
 
         async markAllAsRead() {
             try {
-                const response = await fetch('/api/v1/notifications/read-all', {
+                const response = await fetch(window.apiUrl('/api/v1/notifications/read-all'), {
                     method: 'POST',
                     headers: {
                         'Accept': 'application/json',

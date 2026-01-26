@@ -9,6 +9,12 @@
     <link rel="stylesheet" href="{{ asset('build/tailwind.css') }}">
 
     {% block stylesheets %}{% endblock %}
+
+    <!-- Base path for JavaScript API calls -->
+    <script>
+        window.APP_BASE_PATH = '{{ app.request.basePath }}';
+        window.apiUrl = function(path) { return (window.APP_BASE_PATH || '') + path; };
+    </script>
 </head>
 <body class="h-full">
     <div class="min-h-full">

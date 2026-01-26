@@ -212,7 +212,7 @@ function notificationsPage() {
 
         async markAsRead(notificationId) {
             try {
-                const response = await fetch(`/api/v1/notifications/${notificationId}/read`, {
+                const response = await fetch(window.apiUrl(`/api/v1/notifications/${notificationId}/read`), {
                     method: 'POST',
                     headers: {
                         'Accept': 'application/json',
@@ -236,7 +236,7 @@ function notificationsPage() {
 
         async markAllAsRead() {
             try {
-                const response = await fetch('/api/v1/notifications/read-all', {
+                const response = await fetch(window.apiUrl('/api/v1/notifications/read-all'), {
                     method: 'POST',
                     headers: {
                         'Accept': 'application/json',

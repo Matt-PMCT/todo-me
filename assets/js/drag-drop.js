@@ -103,7 +103,7 @@ window.projectDragDrop = {
 
         // Call API to move project
         try {
-            const response = await fetch(`/api/v1/projects/${this.draggedProject.id}/move`, {
+            const response = await fetch(window.apiUrl(`/api/v1/projects/${this.draggedProject.id}/move`), {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -193,7 +193,7 @@ window.projectReorder = {
      */
     async reorderProjects(parentId, projectIds) {
         try {
-            const response = await fetch('/api/v1/projects/reorder', {
+            const response = await fetch(window.apiUrl('/api/v1/projects/reorder'), {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({

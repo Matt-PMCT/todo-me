@@ -297,7 +297,7 @@ function apiTokensManager() {
         async loadTokens() {
             this.loading = true;
             try {
-                const response = await fetch('/api/v1/users/me/tokens', {
+                const response = await fetch(window.apiUrl('/api/v1/users/me/tokens'), {
                     method: 'GET',
                     headers: {
                         'Accept': 'application/json',
@@ -352,7 +352,7 @@ function apiTokensManager() {
                     body.expiresAt = new Date(this.newToken.expiresAt).toISOString();
                 }
 
-                const response = await fetch('/api/v1/users/me/tokens', {
+                const response = await fetch(window.apiUrl('/api/v1/users/me/tokens'), {
                     method: 'POST',
                     headers: {
                         'Accept': 'application/json',
@@ -397,7 +397,7 @@ function apiTokensManager() {
 
             this.revoking = tokenId;
             try {
-                const response = await fetch(`/api/v1/users/me/tokens/${tokenId}`, {
+                const response = await fetch(window.apiUrl(`/api/v1/users/me/tokens/${tokenId}`), {
                     method: 'DELETE',
                     headers: {
                         'Accept': 'application/json',
