@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Controller\Web;
 
+use App\DTO\CreateProjectRequest;
 use App\DTO\CreateTaskRequest;
 use App\Entity\User;
 use App\Repository\ProjectRepository;
@@ -192,5 +193,93 @@ class TaskListController extends AbstractController
         }
 
         return $this->redirectToRoute('app_task_list');
+    }
+
+    #[Route('/projects/archived', name: 'app_projects_archived', methods: ['GET'])]
+    public function archived(): Response
+    {
+        /** @var User $user */
+        $user = $this->getUser();
+
+        // Get archived projects
+        $archivedProjects = $this->projectService->getArchivedProjects($user);
+
+        // Transform to array format for template
+        $projects = array_map(function ($project) {
+            return [
+                'id' => $project->getId(),
+                'name' => $project->getName(),
+                'description' => $project->getDescription(),
+                'color' => $project->getColor() ?? '#6366f1',
+                'archivedAt' => $project->getArchivedAt()?->format('c'),
+                'taskCount' => count($project->getTasks()),
+                'path' => $this->buildProjectPath($project),
+            ];
+        }, $archivedProjects);
+
+        return $this->render('project/archived.html.twig', [
+            'projects' => $projects,
+        ]);
+    }
+
+    #[Route('/projects', name: 'app_project_create', methods: ['POST'])]
+    public function createProject(Request $request): Response
+    {
+        /** @var User $user */
+        $user = $this->getUser();
+
+        // Validate CSRF token
+        $csrfToken = (string) $request->request->get('_csrf_token', '');
+        if (!$this->isCsrfTokenValid('create_project', $csrfToken)) {
+            $this->addFlash('error', 'Invalid security token. Please try again.');
+
+            return $this->redirectToRoute('app_task_list');
+        }
+
+        $name = trim((string) $request->request->get('name', ''));
+
+        if (empty($name)) {
+            $this->addFlash('error', 'Project name is required.');
+
+            return $this->redirectToRoute('app_task_list');
+        }
+
+        try {
+            $dto = CreateProjectRequest::fromArray([
+                'name' => $name,
+                'description' => $request->request->get('description') ?: null,
+                'parentId' => $request->request->get('parentId') ?: null,
+                'color' => $request->request->get('color') ?: null,
+            ]);
+
+            $this->projectService->create($user, $dto);
+
+            $this->addFlash('success', sprintf('Project "%s" created successfully.', $name));
+        } catch (\Exception $e) {
+            $this->addFlash('error', 'Failed to create project: '.$e->getMessage());
+        }
+
+        return $this->redirectToRoute('app_task_list');
+    }
+
+    /**
+     * Build the path breadcrumb for a project.
+     *
+     * @return array<array{id: string, name: string}>
+     */
+    private function buildProjectPath($project): array
+    {
+        $path = [];
+        $current = $project;
+
+        while ($current !== null) {
+            array_unshift($path, [
+                'id' => $current->getId(),
+                'name' => $current->getName(),
+            ]);
+            $current = $current->getParent();
+        }
+
+        return $path;
     }
 }

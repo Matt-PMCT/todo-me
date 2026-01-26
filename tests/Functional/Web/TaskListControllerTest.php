@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Tests\Functional\Web;
 
+use App\Entity\Project;
 use App\Entity\Task;
 use App\Tests\Functional\ApiTestCase;
 use Symfony\Component\HttpFoundation\Response;
@@ -292,5 +293,167 @@ class TaskListControllerTest extends ApiTestCase
         $this->entityManager->clear();
         $notDeletedTask = $this->entityManager->find(Task::class, $taskId);
         $this->assertNotNull($notDeletedTask);
+    }
+
+    // =====================================================
+    // Archived Projects Page Tests
+    // =====================================================
+
+    public function testArchivedProjectsRequiresAuthentication(): void
+    {
+        $this->client->request('GET', '/projects/archived');
+
+        $this->assertTrue($this->client->getResponse()->isRedirect());
+        $this->assertStringContainsString('/login', $this->client->getResponse()->headers->get('Location') ?? '');
+    }
+
+    public function testArchivedProjectsRendersForAuthenticatedUser(): void
+    {
+        $user = $this->createUser();
+        $this->client->loginUser($user);
+
+        $this->client->request('GET', '/projects/archived');
+
+        $this->assertResponseStatusCode(Response::HTTP_OK, $this->client->getResponse());
+        $this->assertSelectorTextContains('h1', 'Archived Projects');
+    }
+
+    public function testArchivedProjectsShowsOnlyArchivedProjects(): void
+    {
+        $user = $this->createUser();
+        $this->createProject($user, 'Active Project', null, false);
+        $this->createProject($user, 'Archived Project', null, true);
+        $this->client->loginUser($user);
+
+        $this->client->request('GET', '/projects/archived');
+
+        $this->assertResponseStatusCode(Response::HTTP_OK, $this->client->getResponse());
+        $this->assertSelectorTextContains('body', 'Archived Project');
+        $this->assertSelectorTextNotContains('body', 'Active Project');
+    }
+
+    public function testArchivedProjectsShowsEmptyStateWhenNoArchivedProjects(): void
+    {
+        $user = $this->createUser();
+        $this->createProject($user, 'Active Project', null, false);
+        $this->client->loginUser($user);
+
+        $this->client->request('GET', '/projects/archived');
+
+        $this->assertResponseStatusCode(Response::HTTP_OK, $this->client->getResponse());
+        $this->assertSelectorTextContains('body', 'No archived projects');
+    }
+
+    public function testArchivedProjectsDoesNotShowOtherUsersProjects(): void
+    {
+        $user1 = $this->createUser('user1-archived@example.com');
+        $user2 = $this->createUser('user2-archived@example.com');
+        $this->createProject($user1, 'User1 Archived', null, true);
+        $this->createProject($user2, 'User2 Archived', null, true);
+        $this->client->loginUser($user1);
+
+        $this->client->request('GET', '/projects/archived');
+
+        // The template uses Alpine.js for rendering, so check the JSON data instead
+        $content = $this->client->getResponse()->getContent();
+        $this->assertStringContainsString('User1 Archived', $content);
+        $this->assertStringNotContainsString('User2 Archived', $content);
+    }
+
+    // =====================================================
+    // Project Creation Tests
+    // =====================================================
+
+    public function testCreateProjectRequiresAuthentication(): void
+    {
+        $this->client->request('POST', '/projects', [
+            'name' => 'Test Project',
+        ]);
+
+        $this->assertTrue($this->client->getResponse()->isRedirect());
+        $this->assertStringContainsString('/login', $this->client->getResponse()->headers->get('Location') ?? '');
+    }
+
+    public function testCreateProjectWithValidData(): void
+    {
+        $user = $this->createUser();
+        $this->client->loginUser($user);
+
+        // Get page to establish session and get CSRF token
+        $crawler = $this->client->request('GET', '/tasks');
+        $csrfToken = $crawler->filter('input[name="_csrf_token"][data-action="create_project"]')->attr('value');
+
+        $this->client->request('POST', '/projects', [
+            'name' => 'New Test Project',
+            '_csrf_token' => $csrfToken,
+        ]);
+
+        $this->assertTrue($this->client->getResponse()->isRedirect());
+
+        // Verify project was created
+        $this->entityManager->clear();
+        $project = $this->entityManager->getRepository(Project::class)->findOneBy(['name' => 'New Test Project']);
+        $this->assertNotNull($project);
+        $this->assertEquals($user->getId(), $project->getOwner()->getId());
+    }
+
+    public function testCreateProjectWithEmptyNameShowsError(): void
+    {
+        $user = $this->createUser();
+        $this->client->loginUser($user);
+
+        $crawler = $this->client->request('GET', '/tasks');
+        $csrfToken = $crawler->filter('input[name="_csrf_token"][data-action="create_project"]')->attr('value');
+
+        $this->client->request('POST', '/projects', [
+            'name' => '',
+            '_csrf_token' => $csrfToken,
+        ]);
+
+        $this->assertTrue($this->client->getResponse()->isRedirect());
+        $this->client->followRedirect();
+        $this->assertSelectorTextContains('body', 'required');
+    }
+
+    public function testCreateProjectWithInvalidCsrfTokenShowsError(): void
+    {
+        $user = $this->createUser();
+        $this->client->loginUser($user);
+
+        $this->client->request('POST', '/projects', [
+            'name' => 'Test Project',
+            '_csrf_token' => 'invalid-token',
+        ]);
+
+        $this->assertTrue($this->client->getResponse()->isRedirect());
+        $this->client->followRedirect();
+        $this->assertSelectorTextContains('body', 'security token');
+    }
+
+    public function testCreateProjectWithOptionalFields(): void
+    {
+        $user = $this->createUser();
+        $parentProject = $this->createProject($user, 'Parent Project');
+        $this->client->loginUser($user);
+
+        $crawler = $this->client->request('GET', '/tasks');
+        $csrfToken = $crawler->filter('input[name="_csrf_token"][data-action="create_project"]')->attr('value');
+
+        $this->client->request('POST', '/projects', [
+            'name' => 'Child Project',
+            'description' => 'Test description',
+            'parentId' => (string) $parentProject->getId(),
+            'color' => '#FF5733',
+            '_csrf_token' => $csrfToken,
+        ]);
+
+        $this->assertTrue($this->client->getResponse()->isRedirect());
+
+        $this->entityManager->clear();
+        $project = $this->entityManager->getRepository(Project::class)->findOneBy(['name' => 'Child Project']);
+        $this->assertNotNull($project);
+        $this->assertEquals('Test description', $project->getDescription());
+        $this->assertEquals('#FF5733', $project->getColor());
+        $this->assertEquals($parentProject->getId(), $project->getParent()->getId());
     }
 }
