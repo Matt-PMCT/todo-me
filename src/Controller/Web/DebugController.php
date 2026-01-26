@@ -49,4 +49,10 @@ class DebugController extends AbstractController
             ],
         ], JSON_PRETTY_PRINT), 200, ['Content-Type' => 'application/json']);
     }
+
+    #[Route('/debug/assets', name: 'debug_assets')]
+    public function debugAssets(): Response
+    {
+        return $this->render('debug/assets.html.twig');
+    }
 }

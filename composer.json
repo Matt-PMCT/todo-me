@@ -19,6 +19,7 @@
         "nelmio/cors-bundle": "^2.4",
         "predis/predis": "^2.2",
         "spomky-labs/otphp": "^11.4",
+        "symfony/asset": "7.3.*",
         "symfony/asset-mapper": "^7.3",
         "symfony/console": "^7.3",
         "symfony/dotenv": "^7.3",
