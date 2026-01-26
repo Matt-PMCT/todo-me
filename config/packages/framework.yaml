@@ -20,12 +20,6 @@ framework:
     php_errors:
         log: true
 
-    # Request context for URL generation when behind reverse proxy with path prefix
-    # The asset() and path() Twig functions use this to generate correct URLs
-    request:
-        # Base path for URL generation (set via APP_PATH_PREFIX environment variable)
-        base_path: '%env(default::APP_PATH_PREFIX)%'
-
     # Rate limiter configuration (uses Redis if available)
     rate_limiter:
         anonymous_api:
