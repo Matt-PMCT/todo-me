@@ -13,6 +13,9 @@
 services:
   php:
     environment:
+      # Set production environment - must be set before loading .env files
+      - APP_ENV=prod
+      - APP_DEBUG=0
       # Disable OPcache timestamp validation for production performance
       - PHP_OPCACHE_VALIDATE_TIMESTAMPS=0
       # Redis password for authenticated connections
