@@ -247,7 +247,7 @@ final class ImportService
     {
         $stats = ['tasks' => 0, 'projects' => 0, 'tags' => 0];
 
-        $lines = str_getcsv($csvContent, "\n", "\"", "\\");
+        $lines = str_getcsv($csvContent, "\n", '"', '\\');
         if (empty($lines)) {
             return $stats;
         }
@@ -258,7 +258,7 @@ final class ImportService
             return $stats;
         }
 
-        $headers = str_getcsv($headerLine, ",", "\"", "\\");
+        $headers = str_getcsv($headerLine, ',', '"', '\\');
 
         // Normalize headers
         $headers = array_map(fn ($h) => strtolower(trim($h)), $headers);
@@ -275,7 +275,7 @@ final class ImportService
                     continue;
                 }
 
-                $row = str_getcsv($line, ",", "\"", "\\");
+                $row = str_getcsv($line, ',', '"', '\\');
 
                 // Skip if row doesn't have enough columns
                 if (count($row) < count($headers)) {
