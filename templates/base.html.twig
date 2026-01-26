@@ -390,6 +390,11 @@
     <!-- Keyboard help modal -->
     {% include 'components/keyboard-help-modal.html.twig' %}
 
+    {% if app.user %}
+    <!-- Project create modal -->
+    {% include 'components/project-create-modal.html.twig' with { sidebar_projects: sidebar_projects|default([]) } %}
+    {% endif %}
+
     {% block javascripts %}{% endblock %}
             {% block importmap %}{{ importmap('app') }}{% endblock %}
 </body>

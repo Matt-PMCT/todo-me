@@ -96,6 +96,14 @@ final class ProjectService
         $project->setName($dto->name);
         $project->setDescription($dto->description);
 
+        if ($dto->color !== null) {
+            $project->setColor($dto->color);
+        }
+
+        if ($dto->icon !== null) {
+            $project->setIcon($dto->icon);
+        }
+
         // Handle parent assignment
         if ($dto->parentId !== null) {
             $parent = $this->validateAndGetParent($user, $dto->parentId);
