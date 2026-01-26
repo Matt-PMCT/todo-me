@@ -13,7 +13,7 @@ document.addEventListener('alpine:init', () => {
         tree: projects || [],
         selectedProjectId: selectedProjectId || null,
         showArchived: showArchived || false,
-        apiBaseUrl: apiBaseUrl || '/api/v1/projects/tree',
+        apiBaseUrl: apiBaseUrl || window.apiUrl('/api/v1/projects/tree'),
         loading: false,
         collapsedIds: [],
         draggedProject: null,
@@ -228,7 +228,7 @@ document.addEventListener('alpine:init', () => {
          */
         addSubproject(parentId) {
             // Redirect to create project with parent pre-filled
-            window.location.href = `/projects/new?parent=${parentId}`;
+            window.location.href = window.apiUrl(`/projects/new?parent=${parentId}`);
         },
 
         /**
@@ -236,7 +236,7 @@ document.addEventListener('alpine:init', () => {
          */
         async archiveProject(projectId) {
             try {
-                const response = await fetch(`/api/v1/projects/${projectId}/archive`, {
+                const response = await fetch(window.apiUrl(`/api/v1/projects/${projectId}/archive`), {
                     method: 'PATCH',
                     headers: { 'Content-Type': 'application/json' }
                 });
@@ -259,7 +259,7 @@ document.addEventListener('alpine:init', () => {
          */
         async unarchiveProject(projectId) {
             try {
-                const response = await fetch(`/api/v1/projects/${projectId}/unarchive`, {
+                const response = await fetch(window.apiUrl(`/api/v1/projects/${projectId}/unarchive`), {
                     method: 'PATCH',
                     headers: { 'Content-Type': 'application/json' }
                 });

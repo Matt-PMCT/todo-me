@@ -299,7 +299,7 @@ function notificationSettings(initialSettings) {
             this.saveStatus = 'saving';
 
             try {
-                const response = await fetch('/api/v1/notifications/preferences', {
+                const response = await fetch(window.apiUrl('/api/v1/notifications/preferences'), {
                     method: 'PATCH',
                     headers: {
                         'Content-Type': 'application/json',

@@ -117,7 +117,7 @@ document.addEventListener('alpine:init', () => {
             this.loading[projectId] = true;
 
             try {
-                const response = await fetch(`/api/v1/projects/${projectId}/unarchive`, {
+                const response = await fetch(window.apiUrl(`/api/v1/projects/${projectId}/unarchive`), {
                     method: 'PATCH',
                     headers: {
                         'Content-Type': 'application/json',

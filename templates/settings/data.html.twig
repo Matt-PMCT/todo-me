@@ -268,7 +268,7 @@ function dataManager() {
         async exportData(format) {
             this.exporting = true;
             try {
-                const response = await fetch('/api/v1/users/me/export', {
+                const response = await fetch(window.apiUrl('/api/v1/users/me/export'), {
                     method: 'GET',
                     headers: {
                         'Accept': 'application/json',
@@ -407,7 +407,7 @@ function dataManager() {
             this.deleteError = '';
 
             try {
-                const response = await fetch('/api/v1/users/me', {
+                const response = await fetch(window.apiUrl('/api/v1/users/me'), {
                     method: 'DELETE',
                     headers: {
                         'Content-Type': 'application/json',

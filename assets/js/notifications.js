@@ -46,7 +46,7 @@ class NotificationManager {
      */
     async fetchUnreadCount() {
         try {
-            const response = await fetch('/api/v1/notifications/unread-count', {
+            const response = await fetch(window.apiUrl('/api/v1/notifications/unread-count'), {
                 credentials: 'same-origin',
                 headers: {
                     'Accept': 'application/json'
@@ -88,7 +88,7 @@ class NotificationManager {
         }
 
         try {
-            const response = await fetch(`/api/v1/notifications?${params}`, {
+            const response = await fetch(window.apiUrl(`/api/v1/notifications?${params}`), {
                 credentials: 'same-origin',
                 headers: {
                     'Accept': 'application/json'
@@ -112,7 +112,7 @@ class NotificationManager {
      */
     async markAsRead(notificationId) {
         try {
-            const response = await fetch(`/api/v1/notifications/${notificationId}/read`, {
+            const response = await fetch(window.apiUrl(`/api/v1/notifications/${notificationId}/read`), {
                 method: 'POST',
                 credentials: 'same-origin',
                 headers: {
@@ -142,7 +142,7 @@ class NotificationManager {
      */
     async markAllAsRead() {
         try {
-            const response = await fetch('/api/v1/notifications/read-all', {
+            const response = await fetch(window.apiUrl('/api/v1/notifications/read-all'), {
                 method: 'POST',
                 credentials: 'same-origin',
                 headers: {

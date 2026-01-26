@@ -27,7 +27,7 @@ class PushNotifications {
 
         try {
             // Register service worker
-            this.swRegistration = await navigator.serviceWorker.register('/sw.js');
+            this.swRegistration = await navigator.serviceWorker.register(window.apiUrl('/sw.js'));
             console.log('[Push] Service worker registered');
 
             // Check current subscription status
@@ -48,7 +48,7 @@ class PushNotifications {
      */
     async getVapidKey() {
         try {
-            const response = await fetch('/api/v1/push/vapid-key', {
+            const response = await fetch(window.apiUrl('/api/v1/push/vapid-key'), {
                 credentials: 'same-origin'
             });
 
@@ -115,7 +115,7 @@ class PushNotifications {
             console.log('[Push] User subscribed:', subscription);
 
             // Send subscription to server
-            const response = await fetch('/api/v1/push/subscribe', {
+            const response = await fetch(window.apiUrl('/api/v1/push/subscribe'), {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -157,7 +157,7 @@ class PushNotifications {
             }
 
             // Remove from server first
-            await fetch('/api/v1/push/unsubscribe', {
+            await fetch(window.apiUrl('/api/v1/push/unsubscribe'), {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
