@@ -202,20 +202,11 @@ function profileSettings(initialSettings) {
             this.saveStatus = 'saving';
 
             try {
-                const response = await fetch(window.apiUrl('/api/v1/users/me/settings'), {
-                    method: 'PATCH',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Accept': 'application/json',
-                        'Authorization': 'Bearer {{ app.user.apiToken }}'
-                    },
-                    credentials: 'same-origin',
-                    body: JSON.stringify({
-                        timezone: this.settings.timezone,
-                        dateFormat: this.settings.date_format,
-                        startOfWeek: parseInt(this.settings.start_of_week, 10),
-                        taskSpacing: this.settings.task_spacing
-                    })
+                const response = await window.api.patch('/api/v1/users/me/settings', {
+                    timezone: this.settings.timezone,
+                    dateFormat: this.settings.date_format,
+                    startOfWeek: parseInt(this.settings.start_of_week, 10),
+                    taskSpacing: this.settings.task_spacing
                 });
 
                 if (response.ok) {

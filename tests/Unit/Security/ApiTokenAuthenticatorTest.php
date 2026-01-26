@@ -489,8 +489,9 @@ class ApiTokenAuthenticatorTest extends UnitTestCase
     {
         $reflection = new \ReflectionClass($user);
 
-        $tokenProperty = $reflection->getProperty('apiToken');
-        $tokenProperty->setValue($user, $token);
+        // Token is stored as SHA256 hash
+        $tokenProperty = $reflection->getProperty('apiTokenHash');
+        $tokenProperty->setValue($user, hash('sha256', $token));
 
         $expiresAt = $expired
             ? new \DateTimeImmutable('-1 hour')

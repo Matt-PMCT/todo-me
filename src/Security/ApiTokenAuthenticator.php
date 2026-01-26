@@ -18,6 +18,7 @@ use Symfony\Component\Security\Http\Authenticator\AbstractAuthenticator;
 use Symfony\Component\Security\Http\Authenticator\Passport\Badge\UserBadge;
 use Symfony\Component\Security\Http\Authenticator\Passport\Passport;
 use Symfony\Component\Security\Http\Authenticator\Passport\SelfValidatingPassport;
+use Symfony\Component\Security\Http\EntryPoint\AuthenticationEntryPointInterface;
 
 /**
  * Custom authenticator for API token authentication.
@@ -30,7 +31,7 @@ use Symfony\Component\Security\Http\Authenticator\Passport\SelfValidatingPasspor
  * 1. Named API tokens (prefixed with "tm_") - stored in api_tokens table
  * 2. User login tokens - stored in users.api_token column
  */
-final class ApiTokenAuthenticator extends AbstractAuthenticator
+final class ApiTokenAuthenticator extends AbstractAuthenticator implements AuthenticationEntryPointInterface
 {
     private const BEARER_PREFIX = 'Bearer ';
     private const API_KEY_HEADER = 'X-API-Key';
@@ -209,6 +210,27 @@ final class ApiTokenAuthenticator extends AbstractAuthenticator
         $authHeader = $request->headers->get('Authorization', '');
 
         return str_starts_with($authHeader, self::BEARER_PREFIX);
+    }
+
+    /**
+     * Called when authentication is required but not provided.
+     * Implements AuthenticationEntryPointInterface for use as entry_point in security config.
+     */
+    public function start(Request $request, ?AuthenticationException $authException = null): Response
+    {
+        $data = [
+            'success' => false,
+            'data' => null,
+            'error' => [
+                'code' => 'AUTHENTICATION_REQUIRED',
+                'message' => 'Authentication required. Please provide a valid API token.',
+            ],
+            'meta' => [
+                'timestamp' => (new \DateTimeImmutable())->format(\DateTimeInterface::RFC3339_EXTENDED),
+            ],
+        ];
+
+        return new JsonResponse($data, Response::HTTP_UNAUTHORIZED);
     }
 
     /**

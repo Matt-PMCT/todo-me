@@ -66,11 +66,16 @@ class UserServiceTest extends UnitTestCase
         $this->entityManager->expects($this->once())
             ->method('flush');
 
-        $user = $this->userService->register($email, $password);
+        $result = $this->userService->register($email, $password);
+
+        $user = $result['user'];
+        $plainToken = $result['token'];
 
         $this->assertEquals($email, $user->getEmail());
         $this->assertEquals($hashedPassword, $user->getPasswordHash());
-        $this->assertEquals($apiToken, $user->getApiToken());
+        // Token is stored as SHA256 hash, plaintext returned separately
+        $this->assertEquals(hash('sha256', $plainToken), $user->getApiTokenHash());
+        $this->assertEquals($apiToken, $plainToken);
     }
 
     public function testRegisterHashesPassword(): void
@@ -89,7 +94,8 @@ class UserServiceTest extends UnitTestCase
         $this->entityManager->method('persist');
         $this->entityManager->method('flush');
 
-        $user = $this->userService->register('test@example.com', $plainPassword);
+        $result = $this->userService->register('test@example.com', $plainPassword);
+        $user = $result['user'];
 
         $this->assertEquals('hashed_value', $user->getPasswordHash());
         $this->assertNotEquals($plainPassword, $user->getPasswordHash());
@@ -108,9 +114,13 @@ class UserServiceTest extends UnitTestCase
         $this->entityManager->method('persist');
         $this->entityManager->method('flush');
 
-        $user = $this->userService->register('test@example.com', 'password123');
+        $result = $this->userService->register('test@example.com', 'password123');
+        $user = $result['user'];
+        $plainToken = $result['token'];
 
-        $this->assertEquals($expectedToken, $user->getApiToken());
+        // Token is stored as SHA256 hash, plaintext returned separately
+        $this->assertEquals(hash('sha256', $expectedToken), $user->getApiTokenHash());
+        $this->assertEquals($expectedToken, $plainToken);
     }
 
     public function testRegisterPersistsUser(): void
@@ -138,7 +148,7 @@ class UserServiceTest extends UnitTestCase
     public function testGenerateNewApiTokenUpdatesToken(): void
     {
         $user = $this->createUserWithId();
-        $user->setApiToken('old_token');
+        $user->setApiTokenHash(hash('sha256', 'old_token'));
         $newToken = 'new_generated_token';
 
         $this->tokenGenerator->expects($this->once())
@@ -154,8 +164,10 @@ class UserServiceTest extends UnitTestCase
 
         $result = $this->userService->generateNewApiToken($user);
 
+        // Method returns plaintext token for the user to store
         $this->assertEquals($newToken, $result);
-        $this->assertEquals($newToken, $user->getApiToken());
+        // User entity stores hash of the token
+        $this->assertEquals(hash('sha256', $newToken), $user->getApiTokenHash());
     }
 
     public function testGenerateNewApiTokenReturnsNewToken(): void
@@ -182,7 +194,7 @@ class UserServiceTest extends UnitTestCase
     public function testRevokeApiTokenSetsToNull(): void
     {
         $user = $this->createUserWithId();
-        $user->setApiToken('existing_token');
+        $user->setApiTokenHash(hash('sha256', 'existing_token'));
 
         $this->entityManager->expects($this->once())
             ->method('persist')
@@ -193,13 +205,13 @@ class UserServiceTest extends UnitTestCase
 
         $this->userService->revokeApiToken($user);
 
-        $this->assertNull($user->getApiToken());
+        $this->assertNull($user->getApiTokenHash());
     }
 
     public function testRevokeApiTokenPersistsUser(): void
     {
         $user = $this->createUserWithId();
-        $user->setApiToken('token');
+        $user->setApiTokenHash(hash('sha256', 'token'));
 
         $this->entityManager->expects($this->once())
             ->method('persist')
@@ -342,12 +354,13 @@ class UserServiceTest extends UnitTestCase
     {
         $token = 'valid_api_token';
         $user = $this->createUserWithId();
-        $user->setApiToken($token);
+        $user->setApiTokenHash(hash('sha256', $token));
         $user->setApiTokenExpiresAt(new \DateTimeImmutable('+1 hour'));
 
+        // Service hashes token before querying repository
         $this->userRepository->expects($this->once())
-            ->method('findByApiToken')
-            ->with($token)
+            ->method('findByApiTokenHash')
+            ->with(hash('sha256', $token))
             ->willReturn($user);
 
         $result = $this->userService->findByApiToken($token);
@@ -359,9 +372,10 @@ class UserServiceTest extends UnitTestCase
     {
         $token = 'invalid_token';
 
+        // Service hashes token before querying repository
         $this->userRepository->expects($this->once())
-            ->method('findByApiToken')
-            ->with($token)
+            ->method('findByApiTokenHash')
+            ->with(hash('sha256', $token))
             ->willReturn(null);
 
         $result = $this->userService->findByApiToken($token);
@@ -383,7 +397,8 @@ class UserServiceTest extends UnitTestCase
         $this->entityManager->method('persist');
         $this->entityManager->method('flush');
 
-        $user = $this->userService->register($email, $password);
+        $result = $this->userService->register($email, $password);
+        $user = $result['user'];
 
         $this->assertNotNull($user->getApiTokenIssuedAt());
         $this->assertNotNull($user->getApiTokenExpiresAt());
@@ -393,7 +408,7 @@ class UserServiceTest extends UnitTestCase
     public function testGenerateNewApiTokenSetsExpiration(): void
     {
         $user = $this->createUserWithId();
-        $user->setApiToken('old_token');
+        $user->setApiTokenHash(hash('sha256', 'old_token'));
 
         $this->tokenGenerator->method('generateApiToken')->willReturn('new_token');
         $this->entityManager->method('persist');
@@ -408,11 +423,12 @@ class UserServiceTest extends UnitTestCase
     public function testFindByApiTokenReturnsNullForExpiredToken(): void
     {
         $user = $this->createUserWithId();
-        $user->setApiToken('expired_token');
+        $user->setApiTokenHash(hash('sha256', 'expired_token'));
         $user->setApiTokenExpiresAt(new \DateTimeImmutable('-1 hour'));
 
-        $this->userRepository->method('findByApiToken')
-            ->with('expired_token')
+        // Service hashes token before querying repository
+        $this->userRepository->method('findByApiTokenHash')
+            ->with(hash('sha256', 'expired_token'))
             ->willReturn($user);
 
         $result = $this->userService->findByApiToken('expired_token');
@@ -423,11 +439,12 @@ class UserServiceTest extends UnitTestCase
     public function testFindByApiTokenReturnsUserForValidToken(): void
     {
         $user = $this->createUserWithId();
-        $user->setApiToken('valid_token');
+        $user->setApiTokenHash(hash('sha256', 'valid_token'));
         $user->setApiTokenExpiresAt(new \DateTimeImmutable('+1 hour'));
 
-        $this->userRepository->method('findByApiToken')
-            ->with('valid_token')
+        // Service hashes token before querying repository
+        $this->userRepository->method('findByApiTokenHash')
+            ->with(hash('sha256', 'valid_token'))
             ->willReturn($user);
 
         $result = $this->userService->findByApiToken('valid_token');
@@ -438,11 +455,12 @@ class UserServiceTest extends UnitTestCase
     public function testFindByApiTokenIgnoreExpirationReturnsExpiredUser(): void
     {
         $user = $this->createUserWithId();
-        $user->setApiToken('expired_token');
+        $user->setApiTokenHash(hash('sha256', 'expired_token'));
         $user->setApiTokenExpiresAt(new \DateTimeImmutable('-1 hour'));
 
-        $this->userRepository->method('findByApiToken')
-            ->with('expired_token')
+        // Service hashes token before querying repository
+        $this->userRepository->method('findByApiTokenHash')
+            ->with(hash('sha256', 'expired_token'))
             ->willReturn($user);
 
         $result = $this->userService->findByApiTokenIgnoreExpiration('expired_token');

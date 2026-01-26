@@ -103,7 +103,6 @@ class TaskListController extends AbstractController
             'groupedTasks' => $groupedTasks,
             'showCompleted' => $showCompleted,
             'taskSpacing' => $user->getTaskSpacing(),
-            'apiToken' => $user->getApiToken(),
             'sidebar_projects' => $sidebarProjects,
             'sidebar_tags' => $tags,
             'selected_project_id' => $projectId,

@@ -212,14 +212,7 @@ function notificationsPage() {
 
         async markAsRead(notificationId) {
             try {
-                const response = await fetch(window.apiUrl(`/api/v1/notifications/${notificationId}/read`), {
-                    method: 'POST',
-                    headers: {
-                        'Accept': 'application/json',
-                        'Authorization': 'Bearer {{ app.user.apiToken }}'
-                    },
-                    credentials: 'same-origin'
-                });
+                const response = await window.api.post(`/api/v1/notifications/${notificationId}/read`, {});
 
                 if (response.ok) {
                     this.readNotifications.push(notificationId);
@@ -237,14 +230,7 @@ function notificationsPage() {
 
         async markAllAsRead() {
             try {
-                const response = await fetch(window.apiUrl('/api/v1/notifications/read-all'), {
-                    method: 'POST',
-                    headers: {
-                        'Accept': 'application/json',
-                        'Authorization': 'Bearer {{ app.user.apiToken }}'
-                    },
-                    credentials: 'same-origin'
-                });
+                const response = await window.api.post('/api/v1/notifications/read-all', {});
 
                 if (response.ok) {
                     // Reload the page to reflect changes

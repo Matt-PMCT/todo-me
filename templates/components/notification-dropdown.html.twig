@@ -1,5 +1,5 @@
 {# Notification dropdown component for the navigation bar #}
-<div x-data="notificationDropdown('{{ apiToken|default('')|e('js') }}')" class="relative">
+<div x-data="notificationDropdown()" class="relative">
     {# Notification bell button #}
     <button
         @click="toggle()"
@@ -132,9 +132,8 @@
 </div>
 
 <script>
-function notificationDropdown(apiToken) {
+function notificationDropdown() {
     return {
-        apiToken: apiToken,
         open: false,
         loading: false,
         notifications: [],
@@ -166,12 +165,7 @@ function notificationDropdown(apiToken) {
 
         async fetchUnreadCount() {
             try {
-                const response = await fetch(window.apiUrl('/api/v1/notifications/unread-count'), {
-                    headers: {
-                        'Accept': 'application/json',
-                        'Authorization': 'Bearer ' + this.apiToken
-                    }
-                });
+                const response = await window.api.get('/api/v1/notifications/unread-count');
 
                 if (response.ok) {
                     const data = await response.json();
@@ -185,12 +179,7 @@ function notificationDropdown(apiToken) {
         async fetchNotifications() {
             this.loading = true;
             try {
-                const response = await fetch(window.apiUrl('/api/v1/notifications?limit=20'), {
-                    headers: {
-                        'Accept': 'application/json',
-                        'Authorization': 'Bearer ' + this.apiToken
-                    }
-                });
+                const response = await window.api.get('/api/v1/notifications?limit=20');
 
                 if (response.ok) {
                     const data = await response.json();
@@ -213,13 +202,7 @@ function notificationDropdown(apiToken) {
             }
 
             try {
-                const response = await fetch(window.apiUrl(`/api/v1/notifications/${notification.id}/read`), {
-                    method: 'POST',
-                    headers: {
-                        'Accept': 'application/json',
-                        'Authorization': 'Bearer ' + this.apiToken
-                    }
-                });
+                const response = await window.api.post(`/api/v1/notifications/${notification.id}/read`, {});
 
                 if (response.ok) {
                     notification.isRead = true;
@@ -237,13 +220,7 @@ function notificationDropdown(apiToken) {
 
         async markAllAsRead() {
             try {
-                const response = await fetch(window.apiUrl('/api/v1/notifications/read-all'), {
-                    method: 'POST',
-                    headers: {
-                        'Accept': 'application/json',
-                        'Authorization': 'Bearer ' + this.apiToken
-                    }
-                });
+                const response = await window.api.post('/api/v1/notifications/read-all', {});
 
                 if (response.ok) {
                     this.notifications.forEach(n => n.isRead = true);

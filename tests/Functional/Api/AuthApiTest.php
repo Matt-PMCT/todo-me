@@ -180,7 +180,7 @@ class AuthApiTest extends ApiTestCase
     public function testRevokeTokenSuccess(): void
     {
         $user = $this->createUser('revoke@example.com', 'Password123');
-        $originalToken = $user->getApiToken();
+        $originalToken = $this->getUserApiToken($user);
 
         $response = $this->authenticatedApiRequest(
             $user,
@@ -190,9 +190,9 @@ class AuthApiTest extends ApiTestCase
 
         $this->assertResponseStatusCode(Response::HTTP_NO_CONTENT, $response);
 
-        // Verify the token was revoked
+        // Verify the token was revoked (check the hash stored in DB)
         $this->entityManager->refresh($user);
-        $this->assertNull($user->getApiToken());
+        $this->assertNull($user->getApiTokenHash());
     }
 
     public function testRevokeTokenUnauthenticated(): void
@@ -269,7 +269,7 @@ class AuthApiTest extends ApiTestCase
             'GET',
             '/api/v1/auth/me',
             null,
-            ['Authorization' => 'Bearer '.$user->getApiToken()]
+            ['Authorization' => 'Bearer '.$this->getUserApiToken($user)]
         );
 
         $this->assertResponseStatusCode(Response::HTTP_OK, $response);
@@ -286,7 +286,7 @@ class AuthApiTest extends ApiTestCase
             'GET',
             '/api/v1/auth/me',
             null,
-            ['X-API-Key' => $user->getApiToken()]
+            ['X-API-Key' => $this->getUserApiToken($user)]
         );
 
         $this->assertResponseStatusCode(Response::HTTP_OK, $response);
@@ -306,8 +306,8 @@ class AuthApiTest extends ApiTestCase
             '/api/v1/auth/me',
             null,
             [
-                'Authorization' => 'Bearer '.$user1->getApiToken(),
-                'X-API-Key' => $user2->getApiToken(),
+                'Authorization' => 'Bearer '.$this->getUserApiToken($user1),
+                'X-API-Key' => $this->getUserApiToken($user2),
             ]
         );
 
@@ -339,7 +339,7 @@ class AuthApiTest extends ApiTestCase
             'GET',
             '/api/v1/auth/me',
             null,
-            ['Authorization' => $user->getApiToken()]
+            ['Authorization' => $this->getUserApiToken($user)]
         );
 
         // Without Bearer prefix, it should fall back to checking X-API-Key
@@ -453,7 +453,7 @@ class AuthApiTest extends ApiTestCase
     public function testTokenIsRegeneratedOnLogin(): void
     {
         $user = $this->createUser('regenerate@example.com', 'Password123');
-        $originalToken = $user->getApiToken();
+        $originalToken = $this->getUserApiToken($user);
 
         $response = $this->apiRequest('POST', '/api/v1/auth/token', [
             'email' => 'regenerate@example.com',
@@ -551,7 +551,7 @@ class AuthApiTest extends ApiTestCase
     public function testRefreshTokenSuccess(): void
     {
         $user = $this->createUser('refresh@example.com', 'Password123');
-        $originalToken = $user->getApiToken();
+        $originalToken = $this->getUserApiToken($user);
 
         $response = $this->apiRequest(
             'POST',
@@ -572,7 +572,7 @@ class AuthApiTest extends ApiTestCase
     public function testRefreshTokenWithXApiKey(): void
     {
         $user = $this->createUser('refreshkey@example.com', 'Password123');
-        $originalToken = $user->getApiToken();
+        $originalToken = $this->getUserApiToken($user);
 
         $response = $this->apiRequest(
             'POST',
@@ -590,7 +590,7 @@ class AuthApiTest extends ApiTestCase
     public function testRefreshTokenWithExpiredToken(): void
     {
         $user = $this->createUser('refreshexpired@example.com', 'Password123');
-        $originalToken = $user->getApiToken();
+        $originalToken = $this->getUserApiToken($user);
 
         // Manually expire the token (but within the 7-day refresh window)
         $user->setApiTokenExpiresAt(new \DateTimeImmutable('-1 hour'));
@@ -633,7 +633,7 @@ class AuthApiTest extends ApiTestCase
     public function testRefreshTokenOutsideWindow(): void
     {
         $user = $this->createUser('refreshold@example.com', 'Password123');
-        $originalToken = $user->getApiToken();
+        $originalToken = $this->getUserApiToken($user);
 
         // Manually set token to be expired for more than 7 days
         $user->setApiTokenExpiresAt(new \DateTimeImmutable('-8 days'));

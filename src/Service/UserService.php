@@ -31,9 +31,9 @@ final class UserService implements UserServiceInterface
      * @param string $email         The user's email address
      * @param string $plainPassword The user's plain text password
      *
-     * @return User The newly created user
+     * @return array{user: User, token: string} The newly created user and their plaintext API token
      */
-    public function register(string $email, string $plainPassword): User
+    public function register(string $email, string $plainPassword): array
     {
         $user = new User();
         $user->setEmail($email);
@@ -45,12 +45,12 @@ final class UserService implements UserServiceInterface
         $hashedPassword = $this->passwordHasher->hashPassword($user, $plainPassword);
         $user->setPasswordHash($hashedPassword);
 
-        $this->setNewApiToken($user);
+        $plainToken = $this->setNewApiToken($user);
 
         $this->entityManager->persist($user);
         $this->entityManager->flush();
 
-        return $user;
+        return ['user' => $user, 'token' => $plainToken];
     }
 
     /**
@@ -58,30 +58,35 @@ final class UserService implements UserServiceInterface
      *
      * @param User $user The user to generate a new token for
      *
-     * @return string The new API token
+     * @return string The new API token (plaintext, only returned once)
      */
     public function generateNewApiToken(User $user): string
     {
-        $this->setNewApiToken($user);
+        $plainToken = $this->setNewApiToken($user);
 
         $this->entityManager->persist($user);
         $this->entityManager->flush();
 
-        return $user->getApiToken();
+        return $plainToken;
     }
 
     /**
      * Sets a new API token with expiration on the user.
+     *
+     * @return string The plaintext token (only returned once, never stored)
      */
-    private function setNewApiToken(User $user): void
+    private function setNewApiToken(User $user): string
     {
-        $apiToken = $this->tokenGenerator->generateApiToken();
+        $plainToken = $this->tokenGenerator->generateApiToken();
+        $hashedToken = hash('sha256', $plainToken);
         $now = new \DateTimeImmutable();
         $expiresAt = $now->modify("+{$this->apiTokenTtlHours} hours");
 
-        $user->setApiToken($apiToken);
+        $user->setApiTokenHash($hashedToken);
         $user->setApiTokenIssuedAt($now);
         $user->setApiTokenExpiresAt($expiresAt);
+
+        return $plainToken;
     }
 
     /**
@@ -91,7 +96,7 @@ final class UserService implements UserServiceInterface
      */
     public function revokeApiToken(User $user): void
     {
-        $user->setApiToken(null);
+        $user->setApiTokenHash(null);
 
         $this->entityManager->persist($user);
         $this->entityManager->flush();
@@ -141,13 +146,14 @@ final class UserService implements UserServiceInterface
      * Finds a user by API token.
      * Returns null if token is not found OR if token is expired.
      *
-     * @param string $token The API token to search for
+     * @param string $token The plaintext API token to search for
      *
      * @return User|null The user if found and token is valid, null otherwise
      */
     public function findByApiToken(string $token): ?User
     {
-        $user = $this->userRepository->findByApiToken($token);
+        $hashedToken = hash('sha256', $token);
+        $user = $this->userRepository->findByApiTokenHash($hashedToken);
 
         if ($user === null) {
             return null;
@@ -165,13 +171,15 @@ final class UserService implements UserServiceInterface
      * Finds a user by API token without checking expiration.
      * Used for token refresh where expired tokens are allowed.
      *
-     * @param string $token The API token to search for
+     * @param string $token The plaintext API token to search for
      *
      * @return User|null The user if found, null otherwise
      */
     public function findByApiTokenIgnoreExpiration(string $token): ?User
     {
-        return $this->userRepository->findByApiToken($token);
+        $hashedToken = hash('sha256', $token);
+
+        return $this->userRepository->findByApiTokenHash($hashedToken);
     }
 
     /**

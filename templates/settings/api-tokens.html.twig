@@ -301,7 +301,7 @@ function apiTokensManager() {
                     method: 'GET',
                     headers: {
                         'Accept': 'application/json',
-                        'Authorization': 'Bearer {{ app.user.apiToken }}'
+                        'X-CSRF-Token': window.getCsrfToken()
                     },
                     credentials: 'same-origin',
                 });
@@ -358,7 +358,7 @@ function apiTokensManager() {
                     headers: {
                         'Accept': 'application/json',
                         'Content-Type': 'application/json',
-                        'Authorization': 'Bearer {{ app.user.apiToken }}'
+                        'X-CSRF-Token': window.getCsrfToken()
                     },
                     credentials: 'same-origin',
                     body: JSON.stringify(body),
@@ -403,7 +403,7 @@ function apiTokensManager() {
                     method: 'DELETE',
                     headers: {
                         'Accept': 'application/json',
-                        'Authorization': 'Bearer {{ app.user.apiToken }}'
+                        'X-CSRF-Token': window.getCsrfToken()
                     },
                     credentials: 'same-origin',
                 });

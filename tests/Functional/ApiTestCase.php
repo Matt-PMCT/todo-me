@@ -29,6 +29,15 @@ abstract class ApiTestCase extends WebTestCase
     protected ?EntityManagerInterface $entityManager = null;
     protected ?KernelBrowser $client = null;
 
+    /**
+     * Stores plaintext API tokens for test users.
+     * Tokens are hashed before storage in the database, but tests need
+     * access to the plaintext token for authentication headers.
+     *
+     * @var array<string, string> Map of user ID => plaintext token
+     */
+    protected static array $userTokens = [];
+
     protected function setUp(): void
     {
         parent::setUp();
@@ -55,10 +64,22 @@ abstract class ApiTestCase extends WebTestCase
         $this->entityManager = null;
         $this->client = null;
 
+        // Clear token map to prevent memory leaks
+        self::$userTokens = [];
+
         parent::tearDown();
 
         // Force garbage collection to prevent memory accumulation in web tests
         gc_collect_cycles();
+    }
+
+    /**
+     * Gets the plaintext API token for a test user.
+     * Use this instead of $user->getApiToken() since tokens are now stored as hashes.
+     */
+    protected function getUserApiToken(User $user): ?string
+    {
+        return self::$userTokens[$user->getId()] ?? null;
     }
 
     /**
@@ -67,7 +88,8 @@ abstract class ApiTestCase extends WebTestCase
     protected function createAuthenticatedClient(User $user): KernelBrowser
     {
         $client = static::createClient();
-        $client->setServerParameter('HTTP_AUTHORIZATION', 'Bearer '.$user->getApiToken());
+        $token = $this->getUserApiToken($user);
+        $client->setServerParameter('HTTP_AUTHORIZATION', 'Bearer '.$token);
 
         return $client;
     }
@@ -78,7 +100,8 @@ abstract class ApiTestCase extends WebTestCase
     protected function createAuthenticatedClientWithApiKey(User $user): KernelBrowser
     {
         $client = static::createClient();
-        $client->setServerParameter('HTTP_X_API_KEY', $user->getApiToken());
+        $token = $this->getUserApiToken($user);
+        $client->setServerParameter('HTTP_X_API_KEY', $token);
 
         return $client;
     }
@@ -108,13 +131,19 @@ abstract class ApiTestCase extends WebTestCase
         if ($withToken) {
             /** @var TokenGenerator $tokenGenerator */
             $tokenGenerator = static::getContainer()->get(TokenGenerator::class);
-            $user->setApiToken($tokenGenerator->generateApiToken());
+            $plainToken = $tokenGenerator->generateApiToken();
+            $user->setApiTokenHash(hash('sha256', $plainToken));
             $user->setApiTokenIssuedAt(new \DateTimeImmutable());
             $user->setApiTokenExpiresAt(new \DateTimeImmutable('+48 hours'));
         }
 
         $this->entityManager->persist($user);
         $this->entityManager->flush();
+
+        // Store plaintext token for test authentication (after flush so we have the ID)
+        if ($withToken && isset($plainToken)) {
+            self::$userTokens[$user->getId()] = $plainToken;
+        }
 
         return $user;
     }
@@ -236,7 +265,7 @@ abstract class ApiTestCase extends WebTestCase
         ?array $data = null,
         array $headers = []
     ): Response {
-        $headers['Authorization'] = 'Bearer '.$user->getApiToken();
+        $headers['Authorization'] = 'Bearer '.$this->getUserApiToken($user);
 
         return $this->apiRequest($method, $uri, $data, $headers);
     }

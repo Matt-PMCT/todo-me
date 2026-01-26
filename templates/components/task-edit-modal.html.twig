@@ -169,14 +169,8 @@ function taskEditModal() {
             this.errorMessage = '';
 
             try {
-                // Fetch task data
-                const response = await fetch(window.apiUrl('/api/v1/tasks/' + taskId), {
-                    headers: {
-                        'Accept': 'application/json',
-                        'Authorization': 'Bearer {{ app.user.apiToken }}'
-                    },
-                    credentials: 'same-origin'
-                });
+                // Fetch task data using session-based auth
+                const response = await window.api.get('/api/v1/tasks/' + taskId);
 
                 if (!response.ok) {
                     throw new Error('Failed to load task');
@@ -231,16 +225,8 @@ function taskEditModal() {
                     dueDate: this.form.dueDate || null
                 };
 
-                const response = await fetch(window.apiUrl('/api/v1/tasks/' + this.taskId), {
-                    method: 'PATCH',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Accept': 'application/json',
-                        'Authorization': 'Bearer {{ app.user.apiToken }}'
-                    },
-                    credentials: 'same-origin',
-                    body: JSON.stringify(payload)
-                });
+                // Save task using session-based auth
+                const response = await window.api.patch('/api/v1/tasks/' + this.taskId, payload);
 
                 const result = await response.json();
 

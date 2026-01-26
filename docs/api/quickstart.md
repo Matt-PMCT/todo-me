@@ -11,6 +11,8 @@ https://your-domain.com/api/v1
 
 ## Authentication
 
+> **Note**: The web UI uses session-based authentication automatically. API tokens are only needed for external integrations, scripts, mobile apps, or third-party applications.
+
 The API uses token-based authentication. Include your token in every request using one of these methods:
 
 ### Option 1: Bearer Token (Recommended)

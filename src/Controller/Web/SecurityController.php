@@ -99,8 +99,8 @@ class SecurityController extends AbstractController
             }
 
             if (empty($errors)) {
-                // Create the user
-                $user = $this->userService->register($email, $password);
+                // Create the user (register returns ['user' => User, 'token' => string])
+                $user = $this->userService->register($email, $password)['user'];
 
                 // Auto-login the user after registration
                 $response = $userAuthenticator->authenticateUser(

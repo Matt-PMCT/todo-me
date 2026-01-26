@@ -60,7 +60,8 @@ abstract class IntegrationTestCase extends KernelTestCase
 
         /** @var TokenGenerator $tokenGenerator */
         $tokenGenerator = static::getContainer()->get(TokenGenerator::class);
-        $user->setApiToken($tokenGenerator->generateApiToken());
+        $plainToken = $tokenGenerator->generateApiToken();
+        $user->setApiTokenHash(hash('sha256', $plainToken));
         $user->setApiTokenIssuedAt(new \DateTimeImmutable());
         $user->setApiTokenExpiresAt(new \DateTimeImmutable('+48 hours'));
 

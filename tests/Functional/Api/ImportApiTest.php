@@ -131,7 +131,7 @@ class ImportApiTest extends ApiTestCase
             'POST',
             '/api/v1/import/json',
             null,
-            ['Authorization' => 'Bearer '.$user->getApiToken()]
+            ['Authorization' => 'Bearer '.$this->getUserApiToken($user)]
         );
 
         // Empty body should be treated as invalid
@@ -286,7 +286,7 @@ class ImportApiTest extends ApiTestCase
             '/api/v1/import/csv',
             null,
             [
-                'Authorization' => 'Bearer '.$user->getApiToken(),
+                'Authorization' => 'Bearer '.$this->getUserApiToken($user),
                 'Content-Type' => 'text/csv',
             ]
         );
@@ -299,7 +299,7 @@ class ImportApiTest extends ApiTestCase
             [],
             [
                 'CONTENT_TYPE' => 'text/csv',
-                'HTTP_AUTHORIZATION' => 'Bearer '.$user->getApiToken(),
+                'HTTP_AUTHORIZATION' => 'Bearer '.$this->getUserApiToken($user),
             ],
             $csvContent
         );
@@ -330,7 +330,7 @@ class ImportApiTest extends ApiTestCase
             [],
             [
                 'CONTENT_TYPE' => 'text/csv',
-                'HTTP_AUTHORIZATION' => 'Bearer '.$user->getApiToken(),
+                'HTTP_AUTHORIZATION' => 'Bearer '.$this->getUserApiToken($user),
             ],
             $csvContent
         );
@@ -360,7 +360,7 @@ class ImportApiTest extends ApiTestCase
             [],
             [
                 'CONTENT_TYPE' => 'text/csv',
-                'HTTP_AUTHORIZATION' => 'Bearer '.$user->getApiToken(),
+                'HTTP_AUTHORIZATION' => 'Bearer '.$this->getUserApiToken($user),
             ],
             $csvContent
         );
@@ -386,7 +386,7 @@ class ImportApiTest extends ApiTestCase
             [],
             [
                 'CONTENT_TYPE' => 'text/csv',
-                'HTTP_AUTHORIZATION' => 'Bearer '.$user->getApiToken(),
+                'HTTP_AUTHORIZATION' => 'Bearer '.$this->getUserApiToken($user),
             ],
             ''
         );

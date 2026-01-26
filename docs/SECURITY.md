@@ -30,10 +30,48 @@ The API uses token-based authentication with two supported methods:
 ### Token Lifecycle
 
 1. **Generation**: Tokens are generated using `random_bytes(32)` converted to hex
-2. **Storage**: Hashed tokens stored in database (user record)
+2. **Storage**: Tokens are hashed with SHA256 before storage (never stored in plaintext)
 3. **Expiration**: Tokens expire after 48 hours (configurable via `API_TOKEN_TTL_HOURS`)
 4. **Refresh**: Expired tokens can be refreshed within 7 days
 5. **Revocation**: Tokens can be explicitly revoked via `/api/v1/auth/revoke`
+
+### Web UI Authentication (Session-Based)
+
+For requests originating from the web browser interface, the application uses session-based authentication instead of API tokens:
+
+1. **Session Cookie**: HttpOnly, Secure, SameSite=Strict
+2. **CSRF Protection**: X-CSRF-Token header required for state-changing operations (POST, PUT, PATCH, DELETE)
+3. **No Token Exposure**: API tokens are never exposed to frontend JavaScript
+
+This dual-auth system prevents token theft via:
+- Malicious browser extensions
+- XSS vulnerabilities
+- Page source inspection
+- Browser developer tools
+
+External API clients (mobile apps, integrations, scripts) continue using token-based authentication via `Authorization: Bearer` or `X-API-Key` headers.
+
+### CSRF Protection
+
+Web UI AJAX requests must include a CSRF token for state-changing operations:
+
+```javascript
+// CSRF token is embedded in meta tag
+const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
+
+// Include in request headers
+fetch('/api/v1/tasks', {
+    method: 'POST',
+    headers: {
+        'Content-Type': 'application/json',
+        'X-CSRF-Token': csrfToken
+    },
+    credentials: 'same-origin',
+    body: JSON.stringify(data)
+});
+```
+
+The CSRF token is validated by `SessionApiAuthenticator` for all mutation requests.
 
 ## Password Security
 

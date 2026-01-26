@@ -72,7 +72,7 @@ src/
 ├── Entity/             # Doctrine entities (User, Task, Project, Tag, ApiToken, Notification, SavedFilter, etc.) - all use UUIDs
 ├── DTO/                # Request/Response DTOs with validation constraints
 ├── Exception/          # Custom exceptions (ValidationException, EntityNotFoundException, etc.)
-├── Security/           # ApiTokenAuthenticator for Bearer/X-API-Key auth
+├── Security/           # SessionApiAuthenticator + ApiTokenAuthenticator for dual auth
 ├── EventListener/      # Exception handling, request ID tracking
 ├── EventSubscriber/    # Rate limiting subscriber
 └── Interface/          # UserOwnedInterface for multi-tenant ownership
@@ -89,6 +89,24 @@ src/
 **Undo System:** UndoService creates Redis-stored tokens (60s TTL) before mutations. UndoToken is an immutable value object.
 
 **Exception Handling:** Custom exceptions extend HttpException. ApiExceptionListener catches and formats all API exceptions consistently.
+
+### Authentication Architecture
+
+**Web UI (Browser):**
+- Session-based auth via cookies (HttpOnly, Secure, SameSite=Strict)
+- CSRF token required for mutations (X-CSRF-Token header)
+- No API tokens exposed to JavaScript - uses `window.api` helper in `base.html.twig`
+- `SessionApiAuthenticator` validates session and CSRF for `/api/` routes
+
+**External API:**
+- Token auth via `Authorization: Bearer` or `X-API-Key` header
+- Tokens stored as SHA256 hashes (never plaintext)
+- Token TTL: 48 hours (configurable via `API_TOKEN_TTL_HOURS`)
+- `ApiTokenAuthenticator` handles token validation
+
+**Dual Authenticator Flow:**
+1. `SessionApiAuthenticator` checks first (for web UI requests without token headers)
+2. Falls back to `ApiTokenAuthenticator` if session auth fails or token headers present
 
 ### API Response Format
 All API endpoints return:
@@ -157,7 +175,7 @@ See `docs/UI-PHASE-MODIFICATIONS.md` for phase-specific UI requirements.
 
 ## Configuration
 
-- **Security:** `config/packages/security.yaml` - API firewall is stateless, web firewall uses sessions
+- **Security:** `config/packages/security.yaml` - API firewall supports session+token auth, web firewall uses sessions
 - **Rate limiting:** `config/packages/rate_limiter.yaml`
 - **Services:** `config/services.yaml` - autowiring with explicit configs where needed
 - **Docker:** `docker/docker-compose.yml` - PHP, Nginx, PostgreSQL, Redis services

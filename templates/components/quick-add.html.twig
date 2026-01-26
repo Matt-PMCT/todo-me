@@ -1,8 +1,8 @@
 {# Quick Add Component - Natural language task entry with real-time parsing #}
-{# Expects: apiToken (string) - User's API token for API calls #}
+{# Uses session-based authentication via window.api #}
 
 <div class="relative"
-     x-data="quickAdd('{{ apiToken|default('')|e('js') }}')"
+     x-data="quickAdd()"
      @keydown.escape="clearInput()">
 
     {# Input container with highlight overlay #}
@@ -228,9 +228,8 @@
 </div>
 
 <script>
-function quickAdd(apiToken) {
+function quickAdd() {
     return {
-        apiToken: apiToken,
         inputText: '',
         parsedData: null,
         highlightedText: '',
@@ -277,23 +276,10 @@ function quickAdd(apiToken) {
                 return;
             }
 
-            if (!this.apiToken) {
-                // Fallback: just show plain text without parsing
-                this.highlightedText = this.escapeHtml(this.inputText);
-                return;
-            }
-
             this.isParsing = true;
 
             try {
-                const response = await fetch(window.apiUrl('/api/v1/parse'), {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': 'Bearer ' + this.apiToken
-                    },
-                    body: JSON.stringify({ input: this.inputText })
-                });
+                const response = await window.api.post('/api/v1/parse', { input: this.inputText });
 
                 if (!response.ok) {
                     throw new Error('Parse request failed');
@@ -418,21 +404,12 @@ function quickAdd(apiToken) {
         },
 
         async fetchAutocomplete() {
-            if (!this.apiToken) {
-                this.showAutocomplete = false;
-                return;
-            }
-
             try {
                 const endpoint = this.autocompleteType === 'project'
                     ? '/api/v1/autocomplete/projects'
                     : '/api/v1/autocomplete/tags';
 
-                const response = await fetch(window.apiUrl(`${endpoint}?q=${encodeURIComponent(this.autocompleteQuery)}`), {
-                    headers: {
-                        'Authorization': 'Bearer ' + this.apiToken
-                    }
-                });
+                const response = await window.api.get(`${endpoint}?q=${encodeURIComponent(this.autocompleteQuery)}`);
 
                 if (!response.ok) {
                     throw new Error('Autocomplete request failed');
@@ -532,117 +509,83 @@ function quickAdd(apiToken) {
             this.successMessage = '';
 
             try {
-                if (this.apiToken) {
-                    // Use API endpoint for natural language task creation
-                    const requestBody = { input_text: this.inputText };
+                // Use API endpoint for natural language task creation
+                const requestBody = { input_text: this.inputText };
 
-                    // Add recurrence if enabled
-                    if (this.isRecurring && this.recurrenceRule.trim()) {
-                        requestBody.isRecurring = true;
-                        requestBody.recurrenceRule = this.recurrenceRule.trim();
-                    }
+                // Add recurrence if enabled
+                if (this.isRecurring && this.recurrenceRule.trim()) {
+                    requestBody.isRecurring = true;
+                    requestBody.recurrenceRule = this.recurrenceRule.trim();
+                }
 
-                    const response = await fetch(window.apiUrl('/api/v1/tasks?parse_natural_language=true'), {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': 'Bearer ' + this.apiToken
-                        },
-                        body: JSON.stringify(requestBody)
-                    });
+                const response = await window.api.post('/api/v1/tasks?parse_natural_language=true', requestBody);
 
-                    const result = await response.json();
+                const result = await response.json();
 
-                    if (!response.ok) {
-                        throw new Error(result.error?.message || 'Failed to create task');
-                    }
+                if (!response.ok) {
+                    throw new Error(result.error?.message || 'Failed to create task');
+                }
 
-                    if (result.success) {
-                        const taskTitle = result.data.title || 'Task';
-                        const taskId = result.data.id;
-                        this.clearInput();
+                if (result.success) {
+                    const taskTitle = result.data.title || 'Task';
+                    const taskId = result.data.id;
+                    this.clearInput();
 
-                        // Issue #32: AJAX task insertion without page reload
-                        const taskList = document.querySelector('[data-task-list]');
-                        const emptyState = document.querySelector('[data-empty-state]');
+                    // Issue #32: AJAX task insertion without page reload
+                    const taskList = document.querySelector('[data-task-list]');
+                    const emptyState = document.querySelector('[data-empty-state]');
 
-                        if (taskList && taskId) {
-                            try {
-                                // Fetch the rendered HTML for the new task
-                                const renderResponse = await fetch(window.apiUrl('/api/v1/tasks/' + taskId + '/render'), {
-                                    headers: {
-                                        'Authorization': 'Bearer ' + this.apiToken,
-                                        'Accept': 'application/json'
+                    if (taskList && taskId) {
+                        try {
+                            // Fetch the rendered HTML for the new task
+                            const renderResponse = await window.api.get('/api/v1/tasks/' + taskId + '/render');
+
+                            if (renderResponse.ok) {
+                                const renderData = await renderResponse.json();
+                                if (renderData.success && renderData.data.html) {
+                                    // Create wrapper and parse HTML
+                                    const wrapper = document.createElement('div');
+                                    wrapper.innerHTML = renderData.data.html.trim();
+                                    const taskElement = wrapper.firstElementChild;
+
+                                    // Add fade-in animation styles
+                                    taskElement.style.opacity = '0';
+                                    taskElement.style.transform = 'translateY(-10px)';
+                                    taskElement.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+
+                                    // Prepend to task list
+                                    taskList.prepend(taskElement);
+
+                                    // Trigger animation on next frame
+                                    requestAnimationFrame(() => {
+                                        taskElement.style.opacity = '1';
+                                        taskElement.style.transform = 'translateY(0)';
+                                    });
+
+                                    // Hide empty state if visible
+                                    if (emptyState) {
+                                        emptyState.style.display = 'none';
                                     }
-                                });
 
-                                if (renderResponse.ok) {
-                                    const renderData = await renderResponse.json();
-                                    if (renderData.success && renderData.data.html) {
-                                        // Create wrapper and parse HTML
-                                        const wrapper = document.createElement('div');
-                                        wrapper.innerHTML = renderData.data.html.trim();
-                                        const taskElement = wrapper.firstElementChild;
-
-                                        // Add fade-in animation styles
-                                        taskElement.style.opacity = '0';
-                                        taskElement.style.transform = 'translateY(-10px)';
-                                        taskElement.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
-
-                                        // Prepend to task list
-                                        taskList.prepend(taskElement);
-
-                                        // Trigger animation on next frame
-                                        requestAnimationFrame(() => {
-                                            taskElement.style.opacity = '1';
-                                            taskElement.style.transform = 'translateY(0)';
-                                        });
-
-                                        // Hide empty state if visible
-                                        if (emptyState) {
-                                            emptyState.style.display = 'none';
-                                        }
-
-                                        // Show success toast
-                                        if (result.data.undoToken && window.showToastWithUndo) {
-                                            window.showToastWithUndo('Created: ' + taskTitle, 'success', result.data.undoToken);
-                                        } else if (window.showToast) {
-                                            window.showToast('Created: ' + taskTitle, 'success');
-                                        }
-                                        return; // Success - no reload needed
+                                    // Show success toast
+                                    if (result.data.undoToken && window.showToastWithUndo) {
+                                        window.showToastWithUndo('Created: ' + taskTitle, 'success', result.data.undoToken);
+                                    } else if (window.showToast) {
+                                        window.showToast('Created: ' + taskTitle, 'success');
                                     }
+                                    return; // Success - no reload needed
                                 }
-                            } catch (renderError) {
-                                console.warn('Failed to render task, falling back to reload:', renderError);
                             }
+                        } catch (renderError) {
+                            console.warn('Failed to render task, falling back to reload:', renderError);
                         }
-
-                        // Fallback: reload page if AJAX insertion failed
-                        if (window.showToast) {
-                            window.showToast('Created: ' + taskTitle, 'success');
-                        }
-                        setTimeout(() => window.location.reload(), 300);
                     }
-                } else {
-                    // Fallback: submit via form
-                    const form = document.createElement('form');
-                    form.method = 'POST';
-                    form.action = window.location.pathname;
 
-                    const csrfInput = document.createElement('input');
-                    csrfInput.type = 'hidden';
-                    csrfInput.name = '_csrf_token';
-                    csrfInput.value = document.querySelector('meta[name="csrf-token"]')?.content || '';
-                    form.appendChild(csrfInput);
-
-                    const titleInput = document.createElement('input');
-                    titleInput.type = 'hidden';
-                    titleInput.name = 'title';
-                    titleInput.value = this.inputText;
-                    form.appendChild(titleInput);
-
-                    document.body.appendChild(form);
-                    form.submit();
+                    // Fallback: reload page if AJAX insertion failed
+                    if (window.showToast) {
+                        window.showToast('Created: ' + taskTitle, 'success');
+                    }
+                    setTimeout(() => window.location.reload(), 300);
                 }
             } catch (error) {
                 console.error('Submit error:', error);

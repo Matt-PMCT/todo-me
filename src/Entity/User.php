@@ -15,7 +15,7 @@ use Symfony\Component\Security\Core\User\UserInterface;
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[ORM\Table(name: 'users')]
 #[ORM\Index(columns: ['email'], name: 'idx_users_email')]
-#[ORM\Index(columns: ['api_token'], name: 'idx_users_api_token')]
+#[ORM\Index(columns: ['api_token_hash'], name: 'idx_users_api_token_hash')]
 #[ORM\Index(columns: ['username'], name: 'idx_users_username')]
 #[ORM\HasLifecycleCallbacks]
 class User implements UserInterface, PasswordAuthenticatedUserInterface
@@ -77,8 +77,11 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(type: Types::STRING, name: 'password_hash')]
     private string $passwordHash;
 
-    #[ORM\Column(type: Types::STRING, length: 255, unique: true, nullable: true, name: 'api_token')]
-    private ?string $apiToken = null;
+    /**
+     * Stores SHA256 hash of the API token (never store plaintext tokens).
+     */
+    #[ORM\Column(type: Types::STRING, length: 64, unique: true, nullable: true, name: 'api_token_hash')]
+    private ?string $apiTokenHash = null;
 
     #[ORM\Column(type: Types::DATETIME_IMMUTABLE, nullable: true, name: 'api_token_issued_at')]
     private ?\DateTimeImmutable $apiTokenIssuedAt = null;
@@ -176,17 +179,17 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
-    public function getApiToken(): ?string
+    public function getApiTokenHash(): ?string
     {
-        return $this->apiToken;
+        return $this->apiTokenHash;
     }
 
-    public function setApiToken(?string $apiToken): static
+    public function setApiTokenHash(?string $apiTokenHash): static
     {
-        $this->apiToken = $apiToken;
+        $this->apiTokenHash = $apiTokenHash;
 
         // Clear expiration when token is revoked
-        if ($apiToken === null) {
+        if ($apiTokenHash === null) {
             $this->apiTokenIssuedAt = null;
             $this->apiTokenExpiresAt = null;
         }

@@ -429,7 +429,7 @@ function securitySettings() {
                     headers: {
                         'Accept': 'application/json',
                         'Content-Type': 'application/json',
-                        'Authorization': 'Bearer {{ app.user.apiToken }}'
+                        'X-CSRF-Token': window.getCsrfToken()
                     },
                     credentials: 'same-origin',
                 });
@@ -466,7 +466,7 @@ function securitySettings() {
                     headers: {
                         'Accept': 'application/json',
                         'Content-Type': 'application/json',
-                        'Authorization': 'Bearer {{ app.user.apiToken }}'
+                        'X-CSRF-Token': window.getCsrfToken()
                     },
                     credentials: 'same-origin',
                     body: JSON.stringify({
@@ -558,7 +558,7 @@ function securitySettings() {
                     headers: {
                         'Accept': 'application/json',
                         'Content-Type': 'application/json',
-                        'Authorization': 'Bearer {{ app.user.apiToken }}'
+                        'X-CSRF-Token': window.getCsrfToken()
                     },
                     credentials: 'same-origin',
                     body: JSON.stringify({ password: this.managePassword })
@@ -596,7 +596,7 @@ function securitySettings() {
                     headers: {
                         'Accept': 'application/json',
                         'Content-Type': 'application/json',
-                        'Authorization': 'Bearer {{ app.user.apiToken }}'
+                        'X-CSRF-Token': window.getCsrfToken()
                     },
                     credentials: 'same-origin',
                     body: JSON.stringify({ password: this.disablePassword })

@@ -156,10 +156,13 @@ final class AuthController extends AbstractController
 
         // Create the user
         try {
-            $user = $this->userService->register(
+            $result = $this->userService->register(
                 $registerRequest->email,
                 $registerRequest->password
             );
+
+            $user = $result['user'];
+            $plainToken = $result['token'];
 
             $this->apiLogger->logInfo('User registered successfully', [
                 'user_id' => $user->getId(),
@@ -168,7 +171,7 @@ final class AuthController extends AbstractController
 
             $userResponse = UserResponse::fromUser($user);
             $tokenResponse = new TokenResponse(
-                $user->getApiToken() ?? '',
+                $plainToken,
                 $this->userService->getTokenExpiresAt($user)
             );
 

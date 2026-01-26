@@ -272,7 +272,7 @@ function dataManager() {
                     method: 'GET',
                     headers: {
                         'Accept': 'application/json',
-                        'Authorization': 'Bearer {{ app.user.apiToken }}'
+                        'X-CSRF-Token': window.getCsrfToken()
                     },
                     credentials: 'same-origin',
                 });
@@ -359,7 +359,7 @@ function dataManager() {
                     headers: {
                         'Content-Type': contentType,
                         'Accept': 'application/json',
-                        'Authorization': 'Bearer {{ app.user.apiToken }}'
+                        'X-CSRF-Token': window.getCsrfToken()
                     },
                     credentials: 'same-origin',
                     body: fileContent,
@@ -414,7 +414,7 @@ function dataManager() {
                     headers: {
                         'Content-Type': 'application/json',
                         'Accept': 'application/json',
-                        'Authorization': 'Bearer {{ app.user.apiToken }}'
+                        'X-CSRF-Token': window.getCsrfToken()
                     },
                     credentials: 'same-origin',
                     body: JSON.stringify({ password: this.deletePassword }),

@@ -10,10 +10,48 @@
 
     {% block stylesheets %}{% endblock %}
 
+    <!-- CSRF token for API requests from web UI -->
+    <meta name="csrf-token" content="{{ csrf_token('api') }}">
+
     <!-- Base path for JavaScript API calls -->
     <script>
         window.APP_BASE_PATH = '{{ app.request.basePath }}';
         window.apiUrl = function(path) { return (window.APP_BASE_PATH || '') + path; };
+        window.getCsrfToken = function() {
+            return document.querySelector('meta[name="csrf-token"]')?.content || '';
+        };
+
+        // Session-based API client with CSRF protection
+        // Replaces exposed Bearer token authentication for web UI AJAX calls
+        window.api = {
+            async fetch(url, options = {}) {
+                const method = (options.method || 'GET').toUpperCase();
+                const headers = { 'Accept': 'application/json', ...options.headers };
+
+                // Add CSRF token for state-changing requests
+                if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(method)) {
+                    headers['X-CSRF-Token'] = window.getCsrfToken();
+                }
+
+                // Add Content-Type for requests with body
+                if (options.body && !headers['Content-Type']) {
+                    headers['Content-Type'] = 'application/json';
+                }
+
+                const response = await fetch(window.apiUrl(url), {
+                    ...options,
+                    headers,
+                    credentials: 'same-origin'  // Send session cookie
+                });
+
+                return response;
+            },
+
+            get: (url, opts = {}) => window.api.fetch(url, { ...opts, method: 'GET' }),
+            post: (url, body, opts = {}) => window.api.fetch(url, { ...opts, method: 'POST', body: JSON.stringify(body) }),
+            patch: (url, body, opts = {}) => window.api.fetch(url, { ...opts, method: 'PATCH', body: JSON.stringify(body) }),
+            delete: (url, opts = {}) => window.api.fetch(url, { ...opts, method: 'DELETE' })
+        };
     </script>
 </head>
 <body class="h-full">
@@ -46,7 +84,7 @@
                     <div class="hidden md:block">
                         <div class="ml-4 flex items-center md:ml-6">
                             <!-- Notification dropdown -->
-                            {% include 'components/notification-dropdown.html.twig' with { apiToken: app.user.apiToken } %}
+                            {% include 'components/notification-dropdown.html.twig' %}
 
                             <!-- User dropdown -->
                             <div class="relative ml-3">

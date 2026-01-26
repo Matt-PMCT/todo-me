@@ -18,13 +18,16 @@ security:
             pattern: ^/(_(profiler|wdt)|css|images|js)/
             security: false
 
-        # API firewall - stateless authentication using API tokens
+        # API firewall - supports both session-based (web UI) and token-based (external API) auth
         api:
             pattern: ^/api/
-            stateless: true
+            stateless: false  # Allow session for browser requests
+            lazy: true
             provider: app_user_provider
             custom_authenticators:
-                - App\Security\ApiTokenAuthenticator
+                - App\Security\SessionApiAuthenticator  # Try session first (for web UI)
+                - App\Security\ApiTokenAuthenticator    # Fall back to token (for external API)
+            entry_point: App\Security\ApiTokenAuthenticator
 
         # Web firewall - session-based authentication with form login
         main:

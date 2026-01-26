@@ -47,43 +47,43 @@ class UserTest extends UnitTestCase
     }
 
     // ========================================
-    // API Token Tests
+    // API Token Hash Tests
     // ========================================
 
-    public function testGetApiTokenReturnsSetValue(): void
+    public function testGetApiTokenHashReturnsSetValue(): void
     {
         $user = new User();
-        $token = 'api_token_123';
+        $tokenHash = hash('sha256', 'api_token_123');
 
-        $user->setApiToken($token);
+        $user->setApiTokenHash($tokenHash);
 
-        $this->assertEquals($token, $user->getApiToken());
+        $this->assertEquals($tokenHash, $user->getApiTokenHash());
     }
 
-    public function testSetApiTokenReturnsSelf(): void
+    public function testSetApiTokenHashReturnsSelf(): void
     {
         $user = new User();
 
-        $result = $user->setApiToken('token');
+        $result = $user->setApiTokenHash(hash('sha256', 'token'));
 
         $this->assertSame($user, $result);
     }
 
-    public function testApiTokenDefaultsToNull(): void
+    public function testApiTokenHashDefaultsToNull(): void
     {
         $user = new User();
 
-        $this->assertNull($user->getApiToken());
+        $this->assertNull($user->getApiTokenHash());
     }
 
-    public function testSetApiTokenCanSetNull(): void
+    public function testSetApiTokenHashCanSetNull(): void
     {
         $user = new User();
-        $user->setApiToken('some_token');
+        $user->setApiTokenHash(hash('sha256', 'some_token'));
 
-        $user->setApiToken(null);
+        $user->setApiTokenHash(null);
 
-        $this->assertNull($user->getApiToken());
+        $this->assertNull($user->getApiTokenHash());
     }
 
     // ========================================
@@ -93,7 +93,7 @@ class UserTest extends UnitTestCase
     public function testIsApiTokenExpiredReturnsTrueWhenNoExpiration(): void
     {
         $user = new User();
-        $user->setApiToken('token');
+        $user->setApiTokenHash(hash('sha256', 'token'));
         // No expiration set
 
         $this->assertTrue($user->isApiTokenExpired());
@@ -102,7 +102,7 @@ class UserTest extends UnitTestCase
     public function testIsApiTokenExpiredReturnsTrueWhenExpired(): void
     {
         $user = new User();
-        $user->setApiToken('token');
+        $user->setApiTokenHash(hash('sha256', 'token'));
         $user->setApiTokenExpiresAt(new \DateTimeImmutable('-1 hour'));
 
         $this->assertTrue($user->isApiTokenExpired());
@@ -111,22 +111,22 @@ class UserTest extends UnitTestCase
     public function testIsApiTokenExpiredReturnsFalseWhenNotExpired(): void
     {
         $user = new User();
-        $user->setApiToken('token');
+        $user->setApiTokenHash(hash('sha256', 'token'));
         $user->setApiTokenExpiresAt(new \DateTimeImmutable('+1 hour'));
 
         $this->assertFalse($user->isApiTokenExpired());
     }
 
-    public function testSetApiTokenNullClearsExpiration(): void
+    public function testSetApiTokenHashNullClearsExpiration(): void
     {
         $user = new User();
-        $user->setApiToken('token');
+        $user->setApiTokenHash(hash('sha256', 'token'));
         $user->setApiTokenIssuedAt(new \DateTimeImmutable());
         $user->setApiTokenExpiresAt(new \DateTimeImmutable('+1 hour'));
 
-        $user->setApiToken(null);
+        $user->setApiTokenHash(null);
 
-        $this->assertNull($user->getApiToken());
+        $this->assertNull($user->getApiTokenHash());
         $this->assertNull($user->getApiTokenIssuedAt());
         $this->assertNull($user->getApiTokenExpiresAt());
     }
