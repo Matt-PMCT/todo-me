@@ -40,12 +40,23 @@ class PathPrefixRedirectListener implements EventSubscriberInterface
 
         // Get the path prefix from the proxy
         $prefix = $request->headers->get('X-Forwarded-Prefix');
+
+        // Debug: Log what we're seeing
+        error_log(sprintf(
+            'PathPrefixRedirectListener: location=%s, prefix=%s, request_uri=%s',
+            $location,
+            $prefix ?? 'NULL',
+            $request->getRequestUri()
+        ));
+
         if (!$prefix) {
+            error_log('PathPrefixRedirectListener: No X-Forwarded-Prefix header found');
             return;
         }
 
         // Only add prefix to relative URLs that don't already have it
         if ($location[0] === '/' && !str_starts_with($location, $prefix) && !preg_match('#^https?://#', $location)) {
+            error_log(sprintf('PathPrefixRedirectListener: Updating location from %s to %s', $location, $prefix . $location));
             $response->headers->set('Location', $prefix . $location);
         }
     }
