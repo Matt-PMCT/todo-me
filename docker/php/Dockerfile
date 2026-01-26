@@ -41,6 +41,12 @@ RUN { \
 # Install Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
+# Install Tailwind CSS standalone CLI
+ARG TAILWIND_VERSION=v3.4.17
+RUN curl -sLO https://github.com/tailwindlabs/tailwindcss/releases/download/${TAILWIND_VERSION}/tailwindcss-linux-x64 \
+    && chmod +x tailwindcss-linux-x64 \
+    && mv tailwindcss-linux-x64 /usr/local/bin/tailwindcss
+
 # Set working directory
 WORKDIR /var/www/html
 

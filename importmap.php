@@ -16,4 +16,7 @@ return [
         'path' => './assets/app.js',
         'entrypoint' => true,
     ],
+    'alpinejs' => [
+        'version' => '3.15.4',
+    ],
 ];

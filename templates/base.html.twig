@@ -5,31 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Todo App{% endblock %}</title>
 
-    <!-- Tailwind CSS via CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
-
-    <!-- Alpine.js via CDN -->
-    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-
-    <!-- Alpine.js stores initialization -->
-    <script>
-        document.addEventListener('alpine:init', () => {
-            Alpine.store('sidebar', {
-                open: false,
-                toggle() {
-                    this.open = !this.open;
-                }
-            });
-        });
-    </script>
-
-    <style>
-        [x-cloak] { display: none !important; }
-        /* Safe area inset for iOS devices with home indicator */
-        .safe-area-inset-bottom {
-            padding-bottom: env(safe-area-inset-bottom, 0);
-        }
-    </style>
+    <!-- Tailwind CSS (compiled locally) -->
+    <link rel="stylesheet" href="{{ asset('build/tailwind.css') }}">
 
     {% block stylesheets %}{% endblock %}
 </head>
