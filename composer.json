@@ -95,7 +95,9 @@
         "lint": [
             "@phpstan",
             "@cs-check"
-        ]
+        ],
+        "tailwind:build": "tailwindcss -i ./assets/styles/app.css -o ./public/build/tailwind.css --minify",
+        "tailwind:watch": "tailwindcss -i ./assets/styles/app.css -o ./public/build/tailwind.css --watch"
     },
     "conflict": {
         "symfony/symfony": "*"
