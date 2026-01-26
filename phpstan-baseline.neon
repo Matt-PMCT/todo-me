@@ -187,6 +187,18 @@ parameters:
 			path: src/Controller/Web/SecurityController.php
 
 		-
+			message: '#^Expression on left side of \?\? is not nullable\.$#'
+			identifier: nullCoalesce.expr
+			count: 1
+			path: src/Controller/Web/TaskListController.php
+
+		-
+			message: '#^Method App\\Controller\\Web\\TaskListController\:\:buildProjectPath\(\) should return array\<array\{id\: string, name\: string\}\> but returns non\-empty\-list\<array\{id\: string\|null, name\: string\}\>\.$#'
+			identifier: return.type
+			count: 1
+			path: src/Controller/Web/TaskListController.php
+
+		-
 			message: '#^Parameter \#2 \$filters of method App\\Repository\\TaskRepository\:\:createFilteredQueryBuilder\(\) expects array\{status\?\: string, priority\?\: int, projectId\?\: string, search\?\: string, dueBefore\?\: string, dueAfter\?\: string, tagIds\?\: array\<string\>\}, array\{status\: non\-falsy\-string\|null, priority\: int\|null, projectId\: non\-falsy\-string\|null, isRecurring\: bool\|null\} given\.$#'
 			identifier: argument.type
 			count: 1
@@ -1737,25 +1749,43 @@ parameters:
 		-
 			message: '#^Cannot call method clear\(\) on Doctrine\\ORM\\EntityManagerInterface\|null\.$#'
 			identifier: method.nonObject
-			count: 4
+			count: 8
 			path: tests/Functional/Web/TaskListControllerTest.php
 
 		-
 			message: '#^Cannot call method find\(\) on Doctrine\\ORM\\EntityManagerInterface\|null\.$#'
 			identifier: method.nonObject
-			count: 4
+			count: 6
 			path: tests/Functional/Web/TaskListControllerTest.php
 
 		-
 			message: '#^Cannot call method followRedirect\(\) on Symfony\\Bundle\\FrameworkBundle\\KernelBrowser\|null\.$#'
 			identifier: method.nonObject
-			count: 5
+			count: 8
+			path: tests/Functional/Web/TaskListControllerTest.php
+
+		-
+			message: '#^Cannot call method getId\(\) on App\\Entity\\Project\|null\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: tests/Functional/Web/TaskListControllerTest.php
+
+		-
+			message: '#^Cannot call method getId\(\) on App\\Entity\\User\|null\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: tests/Functional/Web/TaskListControllerTest.php
+
+		-
+			message: '#^Cannot call method getRepository\(\) on Doctrine\\ORM\\EntityManagerInterface\|null\.$#'
+			identifier: method.nonObject
+			count: 2
 			path: tests/Functional/Web/TaskListControllerTest.php
 
 		-
 			message: '#^Cannot call method getResponse\(\) on Symfony\\Bundle\\FrameworkBundle\\KernelBrowser\|null\.$#'
 			identifier: method.nonObject
-			count: 15
+			count: 33
 			path: tests/Functional/Web/TaskListControllerTest.php
 
 		-
@@ -1765,15 +1795,33 @@ parameters:
 			path: tests/Functional/Web/TaskListControllerTest.php
 
 		-
+			message: '#^Cannot call method isArchived\(\) on App\\Entity\\Project\|null\.$#'
+			identifier: method.nonObject
+			count: 1
+			path: tests/Functional/Web/TaskListControllerTest.php
+
+		-
 			message: '#^Cannot call method loginUser\(\) on Symfony\\Bundle\\FrameworkBundle\\KernelBrowser\|null\.$#'
 			identifier: method.nonObject
-			count: 14
+			count: 27
 			path: tests/Functional/Web/TaskListControllerTest.php
 
 		-
 			message: '#^Cannot call method request\(\) on Symfony\\Bundle\\FrameworkBundle\\KernelBrowser\|null\.$#'
 			identifier: method.nonObject
-			count: 21
+			count: 42
+			path: tests/Functional/Web/TaskListControllerTest.php
+
+		-
+			message: '#^Parameter \#2 \$haystack of method PHPUnit\\Framework\\Assert\:\:assertStringContainsString\(\) expects string, string\|false given\.$#'
+			identifier: argument.type
+			count: 1
+			path: tests/Functional/Web/TaskListControllerTest.php
+
+		-
+			message: '#^Parameter \#2 \$haystack of method PHPUnit\\Framework\\Assert\:\:assertStringNotContainsString\(\) expects string, string\|false given\.$#'
+			identifier: argument.type
+			count: 1
 			path: tests/Functional/Web/TaskListControllerTest.php
 
 		-

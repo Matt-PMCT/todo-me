@@ -42,5 +42,6 @@ return (new PhpCsFixer\Config())
         'phpdoc_to_comment' => false,
     ])
     ->setRiskyAllowed(false)
+    ->setParallelConfig(PhpCsFixer\Runner\Parallel\ParallelConfigFactory::detect())
     ->setFinder($finder)
 ;
