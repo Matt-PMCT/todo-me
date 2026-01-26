@@ -17,6 +17,6 @@ return [
         'entrypoint' => true,
     ],
     'alpinejs' => [
-        'path' => 'vendor/alpinejs/alpinejs.index.js',
+        'path' => './assets/vendor/alpinejs/alpinejs.index.js',
     ],
 ];
