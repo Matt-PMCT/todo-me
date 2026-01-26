@@ -20,9 +20,9 @@
     </div>
 
     {# Archived Projects List #}
-    <div x-data="archivedProjects({ projects: {{ projects|json_encode|raw }} })" class="space-y-4">
+    <div class="space-y-4">
 
-        <template x-if="projects.length === 0">
+        {% if projects is empty %}
             <div class="text-center py-12">
                 <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
@@ -30,36 +30,36 @@
                 <h3 class="mt-2 text-sm font-semibold text-gray-900">No archived projects</h3>
                 <p class="mt-1 text-sm text-gray-500">You don't have any archived projects.</p>
             </div>
-        </template>
+        {% endif %}
 
-        <template x-for="project in projects" :key="project.id">
+        {% for project in projects %}
             <div class="bg-white shadow rounded-lg p-4 hover:shadow-md transition-shadow duration-200">
                 <div class="flex items-start justify-between">
                     <div class="flex items-start gap-3">
                         {# Color Indicator #}
                         <div class="w-4 h-4 rounded-full flex-shrink-0 mt-1"
-                             :style="'background-color: ' + project.color">
+                             style="background-color: {{ project.color }}">
                         </div>
 
                         <div>
                             {# Project Name #}
-                            <h3 class="text-base font-medium text-gray-900" x-text="project.name"></h3>
+                            <h3 class="text-base font-medium text-gray-900">{{ project.name }}</h3>
 
                             {# Project Path (breadcrumb) #}
-                            <div x-show="project.path && project.path.length > 1" class="mt-1">
-                                <template x-for="(segment, index) in project.path.slice(0, -1)" :key="segment.id">
-                                    <span class="text-xs text-gray-500">
-                                        <span x-text="segment.name"></span>
-                                        <span x-show="index < project.path.length - 2" class="mx-1">/</span>
-                                    </span>
-                                </template>
-                            </div>
+                            {% if project.path|length > 1 %}
+                                <div class="mt-1">
+                                    {% for segment in project.path|slice(0, -1) %}
+                                        <span class="text-xs text-gray-500">
+                                            {{ segment.name }}{% if not loop.last %}<span class="mx-1">/</span>{% endif %}
+                                        </span>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
 
                             {# Description #}
-                            <p x-show="project.description"
-                               class="mt-1 text-sm text-gray-500"
-                               x-text="project.description">
-                            </p>
+                            {% if project.description %}
+                                <p class="mt-1 text-sm text-gray-500">{{ project.description }}</p>
+                            {% endif %}
 
                             {# Metadata #}
                             <div class="mt-2 flex flex-wrap items-center gap-4 text-xs text-gray-500">
@@ -67,78 +67,37 @@
                                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                                     </svg>
-                                    <span x-text="project.taskCount + ' tasks'"></span>
+                                    {{ project.taskCount }} tasks
                                 </span>
-                                <span x-show="project.archivedAt" class="flex items-center gap-1">
-                                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
-                                    </svg>
-                                    <span>Archived <span x-text="formatDate(project.archivedAt)"></span></span>
-                                </span>
+                                {% if project.archivedAt %}
+                                    <span class="flex items-center gap-1">
+                                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
+                                        </svg>
+                                        Archived {{ project.archivedAt|date('M j, Y') }}
+                                    </span>
+                                {% endif %}
                             </div>
                         </div>
                     </div>
 
                     {# Actions #}
                     <div class="flex items-center gap-2">
-                        <button @click="unarchiveProject(project.id)"
-                                :disabled="loading[project.id]"
-                                class="inline-flex items-center gap-2 rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 disabled:opacity-50">
-                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
-                            </svg>
-                            <span x-text="loading[project.id] ? 'Unarchiving...' : 'Unarchive'"></span>
-                        </button>
+                        <form method="POST" action="{{ path('app_project_unarchive', {id: project.id}) }}">
+                            <input type="hidden" name="_csrf_token" value="{{ csrf_token('unarchive_project_' ~ project.id) }}">
+                            <button type="submit"
+                                    class="inline-flex items-center gap-2 rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50">
+                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
+                                </svg>
+                                Restore
+                            </button>
+                        </form>
                     </div>
                 </div>
             </div>
-        </template>
+        {% endfor %}
 
     </div>
 </div>
-
-<script>
-document.addEventListener('alpine:init', () => {
-    Alpine.data('archivedProjects', ({ projects }) => ({
-        projects: projects,
-        loading: {},
-
-        formatDate(dateString) {
-            if (!dateString) return '';
-            const date = new Date(dateString);
-            return date.toLocaleDateString('en-US', {
-                month: 'short',
-                day: 'numeric',
-                year: date.getFullYear() !== new Date().getFullYear() ? 'numeric' : undefined
-            });
-        },
-
-        async unarchiveProject(projectId) {
-            this.loading[projectId] = true;
-
-            try {
-                const response = await fetch(window.apiUrl(`/api/v1/projects/${projectId}/unarchive`), {
-                    method: 'PATCH',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    }
-                });
-
-                if (response.ok) {
-                    // Remove from list
-                    this.projects = this.projects.filter(p => p.id !== projectId);
-                } else {
-                    const data = await response.json();
-                    alert(data.error?.message || 'Failed to unarchive project');
-                }
-            } catch (error) {
-                console.error('Error unarchiving project:', error);
-                alert('Failed to unarchive project');
-            } finally {
-                this.loading[projectId] = false;
-            }
-        }
-    }));
-});
-</script>
 {% endblock %}
