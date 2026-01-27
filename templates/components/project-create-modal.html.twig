@@ -23,7 +23,7 @@
              x-transition:leave-start="opacity-100"
              x-transition:leave-end="opacity-0"
              @click="open = false"
-             class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"
+             class="fixed inset-0 bg-gray-500 bg-opacity-75 dark:bg-gray-900/80 transition-opacity"
              aria-hidden="true"></div>
 
         {# Centering wrapper #}
@@ -38,16 +38,16 @@
                  x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
                  x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
                  @click.away="open = false"
-                 class="relative transform overflow-hidden rounded-lg bg-white px-4 pb-4 pt-5 shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:p-6">
+                 class="relative transform overflow-hidden rounded-lg bg-white dark:bg-gray-800 px-4 pb-4 pt-5 shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:p-6">
 
                 {# Header #}
-                <div class="flex items-center justify-between border-b border-gray-200 pb-4">
-                    <h2 id="project-create-title" class="text-lg font-semibold text-gray-900">
+                <div class="flex items-center justify-between border-b border-gray-200 dark:border-gray-700 pb-4">
+                    <h2 id="project-create-title" class="text-lg font-semibold text-gray-900 dark:text-gray-100">
                         New Project
                     </h2>
                     <button @click="open = false"
                             type="button"
-                            class="rounded-md bg-white text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+                            class="rounded-md bg-white dark:bg-gray-800 text-gray-400 dark:text-gray-500 hover:text-gray-500 dark:hover:text-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800">
                         <span class="sr-only">Close</span>
                         <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
@@ -61,7 +61,7 @@
 
                     {# Project Name #}
                     <div>
-                        <label for="project-name" class="block text-sm font-medium text-gray-700">
+                        <label for="project-name" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
                             Name <span class="text-red-500">*</span>
                         </label>
                         <input type="text"
@@ -71,31 +71,31 @@
                                maxlength="100"
                                x-ref="nameInput"
                                x-init="$watch('open', value => { if(value) setTimeout(() => $refs.nameInput.focus(), 100) })"
-                               class="mt-1 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                               class="mt-1 block w-full rounded-md border-0 py-1.5 text-gray-900 dark:text-gray-100 dark:bg-gray-700 shadow-sm ring-1 ring-inset ring-gray-300 dark:ring-gray-600 placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:ring-2 focus:ring-inset focus:ring-teal-600 dark:focus:ring-teal-400 sm:text-sm sm:leading-6"
                                placeholder="Project name">
                     </div>
 
                     {# Description #}
                     <div>
-                        <label for="project-description" class="block text-sm font-medium text-gray-700">
+                        <label for="project-description" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
                             Description
                         </label>
                         <textarea id="project-description"
                                   name="description"
                                   rows="2"
                                   maxlength="500"
-                                  class="mt-1 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                                  class="mt-1 block w-full rounded-md border-0 py-1.5 text-gray-900 dark:text-gray-100 dark:bg-gray-700 shadow-sm ring-1 ring-inset ring-gray-300 dark:ring-gray-600 placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:ring-2 focus:ring-inset focus:ring-teal-600 dark:focus:ring-teal-400 sm:text-sm sm:leading-6"
                                   placeholder="Optional description"></textarea>
                     </div>
 
                     {# Parent Project #}
                     <div>
-                        <label for="project-parent" class="block text-sm font-medium text-gray-700">
+                        <label for="project-parent" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
                             Parent Project
                         </label>
                         <select id="project-parent"
                                 name="parentId"
-                                class="mt-1 block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6">
+                                class="mt-1 block w-full rounded-md border-0 py-1.5 text-gray-900 dark:text-gray-100 dark:bg-gray-700 shadow-sm ring-1 ring-inset ring-gray-300 dark:ring-gray-600 focus:ring-2 focus:ring-inset focus:ring-teal-600 dark:focus:ring-teal-400 sm:text-sm sm:leading-6">
                             <option value="">No parent (root project)</option>
                             <template x-for="project in flattenedProjects" :key="project.id">
                                 <option :value="project.id" x-text="project.indentedName"></option>
@@ -105,7 +105,7 @@
 
                     {# Color #}
                     <div>
-                        <label for="project-color" class="block text-sm font-medium text-gray-700">
+                        <label for="project-color" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
                             Color
                         </label>
                         <div class="mt-1 flex items-center gap-3">
@@ -118,9 +118,9 @@
                                 <template x-for="color in presetColors" :key="color">
                                     <button type="button"
                                             @click="selectedColor = color"
-                                            :class="{ 'ring-2 ring-offset-2 ring-indigo-500': selectedColor === color }"
+                                            :class="{ 'ring-2 ring-offset-2 ring-teal-500': selectedColor === color }"
                                             :style="'background-color: ' + color"
-                                            class="h-6 w-6 rounded-full cursor-pointer border border-gray-200">
+                                            class="h-6 w-6 rounded-full cursor-pointer border border-gray-200 dark:border-gray-600">
                                         <span class="sr-only" x-text="'Select color ' + color"></span>
                                     </button>
                                 </template>
@@ -129,14 +129,14 @@
                     </div>
 
                     {# Submit buttons #}
-                    <div class="mt-6 flex justify-end gap-3 pt-4 border-t border-gray-200">
+                    <div class="mt-6 flex justify-end gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
                         <button type="button"
                                 @click="open = false"
-                                class="rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50">
+                                class="rounded-md bg-white dark:bg-gray-700 px-3 py-2 text-sm font-semibold text-gray-900 dark:text-gray-100 shadow-sm ring-1 ring-inset ring-gray-300 dark:ring-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600">
                             Cancel
                         </button>
                         <button type="submit"
-                                class="rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
+                                class="rounded-md bg-teal-600 dark:bg-teal-500 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-teal-500 dark:hover:bg-teal-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-600">
                             Create Project
                         </button>
                     </div>

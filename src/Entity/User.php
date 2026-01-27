@@ -425,7 +425,28 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
             'date_format' => 'MDY',
             'start_of_week' => 0,
             'task_spacing' => 'comfortable',
+            'theme' => 'system',
         ], $this->settings);
+    }
+
+    /**
+     * Get the user's theme preference.
+     *
+     * @return string 'light', 'dark', or 'system'
+     */
+    public function getTheme(): string
+    {
+        return $this->settings['theme'] ?? 'system';
+    }
+
+    /**
+     * Set the user's theme preference.
+     */
+    public function setTheme(string $theme): static
+    {
+        $this->settings['theme'] = $theme;
+
+        return $this;
     }
 
     public function isEmailVerified(): bool

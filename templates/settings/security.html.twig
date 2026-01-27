@@ -6,29 +6,29 @@
 <div x-data="securitySettings()">
     {# Page header #}
     <div class="mb-6">
-        <h1 class="text-2xl font-bold leading-7 text-gray-900 sm:truncate sm:text-3xl sm:tracking-tight">
+        <h1 class="text-2xl font-bold leading-7 text-gray-900 dark:text-gray-100 sm:truncate sm:text-3xl sm:tracking-tight">
             Security Settings
         </h1>
-        <p class="mt-1 text-sm text-gray-500">
+        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
             Manage your password and account security options
         </p>
     </div>
 
     <div class="space-y-6">
         {# Password section #}
-        <div class="bg-white shadow rounded-lg overflow-hidden">
-            <div class="px-4 py-5 sm:px-6 border-b border-gray-200">
-                <h2 class="text-base font-semibold text-gray-900">Password</h2>
-                <p class="mt-1 text-sm text-gray-500">Update your password to keep your account secure</p>
+        <div class="bg-white dark:bg-gray-800 shadow dark:shadow-none ring-1 ring-gray-200/50 dark:ring-gray-700 rounded-lg overflow-hidden">
+            <div class="px-4 py-5 sm:px-6 border-b border-gray-200 dark:border-gray-700">
+                <h2 class="text-base font-semibold text-gray-900 dark:text-gray-100">Password</h2>
+                <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Update your password to keep your account secure</p>
             </div>
             <div class="px-4 py-5 sm:p-6">
                 <div class="flex items-center justify-between">
                     <div>
-                        <p class="text-sm text-gray-700">Change your password</p>
-                        <p class="text-sm text-gray-500">We recommend using a strong, unique password</p>
+                        <p class="text-sm text-gray-700 dark:text-gray-300">Change your password</p>
+                        <p class="text-sm text-gray-500 dark:text-gray-400">We recommend using a strong, unique password</p>
                     </div>
                     <a href="{{ path('app_forgot_password') }}"
-                       class="inline-flex items-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
+                       class="inline-flex items-center rounded-md bg-teal-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-teal-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-600">
                         Change Password
                     </a>
                 </div>
@@ -36,26 +36,26 @@
         </div>
 
         {# Two-Factor Authentication section #}
-        <div class="bg-white shadow rounded-lg overflow-hidden">
-            <div class="px-4 py-5 sm:px-6 border-b border-gray-200">
-                <h2 class="text-base font-semibold text-gray-900">Two-Factor Authentication</h2>
-                <p class="mt-1 text-sm text-gray-500">Add an extra layer of security to your account</p>
+        <div class="bg-white dark:bg-gray-800 shadow dark:shadow-none ring-1 ring-gray-200/50 dark:ring-gray-700 rounded-lg overflow-hidden">
+            <div class="px-4 py-5 sm:px-6 border-b border-gray-200 dark:border-gray-700">
+                <h2 class="text-base font-semibold text-gray-900 dark:text-gray-100">Two-Factor Authentication</h2>
+                <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Add an extra layer of security to your account</p>
             </div>
             <div class="px-4 py-5 sm:p-6">
                 <div class="flex items-center justify-between">
                     <div>
                         <div class="flex items-center gap-2">
-                            <p class="text-sm font-medium text-gray-700">Status:</p>
+                            <p class="text-sm font-medium text-gray-700 dark:text-gray-300">Status:</p>
                             {% if twoFactorEnabled %}
-                            <span class="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800">
-                                <svg class="-ml-0.5 mr-1.5 h-2 w-2 text-green-500" fill="currentColor" viewBox="0 0 8 8">
+                            <span class="inline-flex items-center rounded-full bg-green-100 dark:bg-green-900/30 px-2.5 py-0.5 text-xs font-medium text-green-800 dark:text-green-300">
+                                <svg class="-ml-0.5 mr-1.5 h-2 w-2 text-green-500 dark:text-green-400" fill="currentColor" viewBox="0 0 8 8">
                                     <circle cx="4" cy="4" r="3" />
                                 </svg>
                                 Enabled
                             </span>
                             {% else %}
-                            <span class="inline-flex items-center rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-800">
-                                <svg class="-ml-0.5 mr-1.5 h-2 w-2 text-gray-400" fill="currentColor" viewBox="0 0 8 8">
+                            <span class="inline-flex items-center rounded-full bg-gray-100 dark:bg-gray-700 px-2.5 py-0.5 text-xs font-medium text-gray-800 dark:text-gray-300">
+                                <svg class="-ml-0.5 mr-1.5 h-2 w-2 text-gray-400 dark:text-gray-500" fill="currentColor" viewBox="0 0 8 8">
                                     <circle cx="4" cy="4" r="3" />
                                 </svg>
                                 Disabled
@@ -63,7 +63,7 @@
                             {% endif %}
                         </div>
                         {% if twoFactorEnabled %}
-                        <p class="mt-1 text-sm text-gray-500">
+                        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
                             Two-factor authentication is enabled.
                             {% if backupCodesRemaining > 0 %}
                             You have {{ backupCodesRemaining }} backup code{{ backupCodesRemaining != 1 ? 's' : '' }} remaining.
@@ -72,7 +72,7 @@
                             {% endif %}
                         </p>
                         {% else %}
-                        <p class="mt-1 text-sm text-gray-500">
+                        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
                             Protect your account with an authenticator app like Google Authenticator or Authy
                         </p>
                         {% endif %}
@@ -82,7 +82,7 @@
                         {# Issue #47: Enable Manage 2FA button #}
                         <button type="button"
                                 @click="openManageModal()"
-                                class="inline-flex items-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50">
+                                class="inline-flex items-center rounded-md bg-white dark:bg-gray-700 px-3 py-2 text-sm font-semibold text-gray-900 dark:text-gray-100 shadow-sm ring-1 ring-inset ring-gray-300 dark:ring-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600">
                             Manage 2FA
                         </button>
                         {% else %}
@@ -90,7 +90,7 @@
                         <button type="button"
                                 @click="startSetup()"
                                 :disabled="setupLoading"
-                                class="inline-flex items-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 disabled:opacity-50 disabled:cursor-not-allowed">
+                                class="inline-flex items-center rounded-md bg-teal-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-teal-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-600 disabled:opacity-50 disabled:cursor-not-allowed">
                             <span x-show="!setupLoading">Enable 2FA</span>
                             <span x-show="setupLoading">Loading...</span>
                         </button>
@@ -101,19 +101,19 @@
         </div>
 
         {# Active Sessions section (placeholder for future) #}
-        <div class="bg-white shadow rounded-lg overflow-hidden">
-            <div class="px-4 py-5 sm:px-6 border-b border-gray-200">
-                <h2 class="text-base font-semibold text-gray-900">Active Sessions</h2>
-                <p class="mt-1 text-sm text-gray-500">Manage your active login sessions</p>
+        <div class="bg-white dark:bg-gray-800 shadow dark:shadow-none ring-1 ring-gray-200/50 dark:ring-gray-700 rounded-lg overflow-hidden">
+            <div class="px-4 py-5 sm:px-6 border-b border-gray-200 dark:border-gray-700">
+                <h2 class="text-base font-semibold text-gray-900 dark:text-gray-100">Active Sessions</h2>
+                <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Manage your active login sessions</p>
             </div>
             <div class="px-4 py-5 sm:p-6">
                 <div class="flex items-center justify-between">
                     <div>
-                        <p class="text-sm text-gray-700">Current session</p>
-                        <p class="text-sm text-gray-500">You are currently logged in</p>
+                        <p class="text-sm text-gray-700 dark:text-gray-300">Current session</p>
+                        <p class="text-sm text-gray-500 dark:text-gray-400">You are currently logged in</p>
                     </div>
                     <a href="{{ path('app_logout') }}"
-                       class="inline-flex items-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-red-600 shadow-sm ring-1 ring-inset ring-red-300 hover:bg-red-50">
+                       class="inline-flex items-center rounded-md bg-white dark:bg-gray-700 px-3 py-2 text-sm font-semibold text-red-600 dark:text-red-400 shadow-sm ring-1 ring-inset ring-red-300 dark:ring-red-500/50 hover:bg-red-50 dark:hover:bg-red-900/30">
                         Sign Out
                     </a>
                 </div>
@@ -127,7 +127,7 @@
          aria-labelledby="setup-modal-title"
          role="dialog"
          aria-modal="true">
-        <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"
+        <div class="fixed inset-0 bg-gray-500/75 dark:bg-gray-900/80 transition-opacity"
              x-transition:enter="ease-out duration-300"
              x-transition:enter-start="opacity-0"
              x-transition:enter-end="opacity-100"
@@ -137,7 +137,7 @@
 
         <div class="fixed inset-0 z-10 overflow-y-auto">
             <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
-                <div class="relative transform overflow-hidden rounded-lg bg-white px-4 pb-4 pt-5 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:p-6"
+                <div class="relative transform overflow-hidden rounded-lg bg-white dark:bg-gray-800 px-4 pb-4 pt-5 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:p-6"
                      x-transition:enter="ease-out duration-300"
                      x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
                      x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
@@ -147,14 +147,14 @@
 
                     {# Setup step - show QR code #}
                     <div x-show="setupStep === 'qr'">
-                        <div class="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-indigo-100">
-                            <svg class="h-6 w-6 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <div class="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-teal-100 dark:bg-teal-900/30">
+                            <svg class="h-6 w-6 text-teal-600 dark:text-teal-400" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
                             </svg>
                         </div>
                         <div class="mt-3 text-center sm:mt-5">
-                            <h3 class="text-base font-semibold leading-6 text-gray-900" id="setup-modal-title">Set Up Two-Factor Authentication</h3>
-                            <p class="mt-2 text-sm text-gray-500">
+                            <h3 class="text-base font-semibold leading-6 text-gray-900 dark:text-gray-100" id="setup-modal-title">Set Up Two-Factor Authentication</h3>
+                            <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
                                 Scan this QR code with your authenticator app, then enter the code below.
                             </p>
                         </div>
@@ -162,9 +162,9 @@
                         <div class="mt-4">
                             {# QR Code display #}
                             <div class="flex justify-center">
-                                <div class="p-4 bg-white border rounded-lg">
+                                <div class="p-4 bg-white dark:bg-gray-700 border dark:border-gray-600 rounded-lg">
                                     <img :src="qrCodeDataUrl" alt="2FA QR Code" class="w-48 h-48" x-show="qrCodeDataUrl">
-                                    <div x-show="!qrCodeDataUrl" class="w-48 h-48 flex items-center justify-center text-gray-400">
+                                    <div x-show="!qrCodeDataUrl" class="w-48 h-48 flex items-center justify-center text-gray-400 dark:text-gray-500">
                                         Loading QR code...
                                     </div>
                                 </div>
@@ -172,18 +172,18 @@
 
                             {# Manual entry option #}
                             <div class="mt-4">
-                                <button type="button" @click="showManualEntry = !showManualEntry" class="text-sm text-indigo-600 hover:text-indigo-500">
+                                <button type="button" @click="showManualEntry = !showManualEntry" class="text-sm text-teal-600 dark:text-teal-400 hover:text-teal-500 dark:hover:text-teal-300">
                                     Can't scan? Enter manually
                                 </button>
-                                <div x-show="showManualEntry" x-cloak class="mt-2 p-3 bg-gray-50 rounded-md">
-                                    <p class="text-xs text-gray-500 mb-1">Secret key:</p>
+                                <div x-show="showManualEntry" x-cloak class="mt-2 p-3 bg-gray-50 dark:bg-gray-700 rounded-md">
+                                    <p class="text-xs text-gray-500 dark:text-gray-400 mb-1">Secret key:</p>
                                     <code class="text-sm font-mono break-all" x-text="setupSecret"></code>
                                 </div>
                             </div>
 
                             {# Verification code input #}
                             <div class="mt-4">
-                                <label for="totp-code" class="block text-sm font-medium text-gray-700">Verification Code</label>
+                                <label for="totp-code" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Verification Code</label>
                                 <input type="text"
                                        id="totp-code"
                                        x-model="verifyCode"
@@ -192,12 +192,12 @@
                                        pattern="[0-9]*"
                                        inputmode="numeric"
                                        placeholder="000000"
-                                       class="mt-1 block w-full text-center text-2xl tracking-widest rounded-md border-0 py-2 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:leading-6">
+                                       class="mt-1 block w-full text-center text-2xl tracking-widest rounded-md border-0 py-2 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-700 shadow-sm ring-1 ring-inset ring-gray-300 dark:ring-gray-600 placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:ring-2 focus:ring-inset focus:ring-teal-600 dark:focus:ring-teal-400 sm:leading-6">
                             </div>
 
                             {# Error message #}
-                            <div x-show="setupError" x-cloak class="mt-3 rounded-md bg-red-50 p-3">
-                                <p class="text-sm text-red-700" x-text="setupError"></p>
+                            <div x-show="setupError" x-cloak class="mt-3 rounded-md bg-red-50 dark:bg-red-900/30 p-3">
+                                <p class="text-sm text-red-700 dark:text-red-300" x-text="setupError"></p>
                             </div>
                         </div>
 
@@ -205,7 +205,7 @@
                             <button type="button"
                                     @click="verifySetup()"
                                     :disabled="verifyLoading || verifyCode.length !== 6"
-                                    class="inline-flex w-full justify-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 disabled:opacity-50 disabled:cursor-not-allowed sm:col-start-2">
+                                    class="inline-flex w-full justify-center rounded-md bg-teal-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-teal-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-600 disabled:opacity-50 disabled:cursor-not-allowed sm:col-start-2">
                                 <span x-show="!verifyLoading">Verify & Enable</span>
                                 <span x-show="verifyLoading">Verifying...</span>
                             </button>
@@ -219,33 +219,33 @@
 
                     {# Success step - show backup codes #}
                     <div x-show="setupStep === 'success'">
-                        <div class="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-green-100">
-                            <svg class="h-6 w-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <div class="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-green-100 dark:bg-green-900/30">
+                            <svg class="h-6 w-6 text-green-600 dark:text-green-400" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
                             </svg>
                         </div>
                         <div class="mt-3 text-center sm:mt-5">
-                            <h3 class="text-base font-semibold leading-6 text-gray-900">2FA Enabled Successfully!</h3>
-                            <p class="mt-2 text-sm text-gray-500">
+                            <h3 class="text-base font-semibold leading-6 text-gray-900 dark:text-gray-100">2FA Enabled Successfully!</h3>
+                            <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
                                 Save these backup codes in a secure location. You can use them to access your account if you lose your authenticator.
                             </p>
                         </div>
 
                         <div class="mt-4">
-                            <div class="rounded-md bg-yellow-50 p-3 mb-4">
+                            <div class="rounded-md bg-yellow-50 dark:bg-yellow-900/30 p-3 mb-4">
                                 <div class="flex">
                                     <svg class="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
                                         <path fill-rule="evenodd" d="M8.485 2.495c.673-1.167 2.357-1.167 3.03 0l6.28 10.875c.673 1.167-.17 2.625-1.516 2.625H3.72c-1.347 0-2.189-1.458-1.515-2.625L8.485 2.495zM10 5a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 0110 5zm0 9a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd" />
                                     </svg>
-                                    <p class="ml-3 text-sm text-yellow-700">
+                                    <p class="ml-3 text-sm text-yellow-700 dark:text-yellow-300">
                                         These codes will only be shown once. Store them safely!
                                     </p>
                                 </div>
                             </div>
 
-                            <div class="grid grid-cols-2 gap-2 p-4 bg-gray-50 rounded-md font-mono text-sm">
+                            <div class="grid grid-cols-2 gap-2 p-4 bg-gray-50 dark:bg-gray-700 rounded-md font-mono text-sm">
                                 <template x-for="code in backupCodes" :key="code">
-                                    <div class="py-1 px-2 bg-white rounded border" x-text="code"></div>
+                                    <div class="py-1 px-2 bg-white dark:bg-gray-800 dark:text-gray-100 rounded border dark:border-gray-600" x-text="code"></div>
                                 </template>
                             </div>
 
@@ -265,7 +265,7 @@
                         <div class="mt-5 sm:mt-6">
                             <button type="button"
                                     @click="closeSetupModal(); window.location.reload();"
-                                    class="inline-flex w-full justify-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
+                                    class="inline-flex w-full justify-center rounded-md bg-teal-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-teal-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-600">
                                 Done
                             </button>
                         </div>
@@ -281,66 +281,66 @@
          aria-labelledby="manage-modal-title"
          role="dialog"
          aria-modal="true">
-        <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"></div>
+        <div class="fixed inset-0 bg-gray-500/75 dark:bg-gray-900/80 transition-opacity"></div>
 
         <div class="fixed inset-0 z-10 overflow-y-auto">
             <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
-                <div class="relative transform overflow-hidden rounded-lg bg-white px-4 pb-4 pt-5 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:p-6">
+                <div class="relative transform overflow-hidden rounded-lg bg-white dark:bg-gray-800 px-4 pb-4 pt-5 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:p-6">
                     <div>
-                        <h3 class="text-base font-semibold leading-6 text-gray-900" id="manage-modal-title">Manage Two-Factor Authentication</h3>
+                        <h3 class="text-base font-semibold leading-6 text-gray-900 dark:text-gray-100" id="manage-modal-title">Manage Two-Factor Authentication</h3>
                         <div class="mt-4 space-y-4">
                             {# Regenerate backup codes #}
-                            <div class="flex items-center justify-between p-3 bg-gray-50 rounded-md">
+                            <div class="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-md">
                                 <div>
-                                    <p class="text-sm font-medium text-gray-900">Backup Codes</p>
-                                    <p class="text-sm text-gray-500">Generate new backup codes</p>
+                                    <p class="text-sm font-medium text-gray-900 dark:text-gray-100">Backup Codes</p>
+                                    <p class="text-sm text-gray-500 dark:text-gray-400">Generate new backup codes</p>
                                 </div>
                                 <button type="button"
                                         @click="showRegenerateForm = true"
-                                        class="inline-flex items-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50">
+                                        class="inline-flex items-center rounded-md bg-white dark:bg-gray-700 px-3 py-2 text-sm font-semibold text-gray-900 dark:text-gray-100 shadow-sm ring-1 ring-inset ring-gray-300 dark:ring-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600">
                                     Regenerate
                                 </button>
                             </div>
 
                             {# Regenerate form #}
-                            <div x-show="showRegenerateForm" x-cloak class="p-3 border rounded-md">
-                                <p class="text-sm text-gray-700 mb-3">Enter your password to generate new backup codes:</p>
+                            <div x-show="showRegenerateForm" x-cloak class="p-3 border dark:border-gray-600 rounded-md">
+                                <p class="text-sm text-gray-700 dark:text-gray-300 mb-3">Enter your password to generate new backup codes:</p>
                                 <input type="password"
                                        x-model="managePassword"
                                        placeholder="Your password"
-                                       class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6">
-                                <div x-show="manageError" x-cloak class="mt-2 text-sm text-red-600" x-text="manageError"></div>
+                                       class="block w-full rounded-md border-0 py-1.5 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-700 shadow-sm ring-1 ring-inset ring-gray-300 dark:ring-gray-600 placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:ring-2 focus:ring-inset focus:ring-teal-600 dark:focus:ring-teal-400 sm:text-sm sm:leading-6">
+                                <div x-show="manageError" x-cloak class="mt-2 text-sm text-red-600 dark:text-red-400" x-text="manageError"></div>
                                 <div class="mt-3 flex gap-2">
                                     <button type="button"
                                             @click="regenerateBackupCodes()"
                                             :disabled="manageLoading"
-                                            class="inline-flex items-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 disabled:opacity-50">
+                                            class="inline-flex items-center rounded-md bg-teal-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-teal-500 disabled:opacity-50">
                                         <span x-show="!manageLoading">Confirm</span>
                                         <span x-show="manageLoading">Loading...</span>
                                     </button>
                                     <button type="button"
                                             @click="showRegenerateForm = false; managePassword = ''; manageError = ''"
-                                            class="inline-flex items-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50">
+                                            class="inline-flex items-center rounded-md bg-white dark:bg-gray-700 px-3 py-2 text-sm font-semibold text-gray-900 dark:text-gray-100 shadow-sm ring-1 ring-inset ring-gray-300 dark:ring-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600">
                                         Cancel
                                     </button>
                                 </div>
                             </div>
 
                             {# Show new backup codes #}
-                            <div x-show="newBackupCodes.length > 0" x-cloak class="p-3 bg-green-50 rounded-md">
-                                <p class="text-sm font-medium text-green-800 mb-2">New Backup Codes (save these!):</p>
-                                <div class="grid grid-cols-2 gap-2 font-mono text-sm">
+                            <div x-show="newBackupCodes.length > 0" x-cloak class="p-3 bg-green-50 dark:bg-green-900/30 rounded-md">
+                                <p class="text-sm font-medium text-green-800 dark:text-green-300 mb-2">New Backup Codes (save these!):</p>
+                                <div class="grid grid-cols-2 gap-2 font-mono text-sm dark:text-gray-100">
                                     <template x-for="code in newBackupCodes" :key="code">
-                                        <div class="py-1 px-2 bg-white rounded border" x-text="code"></div>
+                                        <div class="py-1 px-2 bg-white dark:bg-gray-800 dark:text-gray-100 rounded border dark:border-gray-600" x-text="code"></div>
                                     </template>
                                 </div>
                             </div>
 
                             {# Disable 2FA #}
-                            <div class="flex items-center justify-between p-3 bg-red-50 rounded-md">
+                            <div class="flex items-center justify-between p-3 bg-red-50 dark:bg-red-900/30 rounded-md">
                                 <div>
-                                    <p class="text-sm font-medium text-red-900">Disable 2FA</p>
-                                    <p class="text-sm text-red-700">Remove two-factor authentication</p>
+                                    <p class="text-sm font-medium text-red-900 dark:text-red-300">Disable 2FA</p>
+                                    <p class="text-sm text-red-700 dark:text-red-400">Remove two-factor authentication</p>
                                 </div>
                                 <button type="button"
                                         @click="showDisableForm = true"
@@ -350,13 +350,13 @@
                             </div>
 
                             {# Disable form #}
-                            <div x-show="showDisableForm" x-cloak class="p-3 border border-red-200 rounded-md">
-                                <p class="text-sm text-gray-700 mb-3">Enter your password to disable 2FA:</p>
+                            <div x-show="showDisableForm" x-cloak class="p-3 border border-red-200 dark:border-red-500/50 rounded-md">
+                                <p class="text-sm text-gray-700 dark:text-gray-300 mb-3">Enter your password to disable 2FA:</p>
                                 <input type="password"
                                        x-model="disablePassword"
                                        placeholder="Your password"
                                        class="block w-full rounded-md border-0 py-1.5 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-red-600 sm:text-sm sm:leading-6">
-                                <div x-show="disableError" x-cloak class="mt-2 text-sm text-red-600" x-text="disableError"></div>
+                                <div x-show="disableError" x-cloak class="mt-2 text-sm text-red-600 dark:text-red-400" x-text="disableError"></div>
                                 <div class="mt-3 flex gap-2">
                                     <button type="button"
                                             @click="disable2FA()"
@@ -367,7 +367,7 @@
                                     </button>
                                     <button type="button"
                                             @click="showDisableForm = false; disablePassword = ''; disableError = ''"
-                                            class="inline-flex items-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50">
+                                            class="inline-flex items-center rounded-md bg-white dark:bg-gray-700 px-3 py-2 text-sm font-semibold text-gray-900 dark:text-gray-100 shadow-sm ring-1 ring-inset ring-gray-300 dark:ring-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600">
                                         Cancel
                                     </button>
                                 </div>

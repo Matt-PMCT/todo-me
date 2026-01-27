@@ -11,10 +11,10 @@
         {# Page header #}
         <div class="sm:flex sm:items-center sm:justify-between">
             <div>
-                <h1 class="text-2xl font-bold leading-7 text-gray-900 sm:truncate sm:text-3xl sm:tracking-tight">
+                <h1 class="text-2xl font-bold leading-7 text-gray-900 dark:text-gray-100 sm:truncate sm:text-3xl sm:tracking-tight">
                     My Tasks
                 </h1>
-                <p class="mt-1 text-sm text-gray-500">
+                <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
                     {% if tasks|length > 0 %}
                         You have {{ tasks|length }} task{% if tasks|length != 1 %}s{% endif %}
                     {% else %}
@@ -34,8 +34,8 @@
             <form action="{{ path('app_task_create') }}" method="POST" class="mt-4 flex gap-4">
                 <input type="hidden" name="_csrf_token" value="{{ csrf_token('create_task') }}">
                 <input type="text" name="title" placeholder="Task title" required
-                       class="flex-1 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                <button type="submit" class="rounded-md bg-indigo-600 px-4 py-2 text-white hover:bg-indigo-500">
+                       class="flex-1 rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500">
+                <button type="submit" class="rounded-md bg-teal-600 px-4 py-2 text-white hover:bg-teal-500">
                     Add Task
                 </button>
             </form>
@@ -54,15 +54,15 @@
         {% if currentFilters.projectId %}{% set activeFilterCount = activeFilterCount + 1 %}{% endif %}
         {% if currentFilters.isRecurring is not null %}{% set activeFilterCount = activeFilterCount + 1 %}{% endif %}
 
-        <div class="mt-6 bg-white shadow rounded-lg p-4" x-data="{ showFilters: false }">
+        <div class="mt-6 bg-white dark:bg-gray-800 shadow dark:shadow-none ring-1 ring-gray-200/50 dark:ring-gray-700 rounded-lg p-4" x-data="{ showFilters: false }">
             <div class="flex items-center justify-between">
-                <button @click="showFilters = !showFilters" type="button" class="inline-flex items-center gap-2 text-sm font-medium text-gray-700 hover:text-gray-900">
+                <button @click="showFilters = !showFilters" type="button" class="inline-flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-200 hover:text-gray-900 dark:hover:text-gray-100">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path>
                     </svg>
                     Filters
                     {% if activeFilterCount > 0 %}
-                        <span class="inline-flex items-center justify-center px-2 py-0.5 text-xs font-medium bg-indigo-100 text-indigo-800 rounded-full">
+                        <span class="inline-flex items-center justify-center px-2 py-0.5 text-xs font-medium bg-teal-100 dark:bg-teal-900/30 text-teal-800 dark:text-teal-300 rounded-full">
                             {{ activeFilterCount }}
                         </span>
                     {% endif %}
@@ -72,16 +72,16 @@
                 </button>
 
                 {% if activeFilterCount > 0 %}
-                    <a href="{{ path('app_task_list') }}" class="text-sm text-indigo-600 hover:text-indigo-500">Clear filters</a>
+                    <a href="{{ path('app_task_list') }}" class="text-sm text-teal-600 hover:text-teal-500">Clear filters</a>
                 {% endif %}
             </div>
 
-            <div x-show="showFilters" x-cloak x-transition class="mt-4 border-t pt-4">
+            <div x-show="showFilters" x-cloak x-transition class="mt-4 border-t dark:border-gray-700 pt-4">
                 <form action="{{ path('app_task_list') }}" method="GET" class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
                     {# Status filter #}
                     <div>
-                        <label for="filter_status" class="block text-sm font-medium text-gray-700">Status</label>
-                        <select name="status" id="filter_status" class="mt-1 block w-full rounded-md border-gray-300 py-2 pl-3 pr-10 text-base focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm">
+                        <label for="filter_status" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Status</label>
+                        <select name="status" id="filter_status" class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 py-2 pl-3 pr-10 text-base focus:border-teal-500 focus:outline-none focus:ring-teal-500 dark:focus:ring-teal-400 sm:text-sm">
                             <option value="">All statuses</option>
                             <option value="pending" {% if currentFilters.status == 'pending' %}selected{% endif %}>Pending</option>
                             <option value="in_progress" {% if currentFilters.status == 'in_progress' %}selected{% endif %}>In Progress</option>
@@ -91,8 +91,8 @@
 
                     {# Priority filter #}
                     <div>
-                        <label for="filter_priority" class="block text-sm font-medium text-gray-700">Priority</label>
-                        <select name="priority" id="filter_priority" class="mt-1 block w-full rounded-md border-gray-300 py-2 pl-3 pr-10 text-base focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm">
+                        <label for="filter_priority" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Priority</label>
+                        <select name="priority" id="filter_priority" class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 py-2 pl-3 pr-10 text-base focus:border-teal-500 focus:outline-none focus:ring-teal-500 dark:focus:ring-teal-400 sm:text-sm">
                             <option value="">All priorities</option>
                             {% for i in 1..5 %}
                                 <option value="{{ i }}" {% if currentFilters.priority == i %}selected{% endif %}>{{ i }} star{% if i != 1 %}s{% endif %}</option>
@@ -102,8 +102,8 @@
 
                     {# Project filter #}
                     <div>
-                        <label for="filter_project" class="block text-sm font-medium text-gray-700">Project</label>
-                        <select name="projectId" id="filter_project" class="mt-1 block w-full rounded-md border-gray-300 py-2 pl-3 pr-10 text-base focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm">
+                        <label for="filter_project" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Project</label>
+                        <select name="projectId" id="filter_project" class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 py-2 pl-3 pr-10 text-base focus:border-teal-500 focus:outline-none focus:ring-teal-500 dark:focus:ring-teal-400 sm:text-sm">
                             <option value="">All projects</option>
                             {% for project in projects %}
                                 <option value="{{ project.id }}" {% if currentFilters.projectId == project.id %}selected{% endif %}>{{ project.name }}</option>
@@ -113,8 +113,8 @@
 
                     {# Recurring filter #}
                     <div>
-                        <label for="filter_recurring" class="block text-sm font-medium text-gray-700">Recurring</label>
-                        <select name="isRecurring" id="filter_recurring" class="mt-1 block w-full rounded-md border-gray-300 py-2 pl-3 pr-10 text-base focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm">
+                        <label for="filter_recurring" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Recurring</label>
+                        <select name="isRecurring" id="filter_recurring" class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 py-2 pl-3 pr-10 text-base focus:border-teal-500 focus:outline-none focus:ring-teal-500 dark:focus:ring-teal-400 sm:text-sm">
                             <option value="">All tasks</option>
                             <option value="1" {% if currentFilters.isRecurring == true %}selected{% endif %}>Recurring only</option>
                             <option value="0" {% if currentFilters.isRecurring == false %}selected{% endif %}>Non-recurring only</option>
@@ -129,8 +129,8 @@
                                    value="1"
                                    {% if groupByProject %}checked{% endif %}
                                    class="sr-only peer">
-                            <div class="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-indigo-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
-                            <span class="ml-3 text-sm font-medium text-gray-700">Group by project</span>
+                            <div class="relative w-11 h-6 bg-gray-200 dark:bg-gray-600 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-teal-300 dark:peer-focus:ring-teal-800 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-teal-600"></div>
+                            <span class="ml-3 text-sm font-medium text-gray-700 dark:text-gray-300">Group by project</span>
                         </label>
                     </div>
 
@@ -142,14 +142,14 @@
                                    value="1"
                                    {% if showCompleted %}checked{% endif %}
                                    class="sr-only peer">
-                            <div class="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-indigo-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
-                            <span class="ml-3 text-sm font-medium text-gray-700">Show completed</span>
+                            <div class="relative w-11 h-6 bg-gray-200 dark:bg-gray-600 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-teal-300 dark:peer-focus:ring-teal-800 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-teal-600"></div>
+                            <span class="ml-3 text-sm font-medium text-gray-700 dark:text-gray-300">Show completed</span>
                         </label>
                     </div>
 
                     {# Apply button #}
                     <div class="flex items-end">
-                        <button type="submit" class="inline-flex items-center rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
+                        <button type="submit" class="inline-flex items-center rounded-md bg-teal-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-teal-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-600">
                             Apply Filters
                         </button>
                     </div>
@@ -165,14 +165,14 @@
                     <div class="space-y-8">
                         {% for projectId, group in groupedTasks %}
                             <div>
-                                <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                                <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4 flex items-center gap-2">
                                     {% if projectId != 'no_project' %}
-                                        <svg class="w-5 h-5 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <svg class="w-5 h-5 text-teal-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"></path>
                                         </svg>
                                     {% endif %}
                                     {{ group.name }}
-                                    <span class="text-sm font-normal text-gray-500">({{ group.tasks|length }})</span>
+                                    <span class="text-sm font-normal text-gray-500 dark:text-gray-400">({{ group.tasks|length }})</span>
                                 </h3>
                                 {# Issue #40: Dynamic task spacing based on user preference #}
                                 <div class="{{ taskSpacing == 'compact' ? 'space-y-2' : 'space-y-3' }}">
@@ -198,14 +198,14 @@
                 <div data-task-list class="{{ taskSpacing == 'compact' ? 'space-y-2' : 'space-y-3' }}"></div>
 
                 {# Empty state - Issue #32: data-empty-state for AJAX hiding #}
-                <div data-empty-state class="text-center py-12 bg-white rounded-lg shadow">
-                    <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div data-empty-state class="text-center py-12 bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-none ring-1 ring-gray-200/50 dark:ring-gray-700">
+                    <svg class="mx-auto h-12 w-12 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path>
                     </svg>
-                    <h3 class="mt-2 text-sm font-semibold text-gray-900">No tasks</h3>
-                    <p class="mt-1 text-sm text-gray-500">Get started by creating a new task.</p>
+                    <h3 class="mt-2 text-sm font-semibold text-gray-900 dark:text-gray-100">No tasks</h3>
+                    <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Get started by creating a new task.</p>
                     <div class="mt-6">
-                        <button type="button" onclick="document.getElementById('quick-add-input').focus()" class="inline-flex items-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
+                        <button type="button" onclick="document.getElementById('quick-add-input').focus()" class="inline-flex items-center rounded-md bg-teal-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-teal-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-600">
                             <svg class="-ml-0.5 mr-1.5 h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                                 <path d="M10.75 4.75a.75.75 0 00-1.5 0v4.5h-4.5a.75.75 0 000 1.5h4.5v4.5a.75.75 0 001.5 0v-4.5h4.5a.75.75 0 000-1.5h-4.5v-4.5z" />
                             </svg>

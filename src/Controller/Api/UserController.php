@@ -74,7 +74,7 @@ final class UserController extends AbstractController
     #[Route('/me/settings', name: 'update_settings', methods: ['PATCH'])]
     #[OA\Patch(
         summary: 'Update user settings',
-        description: 'Updates the current user\'s settings (timezone, date format, start of week)',
+        description: 'Updates the current user\'s settings (timezone, date format, start of week, task spacing, theme)',
         requestBody: new OA\RequestBody(
             required: true,
             content: new OA\JsonContent(
@@ -82,6 +82,8 @@ final class UserController extends AbstractController
                     new OA\Property(property: 'timezone', type: 'string', example: 'America/New_York'),
                     new OA\Property(property: 'dateFormat', type: 'string', enum: ['MDY', 'DMY', 'YMD'], example: 'MDY'),
                     new OA\Property(property: 'startOfWeek', type: 'integer', enum: [0, 1], example: 0),
+                    new OA\Property(property: 'taskSpacing', type: 'string', enum: ['comfortable', 'compact'], example: 'comfortable'),
+                    new OA\Property(property: 'theme', type: 'string', enum: ['light', 'dark', 'system'], example: 'system'),
                 ]
             )
         ),

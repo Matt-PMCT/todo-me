@@ -39,12 +39,13 @@ This document establishes the visual language and component guidelines for the t
 ### 2.1 Brand Colors
 
 ```
-Primary (Indigo)
-├── indigo-600: #4F46E5  - Primary actions, navigation header, focus states
-├── indigo-500: #6366F1  - Hover states for primary elements
-├── indigo-700: #4338CA  - Active/pressed states
-├── indigo-100: #E0E7FF  - Light backgrounds, badges
-└── indigo-50:  #EEF2FF  - Subtle highlights
+Primary (Teal)
+├── teal-600: #0D9488  - Primary actions, navigation header, focus states
+├── teal-500: #14B8A6  - Hover states for primary elements
+├── teal-700: #0F766E  - Active/pressed states
+├── teal-400: #2DD4BF  - Light accents
+├── teal-100: #CCFBF1  - Light backgrounds, badges
+└── teal-50:  #F0FDFA  - Subtle highlights
 ```
 
 ### 2.2 Semantic Colors
@@ -93,12 +94,46 @@ Priority Indicator (Stars)
 └── Urgent:      red-500    (#EF4444) - Optional highlight for p4
 ```
 
-### 2.5 Color Usage Rules
+### 2.5 Dark Mode Colors
+
+The application supports dark mode using Tailwind's `dark:` variant with class-based toggle.
+
+```
+Dark Mode Backgrounds
+├── Page:        gray-900 (#111827) - Main page background
+├── Surface:     gray-800 (#1F2937) - Cards, panels, modals
+├── Elevated:    gray-700 (#374151) - Inputs, dropdowns
+└── Navigation:  gray-800 (#1F2937) - Nav bar in dark mode
+
+Dark Mode Text
+├── Primary:     gray-100 (#F3F4F6) - Headings, important text
+├── Secondary:   gray-300 (#D1D5DB) - Body text
+├── Muted:       gray-400 (#9CA3AF) - Helper text, metadata
+└── Placeholder: gray-500 (#6B7280) - Input placeholders
+
+Dark Mode Borders
+├── Default:     gray-700 (#374151) - Card borders, dividers
+├── Subtle:      gray-600 (#4B5563) - Input borders
+└── Focus:       teal-400 (#2DD4BF) - Focus rings
+
+Dark Mode Status Badges
+├── Pending:     yellow-900/30 bg, yellow-300 text
+├── In Progress: blue-900/30 bg, blue-300 text
+├── Completed:   green-900/30 bg, green-300 text
+└── Overdue:     red-900/30 bg, red-300 text
+
+Dark Mode Primary Button
+├── Background:  teal-500 (#14B8A6)
+└── Text:        gray-900 (#111827) - For contrast
+```
+
+### 2.6 Color Usage Rules
 
 1. **Never rely on color alone** - Always pair with icons, text, or patterns
 2. **Use semantic colors consistently** - Green always means success/completed
-3. **Limit primary color usage** - Reserve indigo for primary actions only
+3. **Limit primary color usage** - Reserve teal for primary actions only
 4. **Maintain contrast ratios** - Test all color combinations
+5. **Use dark: variants** - Always include dark mode variants for new styles
 
 ---
 
@@ -226,11 +261,11 @@ Section:   py-10 or py-6
 
 **Primary Button**
 ```html
-<button class="inline-flex items-center gap-2 rounded-md bg-indigo-600 px-4 py-2
+<button class="inline-flex items-center gap-2 rounded-md bg-teal-600 px-4 py-2
                text-sm font-semibold text-white shadow-sm
-               hover:bg-indigo-500
+               hover:bg-teal-500
                focus-visible:outline focus-visible:outline-2
-               focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
+               focus-visible:outline-offset-2 focus-visible:outline-teal-600">
 ```
 
 **Secondary Button**
@@ -274,22 +309,22 @@ Large:   px-6 py-3 text-base
                           text-gray-900 shadow-sm
                           ring-1 ring-inset ring-gray-300
                           placeholder:text-gray-400
-                          focus:ring-2 focus:ring-inset focus:ring-indigo-600
+                          focus:ring-2 focus:ring-inset focus:ring-teal-600
                           sm:text-sm sm:leading-6">
 ```
 
 **Select**
 ```html
 <select class="block w-full rounded-md border-gray-300 py-2 pl-3 pr-10
-               text-base focus:border-indigo-500 focus:outline-none
-               focus:ring-indigo-500 sm:text-sm">
+               text-base focus:border-teal-500 focus:outline-none
+               focus:ring-teal-500 sm:text-sm">
 ```
 
 **Checkbox**
 ```html
 <input type="checkbox" class="h-4 w-4 rounded border-gray-300
-                              text-indigo-600
-                              focus:ring-indigo-600">
+                              text-teal-600
+                              focus:ring-teal-600">
 ```
 
 **Input States**
@@ -339,7 +374,7 @@ Large:   px-6 py-3 text-base
 **Tag Badge**
 ```html
 <span class="inline-flex items-center gap-1 rounded-full px-2 py-0.5
-             text-xs bg-indigo-50 text-indigo-600">
+             text-xs bg-teal-50 text-teal-600">
   <svg class="w-3 h-3">...</svg>
   Tag Name
 </span>
@@ -518,7 +553,7 @@ Colors for inline highlights:
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│  Navigation Bar (bg-indigo-600, fixed height h-16)          │
+│  Navigation Bar (bg-teal-600, fixed height h-16)          │
 ├─────────────────────────────────────────────────────────────┤
 │  Flash Messages (if any)                                    │
 ├─────────────────────────────────────────────────────────────┤
@@ -700,7 +735,7 @@ Border:          hover:border-gray-400 transition-colors
 
 - All interactive elements must be focusable
 - Focus order follows logical reading order
-- Visible focus indicators using `focus:ring-2 focus:ring-indigo-600`
+- Visible focus indicators using `focus:ring-2 focus:ring-teal-600`
 - Skip links for main content
 
 ### 10.3 Screen Readers
@@ -781,27 +816,76 @@ Border:          hover:border-gray-400 transition-colors
 
 ---
 
-## 12. Dark Mode (Future)
+## 12. Dark Mode
 
-Reserved color tokens for future dark mode implementation:
+The application fully supports dark mode using Tailwind's `dark:` variant with class-based toggle. Dark mode is controlled by adding/removing the `dark` class on the `<html>` element.
 
+### 12.1 Theme Toggle Component
+
+Located at `templates/components/theme-toggle.html.twig`, the theme toggle allows users to switch between:
+- **Light** - Always use light mode
+- **Dark** - Always use dark mode
+- **System** - Follow the operating system preference
+
+The theme preference is stored in:
+1. `localStorage` for immediate access on page load
+2. User settings (via API) for persistence across devices
+
+### 12.2 Theme Initialization
+
+To prevent flash of wrong theme on page load, the theme is initialized in a blocking `<script>` in the `<head>`:
+
+```javascript
+(function() {
+    const theme = localStorage.getItem('theme') || 'system';
+    const isDark = theme === 'dark' ||
+        (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+    if (isDark) {
+        document.documentElement.classList.add('dark');
+    }
+})();
 ```
-Background
-├── Page:     gray-900
-├── Surface:  gray-800
-└── Elevated: gray-700
 
-Text
-├── Primary:   gray-100
-├── Secondary: gray-300
-└── Muted:     gray-400
+### 12.3 Dark Mode Patterns
 
-Borders
-├── Default: gray-700
-└── Strong:  gray-600
+**Cards/Containers:**
+```html
+class="bg-white dark:bg-gray-800 shadow dark:shadow-none ring-1 ring-gray-200/50 dark:ring-gray-700"
 ```
 
-Dark mode should be implemented using Tailwind's `dark:` variant with a class-based toggle.
+**Text:**
+```html
+class="text-gray-900 dark:text-gray-100"  <!-- Primary -->
+class="text-gray-700 dark:text-gray-300"  <!-- Secondary -->
+class="text-gray-500 dark:text-gray-400"  <!-- Muted -->
+```
+
+**Form Inputs:**
+```html
+class="bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 ring-gray-300 dark:ring-gray-600 focus:ring-teal-600 dark:focus:ring-teal-400"
+```
+
+**Buttons:**
+```html
+<!-- Primary -->
+class="bg-teal-600 dark:bg-teal-500 text-white"
+<!-- Secondary -->
+class="bg-white dark:bg-gray-700 ring-gray-300 dark:ring-gray-600"
+```
+
+**Modal Backdrop:**
+```html
+class="bg-gray-500/75 dark:bg-gray-900/80"
+```
+
+**Toggle Switches:**
+```html
+:class="enabled ? 'bg-teal-600 dark:bg-teal-500' : 'bg-gray-200 dark:bg-gray-600'"
+```
+
+### 12.4 Settings Page Theme Selector
+
+Users can also change their theme in Settings > Profile under the "Appearance" section. The selector shows three button options (Light, Dark, System) with visual icons.
 
 ---
 
@@ -938,8 +1022,8 @@ Before shipping any UI component, verify:
         </span>
 
         <!-- Project badge -->
-        <span class="inline-flex items-center gap-1 text-xs text-indigo-600
-                     bg-indigo-50 rounded-full px-2 py-0.5">
+        <span class="inline-flex items-center gap-1 text-xs text-teal-600
+                     bg-teal-50 rounded-full px-2 py-0.5">
           <svg class="w-3 h-3">📁</svg>
           Work
         </span>
@@ -966,11 +1050,13 @@ Before shipping any UI component, verify:
 
 ## Appendix B: Color Reference Chart
 
+### Light Mode
+
 | Token | Hex | Usage |
 |-------|-----|-------|
-| indigo-600 | #4F46E5 | Primary actions, nav header |
-| indigo-500 | #6366F1 | Primary hover |
-| indigo-100 | #E0E7FF | Primary light bg |
+| teal-600 | #0D9488 | Primary actions, nav header |
+| teal-500 | #14B8A6 | Primary hover |
+| teal-100 | #CCFBF1 | Primary light bg |
 | gray-900 | #111827 | Primary text |
 | gray-700 | #374151 | Secondary text |
 | gray-500 | #6B7280 | Muted text |
@@ -980,6 +1066,23 @@ Before shipping any UI component, verify:
 | green-500 | #22C55E | Success, completed |
 | red-500 | #EF4444 | Error, overdue, delete |
 
+### Dark Mode
+
+| Token | Hex | Usage |
+|-------|-----|-------|
+| teal-500 | #14B8A6 | Primary actions |
+| teal-400 | #2DD4BF | Focus rings, accents |
+| gray-900 | #111827 | Page background |
+| gray-800 | #1F2937 | Card backgrounds, nav |
+| gray-700 | #374151 | Input backgrounds |
+| gray-100 | #F3F4F6 | Primary text |
+| gray-300 | #D1D5DB | Secondary text |
+| gray-400 | #9CA3AF | Muted text |
+| yellow-300 | #FDE047 | Pending badge text |
+| blue-300 | #93C5FD | In progress badge text |
+| green-300 | #86EFAC | Completed badge text |
+| red-300 | #FCA5A5 | Error badge text |
+
 ---
 
 ## Document History
@@ -987,3 +1090,4 @@ Before shipping any UI component, verify:
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
 | 1.0 | 2026-01-24 | Initial | Initial design system documentation |
+| 1.1 | 2026-01-26 | Claude | Migrated primary color from indigo to teal, added dark mode support |

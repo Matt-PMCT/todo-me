@@ -28,7 +28,7 @@ class="project-tree">
             </button>
             <button @click="$dispatch('open-project-create-modal')"
                     type="button"
-                    class="min-h-11 min-w-11 sm:min-h-0 sm:min-w-0 p-1 text-gray-400 hover:text-indigo-600 rounded transition-colors flex items-center justify-center"
+                    class="min-h-11 min-w-11 sm:min-h-0 sm:min-w-0 p-1 text-gray-400 hover:text-teal-600 rounded transition-colors flex items-center justify-center"
                     title="New project">
                 <span class="sr-only">New project</span>
                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -41,7 +41,7 @@ class="project-tree">
     {# All Tasks Link #}
     <a href="{{ path('app_task_list') }}"
        class="min-h-11 sm:min-h-0 flex items-center gap-2 px-3 py-2 text-sm rounded-md mx-2 mb-1
-              {{ app.request.attributes.get('_route') == 'app_task_list' and not selectedProjectId ? 'bg-indigo-50 text-indigo-700 font-medium' : 'text-gray-700 hover:bg-gray-50' }}">
+              {{ app.request.attributes.get('_route') == 'app_task_list' and not selectedProjectId ? 'bg-teal-50 text-teal-700 font-medium' : 'text-gray-700 hover:bg-gray-50' }}">
         <svg class="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16" />
         </svg>

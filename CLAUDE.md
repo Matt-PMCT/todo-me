@@ -170,8 +170,9 @@ All frontend work must follow the UI Design System documented in `docs/UI-DESIGN
 
 **Styling:**
 - Use Tailwind CSS utility classes directly (avoid `@apply`)
-- Follow the established color tokens: indigo-600 primary, semantic status colors
+- Follow the established color tokens: teal-600 primary, semantic status colors
 - Typography: system font stack, text-sm default, font-semibold for buttons
+- **Dark Mode:** Always include `dark:` variants for new styles (dark mode is class-based)
 - Spacing: 4px base unit (Tailwind scale), p-4 card padding, gap-4 standard spacing
 
 **Components:**

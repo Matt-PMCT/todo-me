@@ -39,7 +39,7 @@
             {% set params = app.request.query.all|merge({'sort': value, 'direction': newDirection}) %}
 
             <a href="{{ path(app.request.attributes.get('_route'), params) }}"
-               class="block px-4 py-2 text-sm {% if isActive %}bg-gray-100 text-indigo-600{% else %}text-gray-700 hover:bg-gray-50{% endif %}">
+               class="block px-4 py-2 text-sm {% if isActive %}bg-gray-100 text-teal-600{% else %}text-gray-700 hover:bg-gray-50{% endif %}">
                 {{ label }}
                 {% if isActive %}
                     <span class="float-right">

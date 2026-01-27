@@ -26,6 +26,11 @@ final class UserSettingsRequest
      */
     public const VALID_TASK_SPACING = ['comfortable', 'compact'];
 
+    /**
+     * Valid theme choices.
+     */
+    public const VALID_THEMES = ['light', 'dark', 'system'];
+
     public function __construct(
         #[Assert\Timezone(message: 'Invalid timezone')]
         public readonly ?string $timezone = null,
@@ -35,6 +40,8 @@ final class UserSettingsRequest
         public readonly ?int $startOfWeek = null,
         #[Assert\Choice(choices: self::VALID_TASK_SPACING, message: 'Invalid task spacing. Must be comfortable or compact')]
         public readonly ?string $taskSpacing = null,
+        #[Assert\Choice(choices: self::VALID_THEMES, message: 'Invalid theme. Must be light, dark, or system')]
+        public readonly ?string $theme = null,
     ) {
     }
 
@@ -50,6 +57,7 @@ final class UserSettingsRequest
             dateFormat: isset($data['dateFormat']) ? (string) $data['dateFormat'] : null,
             startOfWeek: isset($data['startOfWeek']) ? (int) $data['startOfWeek'] : null,
             taskSpacing: isset($data['taskSpacing']) ? (string) $data['taskSpacing'] : null,
+            theme: isset($data['theme']) ? (string) $data['theme'] : null,
         );
     }
 
@@ -77,6 +85,11 @@ final class UserSettingsRequest
         // Issue #40: Task spacing preference
         if ($this->taskSpacing !== null) {
             $settings['task_spacing'] = $this->taskSpacing;
+        }
+
+        // Theme preference
+        if ($this->theme !== null) {
+            $settings['theme'] = $this->theme;
         }
 
         return $settings;

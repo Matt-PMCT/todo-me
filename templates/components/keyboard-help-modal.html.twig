@@ -23,7 +23,7 @@
              x-transition:leave-start="opacity-100"
              x-transition:leave-end="opacity-0"
              @click="open = false"
-             class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"
+             class="fixed inset-0 bg-gray-500 bg-opacity-75 dark:bg-gray-900/80 transition-opacity"
              aria-hidden="true"></div>
 
         {# Centering wrapper #}
@@ -37,16 +37,16 @@
                  x-transition:leave="ease-in duration-200"
                  x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
                  x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-                 class="relative transform overflow-hidden rounded-lg bg-white px-4 pb-4 pt-5 shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:p-6">
+                 class="relative transform overflow-hidden rounded-lg bg-white dark:bg-gray-800 px-4 pb-4 pt-5 shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:p-6">
 
                 {# Header #}
-                <div class="flex items-center justify-between border-b border-gray-200 pb-4">
-                    <h2 id="keyboard-help-title" class="text-lg font-semibold text-gray-900">
+                <div class="flex items-center justify-between border-b border-gray-200 dark:border-gray-700 pb-4">
+                    <h2 id="keyboard-help-title" class="text-lg font-semibold text-gray-900 dark:text-gray-100">
                         Keyboard Shortcuts
                     </h2>
                     <button @click="open = false"
                             type="button"
-                            class="rounded-md bg-white text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+                            class="rounded-md bg-white dark:bg-gray-800 text-gray-400 dark:text-gray-500 hover:text-gray-500 dark:hover:text-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800">
                         <span class="sr-only">Close</span>
                         <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
@@ -59,36 +59,36 @@
 
                     {# Navigation shortcuts #}
                     <div>
-                        <h3 class="text-sm font-medium text-gray-500 uppercase tracking-wider mb-3">Navigation</h3>
+                        <h3 class="text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3">Navigation</h3>
                         <table class="w-full">
-                            <tbody class="divide-y divide-gray-100">
+                            <tbody class="divide-y divide-gray-100 dark:divide-gray-700">
                                 <tr>
                                     <td class="py-2 pr-4">
-                                        <kbd class="inline-flex items-center rounded border border-gray-200 bg-gray-50 px-2 py-1 text-xs font-medium text-gray-600">/</kbd>
+                                        <kbd class="inline-flex items-center rounded border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 px-2 py-1 text-xs font-medium text-gray-600 dark:text-gray-300">/</kbd>
                                     </td>
-                                    <td class="py-2 text-sm text-gray-700">Focus search</td>
+                                    <td class="py-2 text-sm text-gray-700 dark:text-gray-300">Focus search</td>
                                 </tr>
                                 <tr>
                                     <td class="py-2 pr-4">
-                                        <kbd class="inline-flex items-center rounded border border-gray-200 bg-gray-50 px-2 py-1 text-xs font-medium text-gray-600">j</kbd>
-                                        <span class="text-gray-400 mx-1">or</span>
-                                        <kbd class="inline-flex items-center rounded border border-gray-200 bg-gray-50 px-2 py-1 text-xs font-medium text-gray-600">Down</kbd>
+                                        <kbd class="inline-flex items-center rounded border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 px-2 py-1 text-xs font-medium text-gray-600 dark:text-gray-300">j</kbd>
+                                        <span class="text-gray-400 dark:text-gray-500 mx-1">or</span>
+                                        <kbd class="inline-flex items-center rounded border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 px-2 py-1 text-xs font-medium text-gray-600 dark:text-gray-300">Down</kbd>
                                     </td>
-                                    <td class="py-2 text-sm text-gray-700">Next task</td>
+                                    <td class="py-2 text-sm text-gray-700 dark:text-gray-300">Next task</td>
                                 </tr>
                                 <tr>
                                     <td class="py-2 pr-4">
-                                        <kbd class="inline-flex items-center rounded border border-gray-200 bg-gray-50 px-2 py-1 text-xs font-medium text-gray-600">k</kbd>
-                                        <span class="text-gray-400 mx-1">or</span>
-                                        <kbd class="inline-flex items-center rounded border border-gray-200 bg-gray-50 px-2 py-1 text-xs font-medium text-gray-600">Up</kbd>
+                                        <kbd class="inline-flex items-center rounded border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 px-2 py-1 text-xs font-medium text-gray-600 dark:text-gray-300">k</kbd>
+                                        <span class="text-gray-400 dark:text-gray-500 mx-1">or</span>
+                                        <kbd class="inline-flex items-center rounded border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 px-2 py-1 text-xs font-medium text-gray-600 dark:text-gray-300">Up</kbd>
                                     </td>
-                                    <td class="py-2 text-sm text-gray-700">Previous task</td>
+                                    <td class="py-2 text-sm text-gray-700 dark:text-gray-300">Previous task</td>
                                 </tr>
                                 <tr>
                                     <td class="py-2 pr-4">
-                                        <kbd class="inline-flex items-center rounded border border-gray-200 bg-gray-50 px-2 py-1 text-xs font-medium text-gray-600">Enter</kbd>
+                                        <kbd class="inline-flex items-center rounded border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 px-2 py-1 text-xs font-medium text-gray-600 dark:text-gray-300">Enter</kbd>
                                     </td>
-                                    <td class="py-2 text-sm text-gray-700">Open selected task</td>
+                                    <td class="py-2 text-sm text-gray-700 dark:text-gray-300">Open selected task</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -96,58 +96,58 @@
 
                     {# Task actions #}
                     <div>
-                        <h3 class="text-sm font-medium text-gray-500 uppercase tracking-wider mb-3">Task Actions</h3>
+                        <h3 class="text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3">Task Actions</h3>
                         <table class="w-full">
-                            <tbody class="divide-y divide-gray-100">
+                            <tbody class="divide-y divide-gray-100 dark:divide-gray-700">
                                 <tr>
                                     <td class="py-2 pr-4">
-                                        <kbd class="inline-flex items-center rounded border border-gray-200 bg-gray-50 px-2 py-1 text-xs font-medium text-gray-600">n</kbd>
-                                        <span class="text-gray-400 mx-1">or</span>
-                                        <kbd class="inline-flex items-center rounded border border-gray-200 bg-gray-50 px-2 py-1 text-xs font-medium text-gray-600">Ctrl</kbd>
-                                        <span class="text-gray-400 mx-0.5">+</span>
-                                        <kbd class="inline-flex items-center rounded border border-gray-200 bg-gray-50 px-2 py-1 text-xs font-medium text-gray-600">K</kbd>
+                                        <kbd class="inline-flex items-center rounded border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 px-2 py-1 text-xs font-medium text-gray-600 dark:text-gray-300">n</kbd>
+                                        <span class="text-gray-400 dark:text-gray-500 mx-1">or</span>
+                                        <kbd class="inline-flex items-center rounded border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 px-2 py-1 text-xs font-medium text-gray-600 dark:text-gray-300">Ctrl</kbd>
+                                        <span class="text-gray-400 dark:text-gray-500 mx-0.5">+</span>
+                                        <kbd class="inline-flex items-center rounded border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 px-2 py-1 text-xs font-medium text-gray-600 dark:text-gray-300">K</kbd>
                                     </td>
-                                    <td class="py-2 text-sm text-gray-700">Focus quick add</td>
+                                    <td class="py-2 text-sm text-gray-700 dark:text-gray-300">Focus quick add</td>
                                 </tr>
                                 <tr>
                                     <td class="py-2 pr-4">
-                                        <kbd class="inline-flex items-center rounded border border-gray-200 bg-gray-50 px-2 py-1 text-xs font-medium text-gray-600">Ctrl</kbd>
-                                        <span class="text-gray-400 mx-0.5">+</span>
-                                        <kbd class="inline-flex items-center rounded border border-gray-200 bg-gray-50 px-2 py-1 text-xs font-medium text-gray-600">Enter</kbd>
+                                        <kbd class="inline-flex items-center rounded border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 px-2 py-1 text-xs font-medium text-gray-600 dark:text-gray-300">Ctrl</kbd>
+                                        <span class="text-gray-400 dark:text-gray-500 mx-0.5">+</span>
+                                        <kbd class="inline-flex items-center rounded border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 px-2 py-1 text-xs font-medium text-gray-600 dark:text-gray-300">Enter</kbd>
                                     </td>
-                                    <td class="py-2 text-sm text-gray-700">Submit quick add</td>
+                                    <td class="py-2 text-sm text-gray-700 dark:text-gray-300">Submit quick add</td>
                                 </tr>
                                 <tr>
                                     <td class="py-2 pr-4">
-                                        <kbd class="inline-flex items-center rounded border border-gray-200 bg-gray-50 px-2 py-1 text-xs font-medium text-gray-600">c</kbd>
+                                        <kbd class="inline-flex items-center rounded border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 px-2 py-1 text-xs font-medium text-gray-600 dark:text-gray-300">c</kbd>
                                     </td>
-                                    <td class="py-2 text-sm text-gray-700">Complete selected task</td>
+                                    <td class="py-2 text-sm text-gray-700 dark:text-gray-300">Complete selected task</td>
                                 </tr>
                                 <tr>
                                     <td class="py-2 pr-4">
-                                        <kbd class="inline-flex items-center rounded border border-gray-200 bg-gray-50 px-2 py-1 text-xs font-medium text-gray-600">e</kbd>
+                                        <kbd class="inline-flex items-center rounded border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 px-2 py-1 text-xs font-medium text-gray-600 dark:text-gray-300">e</kbd>
                                     </td>
-                                    <td class="py-2 text-sm text-gray-700">Edit selected task</td>
+                                    <td class="py-2 text-sm text-gray-700 dark:text-gray-300">Edit selected task</td>
                                 </tr>
                                 <tr>
                                     <td class="py-2 pr-4">
-                                        <kbd class="inline-flex items-center rounded border border-gray-200 bg-gray-50 px-2 py-1 text-xs font-medium text-gray-600">Delete</kbd>
+                                        <kbd class="inline-flex items-center rounded border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 px-2 py-1 text-xs font-medium text-gray-600 dark:text-gray-300">Delete</kbd>
                                     </td>
-                                    <td class="py-2 text-sm text-gray-700">Delete selected task</td>
+                                    <td class="py-2 text-sm text-gray-700 dark:text-gray-300">Delete selected task</td>
                                 </tr>
                                 <tr>
                                     <td class="py-2 pr-4">
-                                        <kbd class="inline-flex items-center rounded border border-gray-200 bg-gray-50 px-2 py-1 text-xs font-medium text-gray-600">t</kbd>
+                                        <kbd class="inline-flex items-center rounded border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 px-2 py-1 text-xs font-medium text-gray-600 dark:text-gray-300">t</kbd>
                                     </td>
-                                    <td class="py-2 text-sm text-gray-700">Set due date to today</td>
+                                    <td class="py-2 text-sm text-gray-700 dark:text-gray-300">Set due date to today</td>
                                 </tr>
                                 <tr>
                                     <td class="py-2 pr-4">
-                                        <kbd class="inline-flex items-center rounded border border-gray-200 bg-gray-50 px-2 py-1 text-xs font-medium text-gray-600">Ctrl</kbd>
-                                        <span class="text-gray-400 mx-0.5">+</span>
-                                        <kbd class="inline-flex items-center rounded border border-gray-200 bg-gray-50 px-2 py-1 text-xs font-medium text-gray-600">Z</kbd>
+                                        <kbd class="inline-flex items-center rounded border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 px-2 py-1 text-xs font-medium text-gray-600 dark:text-gray-300">Ctrl</kbd>
+                                        <span class="text-gray-400 dark:text-gray-500 mx-0.5">+</span>
+                                        <kbd class="inline-flex items-center rounded border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 px-2 py-1 text-xs font-medium text-gray-600 dark:text-gray-300">Z</kbd>
                                     </td>
-                                    <td class="py-2 text-sm text-gray-700">Undo last action</td>
+                                    <td class="py-2 text-sm text-gray-700 dark:text-gray-300">Undo last action</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -155,20 +155,20 @@
 
                     {# General #}
                     <div>
-                        <h3 class="text-sm font-medium text-gray-500 uppercase tracking-wider mb-3">General</h3>
+                        <h3 class="text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3">General</h3>
                         <table class="w-full">
-                            <tbody class="divide-y divide-gray-100">
+                            <tbody class="divide-y divide-gray-100 dark:divide-gray-700">
                                 <tr>
                                     <td class="py-2 pr-4">
-                                        <kbd class="inline-flex items-center rounded border border-gray-200 bg-gray-50 px-2 py-1 text-xs font-medium text-gray-600">?</kbd>
+                                        <kbd class="inline-flex items-center rounded border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 px-2 py-1 text-xs font-medium text-gray-600 dark:text-gray-300">?</kbd>
                                     </td>
-                                    <td class="py-2 text-sm text-gray-700">Show this help</td>
+                                    <td class="py-2 text-sm text-gray-700 dark:text-gray-300">Show this help</td>
                                 </tr>
                                 <tr>
                                     <td class="py-2 pr-4">
-                                        <kbd class="inline-flex items-center rounded border border-gray-200 bg-gray-50 px-2 py-1 text-xs font-medium text-gray-600">Esc</kbd>
+                                        <kbd class="inline-flex items-center rounded border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 px-2 py-1 text-xs font-medium text-gray-600 dark:text-gray-300">Esc</kbd>
                                     </td>
-                                    <td class="py-2 text-sm text-gray-700">Close modal / dropdown</td>
+                                    <td class="py-2 text-sm text-gray-700 dark:text-gray-300">Close modal / dropdown</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -177,9 +177,9 @@
                 </div>
 
                 {# Footer note #}
-                <div class="mt-6 pt-4 border-t border-gray-200">
-                    <p class="text-xs text-gray-500">
-                        On macOS, use <kbd class="inline-flex items-center rounded border border-gray-200 bg-gray-50 px-1.5 py-0.5 text-xs font-medium text-gray-600">Cmd</kbd> instead of <kbd class="inline-flex items-center rounded border border-gray-200 bg-gray-50 px-1.5 py-0.5 text-xs font-medium text-gray-600">Ctrl</kbd>
+                <div class="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
+                    <p class="text-xs text-gray-500 dark:text-gray-400">
+                        On macOS, use <kbd class="inline-flex items-center rounded border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 px-1.5 py-0.5 text-xs font-medium text-gray-600 dark:text-gray-300">Cmd</kbd> instead of <kbd class="inline-flex items-center rounded border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 px-1.5 py-0.5 text-xs font-medium text-gray-600 dark:text-gray-300">Ctrl</kbd>
                     </p>
                 </div>
 

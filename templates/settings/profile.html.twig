@@ -7,10 +7,10 @@
     {# Page header with save status #}
     <div class="sm:flex sm:items-center sm:justify-between mb-6">
         <div>
-            <h1 class="text-2xl font-bold leading-7 text-gray-900 sm:truncate sm:text-3xl sm:tracking-tight">
+            <h1 class="text-2xl font-bold leading-7 text-gray-900 dark:text-gray-100 sm:truncate sm:text-3xl sm:tracking-tight">
                 Profile Settings
             </h1>
-            <p class="mt-1 text-sm text-gray-500">
+            <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
                 Manage your regional and display preferences
             </p>
         </div>
@@ -39,15 +39,15 @@
     </div>
 
     {# Regional Settings #}
-    <div class="bg-white shadow rounded-lg overflow-hidden">
-        <div class="px-4 py-5 sm:px-6 border-b border-gray-200">
-            <h2 class="text-base font-semibold text-gray-900">Regional Settings</h2>
-            <p class="mt-1 text-sm text-gray-500">Configure how dates and times are displayed</p>
+    <div class="bg-white dark:bg-gray-800 shadow dark:shadow-none ring-1 ring-gray-200/50 dark:ring-gray-700 rounded-lg overflow-hidden">
+        <div class="px-4 py-5 sm:px-6 border-b border-gray-200 dark:border-gray-700">
+            <h2 class="text-base font-semibold text-gray-900 dark:text-gray-100">Regional Settings</h2>
+            <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Configure how dates and times are displayed</p>
         </div>
         <div class="px-4 py-5 sm:p-6 space-y-6">
             {# Issue #31: Searchable timezone selector - integrated into parent component #}
             <div class="relative">
-                <label for="timezone-search" class="block text-sm font-medium text-gray-700">Timezone</label>
+                <label for="timezone-search" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Timezone</label>
                 <div class="relative mt-1">
                     <input
                         type="text"
@@ -61,11 +61,11 @@
                         @keydown.arrow-down.prevent="highlightNext()"
                         @keydown.arrow-up.prevent="highlightPrev()"
                         :placeholder="settings.timezone || 'Search timezones...'"
-                        class="block w-full rounded-md border-0 py-2 pl-3 pr-10 text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                        class="block w-full rounded-md border-0 py-2 pl-3 pr-10 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-700 ring-1 ring-inset ring-gray-300 dark:ring-gray-600 focus:ring-2 focus:ring-teal-600 dark:focus:ring-teal-400 sm:text-sm sm:leading-6"
                         autocomplete="off"
                     >
                     <button type="button" @click="tzOpen = !tzOpen" class="absolute inset-y-0 right-0 flex items-center pr-2">
-                        <svg class="h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
+                        <svg class="h-5 w-5 text-gray-400 dark:text-gray-500" viewBox="0 0 20 20" fill="currentColor">
                             <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clip-rule="evenodd" />
                         </svg>
                     </button>
@@ -75,74 +75,123 @@
                     x-cloak
                     @click.away="tzOpen = false"
                     x-transition
-                    class="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm"
+                    class="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white dark:bg-gray-800 py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 dark:ring-gray-700 focus:outline-none sm:text-sm"
                 >
                     <template x-for="(tz, index) in filteredTimezones" :key="tz">
                         <div
                             @click="selectTimezone(tz)"
                             @mouseenter="tzHighlighted = index"
-                            :class="{ 'bg-indigo-600 text-white': tzHighlighted === index, 'text-gray-900': tzHighlighted !== index }"
+                            :class="{ 'bg-teal-600 text-white': tzHighlighted === index, 'text-gray-900 dark:text-gray-100': tzHighlighted !== index }"
                             class="relative cursor-pointer select-none py-2 pl-3 pr-9"
                         >
                             <span x-text="tz" :class="{ 'font-semibold': settings.timezone === tz }"></span>
-                            <span x-show="settings.timezone === tz" class="absolute inset-y-0 right-0 flex items-center pr-4" :class="{ 'text-white': tzHighlighted === index, 'text-indigo-600': tzHighlighted !== index }">
+                            <span x-show="settings.timezone === tz" class="absolute inset-y-0 right-0 flex items-center pr-4" :class="{ 'text-white': tzHighlighted === index, 'text-teal-600': tzHighlighted !== index }">
                                 <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                                     <path fill-rule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z" clip-rule="evenodd" />
                                 </svg>
                             </span>
                         </div>
                     </template>
-                    <div x-show="filteredTimezones.length === 0" class="py-2 pl-3 pr-9 text-gray-500">
+                    <div x-show="filteredTimezones.length === 0" class="py-2 pl-3 pr-9 text-gray-500 dark:text-gray-400">
                         No timezones found
                     </div>
                 </div>
-                <p class="mt-2 text-sm text-gray-500">All times in the app will be displayed in this timezone</p>
+                <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">All times in the app will be displayed in this timezone</p>
             </div>
 
             {# Date format select #}
             <div>
-                <label for="dateFormat" class="block text-sm font-medium text-gray-700">Date Format</label>
+                <label for="dateFormat" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Date Format</label>
                 <select
                     id="dateFormat"
                     x-model="settings.date_format"
                     @change="saveSettings()"
-                    class="mt-1 block w-full rounded-md border-0 py-2 pl-3 pr-10 text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                    class="mt-1 block w-full rounded-md border-0 py-2 pl-3 pr-10 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-700 ring-1 ring-inset ring-gray-300 dark:ring-gray-600 focus:ring-2 focus:ring-teal-600 dark:focus:ring-teal-400 sm:text-sm sm:leading-6"
                 >
                     <option value="MDY">MM/DD/YYYY (US)</option>
                     <option value="DMY">DD/MM/YYYY (Europe)</option>
                     <option value="YMD">YYYY-MM-DD (ISO)</option>
                 </select>
-                <p class="mt-2 text-sm text-gray-500">How dates are displayed throughout the application</p>
+                <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">How dates are displayed throughout the application</p>
             </div>
 
             {# Start of week select #}
             <div>
-                <label for="startOfWeek" class="block text-sm font-medium text-gray-700">Start of Week</label>
+                <label for="startOfWeek" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Start of Week</label>
                 <select
                     id="startOfWeek"
                     x-model="settings.start_of_week"
                     @change="saveSettings()"
-                    class="mt-1 block w-full rounded-md border-0 py-2 pl-3 pr-10 text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                    class="mt-1 block w-full rounded-md border-0 py-2 pl-3 pr-10 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-700 ring-1 ring-inset ring-gray-300 dark:ring-gray-600 focus:ring-2 focus:ring-teal-600 dark:focus:ring-teal-400 sm:text-sm sm:leading-6"
                 >
                     <option value="0">Sunday</option>
                     <option value="1">Monday</option>
                 </select>
-                <p class="mt-2 text-sm text-gray-500">Which day calendars and week views start on</p>
+                <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">Which day calendars and week views start on</p>
             </div>
 
             {# Issue #40: Task spacing preference #}
             <div>
-                <label for="taskSpacing" class="block text-sm font-medium text-gray-700">Task Spacing</label>
+                <label for="taskSpacing" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Task Spacing</label>
                 <select
                     id="taskSpacing"
                     x-model="settings.task_spacing"
                     @change="saveSettings()"
-                    class="mt-1 block w-full rounded-md border-0 py-2 pl-3 pr-10 text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-indigo-600 sm:text-sm sm:leading-6"
+                    class="mt-1 block w-full rounded-md border-0 py-2 pl-3 pr-10 text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-700 ring-1 ring-inset ring-gray-300 dark:ring-gray-600 focus:ring-2 focus:ring-teal-600 dark:focus:ring-teal-400 sm:text-sm sm:leading-6"
                 >
                     <option value="comfortable">Comfortable (more spacing)</option>
                     <option value="compact">Compact (less spacing)</option>
                 </select>
-                <p class="mt-2 text-sm text-gray-500">Controls the vertical spacing between tasks in your lists</p>
+                <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">Controls the vertical spacing between tasks in your lists</p>
+            </div>
+        </div>
+    </div>
+
+    {# Appearance Settings #}
+    <div class="mt-6 bg-white dark:bg-gray-800 shadow dark:shadow-none ring-1 ring-gray-200/50 dark:ring-gray-700 rounded-lg overflow-hidden">
+        <div class="px-4 py-5 sm:px-6 border-b border-gray-200 dark:border-gray-700">
+            <h2 class="text-base font-semibold text-gray-900 dark:text-gray-100">Appearance</h2>
+            <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Customize how the application looks</p>
+        </div>
+        <div class="px-4 py-5 sm:p-6">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Theme</label>
+                <div class="flex flex-wrap gap-3">
+                    <button
+                        type="button"
+                        @click="setTheme('light')"
+                        :class="settings.theme === 'light' ? 'ring-2 ring-teal-600 dark:ring-teal-400' : 'ring-1 ring-gray-300 dark:ring-gray-600'"
+                        class="flex flex-col items-center gap-2 p-4 rounded-lg bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
+                    >
+                        <svg class="h-6 w-6 text-yellow-500" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v2.25m6.364.386l-1.591 1.591M21 12h-2.25m-.386 6.364l-1.591-1.591M12 18.75V21m-4.773-4.227l-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0z" />
+                        </svg>
+                        <span class="text-sm font-medium text-gray-900 dark:text-gray-100">Light</span>
+                    </button>
+                    <button
+                        type="button"
+                        @click="setTheme('dark')"
+                        :class="settings.theme === 'dark' ? 'ring-2 ring-teal-600 dark:ring-teal-400' : 'ring-1 ring-gray-300 dark:ring-gray-600'"
+                        class="flex flex-col items-center gap-2 p-4 rounded-lg bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
+                    >
+                        <svg class="h-6 w-6 text-slate-600 dark:text-slate-300" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M21.752 15.002A9.718 9.718 0 0118 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 003 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 009.002-5.998z" />
+                        </svg>
+                        <span class="text-sm font-medium text-gray-900 dark:text-gray-100">Dark</span>
+                    </button>
+                    <button
+                        type="button"
+                        @click="setTheme('system')"
+                        :class="settings.theme === 'system' ? 'ring-2 ring-teal-600 dark:ring-teal-400' : 'ring-1 ring-gray-300 dark:ring-gray-600'"
+                        class="flex flex-col items-center gap-2 p-4 rounded-lg bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
+                    >
+                        <svg class="h-6 w-6 text-gray-500 dark:text-gray-400" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 17.25v1.007a3 3 0 01-.879 2.122L7.5 21h9l-.621-.621A3 3 0 0115 18.257V17.25m6-12V15a2.25 2.25 0 01-2.25 2.25H5.25A2.25 2.25 0 013 15V5.25m18 0A2.25 2.25 0 0018.75 3H5.25A2.25 2.25 0 003 5.25m18 0V12a2.25 2.25 0 01-2.25 2.25H5.25A2.25 2.25 0 013 12V5.25" />
+                        </svg>
+                        <span class="text-sm font-medium text-gray-900 dark:text-gray-100">System</span>
+                    </button>
+                </div>
+                <p class="mt-3 text-sm text-gray-500 dark:text-gray-400">Choose light, dark, or sync with your system preference</p>
             </div>
         </div>
     </div>
@@ -153,6 +202,11 @@
 const allTimezones = {{ timezones|json_encode|raw }};
 
 function profileSettings(initialSettings) {
+    // Ensure theme has a default value
+    if (!initialSettings.theme) {
+        initialSettings.theme = 'system';
+    }
+
     return {
         settings: initialSettings,
         saveStatus: null,
@@ -193,6 +247,25 @@ function profileSettings(initialSettings) {
             }
         },
 
+        setTheme(theme) {
+            this.settings.theme = theme;
+            this.applyTheme(theme);
+            this.saveSettings();
+        },
+
+        applyTheme(theme) {
+            const isDark = theme === 'dark' ||
+                (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+
+            if (isDark) {
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+            }
+
+            localStorage.setItem('theme', theme);
+        },
+
         async saveSettings() {
             // Clear any pending save timeout
             if (this.saveTimeout) {
@@ -206,7 +279,8 @@ function profileSettings(initialSettings) {
                     timezone: this.settings.timezone,
                     dateFormat: this.settings.date_format,
                     startOfWeek: parseInt(this.settings.start_of_week, 10),
-                    taskSpacing: this.settings.task_spacing
+                    taskSpacing: this.settings.task_spacing,
+                    theme: this.settings.theme
                 });
 
                 if (response.ok) {
