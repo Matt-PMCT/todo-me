@@ -368,7 +368,7 @@ public function setTheme(string $theme): static
 
 ### 6.2 Update Settings Defaults
 
-Update `getSettingsWithDefaults()`:
+Update `getSettingsWithDefaults()` (around line 421 in `src/Entity/User.php`):
 
 ```php
 public function getSettingsWithDefaults(): array
@@ -377,6 +377,7 @@ public function getSettingsWithDefaults(): array
         'timezone' => 'UTC',
         'date_format' => 'MDY',
         'start_of_week' => 0,
+        'task_spacing' => 'comfortable',
         'theme' => 'system',
     ], $this->settings);
 }
@@ -399,6 +400,71 @@ Update `PATCH /api/v1/users/me/settings` to accept `theme` parameter.
 
 **Validation:**
 - Must be one of: `light`, `dark`, `system`
+
+### 7.2 DTO Implementation Details
+
+**File:** `src/DTO/UserSettingsRequest.php`
+
+Add constant after line 27 (after `VALID_TASK_SPACING`):
+```php
+/**
+ * Valid theme choices.
+ */
+public const VALID_THEMES = ['light', 'dark', 'system'];
+```
+
+Update constructor (lines 29-39) to add theme parameter:
+```php
+public function __construct(
+    #[Assert\Timezone(message: 'Invalid timezone')]
+    public readonly ?string $timezone = null,
+    #[Assert\Choice(choices: self::VALID_DATE_FORMATS, message: 'Invalid date format. Must be MDY, DMY, or YMD')]
+    public readonly ?string $dateFormat = null,
+    #[Assert\Choice(choices: self::VALID_START_OF_WEEK, message: 'Invalid start of week. Must be 0 (Sunday) or 1 (Monday)')]
+    public readonly ?int $startOfWeek = null,
+    #[Assert\Choice(choices: self::VALID_TASK_SPACING, message: 'Invalid task spacing. Must be comfortable or compact')]
+    public readonly ?string $taskSpacing = null,
+    #[Assert\Choice(choices: self::VALID_THEMES, message: 'Invalid theme. Must be light, dark, or system')]
+    public readonly ?string $theme = null,
+) {
+}
+```
+
+Update `fromArray()` method (lines 46-54) to include theme:
+```php
+public static function fromArray(array $data): self
+{
+    return new self(
+        timezone: isset($data['timezone']) ? (string) $data['timezone'] : null,
+        dateFormat: isset($data['dateFormat']) ? (string) $data['dateFormat'] : null,
+        startOfWeek: isset($data['startOfWeek']) ? (int) $data['startOfWeek'] : null,
+        taskSpacing: isset($data['taskSpacing']) ? (string) $data['taskSpacing'] : null,
+        theme: isset($data['theme']) ? (string) $data['theme'] : null,
+    );
+}
+```
+
+Update `toSettingsArray()` method (add after line 80):
+```php
+if ($this->theme !== null) {
+    $settings['theme'] = $this->theme;
+}
+```
+
+### 7.3 OpenAPI Documentation Update
+
+**File:** `src/Controller/Api/UserController.php`
+
+Update the OpenAPI docs at lines 81-85 to include theme:
+```php
+properties: [
+    new OA\Property(property: 'timezone', type: 'string', example: 'America/New_York'),
+    new OA\Property(property: 'dateFormat', type: 'string', enum: ['MDY', 'DMY', 'YMD'], example: 'MDY'),
+    new OA\Property(property: 'startOfWeek', type: 'integer', enum: [0, 1], example: 0),
+    new OA\Property(property: 'taskSpacing', type: 'string', enum: ['comfortable', 'compact'], example: 'comfortable'),
+    new OA\Property(property: 'theme', type: 'string', enum: ['light', 'dark', 'system'], example: 'system'),
+]
+```
 
 ---
 
@@ -481,7 +547,7 @@ Create `templates/components/theme-toggle.html.twig`:
 
 ### 8.4 Theme Toggle JavaScript
 
-Add to `assets/js/theme-toggle.js`:
+Add inline in `templates/components/theme-toggle.html.twig` (following the codebase pattern of inline Alpine.js components):
 
 ```javascript
 function themeToggle(initialTheme) {
@@ -514,17 +580,9 @@ function themeToggle(initialTheme) {
     },
 
     async saveTheme() {
-      // For authenticated users, save to server
+      // Use window.api.patch() with automatic CSRF handling (matches codebase pattern)
       try {
-        await fetch(window.apiUrl('/api/v1/users/me/settings'), {
-          method: 'PATCH',
-          headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
-          },
-          credentials: 'same-origin',
-          body: JSON.stringify({ theme: this.currentTheme })
-        });
+        await window.api.patch('/api/v1/users/me/settings', { theme: this.currentTheme });
       } catch (error) {
         console.error('Failed to save theme preference:', error);
       }
@@ -544,6 +602,8 @@ function themeToggle(initialTheme) {
   };
 }
 ```
+
+**Note:** This follows the codebase pattern where Alpine.js component functions are defined inline in templates (see `profileSettings()` in `profile.html.twig`). The `window.api.patch()` helper handles CSRF tokens automatically.
 
 ---
 
@@ -567,7 +627,7 @@ Add to `templates/settings/profile.html.twig`:
             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Theme</label>
             <div class="mt-3 grid grid-cols-3 gap-3">
                 <button type="button"
-                        @click="settings.theme = 'light'; saveSettings()"
+                        @click="settings.theme = 'light'; saveSettings(); applyTheme()"
                         :class="settings.theme === 'light'
                             ? 'ring-2 ring-teal-600 dark:ring-teal-400'
                             : 'ring-1 ring-gray-300 dark:ring-gray-600'"
@@ -582,7 +642,7 @@ Add to `templates/settings/profile.html.twig`:
                 </button>
 
                 <button type="button"
-                        @click="settings.theme = 'dark'; saveSettings()"
+                        @click="settings.theme = 'dark'; saveSettings(); applyTheme()"
                         :class="settings.theme === 'dark'
                             ? 'ring-2 ring-teal-600 dark:ring-teal-400'
                             : 'ring-1 ring-gray-300 dark:ring-gray-600'"
@@ -597,7 +657,7 @@ Add to `templates/settings/profile.html.twig`:
                 </button>
 
                 <button type="button"
-                        @click="settings.theme = 'system'; saveSettings()"
+                        @click="settings.theme = 'system'; saveSettings(); applyTheme()"
                         :class="settings.theme === 'system'
                             ? 'ring-2 ring-teal-600 dark:ring-teal-400'
                             : 'ring-1 ring-gray-300 dark:ring-gray-600'"
@@ -619,11 +679,47 @@ Add to `templates/settings/profile.html.twig`:
 </div>
 ```
 
+### 9.2 Update profileSettings() Function
+
+Add `applyTheme()` method and update `saveSettings()` in `templates/settings/profile.html.twig`:
+
+```javascript
+function profileSettings(initialSettings) {
+    return {
+        settings: initialSettings,
+        saveStatus: null,
+        saveTimeout: null,
+        // ... existing timezone selector state ...
+
+        applyTheme() {
+            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            const shouldBeDark = this.settings.theme === 'dark' ||
+                                (this.settings.theme === 'system' && prefersDark);
+            document.documentElement.classList.toggle('dark', shouldBeDark);
+            localStorage.setItem('theme', this.settings.theme);
+        },
+
+        async saveSettings() {
+            // ... existing save logic ...
+            // Add theme to the PATCH request (uses window.api.patch with CSRF):
+            const response = await window.api.patch('/api/v1/users/me/settings', {
+                timezone: this.settings.timezone,
+                dateFormat: this.settings.date_format,
+                startOfWeek: parseInt(this.settings.start_of_week, 10),
+                taskSpacing: this.settings.task_spacing,
+                theme: this.settings.theme
+            });
+            // ... rest of existing logic ...
+        }
+    };
+}
+```
+
 ---
 
 ## 10. Implementation Phases
 
-### Phase 1: Foundation (Day 1-2)
+### Phase 1: Foundation
 
 **Objective:** Set up dark mode infrastructure without visual changes
 
@@ -653,7 +749,7 @@ Add to `templates/settings/profile.html.twig`:
 
 ---
 
-### Phase 2: Color Migration (Day 2-3)
+### Phase 2: Color Migration
 
 **Objective:** Replace indigo with teal throughout the app
 
@@ -682,7 +778,7 @@ Add to `templates/settings/profile.html.twig`:
 
 ---
 
-### Phase 3: Dark Mode - Core Components (Day 3-4)
+### Phase 3: Dark Mode - Core Components
 
 **Objective:** Apply dark mode styles to core UI components
 
@@ -715,7 +811,7 @@ Add to `templates/settings/profile.html.twig`:
 
 ---
 
-### Phase 4: Dark Mode - Page-Specific (Day 4-5)
+### Phase 4: Dark Mode - Page-Specific
 
 **Objective:** Complete dark mode for all pages
 
@@ -751,7 +847,7 @@ Add to `templates/settings/profile.html.twig`:
 
 ---
 
-### Phase 5: Visual Polish (Day 5-6)
+### Phase 5: Visual Polish
 
 **Objective:** Add enhanced visual effects
 
@@ -778,7 +874,7 @@ Add to `templates/settings/profile.html.twig`:
 
 ---
 
-### Phase 6: Documentation & Testing (Day 6-7)
+### Phase 6: Documentation & Testing
 
 **Objective:** Update all documentation and test thoroughly
 
@@ -812,7 +908,7 @@ Add to `templates/settings/profile.html.twig`:
 ### PHP/Backend
 - `src/Entity/User.php` - Add theme getter/setter
 - `src/Controller/Api/UserController.php` - Accept theme in settings update
-- `src/DTO/UpdateUserSettingsRequest.php` - Add theme validation (if exists)
+- `src/DTO/UserSettingsRequest.php` - Add theme validation
 
 ### Templates (Priority Order)
 1. `templates/base.html.twig` - Core layout, theme initialization
@@ -831,8 +927,8 @@ Add to `templates/settings/profile.html.twig`:
 14. All other templates in `templates/`
 
 ### JavaScript
-- `assets/app.js` - Import theme toggle
-- `assets/js/theme-toggle.js` - New file for theme logic
+- Theme toggle logic defined inline in `templates/components/theme-toggle.html.twig` (following codebase pattern)
+- No new JavaScript files required - uses inline Alpine.js components like existing `profileSettings()`
 
 ### CSS
 - `assets/styles/app.css` - Optional CSS variables
@@ -965,3 +1061,4 @@ If issues arise during implementation:
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
 | 1.0 | 2026-01-26 | Claude | Initial implementation plan |
+| 1.1 | 2026-01-26 | Claude | Fixed: DTO filename (UserSettingsRequest.php), removed time estimates from phases, added detailed DTO implementation, fixed JS to use window.api.patch() pattern, added task_spacing to defaults |
