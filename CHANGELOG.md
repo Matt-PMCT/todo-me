@@ -25,6 +25,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Production deployment scripts
 
 ### Fixed
+- TOTP secrets now encrypted at rest using AES-256-GCM (Issue #54)
+- Task status changes now use AJAX without page refresh (Issue #59)
+- Project edit functionality via modal dialog (Issue #46)
+- Search results for projects now navigate to filtered task list (Issue #46)
+- Removed fragile string replacement for project URLs (Issue #46)
 - Priority badges now use semantic P1-P5 labels with color-coded styling
 - Timezone selector Alpine.js scope issue in account settings
 - Authorization headers added to all settings page API calls

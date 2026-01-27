@@ -83,10 +83,10 @@
                  x-transition:leave-end="transform opacity-0 scale-95"
                  class="absolute right-0 z-10 mt-1 w-40 origin-top-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5">
 
-                <a :href="'/projects/' + project.id + '/edit'"
-                   class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                <button @click="$dispatch('open-project-edit-modal', { projectId: project.id }); menuOpen = false"
+                        class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                     Edit
-                </a>
+                </button>
                 <button @click="addSubproject(project.id); menuOpen = false"
                         class="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                     Add subproject
