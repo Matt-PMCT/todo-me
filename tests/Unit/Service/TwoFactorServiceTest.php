@@ -33,8 +33,8 @@ class TwoFactorServiceTest extends UnitTestCase
         $this->encryptionService = $this->createMock(EncryptionServiceInterface::class);
 
         // By default, encryption service returns the input unchanged for simplicity
-        $this->encryptionService->method('encrypt')->willReturnCallback(fn($s) => 'enc:' . $s);
-        $this->encryptionService->method('decrypt')->willReturnCallback(fn($s) => substr($s, 4));
+        $this->encryptionService->method('encrypt')->willReturnCallback(fn ($s) => 'enc:'.$s);
+        $this->encryptionService->method('decrypt')->willReturnCallback(fn ($s) => substr($s, 4));
 
         $this->twoFactorService = new TwoFactorService(
             $this->totpService,
@@ -116,7 +116,7 @@ class TwoFactorServiceTest extends UnitTestCase
         $this->assertEquals($backupCodes, $result['backupCodes']);
         $this->assertTrue($user->isTwoFactorEnabled());
         // Secret is encrypted before storage (enc: prefix added by mock)
-        $this->assertEquals('enc:' . $secret, $user->getTotpSecret());
+        $this->assertEquals('enc:'.$secret, $user->getTotpSecret());
     }
 
     public function testCompleteSetupReturnsNullOnInvalidToken(): void

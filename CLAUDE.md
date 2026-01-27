@@ -60,6 +60,26 @@ php bin/console doctrine:migrations:generate   # Create new migration
 php bin/console doctrine:migrations:migrate prev  # Revert last migration
 ```
 
+### Code Style (CRITICAL - CI WILL FAIL WITHOUT THIS)
+
+**IMPORTANT:** Before committing ANY PHP code changes, you MUST run PHP-CS-Fixer to auto-fix code style. The GitHub CI runs `composer cs-check` which will fail if code style is not correct.
+
+```bash
+# ALWAYS run this before committing PHP changes:
+docker compose -f docker/docker-compose.yml exec php composer cs-fix
+
+# To check without fixing (what CI runs):
+docker compose -f docker/docker-compose.yml exec php composer cs-check
+```
+
+Common issues PHP-CS-Fixer fixes automatically:
+- Import statement ordering (must be alphabetical)
+- String concatenation spacing (`. ` → `.`)
+- Trailing commas in multi-line arrays
+- Blank line requirements between class members
+
+**Workflow:** Write code → Run `composer cs-fix` → Run tests → Commit
+
 ## Architecture
 
 ### Directory Structure

@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace App\EventListener;
 
+use Psr\Log\LoggerInterface;
 use Symfony\Component\Console\ConsoleEvents;
 use Symfony\Component\Console\Event\ConsoleCommandEvent;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpKernel\Event\RequestEvent;
 use Symfony\Component\HttpKernel\KernelEvents;
-use Psr\Log\LoggerInterface;
 
 /**
  * Issue #55: Validates APP_SECRET is properly configured.
@@ -75,15 +75,15 @@ final class AppSecretValidator implements EventSubscriberInterface
         if ($this->environment === 'prod' && $isInsecure) {
             throw new \RuntimeException(
                 'APP_SECRET is set to an insecure default value. '
-                . 'Please set a secure, random value in your .env.local file. '
-                . 'You can generate one using: php -r "echo bin2hex(random_bytes(32));"'
+                .'Please set a secure, random value in your .env.local file. '
+                .'You can generate one using: php -r "echo bin2hex(random_bytes(32));"'
             );
         }
 
         if ($isInsecure) {
             $this->logger->warning(
                 'APP_SECRET is set to an insecure default value. '
-                . 'While acceptable in development, please change this before deploying to production.',
+                .'While acceptable in development, please change this before deploying to production.',
                 ['environment' => $this->environment]
             );
         }

@@ -22,7 +22,8 @@ final class EncryptionService implements EncryptionServiceInterface
     private readonly string $encryptionKey;
 
     public function __construct(
-        #[Autowire('%kernel.secret%')] string $kernelSecret,
+        #[Autowire('%kernel.secret%')]
+        string $kernelSecret,
     ) {
         // Derive a 256-bit key from the kernel secret
         $this->encryptionKey = hash('sha256', $kernelSecret, true);
@@ -56,7 +57,7 @@ final class EncryptionService implements EncryptionServiceInterface
         }
 
         // Combine IV + tag + ciphertext and base64 encode
-        return base64_encode($iv . $tag . $ciphertext);
+        return base64_encode($iv.$tag.$ciphertext);
     }
 
     /**
