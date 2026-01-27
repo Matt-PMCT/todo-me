@@ -259,10 +259,10 @@ function navigateTask(direction) {
         selectedTask.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 
         // Remove highlight from all tasks
-        taskItems.forEach(item => item.classList.remove('ring-2', 'ring-indigo-500'));
+        taskItems.forEach(item => item.classList.remove('ring-2', 'ring-teal-500'));
 
         // Add highlight to selected task
-        selectedTask.classList.add('ring-2', 'ring-indigo-500');
+        selectedTask.classList.add('ring-2', 'ring-teal-500');
     }
 }
 

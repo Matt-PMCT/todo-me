@@ -91,8 +91,8 @@ docker-compose.override.yml
 ###> production secrets ###
 # Production environment file with credentials
 .env.prod
-# Production deployment script with domain references
-scripts/deploy/update-web.sh
+# Production deployment scripts (contains domain references and credentials)
+scripts/deploy/
 # AdminKit template directory (contains API keys)
 docs/adminkit-pro-3-4-0/
 ###< production secrets ###

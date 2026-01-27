@@ -178,7 +178,7 @@ All frontend work must follow the UI Design System documented in `docs/UI-DESIGN
 **Components:**
 - Task cards: white bg, shadow, rounded-lg, hover:shadow-md transition
 - Buttons: rounded-md, text-sm font-semibold, focus ring states
-- Forms: ring-1 borders, focus:ring-2 focus:ring-indigo-600
+- Forms: ring-1 borders, focus:ring-2 focus:ring-teal-600
 - Modals: fixed overlay, bg-gray-500/75 backdrop, max-w-lg panel
 
 **Interaction:**

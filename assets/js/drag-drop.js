@@ -54,13 +54,13 @@ window.projectDragDrop = {
         // Top third = before, middle third = inside, bottom third = after
         if (y < height * 0.25) {
             this.dropPosition = 'before';
-            event.currentTarget.classList.add('border-t-2', 'border-indigo-500');
+            event.currentTarget.classList.add('border-t-2', 'border-teal-500');
         } else if (y > height * 0.75) {
             this.dropPosition = 'after';
-            event.currentTarget.classList.add('border-b-2', 'border-indigo-500');
+            event.currentTarget.classList.add('border-b-2', 'border-teal-500');
         } else {
             this.dropPosition = 'inside';
-            event.currentTarget.classList.add('bg-indigo-100');
+            event.currentTarget.classList.add('bg-teal-100');
         }
 
         this.dropTarget = targetProject;
@@ -167,8 +167,8 @@ window.projectDragDrop = {
             el.classList.remove(
                 'border-t-2',
                 'border-b-2',
-                'border-indigo-500',
-                'bg-indigo-100'
+                'border-teal-500',
+                'bg-teal-100'
             );
         });
     },

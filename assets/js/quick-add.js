@@ -126,7 +126,7 @@ export function quickAdd(apiToken) {
                 case 'date':
                     return 'bg-blue-100 text-blue-700 rounded px-0.5';
                 case 'project':
-                    return 'bg-indigo-50 text-indigo-600 rounded px-0.5';
+                    return 'bg-teal-50 text-teal-600 rounded px-0.5';
                 case 'tag':
                     return 'bg-gray-100 text-gray-700 rounded px-0.5';
                 case 'priority':
