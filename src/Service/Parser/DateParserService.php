@@ -398,8 +398,10 @@ class DateParserService
         $timePatterns = [
             // "at 2pm", "at 2:30pm", "at 14:00"
             '/^\s*at\s+(\d{1,2})(?::(\d{2}))?\s*(am|pm)?\b/i',
-            // Direct time: "2pm", "2:30pm", "14:00"
+            // Direct time with am/pm: "2pm", "2:30pm"
             '/^\s+(\d{1,2})(?::(\d{2}))?\s*(am|pm)\b/i',
+            // 24-hour time without am/pm: "06:00", "14:30" (requires colon to distinguish from other numbers)
+            '/^\s+(\d{1,2}):(\d{2})\b/',
         ];
 
         foreach ($timePatterns as $pattern) {

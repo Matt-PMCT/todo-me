@@ -528,6 +528,27 @@ class DateParserServiceTest extends TestCase
         $this->assertTrue($result->hasTime);
     }
 
+    public function testParsesTime24HourWithoutAtPrefix(): void
+    {
+        // "thu 06:00" format - 24-hour time without "at" prefix
+        $result = $this->parser->parse('thu 06:00');
+
+        $this->assertNotNull($result);
+        // Thursday after Friday 2026-01-23 is 2026-01-29
+        $this->assertEquals('2026-01-29', $result->date->format('Y-m-d'));
+        $this->assertEquals('06:00', $result->time);
+        $this->assertTrue($result->hasTime);
+    }
+
+    public function testParsesTime24HourAfternoonWithoutAtPrefix(): void
+    {
+        $result = $this->parser->parse('friday 14:30');
+
+        $this->assertNotNull($result);
+        $this->assertEquals('14:30', $result->time);
+        $this->assertTrue($result->hasTime);
+    }
+
     public function testDateWithoutTimeHasTimeFalse(): void
     {
         $result = $this->parser->parse('tomorrow');
