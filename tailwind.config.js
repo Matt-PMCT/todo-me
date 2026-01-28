@@ -9,11 +9,10 @@ module.exports = {
     // Dynamic highlight classes used in quick-add.html.twig getHighlightClass()
     // Light mode
     'bg-blue-100', 'bg-teal-100', 'bg-gray-200', 'bg-yellow-100',
-    'border-b-2', 'border-red-400',
-    // Dark mode (applied via JS detection, not dark: prefix)
-    'bg-blue-500/30', 'bg-teal-500/30', 'bg-gray-500/40', 'bg-yellow-500/30',
-    'border-red-500',
+    'border-b-2', 'border-red-400', 'border-red-500',
     'rounded-sm',
+    // Dark mode opacity classes - use pattern matching
+    { pattern: /^bg-(blue|teal|gray|yellow)-500\/(20|30|40)$/ },
   ],
   theme: {
     extend: {
