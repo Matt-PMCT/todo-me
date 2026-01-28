@@ -27,7 +27,7 @@
         </div>
 
         {# Task list #}
-        <div class="mt-6">
+        <div class="{{ taskSpacing == 'compact' ? 'mt-4' : 'mt-6' }}">
             {% if tasks|length > 0 %}
                 <div class="{{ taskSpacing == 'compact' ? 'space-y-2' : 'space-y-3' }}">
                     {% for task in tasks %}

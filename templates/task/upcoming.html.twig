@@ -23,7 +23,7 @@
         </div>
 
         {# Task sections grouped by time period #}
-        <div class="mt-6">
+        <div class="{{ taskSpacing == 'compact' ? 'mt-4' : 'mt-6' }}">
             {% if tasks|length > 0 %}
                 <div class="space-y-8" x-data="{ collapsed: {} }">
                     {# Iterate through time period groups in order #}

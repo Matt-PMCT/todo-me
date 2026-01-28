@@ -1,9 +1,9 @@
 {# Task item partial - reusable component for task display #}
-{# Expects: task (Task entity) #}
+{# Expects: task (Task entity), taskSpacing (optional, from parent context) #}
 
 <div data-task-item
      data-task-id="{{ task.id }}"
-     class="bg-white dark:bg-gray-800 shadow dark:shadow-none ring-1 ring-gray-200/50 dark:ring-gray-700 rounded-lg p-4 hover:shadow-md dark:hover:ring-gray-600 transition-shadow duration-200 {% if overdueInfo is defined and overdueInfo.isOverdue %}{{ overdueInfo.borderClass }}{% elseif task.isOverdue %}border-l-4 border-l-red-500{% endif %}"
+     class="bg-white dark:bg-gray-800 shadow dark:shadow-none ring-1 ring-gray-200/50 dark:ring-gray-700 rounded-lg {{ taskSpacing|default('comfortable') == 'compact' ? 'px-4 py-2' : 'p-4' }} hover:shadow-md dark:hover:ring-gray-600 transition-shadow duration-200 {% if overdueInfo is defined and overdueInfo.isOverdue %}{{ overdueInfo.borderClass }}{% elseif task.isOverdue %}border-l-4 border-l-red-500{% endif %}"
      x-data="taskItem('{{ task.id }}', '{{ task.status }}')"
      @closeAll.window="showDeleteModal = false"
      @toggle-subtasks.window="if ($event.detail.taskId === '{{ task.id }}') { $store.subtasks?.toggle('{{ task.id }}') }"

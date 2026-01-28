@@ -23,7 +23,7 @@
         </div>
 
         {# Task sections #}
-        <div class="mt-6">
+        <div class="{{ taskSpacing == 'compact' ? 'mt-4' : 'mt-6' }}">
             {% if tasks|length > 0 %}
                 {# Show overdue section first if there are overdue tasks #}
                 {% if groupedTasks.overdue is defined and groupedTasks.overdue.tasks|length > 0 %}

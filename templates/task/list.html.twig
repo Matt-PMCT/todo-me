@@ -158,7 +158,7 @@
         </div>
 
         {# Task list #}
-        <div class="mt-6">
+        <div class="{{ taskSpacing == 'compact' ? 'mt-4' : 'mt-6' }}">
             {% if tasks|length > 0 %}
                 {% if groupByProject %}
                     {# Grouped view - tasks are pre-grouped in the controller #}
