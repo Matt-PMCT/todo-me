@@ -1,0 +1,963 @@
+openapi: 3.0.3
+info:
+  title: Todo-Me AI Agent API
+  description: |
+    Simplified API specification for AI agents to manage tasks and projects.
+
+    ## Authentication
+    All endpoints require a Bearer token in the Authorization header:
+    ```
+    Authorization: Bearer YOUR_API_TOKEN
+    ```
+
+    ## Response Format
+    All responses follow this structure:
+    ```json
+    {
+      "success": true,
+      "data": { ... },
+      "meta": { "requestId": "uuid", "timestamp": "ISO-8601" }
+    }
+    ```
+
+    ## Common Patterns
+    - All IDs are UUIDs (e.g., `019c067b-xxxx-xxxx-xxxx-xxxxxxxxxxxx`)
+    - Dates use ISO 8601 format (e.g., `2026-01-28`)
+    - Times use 24-hour format (e.g., `14:30`)
+    - Priority ranges from 1 (lowest) to 5 (highest)
+    - Status values: `pending`, `in_progress`, `completed`
+  version: 1.0.0
+  contact:
+    name: Todo-Me Support
+
+servers:
+  - url: https://pmct.work/todo-me/api/v1
+    description: Production
+
+security:
+  - bearerAuth: []
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      description: API token from user settings
+
+  schemas:
+    Task:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        description:
+          type: string
+          nullable: true
+        status:
+          type: string
+          enum: [pending, in_progress, completed]
+        priority:
+          type: integer
+          minimum: 1
+          maximum: 5
+        dueDate:
+          type: string
+          format: date
+          nullable: true
+        dueTime:
+          type: string
+          pattern: '^([01]?[0-9]|2[0-3]):[0-5][0-9]$'
+          nullable: true
+          description: Time in HH:MM format (24-hour)
+        project:
+          type: object
+          nullable: true
+          properties:
+            id:
+              type: string
+              format: uuid
+            name:
+              type: string
+        tags:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: string
+                format: uuid
+              name:
+                type: string
+        isRecurring:
+          type: boolean
+        recurrenceRule:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    Project:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        description:
+          type: string
+          nullable: true
+        color:
+          type: string
+          nullable: true
+        icon:
+          type: string
+          nullable: true
+        taskCount:
+          type: integer
+        completedTaskCount:
+          type: integer
+
+    CreateTaskRequest:
+      type: object
+      required:
+        - title
+      properties:
+        title:
+          type: string
+          maxLength: 500
+        description:
+          type: string
+          maxLength: 2000
+        priority:
+          type: integer
+          minimum: 1
+          maximum: 5
+          default: 3
+        dueDate:
+          type: string
+          format: date
+          description: Due date (YYYY-MM-DD)
+        dueTime:
+          type: string
+          pattern: '^([01]?[0-9]|2[0-3]):[0-5][0-9]$'
+          description: Due time in HH:MM format
+        projectId:
+          type: string
+          format: uuid
+        tagIds:
+          type: array
+          items:
+            type: string
+            format: uuid
+        isRecurring:
+          type: boolean
+        recurrenceRule:
+          type: string
+          description: 'Recurrence pattern (e.g., "daily", "weekly", "monthly")'
+
+    UpdateTaskRequest:
+      type: object
+      properties:
+        title:
+          type: string
+          maxLength: 500
+        description:
+          type: string
+          maxLength: 2000
+        status:
+          type: string
+          enum: [pending, in_progress, completed]
+        priority:
+          type: integer
+          minimum: 1
+          maximum: 5
+        dueDate:
+          type: string
+          format: date
+        dueTime:
+          type: string
+          pattern: '^([01]?[0-9]|2[0-3]):[0-5][0-9]$'
+        projectId:
+          type: string
+          format: uuid
+        tagIds:
+          type: array
+          items:
+            type: string
+            format: uuid
+        clearDueDate:
+          type: boolean
+          description: Set to true to remove the due date
+        clearDueTime:
+          type: boolean
+          description: Set to true to remove the due time
+        clearProject:
+          type: boolean
+          description: Set to true to remove from project
+
+paths:
+  /tasks:
+    get:
+      operationId: listTasks
+      summary: List tasks
+      description: Get paginated list of tasks with optional filtering
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+            maximum: 100
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [pending, in_progress, completed]
+        - name: priority_min
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 5
+        - name: priority_max
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 5
+        - name: project_ids
+          in: query
+          description: Comma-separated project UUIDs
+          schema:
+            type: string
+        - name: tag_ids
+          in: query
+          description: Comma-separated tag UUIDs
+          schema:
+            type: string
+        - name: search
+          in: query
+          description: Search in title and description
+          schema:
+            type: string
+        - name: due_before
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: due_after
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: sort
+          in: query
+          schema:
+            type: string
+            enum: [due_date, priority, created_at, title, position]
+            default: position
+        - name: direction
+          in: query
+          schema:
+            type: string
+            enum: [ASC, DESC]
+            default: ASC
+      responses:
+        '200':
+          description: Task list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      tasks:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Task'
+                      pagination:
+                        type: object
+                        properties:
+                          page:
+                            type: integer
+                          limit:
+                            type: integer
+                          total:
+                            type: integer
+                          totalPages:
+                            type: integer
+
+    post:
+      operationId: createTask
+      summary: Create a task
+      description: Create a new task. Use natural language endpoint for parsing dates like "tomorrow at 3pm"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateTaskRequest'
+      responses:
+        '201':
+          description: Task created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/Task'
+
+  /tasks/today:
+    get:
+      operationId: getTodayTasks
+      summary: Get today's tasks
+      description: Returns tasks due today plus any overdue tasks
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: Today's tasks
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      tasks:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Task'
+
+  /tasks/upcoming:
+    get:
+      operationId: getUpcomingTasks
+      summary: Get upcoming tasks
+      description: Returns tasks due within the next N days
+      parameters:
+        - name: days
+          in: query
+          description: Number of days to look ahead
+          schema:
+            type: integer
+            default: 7
+            maximum: 90
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: Upcoming tasks
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      tasks:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Task'
+
+  /tasks/overdue:
+    get:
+      operationId: getOverdueTasks
+      summary: Get overdue tasks
+      description: Returns tasks that are past their due date
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: Overdue tasks
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      tasks:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Task'
+
+  /tasks/{id}:
+    get:
+      operationId: getTask
+      summary: Get a task
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Task details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/Task'
+        '404':
+          description: Task not found
+
+    patch:
+      operationId: updateTask
+      summary: Update a task
+      description: Partial update - only include fields to change
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateTaskRequest'
+      responses:
+        '200':
+          description: Task updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/Task'
+                  undoToken:
+                    type: string
+                    description: Token to undo this change (valid 60 seconds)
+
+    delete:
+      operationId: deleteTask
+      summary: Delete a task
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Task deleted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      message:
+                        type: string
+                      undoToken:
+                        type: string
+
+  /tasks/{id}/status:
+    patch:
+      operationId: changeTaskStatus
+      summary: Change task status
+      description: Quick status change endpoint
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - status
+              properties:
+                status:
+                  type: string
+                  enum: [pending, in_progress, completed]
+      responses:
+        '200':
+          description: Status changed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/Task'
+
+  /tasks/{id}/reschedule:
+    patch:
+      operationId: rescheduleTask
+      summary: Reschedule a task
+      description: Change task due date using natural language or ISO date
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - due_date
+              properties:
+                due_date:
+                  type: string
+                  description: 'Date in ISO format (2026-01-28) or natural language ("tomorrow", "next Monday")'
+      responses:
+        '200':
+          description: Task rescheduled
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/Task'
+
+  /tasks/{id}/subtasks:
+    get:
+      operationId: listSubtasks
+      summary: Get subtasks
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Subtask list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      tasks:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Task'
+                      total:
+                        type: integer
+                      completedCount:
+                        type: integer
+
+    post:
+      operationId: createSubtask
+      summary: Create a subtask
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Parent task ID
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateTaskRequest'
+      responses:
+        '201':
+          description: Subtask created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/Task'
+
+  /tasks/undo/{token}:
+    post:
+      operationId: undoTaskOperation
+      summary: Undo a task operation
+      description: Reverses a delete, update, or status change (valid 60 seconds)
+      parameters:
+        - name: token
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Operation undone
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/Task'
+
+  /projects:
+    get:
+      operationId: listProjects
+      summary: List projects
+      responses:
+        '200':
+          description: Project list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      projects:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Project'
+
+    post:
+      operationId: createProject
+      summary: Create a project
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+              properties:
+                name:
+                  type: string
+                  maxLength: 100
+                description:
+                  type: string
+                color:
+                  type: string
+                  description: Hex color (e.g., "#3b82f6")
+                icon:
+                  type: string
+      responses:
+        '201':
+          description: Project created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/Project'
+
+  /projects/{id}:
+    get:
+      operationId: getProject
+      summary: Get a project
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Project details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/Project'
+
+    patch:
+      operationId: updateProject
+      summary: Update a project
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                description:
+                  type: string
+                color:
+                  type: string
+                icon:
+                  type: string
+      responses:
+        '200':
+          description: Project updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/Project'
+
+    delete:
+      operationId: deleteProject
+      summary: Delete a project
+      description: Deletes the project. Tasks in the project are preserved but unassigned.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Project deleted
+
+  /projects/{id}/tasks:
+    get:
+      operationId: getProjectTasks
+      summary: Get tasks in a project
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: Project tasks
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      tasks:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Task'
+
+  /search:
+    get:
+      operationId: search
+      summary: Search tasks and projects
+      parameters:
+        - name: q
+          in: query
+          required: true
+          description: Search query
+          schema:
+            type: string
+        - name: type
+          in: query
+          description: Filter by type
+          schema:
+            type: string
+            enum: [all, tasks, projects, tags]
+            default: all
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: Search results
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      tasks:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Task'
+                      projects:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Project'
+
+  /parse:
+    post:
+      operationId: parseAndCreateTask
+      summary: Create task from natural language
+      description: |
+        Parse natural language input and create a task.
+
+        Examples:
+        - "Buy groceries tomorrow at 5pm"
+        - "Call dentist next Monday #health p4"
+        - "Review report by Friday @work"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - input
+              properties:
+                input:
+                  type: string
+                  description: Natural language task description
+      responses:
+        '201':
+          description: Task created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      task:
+                        $ref: '#/components/schemas/Task'
+                      parsed:
+                        type: object
+                        description: Shows how the input was interpreted
+                        properties:
+                          title:
+                            type: string
+                          dueDate:
+                            type: string
+                          dueTime:
+                            type: string
+                          priority:
+                            type: integer
+                          tags:
+                            type: array
+                            items:
+                              type: string
