@@ -26,6 +26,8 @@ export function initSwipeGestures() {
     document.addEventListener('touchstart', handleTouchStart, { passive: true });
     document.addEventListener('touchmove', handleTouchMove, { passive: false });
     document.addEventListener('touchend', handleTouchEnd, { passive: true });
+    // Issue #63: Handle touchcancel for edge cases (e.g., incoming call)
+    document.addEventListener('touchcancel', handleTouchEnd, { passive: true });
 }
 
 let startX = 0;
@@ -145,11 +147,18 @@ function resetTaskPosition(taskItem) {
         content.style.transform = 'translateX(0)';
     }
 
-    // Hide action indicators
+    // Issue #63: Clear inline opacity styles before adding class
+    // Inline styles override classes, causing stuck backgrounds
     const leftIndicator = taskItem.querySelector('[data-swipe-left]');
     const rightIndicator = taskItem.querySelector('[data-swipe-right]');
-    if (leftIndicator) leftIndicator.classList.add('opacity-0');
-    if (rightIndicator) rightIndicator.classList.add('opacity-0');
+    if (leftIndicator) {
+        leftIndicator.style.opacity = '';
+        leftIndicator.classList.add('opacity-0');
+    }
+    if (rightIndicator) {
+        rightIndicator.style.opacity = '';
+        rightIndicator.classList.add('opacity-0');
+    }
 }
 
 /**
@@ -159,10 +168,10 @@ function resetTaskPosition(taskItem) {
 function ensureSwipeContainer(taskItem) {
     if (taskItem.querySelector('[data-swipe-content]')) return;
 
-    // Wrap content
+    // Wrap content - Issue #63: Add dark mode support
     const content = document.createElement('div');
     content.setAttribute('data-swipe-content', '');
-    content.className = 'relative bg-white rounded-lg';
+    content.className = 'relative bg-white dark:bg-gray-800 rounded-lg';
 
     // Move children to content wrapper
     while (taskItem.firstChild) {

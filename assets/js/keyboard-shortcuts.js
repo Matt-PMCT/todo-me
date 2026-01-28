@@ -167,7 +167,8 @@ function focusQuickAdd() {
     // Look for the quick add input by x-ref or by container
     const quickAddContainer = document.querySelector('[x-data*="quickAdd"]');
     if (quickAddContainer) {
-        const input = quickAddContainer.querySelector('input[type="text"]');
+        // Issue #63: Quick-add uses textarea, not input
+        const input = quickAddContainer.querySelector('textarea, input[type="text"]');
         if (input) {
             input.focus();
             input.select();
@@ -190,7 +191,8 @@ function focusQuickAdd() {
 function handleQuickAddSubmit(e) {
     const quickAddContainer = document.querySelector('[x-data*="quickAdd"]');
     if (quickAddContainer) {
-        const input = quickAddContainer.querySelector('input[type="text"]');
+        // Issue #63: Quick-add uses textarea, not input
+        const input = quickAddContainer.querySelector('textarea, input[type="text"]');
         if (input && document.activeElement === input) {
             e.preventDefault();
             // Find and click the submit button
@@ -258,11 +260,11 @@ function navigateTask(direction) {
     if (selectedTask) {
         selectedTask.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 
-        // Remove highlight from all tasks
-        taskItems.forEach(item => item.classList.remove('ring-2', 'ring-teal-500'));
+        // Issue #63: Remove highlight from all tasks (including dark mode classes)
+        taskItems.forEach(item => item.classList.remove('ring-2', 'ring-teal-500', 'dark:ring-teal-400'));
 
-        // Add highlight to selected task
-        selectedTask.classList.add('ring-2', 'ring-teal-500');
+        // Add highlight to selected task with dark mode support
+        selectedTask.classList.add('ring-2', 'ring-teal-500', 'dark:ring-teal-400');
     }
 }
 

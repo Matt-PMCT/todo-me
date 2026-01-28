@@ -8,25 +8,24 @@
 {# Issue #41: Reduced vertical padding from py-10 to py-6 #}
 <div class="py-6">
     <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        {# Page header #}
+        {# Page header - Issue #63: inline task count to save mobile vertical space #}
         <div class="sm:flex sm:items-center sm:justify-between">
             <div>
                 <h1 class="text-2xl font-bold leading-7 text-gray-900 dark:text-gray-100 sm:truncate sm:text-3xl sm:tracking-tight">
                     My Tasks
+                    <span class="text-sm font-normal text-gray-500 dark:text-gray-400 ml-2">({{ tasks|length }})</span>
                 </h1>
-                <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
-                    {% if tasks|length > 0 %}
-                        You have {{ tasks|length }} task{% if tasks|length != 1 %}s{% endif %}
-                    {% else %}
-                        No tasks yet
-                    {% endif %}
-                </p>
             </div>
         </div>
 
         {# Quick add task form with natural language parsing #}
-        <div class="mt-6">
-            {{ include('components/quick-add.html.twig') }}
+        {# Issue #63: Collapsible on mobile - hidden by default, expands when Add button tapped #}
+        <div class="mt-6"
+             x-data="{ mobileQuickAddOpen: false }"
+             @focus-quick-add.window="mobileQuickAddOpen = true; $nextTick(() => { const input = $el.querySelector('textarea, input[type=text]'); if (input) input.focus(); })">
+            <div :class="{ 'hidden sm:block': !mobileQuickAddOpen }">
+                {{ include('components/quick-add.html.twig') }}
+            </div>
         </div>
 
         {# Fallback form for non-JS browsers and testing #}
