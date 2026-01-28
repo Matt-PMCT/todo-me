@@ -18,6 +18,79 @@ nelmio_api_doc:
                     in: header
                     name: X-API-Key
                     description: 'Alternative: Use X-API-Key header'
+            schemas:
+                ApiResponse:
+                    type: object
+                    properties:
+                        success:
+                            type: boolean
+                        data:
+                            type: object
+                            nullable: true
+                        error:
+                            type: object
+                            nullable: true
+                            properties:
+                                code:
+                                    type: string
+                                message:
+                                    type: string
+                                details:
+                                    type: object
+                        meta:
+                            type: object
+                            properties:
+                                requestId:
+                                    type: string
+                                    format: uuid
+                                timestamp:
+                                    type: string
+                                    format: date-time
+                BatchOperation:
+                    type: object
+                    required:
+                        - action
+                    properties:
+                        action:
+                            type: string
+                            enum: [create, update, delete, complete, reschedule]
+                        taskId:
+                            type: string
+                            format: uuid
+                        data:
+                            type: object
+                BatchResult:
+                    type: object
+                    properties:
+                        results:
+                            type: array
+                            items:
+                                type: object
+                                properties:
+                                    success:
+                                        type: boolean
+                                    taskId:
+                                        type: string
+                                        format: uuid
+                                    error:
+                                        type: string
+                        undoToken:
+                            type: string
+                SearchResult:
+                    type: object
+                    properties:
+                        tasks:
+                            type: array
+                            items:
+                                type: object
+                        projects:
+                            type: array
+                            items:
+                                type: object
+                        tags:
+                            type: array
+                            items:
+                                type: object
         security:
             - bearer: []
             - apiKey: []

@@ -78,6 +78,9 @@ security:
         # 2FA endpoints require authentication
         - { path: ^/api/v1/2fa, roles: ROLE_USER }
 
+        # API documentation - public access
+        - { path: ^/api/v1/docs, roles: PUBLIC_ACCESS }
+
         # All other API endpoints require authentication
         - { path: ^/api/, roles: ROLE_USER }
 

@@ -1,0 +1,2861 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "title": "Todo-Me API",
+        "description": "REST API for Todo-Me task management application",
+        "version": "1.0.0"
+    },
+    "servers": [
+        {
+            "url": "/api/v1",
+            "description": "API v1"
+        }
+    ],
+    "paths": {
+        "/api/v1/activity": {
+            "get": {
+                "tags": [
+                    "Activity"
+                ],
+                "summary": "List activity",
+                "description": "List recent activity with pagination",
+                "operationId": "get_api_activity_list",
+                "parameters": [
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer",
+                            "default": 1
+                        }
+                    },
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer",
+                            "default": 20,
+                            "maximum": 100
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Activity list"
+                    },
+                    "401": {
+                        "description": "Not authenticated"
+                    }
+                }
+            }
+        },
+        "/api/v1/users/me/tokens": {
+            "get": {
+                "tags": [
+                    "API Tokens"
+                ],
+                "summary": "List API tokens",
+                "description": "Returns all API tokens for the current user (metadata only, no token values)",
+                "operationId": "get_api_tokens_list",
+                "responses": {
+                    "200": {
+                        "description": "List of tokens",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "tokens": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Not authenticated"
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "API Tokens"
+                ],
+                "summary": "Create API token",
+                "description": "Creates a new API token. The plain token is returned ONLY in this response.",
+                "operationId": "post_api_tokens_create",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "name"
+                                ],
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "maxLength": 100,
+                                        "example": "My CI Token"
+                                    },
+                                    "scopes": {
+                                        "description": "Token scopes (null or omitted means all access)",
+                                        "type": "array",
+                                        "items": {
+                                            "type": "string"
+                                        },
+                                        "example": [
+                                            "*"
+                                        ],
+                                        "nullable": true
+                                    },
+                                    "expiresAt": {
+                                        "description": "Token expiration date (optional)",
+                                        "type": "string",
+                                        "format": "date-time",
+                                        "example": "2027-01-25T00:00:00+00:00",
+                                        "nullable": true
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Token created",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "token": {
+                                            "type": "object"
+                                        },
+                                        "plainToken": {
+                                            "description": "The actual token value - only shown once!",
+                                            "type": "string"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Not authenticated"
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                }
+            }
+        },
+        "/api/v1/users/me/tokens/{id}": {
+            "delete": {
+                "tags": [
+                    "API Tokens"
+                ],
+                "summary": "Revoke API token",
+                "description": "Permanently revokes (deletes) an API token",
+                "operationId": "delete_api_tokens_revoke",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid",
+                            "pattern": "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Token revoked"
+                    },
+                    "401": {
+                        "description": "Not authenticated"
+                    },
+                    "404": {
+                        "description": "Token not found"
+                    }
+                }
+            }
+        },
+        "/api/v1/auth/register": {
+            "post": {
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Register a new user",
+                "description": "Creates a new user account and returns an API token",
+                "operationId": "post_api_auth_register",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "email",
+                                    "password"
+                                ],
+                                "properties": {
+                                    "email": {
+                                        "type": "string",
+                                        "format": "email",
+                                        "example": "user@example.com"
+                                    },
+                                    "password": {
+                                        "type": "string",
+                                        "minLength": 8,
+                                        "example": "SecurePass123"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "User created successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiResponse"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "User already exists"
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    },
+                    "429": {
+                        "description": "Rate limit exceeded"
+                    }
+                }
+            }
+        },
+        "/api/v1/auth/token": {
+            "post": {
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Login and get API token",
+                "description": "Authenticates user credentials and returns an API token",
+                "operationId": "post_api_auth_token",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "email",
+                                    "password"
+                                ],
+                                "properties": {
+                                    "email": {
+                                        "type": "string",
+                                        "format": "email",
+                                        "example": "user@example.com"
+                                    },
+                                    "password": {
+                                        "type": "string",
+                                        "example": "SecurePass123"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Login successful",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Invalid credentials"
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    },
+                    "429": {
+                        "description": "Rate limit exceeded"
+                    }
+                }
+            }
+        },
+        "/api/v1/auth/revoke": {
+            "post": {
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Revoke API token (logout)",
+                "description": "Invalidates the current API token",
+                "operationId": "post_api_auth_revoke_token",
+                "responses": {
+                    "204": {
+                        "description": "Token revoked successfully"
+                    },
+                    "401": {
+                        "description": "Not authenticated"
+                    }
+                }
+            }
+        },
+        "/api/v1/auth/refresh": {
+            "post": {
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Refresh API token",
+                "description": "Generates a new API token. Requires a valid (but possibly expired within 7 days) token.",
+                "operationId": "post_api_auth_refresh_token",
+                "responses": {
+                    "200": {
+                        "description": "Token refreshed successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Invalid or expired token"
+                    }
+                }
+            }
+        },
+        "/api/v1/auth/me": {
+            "get": {
+                "tags": [
+                    "Authentication"
+                ],
+                "summary": "Get current user",
+                "description": "Returns information about the authenticated user",
+                "operationId": "get_api_auth_me",
+                "responses": {
+                    "200": {
+                        "description": "User information",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Not authenticated"
+                    }
+                }
+            }
+        },
+        "/api/v1/autocomplete/projects": {
+            "get": {
+                "tags": [
+                    "Autocomplete"
+                ],
+                "summary": "Autocomplete projects",
+                "description": "Search projects by name prefix for autocomplete",
+                "operationId": "get_api_autocomplete_projects",
+                "parameters": [
+                    {
+                        "name": "q",
+                        "in": "query",
+                        "description": "Search query",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer",
+                            "default": 10,
+                            "maximum": 50
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Project suggestions"
+                    },
+                    "401": {
+                        "description": "Not authenticated"
+                    }
+                }
+            }
+        },
+        "/api/v1/autocomplete/tags": {
+            "get": {
+                "tags": [
+                    "Autocomplete"
+                ],
+                "summary": "Autocomplete tags",
+                "description": "Search tags by name prefix for autocomplete",
+                "operationId": "get_api_autocomplete_tags",
+                "parameters": [
+                    {
+                        "name": "q",
+                        "in": "query",
+                        "description": "Search query",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer",
+                            "default": 10,
+                            "maximum": 50
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Tag suggestions"
+                    },
+                    "401": {
+                        "description": "Not authenticated"
+                    }
+                }
+            }
+        },
+        "/api/v1/tasks/batch": {
+            "post": {
+                "tags": [
+                    "Batch Operations"
+                ],
+                "summary": "Execute batch operations",
+                "description": "Execute multiple task operations in a single request. Supports create, update, delete, complete, and reschedule actions.",
+                "operationId": "post_api_tasks_batch",
+                "parameters": [
+                    {
+                        "name": "atomic",
+                        "in": "query",
+                        "description": "Rollback all changes on any failure",
+                        "schema": {
+                            "type": "boolean",
+                            "default": false
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "operations"
+                                ],
+                                "properties": {
+                                    "operations": {
+                                        "description": "Array of operations to execute",
+                                        "type": "array",
+                                        "items": {
+                                            "$ref": "#/components/schemas/BatchOperation"
+                                        },
+                                        "maxItems": 100
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "All operations successful",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "allOf": [
+                                        {
+                                            "$ref": "#/components/schemas/ApiResponse"
+                                        },
+                                        {
+                                            "properties": {
+                                                "data": {
+                                                    "$ref": "#/components/schemas/BatchResult"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "207": {
+                        "description": "Partial success (some operations failed)"
+                    },
+                    "401": {
+                        "description": "Not authenticated"
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                }
+            }
+        },
+        "/api/v1/tasks/batch/undo/{token}": {
+            "post": {
+                "tags": [
+                    "Batch Operations"
+                ],
+                "summary": "Undo batch operation",
+                "description": "Reverses all changes made by a batch operation using the undo token",
+                "operationId": "post_api_tasks_batch_undo",
+                "parameters": [
+                    {
+                        "name": "token",
+                        "in": "path",
+                        "description": "Undo token from batch operation",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Batch undone successfully"
+                    },
+                    "401": {
+                        "description": "Not authenticated"
+                    },
+                    "422": {
+                        "description": "Invalid or expired undo token"
+                    }
+                }
+            }
+        },
+        "/api/v1/health": {
+            "get": {
+                "tags": [
+                    "Health"
+                ],
+                "summary": "Health check",
+                "description": "Returns the health status of the application and its dependencies (database, Redis)",
+                "operationId": "get_api_health_check",
+                "responses": {
+                    "200": {
+                        "description": "All services healthy",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "string",
+                                            "example": "healthy"
+                                        },
+                                        "services": {
+                                            "properties": {
+                                                "database": {
+                                                    "type": "string",
+                                                    "example": "healthy"
+                                                },
+                                                "redis": {
+                                                    "type": "string",
+                                                    "example": "healthy"
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        "timestamp": {
+                                            "type": "string",
+                                            "format": "date-time"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "503": {
+                        "description": "One or more services unhealthy",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "status": {
+                                            "type": "string",
+                                            "example": "unhealthy"
+                                        },
+                                        "services": {
+                                            "properties": {
+                                                "database": {
+                                                    "type": "string",
+                                                    "example": "healthy"
+                                                },
+                                                "redis": {
+                                                    "type": "string",
+                                                    "example": "unhealthy"
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        "timestamp": {
+                                            "type": "string",
+                                            "format": "date-time"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/health/live": {
+            "get": {
+                "tags": [
+                    "Health"
+                ],
+                "summary": "Liveness probe",
+                "description": "Simple endpoint that returns OK if the application is running",
+                "operationId": "get_api_health_live",
+                "responses": {
+                    "200": {
+                        "description": "Application is alive"
+                    }
+                }
+            }
+        },
+        "/api/v1/health/ready": {
+            "get": {
+                "tags": [
+                    "Health"
+                ],
+                "summary": "Readiness probe",
+                "description": "Checks if the application is ready to receive traffic (database connected)",
+                "operationId": "get_api_health_ready",
+                "responses": {
+                    "200": {
+                        "description": "Application is ready"
+                    },
+                    "503": {
+                        "description": "Application not ready"
+                    }
+                }
+            }
+        },
+        "/api/v1/import/json": {
+            "post": {
+                "tags": [
+                    "Import"
+                ],
+                "summary": "Import data from JSON",
+                "description": "Import tasks, projects, and tags from JSON format (our native export format)",
+                "operationId": "post_api_import_json",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "projects": {
+                                        "type": "array",
+                                        "items": {
+                                            "properties": {
+                                                "name": {
+                                                    "type": "string"
+                                                },
+                                                "description": {
+                                                    "type": "string"
+                                                },
+                                                "isArchived": {
+                                                    "type": "boolean"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "tags": {
+                                        "type": "array",
+                                        "items": {
+                                            "properties": {
+                                                "name": {
+                                                    "type": "string"
+                                                },
+                                                "color": {
+                                                    "type": "string"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "tasks": {
+                                        "type": "array",
+                                        "items": {
+                                            "properties": {
+                                                "title": {
+                                                    "type": "string"
+                                                },
+                                                "description": {
+                                                    "type": "string"
+                                                },
+                                                "status": {
+                                                    "type": "string",
+                                                    "enum": [
+                                                        "pending",
+                                                        "in_progress",
+                                                        "completed"
+                                                    ]
+                                                },
+                                                "priority": {
+                                                    "type": "integer",
+                                                    "maximum": 4,
+                                                    "minimum": 0
+                                                },
+                                                "dueDate": {
+                                                    "type": "string",
+                                                    "format": "date"
+                                                },
+                                                "project": {
+                                                    "description": "Project name",
+                                                    "type": "string"
+                                                },
+                                                "tags": {
+                                                    "description": "Tag names",
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "string"
+                                                    }
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Import successful",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "message": {
+                                                    "type": "string"
+                                                },
+                                                "stats": {
+                                                    "properties": {
+                                                        "tasks": {
+                                                            "type": "integer"
+                                                        },
+                                                        "projects": {
+                                                            "type": "integer"
+                                                        },
+                                                        "tags": {
+                                                            "type": "integer"
+                                                        }
+                                                    },
+                                                    "type": "object"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid JSON format or import failed"
+                    },
+                    "401": {
+                        "description": "Not authenticated"
+                    }
+                }
+            }
+        },
+        "/api/v1/import/todoist": {
+            "post": {
+                "tags": [
+                    "Import"
+                ],
+                "summary": "Import data from Todoist",
+                "description": "Import tasks, projects, and labels from Todoist export format",
+                "operationId": "post_api_import_todoist",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "projects": {
+                                        "type": "array",
+                                        "items": {
+                                            "properties": {
+                                                "id": {
+                                                    "type": "integer"
+                                                },
+                                                "name": {
+                                                    "type": "string"
+                                                },
+                                                "color": {
+                                                    "type": "string"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "labels": {
+                                        "type": "array",
+                                        "items": {
+                                            "properties": {
+                                                "id": {
+                                                    "type": "integer"
+                                                },
+                                                "name": {
+                                                    "type": "string"
+                                                },
+                                                "color": {
+                                                    "type": "string"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "items": {
+                                        "type": "array",
+                                        "items": {
+                                            "properties": {
+                                                "id": {
+                                                    "type": "integer"
+                                                },
+                                                "content": {
+                                                    "type": "string"
+                                                },
+                                                "description": {
+                                                    "type": "string"
+                                                },
+                                                "project_id": {
+                                                    "type": "integer"
+                                                },
+                                                "labels": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "type": "string"
+                                                    }
+                                                },
+                                                "priority": {
+                                                    "type": "integer",
+                                                    "maximum": 4,
+                                                    "minimum": 1
+                                                },
+                                                "due": {
+                                                    "properties": {
+                                                        "date": {
+                                                            "type": "string",
+                                                            "format": "date"
+                                                        }
+                                                    },
+                                                    "type": "object"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Import successful",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "message": {
+                                                    "type": "string"
+                                                },
+                                                "stats": {
+                                                    "properties": {
+                                                        "tasks": {
+                                                            "type": "integer"
+                                                        },
+                                                        "projects": {
+                                                            "type": "integer"
+                                                        },
+                                                        "tags": {
+                                                            "type": "integer"
+                                                        }
+                                                    },
+                                                    "type": "object"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid format or import failed"
+                    },
+                    "401": {
+                        "description": "Not authenticated"
+                    }
+                }
+            }
+        },
+        "/api/v1/import/csv": {
+            "post": {
+                "tags": [
+                    "Import"
+                ],
+                "summary": "Import data from CSV",
+                "description": "Import tasks from CSV format. Expected headers: title,description,status,priority,dueDate,project,tags",
+                "operationId": "post_api_import_csv",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "text/csv": {
+                            "schema": {
+                                "type": "string",
+                                "example": "title,description,status,priority,dueDate,project,tags\nComplete report,Quarterly report,pending,3,2026-01-30,Work,\"urgent,important\""
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Import successful",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "data": {
+                                            "properties": {
+                                                "message": {
+                                                    "type": "string"
+                                                },
+                                                "stats": {
+                                                    "properties": {
+                                                        "tasks": {
+                                                            "type": "integer"
+                                                        },
+                                                        "projects": {
+                                                            "type": "integer"
+                                                        },
+                                                        "tags": {
+                                                            "type": "integer"
+                                                        }
+                                                    },
+                                                    "type": "object"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Empty content or import failed"
+                    },
+                    "401": {
+                        "description": "Not authenticated"
+                    }
+                }
+            }
+        },
+        "/api/v1/notifications/preferences": {
+            "get": {
+                "tags": [
+                    "Notifications"
+                ],
+                "summary": "Get notification preferences",
+                "description": "Returns the notification preferences for the authenticated user",
+                "operationId": "get_api_notification_preferences_get",
+                "responses": {
+                    "200": {
+                        "description": "Notification preferences",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Not authenticated"
+                    }
+                }
+            },
+            "patch": {
+                "tags": [
+                    "Notifications"
+                ],
+                "summary": "Update notification preferences",
+                "description": "Updates notification preferences for the authenticated user",
+                "operationId": "patch_api_notification_preferences_update",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "emailEnabled": {
+                                        "type": "boolean"
+                                    },
+                                    "pushEnabled": {
+                                        "type": "boolean"
+                                    },
+                                    "dailyDigestEnabled": {
+                                        "type": "boolean"
+                                    },
+                                    "taskReminders": {
+                                        "type": "boolean"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Updated preferences",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Not authenticated"
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                }
+            }
+        },
+        "/api/v1/notifications": {
+            "get": {
+                "tags": [
+                    "Notifications"
+                ],
+                "summary": "List notifications",
+                "description": "Returns paginated notifications for the authenticated user",
+                "operationId": "get_api_notifications_list",
+                "parameters": [
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer",
+                            "default": 50,
+                            "maximum": 100
+                        }
+                    },
+                    {
+                        "name": "offset",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer",
+                            "default": 0
+                        }
+                    },
+                    {
+                        "name": "unreadOnly",
+                        "in": "query",
+                        "schema": {
+                            "type": "boolean",
+                            "default": false
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "List of notifications",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Not authenticated"
+                    }
+                }
+            }
+        },
+        "/api/v1/notifications/unread-count": {
+            "get": {
+                "tags": [
+                    "Notifications"
+                ],
+                "summary": "Get unread count",
+                "description": "Returns the number of unread notifications for the authenticated user",
+                "operationId": "get_api_notifications_unread_count",
+                "responses": {
+                    "200": {
+                        "description": "Unread notification count",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Not authenticated"
+                    }
+                }
+            }
+        },
+        "/api/v1/notifications/{id}/read": {
+            "post": {
+                "tags": [
+                    "Notifications"
+                ],
+                "summary": "Mark notification as read",
+                "description": "Marks a single notification as read",
+                "operationId": "post_api_notification_mark_read",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Notification marked as read",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Not authenticated"
+                    },
+                    "404": {
+                        "description": "Notification not found"
+                    }
+                }
+            }
+        },
+        "/api/v1/notifications/read-all": {
+            "post": {
+                "tags": [
+                    "Notifications"
+                ],
+                "summary": "Mark all notifications as read",
+                "description": "Marks all notifications as read for the authenticated user",
+                "operationId": "post_api_notifications_mark_all_read",
+                "responses": {
+                    "200": {
+                        "description": "Notifications marked as read",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Not authenticated"
+                    }
+                }
+            }
+        },
+        "/api/v1/parse": {
+            "post": {
+                "tags": [
+                    "Parse"
+                ],
+                "summary": "Parse natural language",
+                "description": "Parse natural language input for task creation preview. Does not create a task.",
+                "operationId": "post_api_parse",
+                "parameters": [
+                    {
+                        "name": "preview",
+                        "in": "query",
+                        "description": "If true (default), tags are not created during parsing",
+                        "schema": {
+                            "type": "boolean",
+                            "default": true
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "input"
+                                ],
+                                "properties": {
+                                    "input": {
+                                        "description": "Natural language task description",
+                                        "type": "string",
+                                        "example": "Review proposal tomorrow at 3pm #work"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Parse result with extracted fields"
+                    },
+                    "401": {
+                        "description": "Not authenticated"
+                    },
+                    "400": {
+                        "description": "Invalid input"
+                    }
+                }
+            }
+        },
+        "/api/v1/projects": {
+            "get": {
+                "tags": [
+                    "Projects"
+                ],
+                "summary": "List projects",
+                "description": "List all projects for the authenticated user",
+                "operationId": "get_api_projects_list",
+                "parameters": [
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer",
+                            "default": 1
+                        }
+                    },
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer",
+                            "default": 20,
+                            "maximum": 100
+                        }
+                    },
+                    {
+                        "name": "include_archived",
+                        "in": "query",
+                        "schema": {
+                            "type": "boolean",
+                            "default": false
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Project list"
+                    },
+                    "401": {
+                        "description": "Not authenticated"
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "Projects"
+                ],
+                "summary": "Create project",
+                "description": "Create a new project",
+                "operationId": "post_api_projects_create",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "name"
+                                ],
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "maxLength": 100
+                                    },
+                                    "description": {
+                                        "type": "string",
+                                        "maxLength": 500
+                                    },
+                                    "parentId": {
+                                        "type": "string",
+                                        "format": "uuid"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Project created"
+                    },
+                    "401": {
+                        "description": "Not authenticated"
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                }
+            }
+        },
+        "/api/v1/push/vapid-key": {
+            "get": {
+                "tags": [
+                    "Push Notifications"
+                ],
+                "summary": "Get VAPID public key",
+                "description": "Returns the VAPID public key needed for push notification subscription",
+                "operationId": "get_api_push_vapid_key",
+                "responses": {
+                    "200": {
+                        "description": "VAPID public key",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Not authenticated"
+                    },
+                    "503": {
+                        "description": "Push notifications not configured"
+                    }
+                }
+            }
+        },
+        "/api/v1/push/subscribe": {
+            "post": {
+                "tags": [
+                    "Push Notifications"
+                ],
+                "summary": "Subscribe to push notifications",
+                "description": "Registers a new push notification subscription for the authenticated user",
+                "operationId": "post_api_push_subscribe",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "endpoint",
+                                    "keys"
+                                ],
+                                "properties": {
+                                    "endpoint": {
+                                        "description": "Push subscription endpoint URL",
+                                        "type": "string"
+                                    },
+                                    "keys": {
+                                        "required": [
+                                            "p256dh",
+                                            "auth"
+                                        ],
+                                        "properties": {
+                                            "p256dh": {
+                                                "description": "User public key",
+                                                "type": "string"
+                                            },
+                                            "auth": {
+                                                "description": "Auth secret",
+                                                "type": "string"
+                                            }
+                                        },
+                                        "type": "object"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Subscription created",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiResponse"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Validation error"
+                    },
+                    "401": {
+                        "description": "Not authenticated"
+                    },
+                    "503": {
+                        "description": "Push notifications not configured"
+                    }
+                }
+            }
+        },
+        "/api/v1/push/unsubscribe": {
+            "post": {
+                "tags": [
+                    "Push Notifications"
+                ],
+                "summary": "Unsubscribe from push notifications",
+                "description": "Removes a push notification subscription for the authenticated user",
+                "operationId": "post_api_push_unsubscribe",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "endpoint"
+                                ],
+                                "properties": {
+                                    "endpoint": {
+                                        "description": "Push subscription endpoint URL to remove",
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Subscription removed",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiResponse"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Validation error"
+                    },
+                    "401": {
+                        "description": "Not authenticated"
+                    },
+                    "404": {
+                        "description": "Subscription not found"
+                    }
+                }
+            }
+        },
+        "/api/v1/saved-filters": {
+            "get": {
+                "tags": [
+                    "Saved Filters"
+                ],
+                "summary": "List saved filters",
+                "description": "List all saved filters for the authenticated user",
+                "operationId": "get_api_saved_filters_list",
+                "responses": {
+                    "200": {
+                        "description": "Saved filter list"
+                    },
+                    "401": {
+                        "description": "Not authenticated"
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "Saved Filters"
+                ],
+                "summary": "Create saved filter",
+                "description": "Create a new saved filter",
+                "operationId": "post_api_saved_filters_create",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "name",
+                                    "filters"
+                                ],
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "maxLength": 100
+                                    },
+                                    "filters": {
+                                        "description": "Filter criteria",
+                                        "type": "object"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Saved filter created"
+                    },
+                    "401": {
+                        "description": "Not authenticated"
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                }
+            }
+        },
+        "/api/v1/search": {
+            "get": {
+                "tags": [
+                    "Search"
+                ],
+                "summary": "Global search",
+                "description": "Search across tasks, projects, and tags. Tasks use full-text search, projects and tags use ILIKE.",
+                "operationId": "get_api_search",
+                "parameters": [
+                    {
+                        "name": "q",
+                        "in": "query",
+                        "description": "Search query",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "maxLength": 200,
+                            "minLength": 2
+                        }
+                    },
+                    {
+                        "name": "type",
+                        "in": "query",
+                        "description": "Filter by entity type",
+                        "schema": {
+                            "type": "string",
+                            "default": "all",
+                            "enum": [
+                                "all",
+                                "tasks",
+                                "projects",
+                                "tags"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "description": "Page number",
+                        "schema": {
+                            "type": "integer",
+                            "default": 1,
+                            "minimum": 1
+                        }
+                    },
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "description": "Items per page",
+                        "schema": {
+                            "type": "integer",
+                            "default": 20,
+                            "maximum": 100,
+                            "minimum": 1
+                        }
+                    },
+                    {
+                        "name": "highlight",
+                        "in": "query",
+                        "description": "Include highlighted search matches in task results",
+                        "schema": {
+                            "type": "boolean",
+                            "default": true
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Search results",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "allOf": [
+                                        {
+                                            "$ref": "#/components/schemas/ApiResponse"
+                                        },
+                                        {
+                                            "properties": {
+                                                "data": {
+                                                    "$ref": "#/components/schemas/SearchResult"
+                                                }
+                                            },
+                                            "type": "object"
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Not authenticated"
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                }
+            }
+        },
+        "/api/v1/sessions": {
+            "get": {
+                "tags": [
+                    "Sessions"
+                ],
+                "summary": "List user sessions",
+                "description": "Returns all active sessions for the authenticated user",
+                "operationId": "get_api_session_list",
+                "responses": {
+                    "200": {
+                        "description": "List of sessions",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Not authenticated"
+                    }
+                }
+            }
+        },
+        "/api/v1/sessions/{id}": {
+            "delete": {
+                "tags": [
+                    "Sessions"
+                ],
+                "summary": "Revoke a session",
+                "description": "Revokes a specific session by ID",
+                "operationId": "delete_api_session_revoke",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid",
+                            "pattern": "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Session revoked"
+                    },
+                    "401": {
+                        "description": "Not authenticated"
+                    },
+                    "403": {
+                        "description": "Forbidden"
+                    },
+                    "404": {
+                        "description": "Session not found"
+                    }
+                }
+            }
+        },
+        "/api/v1/sessions/revoke-others": {
+            "post": {
+                "tags": [
+                    "Sessions"
+                ],
+                "summary": "Revoke all other sessions",
+                "description": "Revokes all sessions except the current one",
+                "operationId": "post_api_session_revoke_others",
+                "responses": {
+                    "200": {
+                        "description": "Sessions revoked"
+                    },
+                    "401": {
+                        "description": "Not authenticated"
+                    }
+                }
+            }
+        },
+        "/api/v1/tasks": {
+            "get": {
+                "tags": [
+                    "Tasks"
+                ],
+                "summary": "List tasks",
+                "description": "List tasks with pagination and filters",
+                "operationId": "get_api_tasks_list",
+                "parameters": [
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer",
+                            "default": 1
+                        }
+                    },
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer",
+                            "default": 20,
+                            "maximum": 100
+                        }
+                    },
+                    {
+                        "name": "status",
+                        "in": "query",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "pending",
+                                "in_progress",
+                                "completed"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "priority_min",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer",
+                            "maximum": 5,
+                            "minimum": 1
+                        }
+                    },
+                    {
+                        "name": "priority_max",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer",
+                            "maximum": 5,
+                            "minimum": 1
+                        }
+                    },
+                    {
+                        "name": "project_ids",
+                        "in": "query",
+                        "description": "Comma-separated project UUIDs",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "tag_ids",
+                        "in": "query",
+                        "description": "Comma-separated tag UUIDs",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "search",
+                        "in": "query",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "due_before",
+                        "in": "query",
+                        "schema": {
+                            "type": "string",
+                            "format": "date-time"
+                        }
+                    },
+                    {
+                        "name": "due_after",
+                        "in": "query",
+                        "schema": {
+                            "type": "string",
+                            "format": "date-time"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Task list"
+                    },
+                    "401": {
+                        "description": "Not authenticated"
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "Tasks"
+                ],
+                "summary": "Create task",
+                "description": "Create a new task. Use parse_natural_language=true for natural language input.",
+                "operationId": "post_api_tasks_create",
+                "parameters": [
+                    {
+                        "name": "parse_natural_language",
+                        "in": "query",
+                        "schema": {
+                            "type": "boolean",
+                            "default": false
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "oneOf": [
+                                    {
+                                        "required": [
+                                            "title"
+                                        ],
+                                        "properties": {
+                                            "title": {
+                                                "type": "string",
+                                                "maxLength": 255
+                                            },
+                                            "description": {
+                                                "type": "string"
+                                            },
+                                            "priority": {
+                                                "type": "integer",
+                                                "default": 3,
+                                                "maximum": 5,
+                                                "minimum": 1
+                                            },
+                                            "dueDate": {
+                                                "type": "string",
+                                                "format": "date-time"
+                                            },
+                                            "projectId": {
+                                                "type": "string",
+                                                "format": "uuid"
+                                            },
+                                            "tagIds": {
+                                                "type": "array",
+                                                "items": {
+                                                    "type": "string",
+                                                    "format": "uuid"
+                                                }
+                                            }
+                                        },
+                                        "type": "object"
+                                    },
+                                    {
+                                        "required": [
+                                            "input_text"
+                                        ],
+                                        "properties": {
+                                            "input_text": {
+                                                "description": "Natural language task description",
+                                                "type": "string"
+                                            }
+                                        },
+                                        "type": "object"
+                                    }
+                                ]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Task created"
+                    },
+                    "401": {
+                        "description": "Not authenticated"
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                }
+            }
+        },
+        "/api/v1/tasks/{id}": {
+            "get": {
+                "tags": [
+                    "Tasks"
+                ],
+                "summary": "Get task",
+                "description": "Get a single task by ID",
+                "operationId": "get_api_tasks_show",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid",
+                            "pattern": "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Task details"
+                    },
+                    "401": {
+                        "description": "Not authenticated"
+                    },
+                    "404": {
+                        "description": "Task not found"
+                    }
+                }
+            },
+            "put": {
+                "tags": [
+                    "Tasks"
+                ],
+                "summary": "Update task",
+                "description": "Update a task. Returns an undo token.",
+                "operationId": "put_api_tasks_update",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid",
+                            "pattern": "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Task updated"
+                    },
+                    "401": {
+                        "description": "Not authenticated"
+                    },
+                    "404": {
+                        "description": "Task not found"
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "Tasks"
+                ],
+                "summary": "Delete task",
+                "description": "Delete a task. Returns an undo token.",
+                "operationId": "delete_api_tasks_delete",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid",
+                            "pattern": "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Task deleted"
+                    },
+                    "401": {
+                        "description": "Not authenticated"
+                    },
+                    "404": {
+                        "description": "Task not found"
+                    }
+                }
+            },
+            "patch": {
+                "tags": [
+                    "Tasks"
+                ],
+                "summary": "Update a task.",
+                "operationId": "patch_api_tasks_update",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "pattern": "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}"
+                        }
+                    }
+                ],
+                "responses": {
+                    "default": {
+                        "description": ""
+                    }
+                }
+            }
+        },
+        "/api/v1/tasks/{id}/render": {
+            "get": {
+                "tags": [
+                    "Tasks"
+                ],
+                "summary": "Render task as HTML",
+                "description": "Render a task as HTML fragment for AJAX insertion",
+                "operationId": "get_api_tasks_render_html",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "format": "uuid",
+                            "pattern": "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "HTML fragment"
+                    },
+                    "401": {
+                        "description": "Not authenticated"
+                    },
+                    "404": {
+                        "description": "Task not found"
+                    }
+                }
+            }
+        },
+        "/api/v1/2fa/status": {
+            "get": {
+                "tags": [
+                    "Two-Factor Authentication"
+                ],
+                "summary": "Get 2FA status",
+                "description": "Returns the two-factor authentication status for the authenticated user",
+                "operationId": "get_api_2fa_status",
+                "responses": {
+                    "200": {
+                        "description": "2FA status",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Not authenticated"
+                    }
+                }
+            }
+        },
+        "/api/v1/2fa/setup": {
+            "post": {
+                "tags": [
+                    "Two-Factor Authentication"
+                ],
+                "summary": "Initialize 2FA setup",
+                "description": "Generates a new TOTP secret and QR code for 2FA setup",
+                "operationId": "post_api_2fa_setup",
+                "responses": {
+                    "200": {
+                        "description": "2FA setup data including QR code URI",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiResponse"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "2FA already enabled"
+                    },
+                    "401": {
+                        "description": "Not authenticated"
+                    }
+                }
+            }
+        },
+        "/api/v1/2fa/setup/verify": {
+            "post": {
+                "tags": [
+                    "Two-Factor Authentication"
+                ],
+                "summary": "Verify 2FA setup",
+                "description": "Completes 2FA setup by verifying a TOTP code and returns backup codes",
+                "operationId": "post_api_2fa_setup_verify",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "setupToken",
+                                    "code"
+                                ],
+                                "properties": {
+                                    "setupToken": {
+                                        "description": "Setup token from /setup endpoint",
+                                        "type": "string"
+                                    },
+                                    "code": {
+                                        "description": "6-digit TOTP code",
+                                        "type": "string",
+                                        "example": "123456"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "2FA enabled with backup codes",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiResponse"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid setup token or code"
+                    },
+                    "401": {
+                        "description": "Not authenticated"
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                }
+            }
+        },
+        "/api/v1/2fa/disable": {
+            "post": {
+                "tags": [
+                    "Two-Factor Authentication"
+                ],
+                "summary": "Disable 2FA",
+                "description": "Disables two-factor authentication for the authenticated user",
+                "operationId": "post_api_2fa_disable",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "password"
+                                ],
+                                "properties": {
+                                    "password": {
+                                        "description": "Current account password",
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "2FA disabled",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiResponse"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "2FA not enabled or invalid password"
+                    },
+                    "401": {
+                        "description": "Not authenticated"
+                    },
+                    "422": {
+                        "description": "Password required"
+                    }
+                }
+            }
+        },
+        "/api/v1/2fa/backup-codes": {
+            "post": {
+                "tags": [
+                    "Two-Factor Authentication"
+                ],
+                "summary": "Regenerate backup codes",
+                "description": "Generates new backup codes, invalidating any previous codes",
+                "operationId": "post_api_2fa_backup_codes",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "password"
+                                ],
+                                "properties": {
+                                    "password": {
+                                        "description": "Current account password",
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "New backup codes generated",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiResponse"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "2FA not enabled or invalid password"
+                    },
+                    "401": {
+                        "description": "Not authenticated"
+                    },
+                    "422": {
+                        "description": "Password required"
+                    }
+                }
+            }
+        },
+        "/api/v1/2fa/recovery/request": {
+            "post": {
+                "tags": [
+                    "Two-Factor Authentication"
+                ],
+                "summary": "Request 2FA recovery",
+                "description": "Sends a 2FA recovery email to the specified address (always returns success to prevent enumeration)",
+                "operationId": "post_api_2fa_recovery_request",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "email"
+                                ],
+                                "properties": {
+                                    "email": {
+                                        "description": "Account email address",
+                                        "type": "string",
+                                        "format": "email"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Recovery email sent (if account exists)",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Email required"
+                    }
+                }
+            }
+        },
+        "/api/v1/2fa/recovery/complete": {
+            "post": {
+                "tags": [
+                    "Two-Factor Authentication"
+                ],
+                "summary": "Complete 2FA recovery",
+                "description": "Completes 2FA recovery by disabling 2FA using the recovery token",
+                "operationId": "post_api_2fa_recovery_complete",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "token"
+                                ],
+                                "properties": {
+                                    "token": {
+                                        "description": "Recovery token from email",
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "2FA disabled via recovery",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiResponse"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid or expired recovery token"
+                    },
+                    "422": {
+                        "description": "Token required"
+                    }
+                }
+            }
+        },
+        "/api/v1/undo": {
+            "post": {
+                "tags": [
+                    "Undo"
+                ],
+                "summary": "Undo an operation",
+                "description": "Generic undo endpoint that routes to the appropriate entity undo service.",
+                "operationId": "post_api_undo",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "token"
+                                ],
+                                "properties": {
+                                    "token": {
+                                        "description": "The undo token",
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Operation undone successfully"
+                    },
+                    "400": {
+                        "description": "Invalid token or expired"
+                    },
+                    "401": {
+                        "description": "Not authenticated"
+                    }
+                }
+            }
+        },
+        "/api/v1/users/me/settings": {
+            "get": {
+                "tags": [
+                    "User"
+                ],
+                "summary": "Get user settings",
+                "description": "Returns the current user's settings with defaults applied",
+                "operationId": "get_api_users_get_settings",
+                "responses": {
+                    "200": {
+                        "description": "User settings",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Not authenticated"
+                    }
+                }
+            },
+            "patch": {
+                "tags": [
+                    "User"
+                ],
+                "summary": "Update user settings",
+                "description": "Updates the current user's settings (timezone, date format, start of week, task spacing, theme)",
+                "operationId": "patch_api_users_update_settings",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "timezone": {
+                                        "type": "string",
+                                        "example": "America/New_York"
+                                    },
+                                    "dateFormat": {
+                                        "type": "string",
+                                        "enum": [
+                                            "MDY",
+                                            "DMY",
+                                            "YMD"
+                                        ],
+                                        "example": "MDY"
+                                    },
+                                    "startOfWeek": {
+                                        "type": "integer",
+                                        "enum": [
+                                            0,
+                                            1
+                                        ],
+                                        "example": 0
+                                    },
+                                    "taskSpacing": {
+                                        "type": "string",
+                                        "enum": [
+                                            "comfortable",
+                                            "compact"
+                                        ],
+                                        "example": "comfortable"
+                                    },
+                                    "theme": {
+                                        "type": "string",
+                                        "enum": [
+                                            "light",
+                                            "dark",
+                                            "system"
+                                        ],
+                                        "example": "system"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Settings updated successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Not authenticated"
+                    },
+                    "422": {
+                        "description": "Validation error"
+                    }
+                }
+            }
+        },
+        "/api/v1/users/me/export": {
+            "get": {
+                "tags": [
+                    "User"
+                ],
+                "summary": "Export user data",
+                "description": "Exports all user data including tasks, projects, tags, and saved filters. Supports GDPR data portability requirements.",
+                "operationId": "get_api_users_export",
+                "responses": {
+                    "200": {
+                        "description": "User data export",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "user": {
+                                            "type": "object"
+                                        },
+                                        "projects": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object"
+                                            }
+                                        },
+                                        "tasks": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object"
+                                            }
+                                        },
+                                        "tags": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object"
+                                            }
+                                        },
+                                        "savedFilters": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object"
+                                            }
+                                        },
+                                        "exportedAt": {
+                                            "type": "string",
+                                            "format": "date-time"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Not authenticated"
+                    }
+                }
+            }
+        },
+        "/api/v1/users/me": {
+            "delete": {
+                "tags": [
+                    "User"
+                ],
+                "summary": "Delete user account",
+                "description": "Permanently deletes the user account and all associated data. Requires password confirmation. This action cannot be undone.",
+                "operationId": "delete_api_users_delete",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "password"
+                                ],
+                                "properties": {
+                                    "password": {
+                                        "description": "Current password for confirmation",
+                                        "type": "string"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "204": {
+                        "description": "Account deleted successfully"
+                    },
+                    "401": {
+                        "description": "Not authenticated or invalid password"
+                    },
+                    "422": {
+                        "description": "Password not provided"
+                    }
+                }
+            }
+        }
+    },
+    "components": {
+        "schemas": {
+            "ApiResponse": {
+                "properties": {
+                    "success": {
+                        "type": "boolean"
+                    },
+                    "data": {
+                        "type": "object",
+                        "nullable": true
+                    },
+                    "error": {
+                        "properties": {
+                            "code": {
+                                "type": "string"
+                            },
+                            "message": {
+                                "type": "string"
+                            },
+                            "details": {
+                                "type": "object"
+                            }
+                        },
+                        "type": "object",
+                        "nullable": true
+                    },
+                    "meta": {
+                        "properties": {
+                            "requestId": {
+                                "type": "string",
+                                "format": "uuid"
+                            },
+                            "timestamp": {
+                                "type": "string",
+                                "format": "date-time"
+                            }
+                        },
+                        "type": "object"
+                    }
+                },
+                "type": "object"
+            },
+            "BatchOperation": {
+                "required": [
+                    "action"
+                ],
+                "properties": {
+                    "action": {
+                        "type": "string",
+                        "enum": [
+                            "create",
+                            "update",
+                            "delete",
+                            "complete",
+                            "reschedule"
+                        ]
+                    },
+                    "taskId": {
+                        "type": "string",
+                        "format": "uuid"
+                    },
+                    "data": {
+                        "type": "object"
+                    }
+                },
+                "type": "object"
+            },
+            "BatchResult": {
+                "properties": {
+                    "results": {
+                        "type": "array",
+                        "items": {
+                            "properties": {
+                                "success": {
+                                    "type": "boolean"
+                                },
+                                "taskId": {
+                                    "type": "string",
+                                    "format": "uuid"
+                                },
+                                "error": {
+                                    "type": "string"
+                                }
+                            },
+                            "type": "object"
+                        }
+                    },
+                    "undoToken": {
+                        "type": "string"
+                    }
+                },
+                "type": "object"
+            },
+            "SearchResult": {
+                "properties": {
+                    "tasks": {
+                        "type": "array",
+                        "items": {
+                            "type": "object"
+                        }
+                    },
+                    "projects": {
+                        "type": "array",
+                        "items": {
+                            "type": "object"
+                        }
+                    },
+                    "tags": {
+                        "type": "array",
+                        "items": {
+                            "type": "object"
+                        }
+                    }
+                },
+                "type": "object"
+            }
+        },
+        "securitySchemes": {
+            "bearer": {
+                "type": "http",
+                "description": "Enter your API token without the \"Bearer\" prefix",
+                "scheme": "bearer"
+            },
+            "apiKey": {
+                "type": "apiKey",
+                "description": "Alternative: Use X-API-Key header",
+                "name": "X-API-Key",
+                "in": "header"
+            }
+        }
+    },
+    "security": [
+        {
+            "bearer": []
+        },
+        {
+            "apiKey": []
+        }
+    ],
+    "tags": [
+        {
+            "name": "Activity",
+            "description": "Activity log operations"
+        },
+        {
+            "name": "API Tokens",
+            "description": "API token management operations"
+        },
+        {
+            "name": "Authentication",
+            "description": "User authentication and token management"
+        },
+        {
+            "name": "Autocomplete",
+            "description": "Autocomplete suggestions for projects and tags"
+        },
+        {
+            "name": "Batch Operations",
+            "description": "Execute multiple task operations in a single request"
+        },
+        {
+            "name": "Health",
+            "description": "Health check endpoints"
+        },
+        {
+            "name": "Import",
+            "description": "Data import operations"
+        },
+        {
+            "name": "Notifications",
+            "description": "User notification management"
+        },
+        {
+            "name": "Parse",
+            "description": "Natural language parsing"
+        },
+        {
+            "name": "Projects",
+            "description": "Project management operations"
+        },
+        {
+            "name": "Push Notifications",
+            "description": "Web push notification subscription management"
+        },
+        {
+            "name": "Saved Filters",
+            "description": "Saved filter management"
+        },
+        {
+            "name": "Search",
+            "description": "Global search across tasks, projects, and tags"
+        },
+        {
+            "name": "Sessions",
+            "description": "User session management"
+        },
+        {
+            "name": "Tasks",
+            "description": "Task management operations"
+        },
+        {
+            "name": "Two-Factor Authentication",
+            "description": "Two-factor authentication setup and management"
+        },
+        {
+            "name": "Undo",
+            "description": "Generic undo operations"
+        },
+        {
+            "name": "User",
+            "description": "User account management and GDPR compliance"
+        }
+    ]
+}
