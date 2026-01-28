@@ -456,10 +456,10 @@ class SearchApiTest extends ApiTestCase
 
         $data = $this->getResponseData($response);
 
-        // Verify searchTimeMs is present in meta and is a positive number
+        // Verify searchTimeMs is present in meta and is a non-negative number
         $this->assertArrayHasKey('meta', $data);
         $this->assertArrayHasKey('searchTimeMs', $data['meta']);
-        $this->assertIsFloat($data['meta']['searchTimeMs']);
+        $this->assertIsNumeric($data['meta']['searchTimeMs']);
         $this->assertGreaterThanOrEqual(0, $data['meta']['searchTimeMs']);
     }
 

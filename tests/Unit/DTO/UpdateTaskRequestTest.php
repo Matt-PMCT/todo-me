@@ -314,4 +314,82 @@ class UpdateTaskRequestTest extends DtoTestCase
         $this->assertSame(3, $dto->priority);
         $this->assertTrue($dto->clearDescription);
     }
+
+    public function testValidDueTime(): void
+    {
+        $dto = new UpdateTaskRequest(dueTime: '14:30');
+
+        $violations = $this->validate($dto);
+
+        $this->assertNoViolationFor($violations, 'dueTime');
+    }
+
+    public function testValidDueTimeWithLeadingZero(): void
+    {
+        $dto = new UpdateTaskRequest(dueTime: '09:05');
+
+        $violations = $this->validate($dto);
+
+        $this->assertNoViolationFor($violations, 'dueTime');
+    }
+
+    public function testInvalidDueTimeFormat(): void
+    {
+        $dto = new UpdateTaskRequest(dueTime: '2:30 PM');
+
+        $violations = $this->validate($dto);
+
+        $this->assertHasViolation($violations, 'dueTime');
+    }
+
+    public function testInvalidDueTimeOutOfRange(): void
+    {
+        $dto = new UpdateTaskRequest(dueTime: '25:00');
+
+        $violations = $this->validate($dto);
+
+        $this->assertHasViolation($violations, 'dueTime');
+    }
+
+    public function testHasChangesReturnsTrueForDueTime(): void
+    {
+        $dto = new UpdateTaskRequest(dueTime: '14:30');
+
+        $this->assertTrue($dto->hasChanges());
+    }
+
+    public function testHasChangesReturnsTrueForClearDueTime(): void
+    {
+        $dto = new UpdateTaskRequest(clearDueTime: true);
+
+        $this->assertTrue($dto->hasChanges());
+    }
+
+    public function testClearDueTimeDefaultsToFalse(): void
+    {
+        $dto = new UpdateTaskRequest();
+
+        $this->assertFalse($dto->clearDueTime);
+    }
+
+    public function testFromArrayWithDueTime(): void
+    {
+        $data = [
+            'dueTime' => '14:30',
+            'clearDueTime' => true,
+        ];
+
+        $dto = UpdateTaskRequest::fromArray($data);
+
+        $this->assertSame('14:30', $dto->dueTime);
+        $this->assertTrue($dto->clearDueTime);
+    }
+
+    public function testFromArrayWithoutDueTime(): void
+    {
+        $dto = UpdateTaskRequest::fromArray([]);
+
+        $this->assertNull($dto->dueTime);
+        $this->assertFalse($dto->clearDueTime);
+    }
 }

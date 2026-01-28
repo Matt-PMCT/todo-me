@@ -87,27 +87,31 @@ class TaskGroupingServiceTest extends UnitTestCase
 
     public function testGroupByTimePeriodGroupsThisWeeksTasks(): void
     {
-        // Get a date that's this week but not today or tomorrow
+        // Calculate this week's boundaries using the same logic as the service
         $today = new \DateTimeImmutable('today');
-        $dayOfWeek = (int) $today->format('w');
+        $tomorrow = $today->modify('+1 day');
+        $startOfWeek = $this->user->getStartOfWeek();
+        $currentDayOfWeek = (int) $today->format('w');
+        $daysToSubtract = ($currentDayOfWeek - $startOfWeek + 7) % 7;
+        $weekStart = $today->modify("-{$daysToSubtract} days");
+        $weekEnd = $weekStart->modify('+6 days');
 
-        // If today is Friday or Saturday, the task needs to be earlier in the week
-        // But that would be today or past, so we need to handle edge cases
-        // Let's pick a date 3 days from now if that's still this week
-        $daysToEndOfWeek = 6 - $dayOfWeek; // Days until Sunday (for start_of_week=0)
+        // Find a date that's after tomorrow but still within this week
+        $candidate = $tomorrow->modify('+1 day'); // Day after tomorrow
 
-        if ($daysToEndOfWeek > 2) {
-            // There are days left in this week after tomorrow
-            $task = $this->createTaskWithDueDate('task-1', $this->user, '+3 days');
-            $groups = $this->service->groupByTimePeriod([$task], $this->user);
-
-            $this->assertArrayHasKey(TaskGroupingService::GROUP_THIS_WEEK, $groups);
-            $this->assertEquals('This Week', $groups[TaskGroupingService::GROUP_THIS_WEEK]['label']);
-            $this->assertCount(1, $groups[TaskGroupingService::GROUP_THIS_WEEK]['tasks']);
-        } else {
-            // Edge case: we're near end of week, task would go to next week
-            $this->assertTrue(true, 'Skipped due to edge case at end of week');
+        if ($candidate > $weekEnd) {
+            // No days left in this week after tomorrow - skip test
+            $this->markTestSkipped('No days available in this week after tomorrow');
         }
+
+        $task = $this->createTaskWithId('task-1', $this->user);
+        $task->setDueDate($candidate);
+
+        $groups = $this->service->groupByTimePeriod([$task], $this->user);
+
+        $this->assertArrayHasKey(TaskGroupingService::GROUP_THIS_WEEK, $groups);
+        $this->assertEquals('This Week', $groups[TaskGroupingService::GROUP_THIS_WEEK]['label']);
+        $this->assertCount(1, $groups[TaskGroupingService::GROUP_THIS_WEEK]['tasks']);
     }
 
     // ========================================

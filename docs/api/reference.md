@@ -428,6 +428,7 @@ POST /tasks
 | `status` | string | No | pending, in_progress, completed |
 | `priority` | integer | No | 1-5 (default: 3) |
 | `dueDate` | string | No | ISO date (YYYY-MM-DD) |
+| `dueTime` | string | No | Time in HH:MM format (24-hour) |
 | `projectId` | uuid | No | Project to assign |
 | `tagIds` | uuid[] | No | Tags to add |
 | `isRecurring` | boolean | No | Enable recurrence |
@@ -450,6 +451,24 @@ PATCH /tasks/{id}
 ```
 
 Partial update - only include fields to change.
+
+**Request Body (all fields optional):**
+| Field | Type | Description |
+|-------|------|-------------|
+| `title` | string | Task title (max 500) |
+| `description` | string | Description (max 2000) |
+| `status` | string | pending, in_progress, completed |
+| `priority` | integer | 1-5 |
+| `dueDate` | string | ISO date (YYYY-MM-DD) |
+| `dueTime` | string | Time in HH:MM format (24-hour) |
+| `projectId` | uuid | Project to assign |
+| `tagIds` | uuid[] | Tags to set |
+| `clearDueDate` | boolean | Set to true to clear due date |
+| `clearDueTime` | boolean | Set to true to clear due time |
+| `clearProject` | boolean | Set to true to remove project |
+| `isRecurring` | boolean | Enable/disable recurrence |
+| `recurrenceRule` | string | Recurrence pattern |
+| `clearRecurrence` | boolean | Set to true to clear recurrence |
 
 **Response includes `undoToken`** for reverting changes.
 

@@ -36,6 +36,11 @@ final class CreateTaskRequest
         )]
         public readonly int $priority = Task::PRIORITY_DEFAULT,
         public readonly ?string $dueDate = null,
+        #[Assert\Regex(
+            pattern: '/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/',
+            message: 'Time must be in HH:MM format (24-hour)'
+        )]
+        public readonly ?string $dueTime = null,
         #[Assert\Uuid(message: 'Project ID must be a valid UUID')]
         public readonly ?string $projectId = null,
         #[Assert\Uuid(message: 'Parent task ID must be a valid UUID')]
@@ -78,6 +83,7 @@ final class CreateTaskRequest
             status: (string) ($data['status'] ?? Task::STATUS_PENDING),
             priority: isset($data['priority']) ? (int) $data['priority'] : Task::PRIORITY_DEFAULT,
             dueDate: isset($data['dueDate']) ? (string) $data['dueDate'] : null,
+            dueTime: isset($data['dueTime']) ? (string) $data['dueTime'] : null,
             projectId: isset($data['projectId']) ? (string) $data['projectId'] : null,
             parentTaskId: isset($data['parentTaskId']) ? (string) $data['parentTaskId'] : null,
             tagIds: isset($data['tagIds']) && is_array($data['tagIds'])

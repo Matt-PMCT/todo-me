@@ -36,6 +36,11 @@ final class UpdateTaskRequest
         )]
         public readonly ?int $priority = null,
         public readonly ?string $dueDate = null,
+        #[Assert\Regex(
+            pattern: '/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/',
+            message: 'Time must be in HH:MM format (24-hour)'
+        )]
+        public readonly ?string $dueTime = null,
         #[Assert\Uuid(message: 'Project ID must be a valid UUID')]
         public readonly ?string $projectId = null,
 
@@ -61,6 +66,11 @@ final class UpdateTaskRequest
          * Flag to indicate if due date should be cleared (set to null).
          */
         public readonly bool $clearDueDate = false,
+
+        /**
+         * Flag to indicate if due time should be cleared (set to null).
+         */
+        public readonly bool $clearDueTime = false,
 
         /**
          * Whether this task recurs.
@@ -96,6 +106,7 @@ final class UpdateTaskRequest
             status: isset($data['status']) ? (string) $data['status'] : null,
             priority: isset($data['priority']) ? (int) $data['priority'] : null,
             dueDate: isset($data['dueDate']) ? (string) $data['dueDate'] : null,
+            dueTime: isset($data['dueTime']) ? (string) $data['dueTime'] : null,
             projectId: isset($data['projectId']) ? (string) $data['projectId'] : null,
             tagIds: isset($data['tagIds']) && is_array($data['tagIds'])
                 ? array_map('strval', $data['tagIds'])
@@ -103,6 +114,7 @@ final class UpdateTaskRequest
             clearDescription: (bool) ($data['clearDescription'] ?? false),
             clearProject: (bool) ($data['clearProject'] ?? false),
             clearDueDate: (bool) ($data['clearDueDate'] ?? false),
+            clearDueTime: (bool) ($data['clearDueTime'] ?? false),
             isRecurring: isset($data['isRecurring']) ? (bool) $data['isRecurring'] : null,
             recurrenceRule: isset($data['recurrenceRule']) ? (string) $data['recurrenceRule'] : null,
             clearRecurrence: (bool) ($data['clearRecurrence'] ?? false),
@@ -119,11 +131,13 @@ final class UpdateTaskRequest
             || $this->status !== null
             || $this->priority !== null
             || $this->dueDate !== null
+            || $this->dueTime !== null
             || $this->projectId !== null
             || $this->tagIds !== null
             || $this->clearDescription
             || $this->clearProject
             || $this->clearDueDate
+            || $this->clearDueTime
             || $this->isRecurring !== null
             || $this->recurrenceRule !== null
             || $this->clearRecurrence;

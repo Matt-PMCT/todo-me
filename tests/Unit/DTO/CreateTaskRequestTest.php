@@ -315,4 +315,106 @@ class CreateTaskRequestTest extends DtoTestCase
 
         $this->assertSame(3, $dto->priority);
     }
+
+    public function testValidDueTime(): void
+    {
+        $dto = new CreateTaskRequest(title: 'Valid Title', dueTime: '14:30');
+
+        $violations = $this->validate($dto);
+
+        $this->assertNoViolationFor($violations, 'dueTime');
+    }
+
+    public function testValidDueTimeWithLeadingZero(): void
+    {
+        $dto = new CreateTaskRequest(title: 'Valid Title', dueTime: '09:05');
+
+        $violations = $this->validate($dto);
+
+        $this->assertNoViolationFor($violations, 'dueTime');
+    }
+
+    public function testValidDueTimeMidnight(): void
+    {
+        $dto = new CreateTaskRequest(title: 'Valid Title', dueTime: '00:00');
+
+        $violations = $this->validate($dto);
+
+        $this->assertNoViolationFor($violations, 'dueTime');
+    }
+
+    public function testValidDueTimeEndOfDay(): void
+    {
+        $dto = new CreateTaskRequest(title: 'Valid Title', dueTime: '23:59');
+
+        $violations = $this->validate($dto);
+
+        $this->assertNoViolationFor($violations, 'dueTime');
+    }
+
+    public function testInvalidDueTimeFormat(): void
+    {
+        $dto = new CreateTaskRequest(title: 'Valid Title', dueTime: '2:30 PM');
+
+        $violations = $this->validate($dto);
+
+        $this->assertHasViolation($violations, 'dueTime');
+    }
+
+    public function testInvalidDueTimeWithSeconds(): void
+    {
+        $dto = new CreateTaskRequest(title: 'Valid Title', dueTime: '14:30:00');
+
+        $violations = $this->validate($dto);
+
+        $this->assertHasViolation($violations, 'dueTime');
+    }
+
+    public function testInvalidDueTimeOutOfRange(): void
+    {
+        $dto = new CreateTaskRequest(title: 'Valid Title', dueTime: '25:00');
+
+        $violations = $this->validate($dto);
+
+        $this->assertHasViolation($violations, 'dueTime');
+    }
+
+    public function testInvalidDueTimeInvalidMinutes(): void
+    {
+        $dto = new CreateTaskRequest(title: 'Valid Title', dueTime: '14:60');
+
+        $violations = $this->validate($dto);
+
+        $this->assertHasViolation($violations, 'dueTime');
+    }
+
+    public function testNullDueTimeIsValid(): void
+    {
+        $dto = new CreateTaskRequest(title: 'Valid Title', dueTime: null);
+
+        $violations = $this->validate($dto);
+
+        $this->assertNoViolationFor($violations, 'dueTime');
+    }
+
+    public function testFromArrayWithDueTime(): void
+    {
+        $data = [
+            'title' => 'Test Task',
+            'dueTime' => '14:30',
+        ];
+
+        $dto = CreateTaskRequest::fromArray($data);
+
+        $this->assertSame('14:30', $dto->dueTime);
+    }
+
+    public function testFromArrayWithoutDueTime(): void
+    {
+        $data = ['title' => 'Test Task'];
+
+        $dto = CreateTaskRequest::fromArray($data);
+
+        $this->assertNull($dto->dueTime);
+    }
 }

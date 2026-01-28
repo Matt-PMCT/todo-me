@@ -249,6 +249,79 @@ class TaskOverdueTest extends UnitTestCase
         $this->assertEquals('high', Task::OVERDUE_SEVERITY_HIGH);
     }
 
+    // ========================================
+    // Time-aware isOverdue Tests
+    // ========================================
+
+    public function testIsOverdueReturnsTrueForTaskDueTodayWithPastTime(): void
+    {
+        $task = new Task();
+        $task->setTitle('Test Task');
+        $task->setDueDate(new \DateTimeImmutable('today'));
+        // Set due time to 1 hour ago
+        $pastTime = (new \DateTimeImmutable())->modify('-1 hour');
+        $task->setDueTime($pastTime);
+
+        $this->assertTrue($task->isOverdue());
+    }
+
+    public function testIsOverdueReturnsFalseForTaskDueTodayWithFutureTime(): void
+    {
+        $task = new Task();
+        $task->setTitle('Test Task');
+        $task->setDueDate(new \DateTimeImmutable('today'));
+        // Set due time to 1 hour from now
+        $futureTime = (new \DateTimeImmutable())->modify('+1 hour');
+        $task->setDueTime($futureTime);
+
+        $this->assertFalse($task->isOverdue());
+    }
+
+    public function testIsOverdueReturnsFalseForTaskDueTodayWithNoTime(): void
+    {
+        $task = new Task();
+        $task->setTitle('Test Task');
+        $task->setDueDate(new \DateTimeImmutable('today'));
+        // No due time set - should be end of day, so not overdue
+
+        $this->assertFalse($task->isOverdue());
+    }
+
+    public function testIsOverdueReturnsTrueForPastDateIgnoresTime(): void
+    {
+        $task = new Task();
+        $task->setTitle('Test Task');
+        $task->setDueDate(new \DateTimeImmutable('-1 day'));
+        // Even with future time set, past date is overdue
+        $futureTime = (new \DateTimeImmutable())->modify('+1 hour');
+        $task->setDueTime($futureTime);
+
+        $this->assertTrue($task->isOverdue());
+    }
+
+    public function testIsOverdueReturnsFalseForFutureDateIgnoresTime(): void
+    {
+        $task = new Task();
+        $task->setTitle('Test Task');
+        $task->setDueDate(new \DateTimeImmutable('+1 day'));
+        // Even with past time set, future date is not overdue
+        $pastTime = (new \DateTimeImmutable())->modify('-1 hour');
+        $task->setDueTime($pastTime);
+
+        $this->assertFalse($task->isOverdue());
+    }
+
+    public function testIsOverdueReturnsFalseForCompletedTaskEvenWithPastTime(): void
+    {
+        $task = new Task();
+        $task->setTitle('Test Task');
+        $task->setDueDate(new \DateTimeImmutable('today'));
+        $task->setDueTime((new \DateTimeImmutable())->modify('-1 hour'));
+        $task->setStatus(Task::STATUS_COMPLETED);
+
+        $this->assertFalse($task->isOverdue());
+    }
+
     public function testOverdueSeverityBoundaryAtTwoToThreeDays(): void
     {
         $today = new \DateTimeImmutable('today');

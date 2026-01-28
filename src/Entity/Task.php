@@ -345,7 +345,27 @@ class Task implements UserOwnedInterface
             return false;
         }
 
-        return $this->dueDate < new \DateTimeImmutable('today');
+        $now = new \DateTimeImmutable();
+        $today = new \DateTimeImmutable('today');
+
+        // Past date = overdue
+        if ($this->dueDate < $today) {
+            return true;
+        }
+
+        // Today with time set = compare current time
+        if ($this->dueDate->format('Y-m-d') === $today->format('Y-m-d') && $this->dueTime !== null) {
+            $dueDateTime = $this->dueDate->setTime(
+                (int) $this->dueTime->format('H'),
+                (int) $this->dueTime->format('i')
+            );
+
+            return $dueDateTime < $now;
+        }
+
+        // Today without time = end of day (not overdue yet)
+        // Future date = not overdue
+        return false;
     }
 
     /**

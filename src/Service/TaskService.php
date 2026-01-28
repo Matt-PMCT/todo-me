@@ -87,6 +87,12 @@ final class TaskService
             $task->setDueDate($dueDate);
         }
 
+        // Handle due time
+        if ($dto->dueTime !== null) {
+            $dueTime = $this->parseDueTime($dto->dueTime);
+            $task->setDueTime($dueTime);
+        }
+
         // Handle project association
         $project = null;
         if ($dto->projectId !== null) {
@@ -357,6 +363,14 @@ final class TaskService
             $task->setDueDate($dueDate);
         } elseif ($dto->clearDueDate) {
             $task->setDueDate(null);
+        }
+
+        // Update due time
+        if ($dto->dueTime !== null) {
+            $dueTime = $this->parseDueTime($dto->dueTime);
+            $task->setDueTime($dueTime);
+        } elseif ($dto->clearDueTime) {
+            $task->setDueTime(null);
         }
 
         // Update project
@@ -721,6 +735,24 @@ final class TaskService
         } catch (\Exception $e) {
             throw ValidationException::forField('dueDate', 'Invalid date format. Use ISO 8601 format (e.g., 2024-01-15)');
         }
+    }
+
+    /**
+     * Parses a due time string into a DateTimeImmutable.
+     *
+     * @param string $timeString Time string in HH:MM format
+     *
+     * @throws ValidationException If the time format is invalid
+     */
+    private function parseDueTime(string $timeString): \DateTimeImmutable
+    {
+        $time = \DateTimeImmutable::createFromFormat('H:i', $timeString);
+
+        if ($time === false) {
+            throw ValidationException::forField('dueTime', 'Invalid time format. Use HH:MM format (e.g., 14:30)');
+        }
+
+        return $time;
     }
 
     /**
