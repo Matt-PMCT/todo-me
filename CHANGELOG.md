@@ -8,6 +8,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Task deadline time support via API (`dueTime` field in HH:MM format)
+- Time picker in task edit modal
+- Time-aware overdue detection (tasks due today with past time show as overdue)
+
 - Phase 11: Two-Factor Authentication
   - TOTP-based 2FA with authenticator app support
   - Backup codes for account recovery (10 single-use codes)

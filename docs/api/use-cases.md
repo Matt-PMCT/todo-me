@@ -55,6 +55,7 @@ curl -X POST /api/v1/tasks \
   -d '{
     "title": "Call John",
     "dueDate": "2026-01-25",
+    "dueTime": "14:00",
     "priority": 1,
     "tagIds": ["work-tag-uuid"]
   }'
