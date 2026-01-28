@@ -28,12 +28,13 @@ final class TagParserService
      * Finds all @tag patterns in the input and returns TagParseResult objects
      * for each unique tag found. Duplicates are ignored (only first occurrence is returned).
      *
-     * @param string $input The input text to parse
-     * @param User   $user  The user for whom to find/create tags
+     * @param string $input   The input text to parse
+     * @param User   $user    The user for whom to find/create tags
+     * @param bool   $preview If true, only looks up existing tags without creating new ones
      *
      * @return TagParseResult[] Array of parse results for each unique tag found
      */
-    public function parse(string $input, User $user): array
+    public function parse(string $input, User $user, bool $preview = false): array
     {
         if ($input === '') {
             return [];
@@ -59,16 +60,27 @@ final class TagParserService
             }
             $seenNames[$normalizedName] = true;
 
-            // Find or create the tag
-            $findResult = $this->tagService->findOrCreate($user, $tagName);
-
-            $results[] = TagParseResult::create(
-                tag: $findResult['tag'],
-                originalText: $fullMatch,
-                startPosition: $startPosition,
-                endPosition: $startPosition + strlen($fullMatch),
-                wasCreated: $findResult['created'],
-            );
+            if ($preview) {
+                // Preview mode: only look up existing tags, don't create new ones
+                $tag = $this->tagService->findByName($user, $tagName);
+                $results[] = TagParseResult::create(
+                    tag: $tag,
+                    originalText: $fullMatch,
+                    startPosition: $startPosition,
+                    endPosition: $startPosition + strlen($fullMatch),
+                    wasCreated: false,
+                );
+            } else {
+                // Normal mode: find or create the tag
+                $findResult = $this->tagService->findOrCreate($user, $tagName);
+                $results[] = TagParseResult::create(
+                    tag: $findResult['tag'],
+                    originalText: $fullMatch,
+                    startPosition: $startPosition,
+                    endPosition: $startPosition + strlen($fullMatch),
+                    wasCreated: $findResult['created'],
+                );
+            }
         }
 
         return $results;

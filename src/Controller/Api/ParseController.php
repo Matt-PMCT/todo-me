@@ -38,6 +38,7 @@ final class ParseController extends AbstractController
      *
      * POST /api/v1/parse
      * Body: { "input": "Review proposal #work @urgent tomorrow p3" }
+     * Query: ?preview=true (default) - don't create new tags during parsing
      * Response: { title, due_date, due_time, project, tags, priority, highlights, warnings }
      */
     #[Route('/parse', name: 'parse', methods: ['POST'])]
@@ -53,6 +54,14 @@ final class ParseController extends AbstractController
                 ]
             )
         ),
+        parameters: [
+            new OA\Parameter(
+                name: 'preview',
+                in: 'query',
+                description: 'If true (default), tags are not created during parsing',
+                schema: new OA\Schema(type: 'boolean', default: true)
+            ),
+        ],
         responses: [
             new OA\Response(response: 200, description: 'Parse result with extracted fields'),
             new OA\Response(response: 401, description: 'Not authenticated'),
@@ -72,9 +81,12 @@ final class ParseController extends AbstractController
             throw new BadRequestHttpException($e->getMessage());
         }
 
+        // Default to preview mode (don't create tags while typing)
+        $preview = $request->query->getBoolean('preview', true);
+
         $result = $this->parserService
             ->configure($user)
-            ->parse($dto->input, $user);
+            ->parse($dto->input, $user, $preview);
 
         $response = ParseResponse::fromTaskParseResult($result);
 

@@ -45,12 +45,13 @@ class NaturalLanguageParserService
     /**
      * Parse input text into task components.
      *
-     * @param string $input The raw input text to parse
-     * @param User   $user  the user context for finding projects, creating tags, etc
+     * @param string $input   The raw input text to parse
+     * @param User   $user    the user context for finding projects, creating tags, etc
+     * @param bool   $preview If true, only looks up existing tags without creating new ones
      *
      * @return TaskParseResult The parsed result with all components
      */
-    public function parse(string $input, User $user): TaskParseResult
+    public function parse(string $input, User $user, bool $preview = false): TaskParseResult
     {
         $highlights = [];
         $warnings = [];
@@ -117,7 +118,7 @@ class NaturalLanguageParserService
         }
 
         // Parse tags (ALL collected)
-        $tagResults = $this->tagParser->parse($input, $user);
+        $tagResults = $this->tagParser->parse($input, $user, $preview);
         $tags = [];
 
         foreach ($tagResults as $tagResult) {
