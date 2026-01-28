@@ -8,3 +8,8 @@
 .safe-area-inset-bottom {
     padding-bottom: env(safe-area-inset-bottom, 0);
 }
+
+/* Disable default mobile tap highlight color - prevents light grey flash in dark mode */
+[data-task-item] {
+    -webkit-tap-highlight-color: transparent;
+}

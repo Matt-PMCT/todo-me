@@ -31,7 +31,7 @@
               -translate-x-full
               md:relative md:translate-x-0 md:z-auto md:flex-shrink-0"
        :class="{ 'translate-x-0 md:translate-x-0': $store.sidebar?.open }"
-       @keydown.escape.window="$store.sidebar && ($store.sidebar.open = false)"
+       @keydown.escape.window="$store.sidebar && ($store.sidebar.open = false)">
 
     {# Mobile close button - Issue #63: Defensive check for sidebar store #}
     <div class="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700 md:hidden">

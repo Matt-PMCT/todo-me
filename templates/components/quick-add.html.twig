@@ -9,8 +9,7 @@
     <div class="relative flex flex-col sm:flex-row gap-3 sm:gap-4">
         <div class="flex-1 relative">
             {# Highlight overlay (behind input) - Issue #33: must match input styling exactly #}
-            {# Issue #37: Updated for multi-line support with whitespace-pre-wrap #}
-            <div class="absolute inset-0 py-3 sm:py-2 px-3 pointer-events-none overflow-hidden whitespace-pre-wrap break-words text-transparent text-base sm:text-sm sm:leading-6"
+            <div class="absolute inset-0 py-3 sm:py-2 px-3 pointer-events-none overflow-hidden text-transparent text-base sm:text-sm sm:leading-6"
                  aria-hidden="true">
                 <span x-html="highlightedText"></span>
             </div>
