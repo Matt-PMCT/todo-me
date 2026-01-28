@@ -359,7 +359,8 @@ function quickAdd() {
         escapeHtml(text) {
             const div = document.createElement('div');
             div.textContent = text;
-            return div.innerHTML;
+            // Preserve multiple spaces by converting to &nbsp; (except keep one regular space for wrapping)
+            return div.innerHTML.replace(/ {2}/g, ' \u00A0');
         },
 
         formatDate(dateStr) {
