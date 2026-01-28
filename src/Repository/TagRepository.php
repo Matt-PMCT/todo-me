@@ -143,4 +143,124 @@ class TagRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
     }
+
+    /**
+     * Find tags ordered by most recently used (based on task update time).
+     *
+     * @param User $owner The tag owner
+     * @param int  $limit Maximum number of tags to return
+     *
+     * @return Tag[] Tags ordered by recent usage
+     */
+    public function findRecentlyUsedByOwner(User $owner, int $limit = 10): array
+    {
+        return $this->createQueryBuilder('t')
+            ->select('t', 'MAX(task.updatedAt) as HIDDEN lastUsed')
+            ->leftJoin('t.tasks', 'task')
+            ->where('t.owner = :owner')
+            ->setParameter('owner', $owner)
+            ->groupBy('t.id')
+            ->orderBy('lastUsed', 'DESC')
+            ->addOrderBy('t.createdAt', 'DESC')
+            ->setMaxResults($limit)
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
+     * Count total tags for a user.
+     *
+     * @param User $owner The tag owner
+     *
+     * @return int Total tag count
+     */
+    public function countByOwner(User $owner): int
+    {
+        return (int) $this->createQueryBuilder('t')
+            ->select('COUNT(t.id)')
+            ->where('t.owner = :owner')
+            ->setParameter('owner', $owner)
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
+
+    /**
+     * Find tags with pagination.
+     *
+     * @param User   $owner  The tag owner
+     * @param int    $page   Page number (1-based)
+     * @param int    $limit  Items per page
+     * @param string $search Optional search query
+     *
+     * @return array{tags: Tag[], total: int}
+     */
+    public function findByOwnerPaginated(User $owner, int $page, int $limit, string $search = ''): array
+    {
+        $qb = $this->createQueryBuilder('t')
+            ->where('t.owner = :owner')
+            ->setParameter('owner', $owner);
+
+        if ($search !== '') {
+            $qb->andWhere('LOWER(t.name) LIKE LOWER(:search)')
+                ->setParameter('search', '%'.$search.'%');
+        }
+
+        // Get total count
+        $countQb = clone $qb;
+        $total = (int) $countQb->select('COUNT(t.id)')
+            ->getQuery()
+            ->getSingleScalarResult();
+
+        // Get paginated results
+        $offset = ($page - 1) * $limit;
+        $tags = $qb->orderBy('t.name', 'ASC')
+            ->setFirstResult($offset)
+            ->setMaxResults($limit)
+            ->getQuery()
+            ->getResult();
+
+        return [
+            'tags' => $tags,
+            'total' => $total,
+        ];
+    }
+
+    /**
+     * Get task counts for multiple tags efficiently.
+     *
+     * @param Tag[] $tags Array of tags
+     *
+     * @return array<string, int> Map of tag ID to task count
+     */
+    public function getTaskCountsForTags(array $tags): array
+    {
+        if (empty($tags)) {
+            return [];
+        }
+
+        $tagIds = array_map(fn (Tag $tag) => $tag->getId(), $tags);
+
+        $results = $this->createQueryBuilder('t')
+            ->select('t.id', 'COUNT(task.id) as taskCount')
+            ->leftJoin('t.tasks', 'task')
+            ->where('t.id IN (:ids)')
+            ->setParameter('ids', $tagIds)
+            ->groupBy('t.id')
+            ->getQuery()
+            ->getResult();
+
+        $counts = [];
+        foreach ($results as $row) {
+            $counts[$row['id']] = (int) $row['taskCount'];
+        }
+
+        // Ensure all tags have a count (default 0)
+        foreach ($tagIds as $id) {
+            if (!isset($counts[$id])) {
+                $counts[$id] = 0;
+            }
+        }
+
+        return $counts;
+    }
 }

@@ -93,7 +93,9 @@ class TaskListController extends AbstractController
 
         // Get sidebar data
         $sidebarProjects = $this->projectService->getTree($user);
-        $tags = $this->tagRepository->findByOwner($user);
+        // Issue #68: Limit sidebar tags to 10 most recently used
+        $sidebarTags = $this->tagRepository->findRecentlyUsedByOwner($user, 10);
+        $sidebarTagsTotal = $this->tagRepository->countByOwner($user);
 
         return $this->render('task/list.html.twig', [
             'tasks' => $tasks,
@@ -104,7 +106,8 @@ class TaskListController extends AbstractController
             'showCompleted' => $showCompleted,
             'taskSpacing' => $user->getTaskSpacing(),
             'sidebar_projects' => $sidebarProjects,
-            'sidebar_tags' => $tags,
+            'sidebar_tags' => $sidebarTags,
+            'sidebar_tags_total' => $sidebarTagsTotal,
             'selected_project_id' => $projectId,
         ]);
     }

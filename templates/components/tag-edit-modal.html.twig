@@ -1,0 +1,383 @@
+{# Tag Edit/Create Modal Component #}
+{# Modal dialog for creating or editing a tag #}
+
+{# Edit Modal #}
+<div x-data="tagEditModal()"
+     @open-tag-edit-modal.window="openEditModal($event.detail.tagId)"
+     @open-tag-create-modal.window="openCreateModal()"
+     @closeAll.window="open = false"
+     @keydown.escape.window="open = false">
+
+    {# Modal #}
+    <div x-show="open"
+         x-cloak
+         class="fixed inset-0 z-50 overflow-y-auto"
+         role="dialog"
+         aria-modal="true"
+         aria-labelledby="tag-modal-title">
+
+        {# Backdrop #}
+        <div x-show="open"
+             x-transition:enter="ease-out duration-300"
+             x-transition:enter-start="opacity-0"
+             x-transition:enter-end="opacity-100"
+             x-transition:leave="ease-in duration-200"
+             x-transition:leave-start="opacity-100"
+             x-transition:leave-end="opacity-0"
+             @click="open = false"
+             class="fixed inset-0 bg-gray-500 bg-opacity-75 dark:bg-gray-900/80 transition-opacity"
+             aria-hidden="true"></div>
+
+        {# Centering wrapper #}
+        <div class="flex min-h-screen items-center justify-center p-4">
+
+            {# Modal panel #}
+            <div x-show="open"
+                 x-transition:enter="ease-out duration-300"
+                 x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                 x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
+                 x-transition:leave="ease-in duration-200"
+                 x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
+                 x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                 @click.away="open = false"
+                 class="relative transform overflow-hidden rounded-lg bg-white dark:bg-gray-800 px-4 pb-4 pt-5 shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:p-6">
+
+                {# Loading state #}
+                <div x-show="loading" class="flex items-center justify-center py-8">
+                    <svg class="animate-spin h-8 w-8 text-teal-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                </div>
+
+                {# Error state #}
+                <div x-show="error && !loading" class="rounded-md bg-red-50 dark:bg-red-900/30 p-4">
+                    <div class="flex">
+                        <div class="flex-shrink-0">
+                            <svg class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z" clip-rule="evenodd" />
+                            </svg>
+                        </div>
+                        <div class="ml-3">
+                            <p class="text-sm font-medium text-red-800 dark:text-red-300" x-text="error"></p>
+                        </div>
+                    </div>
+                </div>
+
+                {# Form content #}
+                <div x-show="!loading && !error">
+                    {# Header #}
+                    <div class="flex items-center justify-between border-b border-gray-200 dark:border-gray-700 pb-4">
+                        <h2 id="tag-modal-title" class="text-lg font-semibold text-gray-900 dark:text-gray-100" x-text="isEditing ? 'Edit Tag' : 'Create Tag'">
+                        </h2>
+                        <button @click="open = false"
+                                type="button"
+                                class="rounded-md bg-white dark:bg-gray-800 text-gray-400 dark:text-gray-500 hover:text-gray-500 dark:hover:text-gray-400 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800">
+                            <span class="sr-only">Close</span>
+                            <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                    </div>
+
+                    {# Form #}
+                    <form @submit.prevent="saveTag()" class="mt-4 space-y-4">
+                        {# Tag Name #}
+                        <div>
+                            <label for="tag-name" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                Name <span class="text-red-500">*</span>
+                            </label>
+                            <input type="text"
+                                   id="tag-name"
+                                   x-model="form.name"
+                                   required
+                                   maxlength="100"
+                                   x-ref="nameInput"
+                                   class="mt-1 block w-full rounded-md border-0 py-1.5 text-gray-900 dark:text-gray-100 dark:bg-gray-700 shadow-sm ring-1 ring-inset ring-gray-300 dark:ring-gray-600 placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:ring-2 focus:ring-inset focus:ring-teal-600 dark:focus:ring-teal-400 sm:text-sm sm:leading-6"
+                                   placeholder="Tag name">
+                        </div>
+
+                        {# Color #}
+                        <div>
+                            <label for="tag-color" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                Color
+                            </label>
+                            <div class="mt-1 flex items-center gap-3">
+                                <input type="color"
+                                       id="tag-color"
+                                       x-model="form.color"
+                                       class="h-8 w-8 rounded cursor-pointer border-0 p-0">
+                                <div class="flex gap-2">
+                                    <template x-for="color in presetColors" :key="color">
+                                        <button type="button"
+                                                @click="form.color = color"
+                                                :class="{ 'ring-2 ring-offset-2 ring-teal-500 dark:ring-offset-gray-800': form.color.toUpperCase() === color.toUpperCase() }"
+                                                :style="'background-color: ' + color"
+                                                class="h-6 w-6 rounded-full cursor-pointer border border-gray-200 dark:border-gray-600">
+                                            <span class="sr-only" x-text="'Select color ' + color"></span>
+                                        </button>
+                                    </template>
+                                </div>
+                            </div>
+                        </div>
+
+                        {# Submit buttons #}
+                        <div class="mt-6 flex justify-between pt-4 border-t border-gray-200 dark:border-gray-700">
+                            {# Delete button (only for editing) #}
+                            <div>
+                                <button x-show="isEditing"
+                                        type="button"
+                                        @click="confirmDelete()"
+                                        :disabled="deleting"
+                                        class="rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-600 disabled:opacity-50 disabled:cursor-not-allowed">
+                                    <span x-show="!deleting">Delete Tag</span>
+                                    <span x-show="deleting">Deleting...</span>
+                                </button>
+                            </div>
+
+                            <div class="flex gap-3">
+                                <button type="button"
+                                        @click="open = false"
+                                        class="rounded-md bg-white dark:bg-gray-700 px-3 py-2 text-sm font-semibold text-gray-900 dark:text-gray-100 shadow-sm ring-1 ring-inset ring-gray-300 dark:ring-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600">
+                                    Cancel
+                                </button>
+                                <button type="submit"
+                                        :disabled="saving"
+                                        class="rounded-md bg-teal-600 dark:bg-teal-500 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-teal-500 dark:hover:bg-teal-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-600 disabled:opacity-50 disabled:cursor-not-allowed">
+                                    <span x-show="!saving" x-text="isEditing ? 'Save Changes' : 'Create Tag'"></span>
+                                    <span x-show="saving">Saving...</span>
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+{# Delete Confirmation Modal #}
+<div x-data="tagDeleteConfirm()"
+     @open-tag-delete-confirm.window="openConfirm($event.detail.tagId, $event.detail.tagName)"
+     @closeAll.window="open = false">
+
+    <div x-show="open"
+         x-cloak
+         class="fixed inset-0 z-50 overflow-y-auto"
+         role="dialog"
+         aria-modal="true">
+
+        {# Backdrop #}
+        <div x-show="open"
+             x-transition:enter="ease-out duration-300"
+             x-transition:enter-start="opacity-0"
+             x-transition:enter-end="opacity-100"
+             x-transition:leave="ease-in duration-200"
+             x-transition:leave-start="opacity-100"
+             x-transition:leave-end="opacity-0"
+             @click="open = false"
+             class="fixed inset-0 bg-gray-500 bg-opacity-75 dark:bg-gray-900/80 transition-opacity"
+             aria-hidden="true"></div>
+
+        <div class="flex min-h-screen items-center justify-center p-4">
+            <div x-show="open"
+                 x-transition:enter="ease-out duration-300"
+                 x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                 x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
+                 x-transition:leave="ease-in duration-200"
+                 x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
+                 x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                 class="relative transform overflow-hidden rounded-lg bg-white dark:bg-gray-800 px-4 pb-4 pt-5 shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-md sm:p-6">
+
+                <div class="sm:flex sm:items-start">
+                    <div class="mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-red-100 dark:bg-red-900/30 sm:mx-0 sm:h-10 sm:w-10">
+                        <svg class="h-6 w-6 text-red-600 dark:text-red-400" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+                        </svg>
+                    </div>
+                    <div class="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left">
+                        <h3 class="text-base font-semibold leading-6 text-gray-900 dark:text-gray-100">Delete Tag</h3>
+                        <div class="mt-2">
+                            <p class="text-sm text-gray-500 dark:text-gray-400">
+                                Are you sure you want to delete the tag "<span class="font-medium" x-text="tagName"></span>"?
+                                This will remove the tag from all tasks. This action cannot be undone.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse gap-3">
+                    <button type="button"
+                            @click="deleteTag()"
+                            :disabled="deleting"
+                            class="inline-flex w-full justify-center rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500 sm:w-auto disabled:opacity-50 disabled:cursor-not-allowed">
+                        <span x-show="!deleting">Delete</span>
+                        <span x-show="deleting">Deleting...</span>
+                    </button>
+                    <button type="button"
+                            @click="open = false"
+                            class="mt-3 inline-flex w-full justify-center rounded-md bg-white dark:bg-gray-700 px-3 py-2 text-sm font-semibold text-gray-900 dark:text-gray-100 shadow-sm ring-1 ring-inset ring-gray-300 dark:ring-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600 sm:mt-0 sm:w-auto">
+                        Cancel
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('alpine:init', () => {
+    Alpine.data('tagEditModal', () => ({
+        open: false,
+        loading: false,
+        saving: false,
+        deleting: false,
+        error: null,
+        tagId: null,
+        isEditing: false,
+        presetColors: ['#EF4444', '#F59E0B', '#10B981', '#3B82F6', '#8B5CF6', '#EC4899'],
+        form: {
+            name: '',
+            color: '#6B7280'
+        },
+
+        openCreateModal() {
+            this.tagId = null;
+            this.isEditing = false;
+            this.open = true;
+            this.loading = false;
+            this.error = null;
+            this.form = { name: '', color: '#6B7280' };
+
+            this.$nextTick(() => {
+                if (this.$refs.nameInput) {
+                    this.$refs.nameInput.focus();
+                }
+            });
+        },
+
+        async openEditModal(tagId) {
+            this.tagId = tagId;
+            this.isEditing = true;
+            this.open = true;
+            this.loading = true;
+            this.error = null;
+            this.form = { name: '', color: '#6B7280' };
+
+            try {
+                const response = await window.api.get('/api/v1/tags/' + tagId);
+                if (!response.ok) {
+                    throw new Error('Failed to load tag');
+                }
+                const data = await response.json();
+                const tag = data.data;
+
+                this.form.name = tag.name || '';
+                this.form.color = tag.color || '#6B7280';
+
+                this.$nextTick(() => {
+                    if (this.$refs.nameInput) {
+                        this.$refs.nameInput.focus();
+                    }
+                });
+            } catch (err) {
+                this.error = err.message || 'Failed to load tag';
+            } finally {
+                this.loading = false;
+            }
+        },
+
+        async saveTag() {
+            if (!this.form.name.trim()) {
+                return;
+            }
+
+            this.saving = true;
+            this.error = null;
+
+            try {
+                let response;
+                if (this.isEditing) {
+                    response = await window.api.patch('/api/v1/tags/' + this.tagId, {
+                        name: this.form.name.trim(),
+                        color: this.form.color
+                    });
+                } else {
+                    response = await window.api.post('/api/v1/tags', {
+                        name: this.form.name.trim(),
+                        color: this.form.color
+                    });
+                }
+
+                if (!response.ok) {
+                    const data = await response.json();
+                    throw new Error(data.error?.message || 'Failed to save tag');
+                }
+
+                this.open = false;
+
+                // Show success toast
+                if (window.showToast) {
+                    window.showToast(this.isEditing ? 'Tag updated successfully' : 'Tag created successfully', 'success');
+                }
+
+                // Reload the page to show updated data
+                window.location.reload();
+            } catch (err) {
+                this.error = err.message || 'Failed to save tag';
+            } finally {
+                this.saving = false;
+            }
+        },
+
+        confirmDelete() {
+            this.open = false;
+            this.$dispatch('open-tag-delete-confirm', { tagId: this.tagId, tagName: this.form.name });
+        }
+    }));
+
+    Alpine.data('tagDeleteConfirm', () => ({
+        open: false,
+        deleting: false,
+        tagId: null,
+        tagName: '',
+
+        openConfirm(tagId, tagName) {
+            this.tagId = tagId;
+            this.tagName = tagName;
+            this.open = true;
+            this.deleting = false;
+        },
+
+        async deleteTag() {
+            this.deleting = true;
+
+            try {
+                const response = await window.api.delete('/api/v1/tags/' + this.tagId);
+
+                if (!response.ok) {
+                    const data = await response.json();
+                    throw new Error(data.error?.message || 'Failed to delete tag');
+                }
+
+                this.open = false;
+
+                // Show success toast
+                if (window.showToast) {
+                    window.showToast('Tag deleted successfully', 'success');
+                }
+
+                // Reload the page
+                window.location.reload();
+            } catch (err) {
+                if (window.showToast) {
+                    window.showToast(err.message || 'Failed to delete tag', 'error');
+                }
+            } finally {
+                this.deleting = false;
+            }
+        }
+    }));
+});
+</script>

@@ -270,8 +270,28 @@ class TaskOverdueTest extends UnitTestCase
         $task = new Task();
         $task->setTitle('Test Task');
         $task->setDueDate(new \DateTimeImmutable('today'));
-        // Set due time to 1 hour from now
-        $futureTime = (new \DateTimeImmutable())->modify('+1 hour');
+
+        // Calculate a future time that stays within today
+        // The issue with +1 hour is it can wrap to next day near midnight,
+        // and isOverdue() only uses hour:minute from dueTime applied to dueDate
+        $now = new \DateTimeImmutable();
+        $currentHour = (int) $now->format('H');
+        $currentMinute = (int) $now->format('i');
+
+        // Set due time to 1 minute from now, but clamp to 23:59 max
+        $futureMinute = $currentMinute + 1;
+        $futureHour = $currentHour;
+        if ($futureMinute >= 60) {
+            $futureMinute = 59;
+            $futureHour = min($currentHour + 1, 23);
+        }
+        if ($futureHour >= 23 && $futureMinute >= 59) {
+            // Edge case: if we're at 23:59, use 23:59 and skip test assertion
+            // as it's impossible to have a "future" time today
+            $this->markTestSkipped('Cannot test future time at 23:59');
+        }
+
+        $futureTime = (new \DateTimeImmutable('today'))->setTime($futureHour, $futureMinute);
         $task->setDueTime($futureTime);
 
         $this->assertFalse($task->isOverdue());

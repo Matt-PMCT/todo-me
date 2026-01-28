@@ -41,17 +41,15 @@ class TaskViewController extends AbstractController
         // Group tasks: overdue first, then today
         $grouped = $this->taskGroupingService->groupByTimePeriod($tasks, $user);
 
-        // Get sidebar data
-        $sidebarProjects = $this->projectService->getTree($user);
-        $tags = $this->tagRepository->findByOwner($user);
+        // Get sidebar data - Issue #68: Limit sidebar tags
+        $sidebarData = $this->getSidebarData($user);
 
         return $this->render('task/today.html.twig', [
             'tasks' => $tasks,
             'groupedTasks' => $grouped,
             'overdueService' => $this->overdueService,
             'taskSpacing' => $user->getTaskSpacing(),
-            'sidebar_projects' => $sidebarProjects,
-            'sidebar_tags' => $tags,
+            ...$sidebarData,
         ]);
     }
 
@@ -67,16 +65,14 @@ class TaskViewController extends AbstractController
         // Group by time period
         $grouped = $this->taskGroupingService->groupByTimePeriod($tasks, $user);
 
-        // Get sidebar data
-        $sidebarProjects = $this->projectService->getTree($user);
-        $tags = $this->tagRepository->findByOwner($user);
+        // Get sidebar data - Issue #68: Limit sidebar tags
+        $sidebarData = $this->getSidebarData($user);
 
         return $this->render('task/upcoming.html.twig', [
             'tasks' => $tasks,
             'groupedTasks' => $grouped,
             'taskSpacing' => $user->getTaskSpacing(),
-            'sidebar_projects' => $sidebarProjects,
-            'sidebar_tags' => $tags,
+            ...$sidebarData,
         ]);
     }
 
@@ -92,17 +88,15 @@ class TaskViewController extends AbstractController
         // Group by severity
         $grouped = $this->taskGroupingService->groupBySeverity($tasks);
 
-        // Get sidebar data
-        $sidebarProjects = $this->projectService->getTree($user);
-        $tags = $this->tagRepository->findByOwner($user);
+        // Get sidebar data - Issue #68: Limit sidebar tags
+        $sidebarData = $this->getSidebarData($user);
 
         return $this->render('task/overdue.html.twig', [
             'tasks' => $tasks,
             'groupedTasks' => $grouped,
             'overdueService' => $this->overdueService,
             'taskSpacing' => $user->getTaskSpacing(),
-            'sidebar_projects' => $sidebarProjects,
-            'sidebar_tags' => $tags,
+            ...$sidebarData,
         ]);
     }
 
@@ -115,15 +109,13 @@ class TaskViewController extends AbstractController
         // Get tasks without due date
         $tasks = $this->taskRepository->findTasksWithNoDueDate($user);
 
-        // Get sidebar data
-        $sidebarProjects = $this->projectService->getTree($user);
-        $tags = $this->tagRepository->findByOwner($user);
+        // Get sidebar data - Issue #68: Limit sidebar tags
+        $sidebarData = $this->getSidebarData($user);
 
         return $this->render('task/no-date.html.twig', [
             'tasks' => $tasks,
             'taskSpacing' => $user->getTaskSpacing(),
-            'sidebar_projects' => $sidebarProjects,
-            'sidebar_tags' => $tags,
+            ...$sidebarData,
         ]);
     }
 
@@ -136,15 +128,27 @@ class TaskViewController extends AbstractController
         // Get recent completed tasks
         $tasks = $this->taskRepository->findCompletedTasksRecent($user, 100);
 
-        // Get sidebar data
-        $sidebarProjects = $this->projectService->getTree($user);
-        $tags = $this->tagRepository->findByOwner($user);
+        // Get sidebar data - Issue #68: Limit sidebar tags
+        $sidebarData = $this->getSidebarData($user);
 
         return $this->render('task/completed.html.twig', [
             'tasks' => $tasks,
             'taskSpacing' => $user->getTaskSpacing(),
-            'sidebar_projects' => $sidebarProjects,
-            'sidebar_tags' => $tags,
+            ...$sidebarData,
         ]);
+    }
+
+    /**
+     * Get common sidebar data for all task views.
+     *
+     * @return array{sidebar_projects: array, sidebar_tags: array, sidebar_tags_total: int}
+     */
+    private function getSidebarData(User $user): array
+    {
+        return [
+            'sidebar_projects' => $this->projectService->getTree($user),
+            'sidebar_tags' => $this->tagRepository->findRecentlyUsedByOwner($user, 10),
+            'sidebar_tags_total' => $this->tagRepository->countByOwner($user),
+        ];
     }
 }

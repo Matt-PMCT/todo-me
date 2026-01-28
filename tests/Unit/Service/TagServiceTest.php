@@ -8,6 +8,7 @@ use App\Entity\Tag;
 use App\Entity\User;
 use App\Repository\TagRepository;
 use App\Service\TagService;
+use App\Service\ValidationHelper;
 use App\Tests\Unit\UnitTestCase;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -16,6 +17,7 @@ class TagServiceTest extends UnitTestCase
 {
     private TagRepository&MockObject $tagRepository;
     private EntityManagerInterface&MockObject $entityManager;
+    private ValidationHelper&MockObject $validationHelper;
     private TagService $tagService;
     private User $user;
 
@@ -25,7 +27,8 @@ class TagServiceTest extends UnitTestCase
 
         $this->tagRepository = $this->createMock(TagRepository::class);
         $this->entityManager = $this->createMock(EntityManagerInterface::class);
-        $this->tagService = new TagService($this->tagRepository, $this->entityManager);
+        $this->validationHelper = $this->createMock(ValidationHelper::class);
+        $this->tagService = new TagService($this->tagRepository, $this->entityManager, $this->validationHelper);
         $this->user = $this->createUserWithId('user-123');
     }
 

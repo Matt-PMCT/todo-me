@@ -1,0 +1,198 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Manage Tags - {{ app_name }}{% endblock %}
+
+{% block body %}
+<div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-10">
+    {# Page Header #}
+    <div class="mb-8">
+        <div class="flex items-center justify-between">
+            <div class="flex items-center gap-4">
+                <a href="{{ path('app_task_list') }}" class="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                    </svg>
+                </a>
+                <h1 class="text-2xl font-bold tracking-tight text-gray-900 dark:text-gray-100">Manage Tags</h1>
+            </div>
+            <button @click="$dispatch('open-tag-create-modal')"
+                    type="button"
+                    class="inline-flex items-center gap-2 rounded-md bg-teal-600 dark:bg-teal-500 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-teal-500 dark:hover:bg-teal-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-600">
+                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                </svg>
+                New Tag
+            </button>
+        </div>
+        <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
+            {{ total }} tag{{ total != 1 ? 's' : '' }} total. Tags help you organize and filter tasks.
+        </p>
+    </div>
+
+    {# Search Box #}
+    <div class="mb-6">
+        <form method="GET" action="{{ path('app_tags') }}" class="flex gap-2">
+            <div class="relative flex-1 max-w-md">
+                <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                    <svg class="h-5 w-5 text-gray-400 dark:text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                </div>
+                <input type="text"
+                       name="search"
+                       value="{{ search }}"
+                       placeholder="Search tags..."
+                       class="block w-full rounded-md border-0 py-2 pl-10 pr-3 text-gray-900 dark:text-gray-100 dark:bg-gray-700 shadow-sm ring-1 ring-inset ring-gray-300 dark:ring-gray-600 placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:ring-2 focus:ring-inset focus:ring-teal-600 dark:focus:ring-teal-400 sm:text-sm sm:leading-6">
+            </div>
+            <button type="submit"
+                    class="rounded-md bg-white dark:bg-gray-700 px-4 py-2 text-sm font-semibold text-gray-900 dark:text-gray-100 shadow-sm ring-1 ring-inset ring-gray-300 dark:ring-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600">
+                Search
+            </button>
+            {% if search %}
+                <a href="{{ path('app_tags') }}"
+                   class="rounded-md bg-white dark:bg-gray-700 px-4 py-2 text-sm font-semibold text-gray-900 dark:text-gray-100 shadow-sm ring-1 ring-inset ring-gray-300 dark:ring-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600">
+                    Clear
+                </a>
+            {% endif %}
+        </form>
+    </div>
+
+    {# Tags List #}
+    <div class="space-y-3">
+        {% if tags is empty %}
+            <div class="text-center py-12">
+                <svg class="mx-auto h-12 w-12 text-gray-400 dark:text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                </svg>
+                <h3 class="mt-2 text-sm font-semibold text-gray-900 dark:text-gray-100">
+                    {% if search %}No tags found{% else %}No tags yet{% endif %}
+                </h3>
+                <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                    {% if search %}
+                        Try a different search term.
+                    {% else %}
+                        Tags are created automatically when you add them to tasks.
+                    {% endif %}
+                </p>
+                {% if not search %}
+                    <div class="mt-6">
+                        <button @click="$dispatch('open-tag-create-modal')"
+                                type="button"
+                                class="inline-flex items-center gap-2 rounded-md bg-teal-600 dark:bg-teal-500 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-teal-500 dark:hover:bg-teal-400">
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                            </svg>
+                            Create your first tag
+                        </button>
+                    </div>
+                {% endif %}
+            </div>
+        {% endif %}
+
+        {% for tag in tags %}
+            <div class="bg-white dark:bg-gray-800 shadow dark:shadow-none ring-1 ring-gray-200/50 dark:ring-gray-700 rounded-lg p-4 hover:shadow-md transition-shadow duration-200">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        {# Color Indicator #}
+                        <div class="w-4 h-4 rounded-full flex-shrink-0"
+                             style="background-color: {{ tag.color }}">
+                        </div>
+
+                        <div>
+                            {# Tag Name #}
+                            <h3 class="text-base font-medium text-gray-900 dark:text-gray-100">{{ tag.name }}</h3>
+
+                            {# Metadata #}
+                            <div class="mt-1 flex flex-wrap items-center gap-4 text-xs text-gray-500 dark:text-gray-400">
+                                <a href="{{ path('app_task_list', {tag: tag.id}) }}"
+                                   class="flex items-center gap-1 hover:text-teal-600 dark:hover:text-teal-400">
+                                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                                    </svg>
+                                    {{ tag.taskCount }} task{{ tag.taskCount != 1 ? 's' : '' }}
+                                </a>
+                                <span class="flex items-center gap-1">
+                                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                    </svg>
+                                    Created {{ tag.createdAt|date('M j, Y') }}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    {# Actions #}
+                    <div class="flex items-center gap-2">
+                        <button @click="$dispatch('open-tag-edit-modal', { tagId: '{{ tag.id }}' })"
+                                type="button"
+                                class="min-h-11 min-w-11 sm:min-h-0 sm:min-w-0 inline-flex items-center justify-center rounded-md bg-white dark:bg-gray-700 px-3 py-2 text-sm font-semibold text-gray-700 dark:text-gray-200 shadow-sm ring-1 ring-inset ring-gray-300 dark:ring-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600">
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                            </svg>
+                            <span class="sr-only">Edit</span>
+                        </button>
+                        <button @click="$dispatch('open-tag-delete-confirm', { tagId: '{{ tag.id }}', tagName: '{{ tag.name }}' })"
+                                type="button"
+                                class="min-h-11 min-w-11 sm:min-h-0 sm:min-w-0 inline-flex items-center justify-center rounded-md bg-white dark:bg-gray-700 px-3 py-2 text-sm font-semibold text-red-600 dark:text-red-400 shadow-sm ring-1 ring-inset ring-gray-300 dark:ring-gray-600 hover:bg-red-50 dark:hover:bg-red-900/20">
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                            <span class="sr-only">Delete</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+
+    {# Pagination #}
+    {% if totalPages > 1 %}
+        <nav class="mt-8 flex items-center justify-between border-t border-gray-200 dark:border-gray-700 pt-6">
+            <div class="flex flex-1 justify-between sm:hidden">
+                {% if hasPreviousPage %}
+                    <a href="{{ path('app_tags', {page: page - 1, search: search}) }}"
+                       class="relative inline-flex items-center rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-600">
+                        Previous
+                    </a>
+                {% endif %}
+                {% if hasNextPage %}
+                    <a href="{{ path('app_tags', {page: page + 1, search: search}) }}"
+                       class="relative ml-3 inline-flex items-center rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-600">
+                        Next
+                    </a>
+                {% endif %}
+            </div>
+            <div class="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
+                <div>
+                    <p class="text-sm text-gray-700 dark:text-gray-300">
+                        Showing page <span class="font-medium">{{ page }}</span> of <span class="font-medium">{{ totalPages }}</span>
+                    </p>
+                </div>
+                <div class="flex gap-2">
+                    {% if hasPreviousPage %}
+                        <a href="{{ path('app_tags', {page: page - 1, search: search}) }}"
+                           class="relative inline-flex items-center gap-1 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-600">
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                            </svg>
+                            Previous
+                        </a>
+                    {% endif %}
+                    {% if hasNextPage %}
+                        <a href="{{ path('app_tags', {page: page + 1, search: search}) }}"
+                           class="relative inline-flex items-center gap-1 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-600">
+                            Next
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                            </svg>
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        </nav>
+    {% endif %}
+</div>
+
+{# Include tag modals #}
+{% include 'components/tag-edit-modal.html.twig' %}
+{% endblock %}
