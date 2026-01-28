@@ -93,9 +93,11 @@
                         <label for="filter_priority" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Priority</label>
                         <select name="priority" id="filter_priority" class="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 py-2 pl-3 pr-10 text-base focus:border-teal-500 focus:outline-none focus:ring-teal-500 dark:focus:ring-teal-400 sm:text-sm">
                             <option value="">All priorities</option>
-                            {% for i in 1..5 %}
-                                <option value="{{ i }}" {% if currentFilters.priority == i %}selected{% endif %}>{{ i }} star{% if i != 1 %}s{% endif %}</option>
-                            {% endfor %}
+                            <option value="1" {% if currentFilters.priority == 1 %}selected{% endif %}>P1 - Urgent</option>
+                            <option value="2" {% if currentFilters.priority == 2 %}selected{% endif %}>P2 - High</option>
+                            <option value="3" {% if currentFilters.priority == 3 %}selected{% endif %}>P3 - Medium</option>
+                            <option value="4" {% if currentFilters.priority == 4 %}selected{% endif %}>P4 - Low</option>
+                            <option value="5" {% if currentFilters.priority == 5 %}selected{% endif %}>P5 - Lowest</option>
                         </select>
                     </div>
 
@@ -222,12 +224,25 @@
 {{ parent() }}
 <script>
 {# Issue #59: AJAX task status component #}
-function taskItem(taskId, initialStatus) {
+{# Issue #61: Extended with inline editing for priority, due date, project #}
+function taskItem(taskId, initialStatus, initialPriority, initialDueDate, initialDueTime, initialProjectId, initialProjectName) {
     return {
         taskId: taskId,
         status: initialStatus,
         isUpdating: false,
         showDeleteModal: false,
+
+        // Issue #61: Inline editing state
+        priority: initialPriority,
+        dueDate: initialDueDate || '',
+        dueTime: initialDueTime || '',
+        projectId: initialProjectId || '',
+        projectName: initialProjectName || '',
+        priorityDropdownOpen: false,
+        dueDateDropdownOpen: false,
+        projectDropdownOpen: false,
+        projects: [],
+        projectsLoaded: false,
 
         get subtasksExpanded() {
             return Alpine.store('subtasks')?.expanded || {};
@@ -257,6 +272,135 @@ function taskItem(taskId, initialStatus) {
                 console.error('Error updating task status:', error);
             } finally {
                 this.isUpdating = false;
+            }
+        },
+
+        // Issue #61: Inline priority editing
+        async setPriority(newPriority) {
+            if (this.isUpdating || this.priority === newPriority) {
+                this.priorityDropdownOpen = false;
+                return;
+            }
+
+            this.isUpdating = true;
+            const previousPriority = this.priority;
+
+            try {
+                const response = await window.api.patch('/api/v1/tasks/' + this.taskId, { priority: newPriority });
+                const data = await response.json();
+
+                if (data.success) {
+                    this.priority = newPriority;
+                } else {
+                    console.error('Failed to update priority:', data.error);
+                }
+            } catch (error) {
+                console.error('Error updating priority:', error);
+            } finally {
+                this.isUpdating = false;
+                this.priorityDropdownOpen = false;
+            }
+        },
+
+        // Issue #61: Inline due date editing
+        async setDueDate(newDate, newTime) {
+            if (this.isUpdating) return;
+
+            this.isUpdating = true;
+
+            try {
+                const payload = {};
+                if (newDate === null) {
+                    payload.clearDueDate = true;
+                    payload.clearDueTime = true;
+                } else {
+                    payload.dueDate = newDate;
+                    if (newTime) {
+                        payload.dueTime = newTime;
+                    } else if (newTime === null) {
+                        payload.clearDueTime = true;
+                    }
+                }
+
+                const response = await window.api.patch('/api/v1/tasks/' + this.taskId, payload);
+                const data = await response.json();
+
+                if (data.success) {
+                    this.dueDate = newDate || '';
+                    this.dueTime = (newDate && newTime) ? newTime : '';
+                } else {
+                    console.error('Failed to update due date:', data.error);
+                }
+            } catch (error) {
+                console.error('Error updating due date:', error);
+            } finally {
+                this.isUpdating = false;
+                this.dueDateDropdownOpen = false;
+            }
+        },
+
+        // Issue #61: Inline project editing
+        async loadProjects() {
+            if (this.projectsLoaded) return;
+
+            try {
+                const response = await window.api.get('/api/v1/projects');
+                const data = await response.json();
+                if (data.success && data.data) {
+                    this.projects = data.data;
+                    this.projectsLoaded = true;
+                }
+            } catch (error) {
+                console.error('Error loading projects:', error);
+            }
+        },
+
+        async openProjectDropdown() {
+            this.projectDropdownOpen = true;
+            await this.loadProjects();
+        },
+
+        async setProject(newProjectId, newProjectName) {
+            if (this.isUpdating) {
+                this.projectDropdownOpen = false;
+                return;
+            }
+
+            this.isUpdating = true;
+
+            try {
+                const payload = newProjectId ? { projectId: newProjectId } : { clearProject: true };
+                const response = await window.api.patch('/api/v1/tasks/' + this.taskId, payload);
+                const data = await response.json();
+
+                if (data.success) {
+                    this.projectId = newProjectId || '';
+                    this.projectName = newProjectName || '';
+                } else {
+                    console.error('Failed to update project:', data.error);
+                }
+            } catch (error) {
+                console.error('Error updating project:', error);
+            } finally {
+                this.isUpdating = false;
+                this.projectDropdownOpen = false;
+            }
+        },
+
+        // Helper to get quick date options
+        getQuickDate(option) {
+            const today = new Date();
+            switch(option) {
+                case 'today':
+                    return today.toISOString().split('T')[0];
+                case 'tomorrow':
+                    today.setDate(today.getDate() + 1);
+                    return today.toISOString().split('T')[0];
+                case 'nextWeek':
+                    today.setDate(today.getDate() + 7);
+                    return today.toISOString().split('T')[0];
+                default:
+                    return '';
             }
         }
     };
