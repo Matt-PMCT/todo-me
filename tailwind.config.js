@@ -7,11 +7,12 @@ module.exports = {
   ],
   safelist: [
     // Dynamic highlight classes used in quick-add.html.twig getHighlightClass()
-    'bg-blue-100', 'dark:bg-blue-500/20',
-    'bg-teal-100', 'dark:bg-teal-500/20',
-    'bg-gray-200', 'dark:bg-gray-500/30',
-    'bg-yellow-100', 'dark:bg-yellow-500/20',
-    'border-b-2', 'border-red-400', 'dark:border-red-500',
+    // Light mode
+    'bg-blue-100', 'bg-teal-100', 'bg-gray-200', 'bg-yellow-100',
+    'border-b-2', 'border-red-400',
+    // Dark mode (applied via JS detection, not dark: prefix)
+    'bg-blue-500/20', 'bg-teal-500/20', 'bg-gray-500/30', 'bg-yellow-500/20',
+    'border-red-500',
     'rounded-sm',
   ],
   theme: {
