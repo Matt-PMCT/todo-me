@@ -37,7 +37,7 @@ final class SessionApiAuthenticator extends AbstractAuthenticator
     ) {
     }
 
-    public function supports(Request $request): ?bool
+    public function supports(Request $request): bool
     {
         // Only handle API routes
         if (!str_starts_with($request->getPathInfo(), '/api/')) {
@@ -84,7 +84,7 @@ final class SessionApiAuthenticator extends AbstractAuthenticator
 
         $userIdentifier = $token->getUserIdentifier();
 
-        if ($userIdentifier === '' || $userIdentifier === null) {
+        if ($userIdentifier === '') {
             throw new AuthenticationException('No user identifier in session');
         }
 

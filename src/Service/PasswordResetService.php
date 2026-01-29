@@ -97,7 +97,7 @@ final class PasswordResetService
         $user->setPasswordResetExpiresAt(null);
 
         // Invalidate API token (security measure)
-        $user->setApiToken(null);
+        $user->setApiTokenHash(null);
 
         $this->entityManager->flush();
 

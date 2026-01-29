@@ -71,7 +71,7 @@ final class TwoFactorRecoveryService
         $this->twoFactorService->disable($user);
 
         // Invalidate API token
-        $user->setApiToken(null);
+        $user->setApiTokenHash(null);
         $this->entityManager->flush();
 
         return true;

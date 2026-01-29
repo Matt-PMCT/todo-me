@@ -14,6 +14,7 @@ use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 use Symfony\Component\Security\Core\Exception\AuthenticationException;
 use Symfony\Component\Security\Csrf\CsrfToken;
 use Symfony\Component\Security\Csrf\CsrfTokenManagerInterface;
+use Symfony\Component\Security\Http\Authenticator\Passport\Badge\UserBadge;
 use Symfony\Component\Security\Http\Authenticator\Passport\SelfValidatingPassport;
 
 /**
@@ -133,7 +134,8 @@ class SessionApiAuthenticatorTest extends UnitTestCase
         $passport = $this->authenticator->authenticate($request);
 
         $this->assertInstanceOf(SelfValidatingPassport::class, $passport);
-        $userBadge = $passport->getBadge('Symfony\Component\Security\Http\Authenticator\Passport\Badge\UserBadge');
+        $userBadge = $passport->getBadge(UserBadge::class);
+        $this->assertInstanceOf(UserBadge::class, $userBadge);
         $this->assertSame('user@example.com', $userBadge->getUserIdentifier());
     }
 
@@ -144,7 +146,8 @@ class SessionApiAuthenticatorTest extends UnitTestCase
         $passport = $this->authenticator->authenticate($request);
 
         $this->assertInstanceOf(SelfValidatingPassport::class, $passport);
-        $userBadge = $passport->getBadge('Symfony\Component\Security\Http\Authenticator\Passport\Badge\UserBadge');
+        $userBadge = $passport->getBadge(UserBadge::class);
+        $this->assertInstanceOf(UserBadge::class, $userBadge);
         $this->assertSame('user@example.com', $userBadge->getUserIdentifier());
     }
 
@@ -167,7 +170,8 @@ class SessionApiAuthenticatorTest extends UnitTestCase
         $passport = $this->authenticator->authenticate($request);
 
         $this->assertInstanceOf(SelfValidatingPassport::class, $passport);
-        $userBadge = $passport->getBadge('Symfony\Component\Security\Http\Authenticator\Passport\Badge\UserBadge');
+        $userBadge = $passport->getBadge(UserBadge::class);
+        $this->assertInstanceOf(UserBadge::class, $userBadge);
         $this->assertSame('user@example.com', $userBadge->getUserIdentifier());
     }
 
@@ -435,11 +439,17 @@ class TestSessionToken implements TokenInterface
     {
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function getAttributes(): array
     {
         return [];
     }
 
+    /**
+     * @param array<string, mixed> $attributes
+     */
     public function setAttributes(array $attributes): void
     {
     }
@@ -458,11 +468,17 @@ class TestSessionToken implements TokenInterface
     {
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     public function __serialize(): array
     {
         return ['userIdentifier' => $this->userIdentifier];
     }
 
+    /**
+     * @param array<string, mixed> $data
+     */
     public function __unserialize(array $data): void
     {
         $this->userIdentifier = $data['userIdentifier'];

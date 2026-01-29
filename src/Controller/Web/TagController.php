@@ -40,7 +40,7 @@ class TagController extends AbstractController
         $result = $this->tagRepository->findByOwnerPaginated($user, $page, self::PAGE_LIMIT, $search);
         $tags = $result['tags'];
         $total = $result['total'];
-        $totalPages = self::PAGE_LIMIT > 0 ? (int) ceil($total / self::PAGE_LIMIT) : 0;
+        $totalPages = (int) ceil($total / self::PAGE_LIMIT);
 
         // Get task counts for tags
         $taskCounts = $this->tagRepository->getTaskCountsForTags($tags);

@@ -141,7 +141,7 @@ class TaskViewController extends AbstractController
     /**
      * Get common sidebar data for all task views.
      *
-     * @return array{sidebar_projects: array, sidebar_tags: array, sidebar_tags_total: int}
+     * @return array{sidebar_projects: array<mixed>, sidebar_tags: array<mixed>, sidebar_tags_total: int}
      */
     private function getSidebarData(User $user): array
     {

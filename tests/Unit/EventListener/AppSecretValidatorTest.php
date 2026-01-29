@@ -77,7 +77,7 @@ class AppSecretValidatorTest extends TestCase
         $validator->onKernelRequest($event);
 
         // If we got here without exception, test passes
-        $this->assertTrue(true);
+        $this->addToAssertionCount(1);
     }
 
     public function testOnKernelRequestValidatesMainRequest(): void
@@ -163,7 +163,7 @@ class AppSecretValidatorTest extends TestCase
 
         // Should not throw
         $validator->onKernelRequest($event);
-        $this->assertTrue(true);
+        $this->addToAssertionCount(1);
     }
 
     public function testSecureSecretNoWarningInDev(): void

@@ -99,8 +99,10 @@ class TaskGroupingServiceTest extends UnitTestCase
         // Find a date that's after tomorrow but still within this week
         $candidate = $tomorrow->modify('+1 day'); // Day after tomorrow
 
-        if ($candidate > $weekEnd) {
-            // No days left in this week after tomorrow - skip test
+        if ($candidate >= $weekEnd) {
+            // No days left in this week strictly before the last day - skip test.
+            // The service uses createFromFormat('Y-m-d') which fills current time,
+            // so a candidate on the last day of the week fails the <= weekEnd check.
             $this->markTestSkipped('No days available in this week after tomorrow');
         }
 

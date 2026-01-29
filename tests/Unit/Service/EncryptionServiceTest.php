@@ -107,6 +107,7 @@ final class EncryptionServiceTest extends UnitTestCase
 
         // Decode, tamper with the ciphertext portion, and re-encode
         $data = base64_decode($encrypted, true);
+        $this->assertIsString($data);
         // Flip a bit in the ciphertext (after IV + tag = 28 bytes)
         if (\strlen($data) > 28) {
             $data[28] = \chr(\ord($data[28]) ^ 0xFF);
