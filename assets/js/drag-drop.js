@@ -103,14 +103,10 @@ window.projectDragDrop = {
 
         // Call API to move project
         try {
-            const response = await fetch(window.apiUrl(`/api/v1/projects/${this.draggedProject.id}/move`), {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
+            const response = await window.api.post(`/api/v1/projects/${this.draggedProject.id}/move`, {
                     parentId: newParentId,
                     position: newPosition
-                })
-            });
+                });
 
             if (response.ok) {
                 // Refresh the tree
@@ -193,14 +189,10 @@ window.projectReorder = {
      */
     async reorderProjects(parentId, projectIds) {
         try {
-            const response = await fetch(window.apiUrl('/api/v1/projects/reorder'), {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
+            const response = await window.api.post('/api/v1/projects/reorder', {
                     parentId: parentId,
                     projectIds: projectIds
-                })
-            });
+                });
 
             return response.ok;
         } catch (error) {

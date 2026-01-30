@@ -40,7 +40,7 @@ class NotificationController extends AbstractController
 
         // Get notifications based on filter
         if ($filter === 'unread') {
-            $notifications = $this->notificationRepository->findUnreadByOwner($user, self::ITEMS_PER_PAGE);
+            $notifications = $this->notificationRepository->findUnreadByOwner($user, self::ITEMS_PER_PAGE, $offset);
             $totalCount = $this->notificationRepository->countUnreadByOwner($user);
         } else {
             $notifications = $this->notificationRepository->findByOwner($user, self::ITEMS_PER_PAGE, $offset);

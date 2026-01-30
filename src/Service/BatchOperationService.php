@@ -16,6 +16,7 @@ use App\Enum\UndoAction;
 use App\Exception\EntityNotFoundException;
 use App\Exception\ForbiddenException;
 use App\Exception\ValidationException;
+use App\Interface\OwnershipCheckerInterface;
 use App\Interface\TaskStateServiceInterface;
 use App\Repository\TaskRepository;
 use Doctrine\ORM\EntityManagerInterface;
@@ -38,6 +39,7 @@ final class BatchOperationService
         private readonly TaskStateServiceInterface $taskStateService,
         private readonly UndoService $undoService,
         private readonly LoggerInterface $logger,
+        private readonly OwnershipCheckerInterface $ownershipChecker,
     ) {
     }
 
@@ -407,6 +409,7 @@ final class BatchOperationService
     {
         $task = $this->taskRepository->find($taskId);
         if ($task !== null) {
+            $this->ownershipChecker->checkOwnership($task);
             $this->entityManager->remove($task);
             $this->entityManager->flush();
         }
@@ -438,6 +441,7 @@ final class BatchOperationService
             throw EntityNotFoundException::task($taskId);
         }
 
+        $this->ownershipChecker->checkOwnership($task);
         $this->taskStateService->applyStateToTask($task, $state);
         $this->entityManager->flush();
     }

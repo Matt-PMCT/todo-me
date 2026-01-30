@@ -46,7 +46,7 @@ class NotificationRepository extends ServiceEntityRepository
      *
      * @return Notification[]
      */
-    public function findUnreadByOwner(User $owner, int $limit = 50): array
+    public function findUnreadByOwner(User $owner, int $limit = 50, int $offset = 0): array
     {
         return $this->createQueryBuilder('n')
             ->where('n.owner = :owner')
@@ -54,6 +54,7 @@ class NotificationRepository extends ServiceEntityRepository
             ->setParameter('owner', $owner)
             ->orderBy('n.createdAt', 'DESC')
             ->setMaxResults($limit)
+            ->setFirstResult($offset)
             ->getQuery()
             ->getResult();
     }

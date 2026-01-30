@@ -139,7 +139,7 @@ final class NotificationController extends AbstractController
         $unreadOnly = $request->query->getBoolean('unreadOnly', false);
 
         if ($unreadOnly) {
-            $notifications = $this->notificationService->getUnreadNotifications($user, $limit);
+            $notifications = $this->notificationService->getUnreadNotifications($user, $limit, $offset);
         } else {
             $notifications = $this->notificationService->getNotifications($user, $limit, $offset);
         }

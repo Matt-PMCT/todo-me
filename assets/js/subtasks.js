@@ -73,14 +73,7 @@ export function subtaskComponent(taskId) {
         async toggleSubtaskStatus(subtaskId, currentStatus) {
             const newStatus = currentStatus === 'completed' ? 'pending' : 'completed';
             try {
-                const response = await fetch(window.apiUrl(`/api/v1/tasks/${subtaskId}/status`), {
-                    method: 'PATCH',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-Requested-With': 'XMLHttpRequest'
-                    },
-                    body: JSON.stringify({ status: newStatus })
-                });
+                const response = await window.api.patch(`/api/v1/tasks/${subtaskId}/status`, { status: newStatus });
                 const data = await response.json();
                 if (data.success) {
                     // Update local state
@@ -98,14 +91,7 @@ export function subtaskComponent(taskId) {
             if (!this.newSubtaskTitle.trim()) return;
 
             try {
-                const response = await fetch(window.apiUrl(`/api/v1/tasks/${this.taskId}/subtasks`), {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-Requested-With': 'XMLHttpRequest'
-                    },
-                    body: JSON.stringify({ title: this.newSubtaskTitle })
-                });
+                const response = await window.api.post(`/api/v1/tasks/${this.taskId}/subtasks`, { title: this.newSubtaskTitle });
                 const data = await response.json();
                 if (data.success && data.data?.task) {
                     this.subtasks.push(data.data.task);

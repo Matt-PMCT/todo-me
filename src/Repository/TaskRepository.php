@@ -362,8 +362,8 @@ class TaskRepository extends ServiceEntityRepository
                 $results[] = [
                     'task' => $taskMap[$row['id']],
                     'rank' => (float) $row['rank'],
-                    'titleHighlight' => $row['title_highlight'],
-                    'descriptionHighlight' => $row['description_highlight'],
+                    'titleHighlight' => strip_tags($row['title_highlight'], '<mark>'),
+                    'descriptionHighlight' => strip_tags($row['description_highlight'], '<mark>'),
                 ];
             }
         }

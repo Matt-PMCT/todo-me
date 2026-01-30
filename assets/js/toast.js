@@ -82,13 +82,7 @@ document.addEventListener('alpine:init', () => {
             item.undoing = true;
 
             try {
-                const response = await fetch(item.undoUrl, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ token: item.undoToken })
-                });
+                const response = await window.api.post(item.undoUrl, { token: item.undoToken });
 
                 if (response.ok) {
                     item.undone = true;

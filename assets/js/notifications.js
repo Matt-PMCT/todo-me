@@ -112,13 +112,7 @@ class NotificationManager {
      */
     async markAsRead(notificationId) {
         try {
-            const response = await fetch(window.apiUrl(`/api/v1/notifications/${notificationId}/read`), {
-                method: 'POST',
-                credentials: 'same-origin',
-                headers: {
-                    'Accept': 'application/json'
-                }
-            });
+            const response = await window.api.post(`/api/v1/notifications/${notificationId}/read`, {});
 
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
@@ -142,13 +136,7 @@ class NotificationManager {
      */
     async markAllAsRead() {
         try {
-            const response = await fetch(window.apiUrl('/api/v1/notifications/read-all'), {
-                method: 'POST',
-                credentials: 'same-origin',
-                headers: {
-                    'Accept': 'application/json'
-                }
-            });
+            const response = await window.api.post('/api/v1/notifications/read-all', {});
 
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);

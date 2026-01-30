@@ -107,7 +107,7 @@ final class AuthController extends AbstractController
                 Response::HTTP_TOO_MANY_REQUESTS
             );
 
-            $response->headers->set('Retry-After', (string) $retryAfter->getTimestamp());
+            $response->headers->set('Retry-After', (string) max(0, $retryAfter->getTimestamp() - time()));
             $response->headers->set('X-RateLimit-Remaining', '0');
             $response->headers->set('X-RateLimit-Reset', (string) $retryAfter->getTimestamp());
 
@@ -180,6 +180,8 @@ final class AuthController extends AbstractController
                 'token' => $tokenResponse->token,
                 'expiresAt' => $tokenResponse->expiresAt?->format(\DateTimeInterface::RFC3339),
             ]);
+        } catch (\Symfony\Component\HttpKernel\Exception\HttpException $e) {
+            throw $e;
         } catch (\Exception $e) {
             $this->apiLogger->logError($e, [
                 'email_hash' => ApiLogger::hashEmail($registerRequest->email),
@@ -269,7 +271,7 @@ final class AuthController extends AbstractController
                 Response::HTTP_TOO_MANY_REQUESTS
             );
 
-            $response->headers->set('Retry-After', (string) $retryAfter->getTimestamp());
+            $response->headers->set('Retry-After', (string) max(0, $retryAfter->getTimestamp() - time()));
             $response->headers->set('X-RateLimit-Remaining', '0');
             $response->headers->set('X-RateLimit-Reset', (string) $retryAfter->getTimestamp());
 

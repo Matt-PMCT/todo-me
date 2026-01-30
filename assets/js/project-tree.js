@@ -236,10 +236,7 @@ document.addEventListener('alpine:init', () => {
          */
         async archiveProject(projectId) {
             try {
-                const response = await fetch(window.apiUrl(`/api/v1/projects/${projectId}/archive`), {
-                    method: 'PATCH',
-                    headers: { 'Content-Type': 'application/json' }
-                });
+                const response = await window.api.patch(`/api/v1/projects/${projectId}/archive`, {});
 
                 if (response.ok) {
                     await this.refreshTree();
@@ -259,10 +256,7 @@ document.addEventListener('alpine:init', () => {
          */
         async unarchiveProject(projectId) {
             try {
-                const response = await fetch(window.apiUrl(`/api/v1/projects/${projectId}/unarchive`), {
-                    method: 'PATCH',
-                    headers: { 'Content-Type': 'application/json' }
-                });
+                const response = await window.api.patch(`/api/v1/projects/${projectId}/unarchive`, {});
 
                 if (response.ok) {
                     await this.refreshTree();

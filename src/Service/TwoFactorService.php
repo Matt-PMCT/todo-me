@@ -78,6 +78,7 @@ final class TwoFactorService
 
         // Enable 2FA - encrypt the secret before storing
         $user->setTwoFactorEnabled(true);
+        $user->setTwoFactorEnabledAt(new \DateTimeImmutable());
         $user->setTotpSecret($this->encryptionService->encrypt($secret));
         $user->setBackupCodes($backupCodeData['hashedCodes']);
         $user->setBackupCodesGeneratedAt(new \DateTimeImmutable());

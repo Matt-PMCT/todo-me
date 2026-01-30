@@ -286,7 +286,7 @@ final class TaskService
             $date = \DateTimeImmutable::createFromFormat('Y-m-d', $dateString);
 
             if ($date !== false) {
-                return $date;
+                return $date->setTime(0, 0, 0);
             }
 
             // Try parsing as ISO 8601 with time
@@ -598,7 +598,7 @@ final class TaskService
         $nextTask->setDescription($completedTask->getDescription());
         $nextTask->setStatus(Task::STATUS_PENDING);
         $nextTask->setPriority($completedTask->getPriority());
-        $nextTask->setDueDate(\DateTimeImmutable::createFromFormat('Y-m-d', $nextDueDate->format('Y-m-d')));
+        $nextTask->setDueDate(\DateTimeImmutable::createFromFormat('Y-m-d', $nextDueDate->format('Y-m-d'))->setTime(0, 0, 0));
         $nextTask->setProject($completedTask->getProject());
 
         // Copy tags
@@ -725,7 +725,7 @@ final class TaskService
             $date = \DateTimeImmutable::createFromFormat('Y-m-d', $dateString);
 
             if ($date !== false) {
-                return $date;
+                return $date->setTime(0, 0, 0);
             }
 
             // Try parsing as ISO 8601 with time

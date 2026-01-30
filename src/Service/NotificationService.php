@@ -221,9 +221,9 @@ final class NotificationService
      *
      * @return Notification[]
      */
-    public function getUnreadNotifications(User $owner, int $limit = 50): array
+    public function getUnreadNotifications(User $owner, int $limit = 50, int $offset = 0): array
     {
-        return $this->notificationRepository->findUnreadByOwner($owner, $limit);
+        return $this->notificationRepository->findUnreadByOwner($owner, $limit, $offset);
     }
 
     /**

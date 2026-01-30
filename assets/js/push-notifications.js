@@ -115,14 +115,7 @@ class PushNotifications {
             console.log('[Push] User subscribed:', subscription);
 
             // Send subscription to server
-            const response = await fetch(window.apiUrl('/api/v1/push/subscribe'), {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                credentials: 'same-origin',
-                body: JSON.stringify(subscription.toJSON())
-            });
+            const response = await window.api.post('/api/v1/push/subscribe', subscription.toJSON());
 
             if (!response.ok) {
                 throw new Error('Failed to save subscription on server');
@@ -157,14 +150,7 @@ class PushNotifications {
             }
 
             // Remove from server first
-            await fetch(window.apiUrl('/api/v1/push/unsubscribe'), {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                credentials: 'same-origin',
-                body: JSON.stringify({ endpoint: subscription.endpoint })
-            });
+            await window.api.post('/api/v1/push/unsubscribe', { endpoint: subscription.endpoint });
 
             // Then unsubscribe locally
             await subscription.unsubscribe();

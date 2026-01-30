@@ -16,6 +16,7 @@ use Symfony\Component\Security\Csrf\CsrfToken;
 use Symfony\Component\Security\Csrf\CsrfTokenManagerInterface;
 use Symfony\Component\Security\Http\Authenticator\Passport\Badge\UserBadge;
 use Symfony\Component\Security\Http\Authenticator\Passport\SelfValidatingPassport;
+use Symfony\Component\Security\Http\Authenticator\Token\PostAuthenticationToken;
 
 /**
  * Unit tests for SessionApiAuthenticator.
@@ -325,10 +326,24 @@ class SessionApiAuthenticatorTest extends UnitTestCase
 
     public function testAuthenticateThrowsWhenUserIdentifierIsEmpty(): void
     {
-        $request = $this->createApiRequestWithSession('/api/v1/tasks', 'GET', $this->createSerializedToken(''));
+        // Manually craft a serialized token string with empty user identifier
+        // by serializing a real token and then corrupting the data
+        $request = $this->createApiRequestWithSession('/api/v1/tasks', 'GET', 'O:8:"stdClass":0:{}');
 
         $this->expectException(AuthenticationException::class);
-        $this->expectExceptionMessage('No user identifier in session');
+        $this->expectExceptionMessage('Invalid session token');
+
+        $this->authenticator->authenticate($request);
+    }
+
+    public function testAuthenticateThrowsForUnknownTokenClass(): void
+    {
+        // Serialize an object of a class not in the allowed_classes list
+        $serialized = serialize(new \stdClass());
+        $request = $this->createApiRequestWithSession('/api/v1/tasks', 'GET', $serialized);
+
+        $this->expectException(AuthenticationException::class);
+        $this->expectExceptionMessage('Invalid session token');
 
         $this->authenticator->authenticate($request);
     }
@@ -394,93 +409,10 @@ class SessionApiAuthenticatorTest extends UnitTestCase
      */
     private function createSerializedToken(string $userIdentifier = 'user@example.com'): string
     {
-        // Create a simple serializable token class for testing
-        return serialize(new TestSessionToken($userIdentifier));
-    }
-}
-
-/**
- * Simple token implementation for testing session serialization.
- */
-class TestSessionToken implements TokenInterface
-{
-    private string $userIdentifier;
-
-    public function __construct(string $userIdentifier)
-    {
-        $this->userIdentifier = $userIdentifier;
-    }
-
-    public function getUserIdentifier(): string
-    {
-        return $this->userIdentifier;
-    }
-
-    public function __toString(): string
-    {
-        return $this->userIdentifier;
-    }
-
-    public function getRoleNames(): array
-    {
-        return ['ROLE_USER'];
-    }
-
-    public function getUser(): ?\Symfony\Component\Security\Core\User\UserInterface
-    {
-        return null;
-    }
-
-    public function setUser(\Symfony\Component\Security\Core\User\UserInterface $user): void
-    {
-    }
-
-    public function eraseCredentials(): void
-    {
-    }
-
-    /**
-     * @return array<string, mixed>
-     */
-    public function getAttributes(): array
-    {
-        return [];
-    }
-
-    /**
-     * @param array<string, mixed> $attributes
-     */
-    public function setAttributes(array $attributes): void
-    {
-    }
-
-    public function hasAttribute(string $name): bool
-    {
-        return false;
-    }
-
-    public function getAttribute(string $name): mixed
-    {
-        return null;
-    }
-
-    public function setAttribute(string $name, mixed $value): void
-    {
-    }
-
-    /**
-     * @return array<string, mixed>
-     */
-    public function __serialize(): array
-    {
-        return ['userIdentifier' => $this->userIdentifier];
-    }
-
-    /**
-     * @param array<string, mixed> $data
-     */
-    public function __unserialize(array $data): void
-    {
-        $this->userIdentifier = $data['userIdentifier'];
+        return serialize(new PostAuthenticationToken(
+            new \Symfony\Component\Security\Core\User\InMemoryUser($userIdentifier ?: 'placeholder', null, ['ROLE_USER']),
+            'main',
+            ['ROLE_USER']
+        ));
     }
 }
