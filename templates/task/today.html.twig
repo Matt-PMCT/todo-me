@@ -10,10 +10,10 @@
         {# Page header #}
         <div class="sm:flex sm:items-center sm:justify-between">
             <div>
-                <h1 class="text-2xl font-bold leading-7 text-gray-900 sm:truncate sm:text-3xl sm:tracking-tight">
+                <h1 class="text-2xl font-bold leading-7 text-gray-900 dark:text-gray-100 sm:truncate sm:text-3xl sm:tracking-tight">
                     Today
                 </h1>
-                <p class="mt-1 text-sm text-gray-500">
+                <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
                     {{ "now"|date("F j, Y") }}
                     {% if tasks|length > 0 %}
                         - {{ tasks|length }} task{% if tasks|length != 1 %}s{% endif %}
@@ -28,12 +28,12 @@
                 {# Show overdue section first if there are overdue tasks #}
                 {% if groupedTasks.overdue is defined and groupedTasks.overdue.tasks|length > 0 %}
                     <div class="mb-8">
-                        <h2 class="text-lg font-semibold text-red-600 mb-4 flex items-center gap-2">
+                        <h2 class="text-lg font-semibold text-red-600 dark:text-red-400 mb-4 flex items-center gap-2">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                             </svg>
                             Overdue
-                            <span class="text-sm font-normal text-red-500">({{ groupedTasks.overdue.tasks|length }})</span>
+                            <span class="text-sm font-normal text-red-500 dark:text-red-400">({{ groupedTasks.overdue.tasks|length }})</span>
                         </h2>
                         <div class="{{ taskSpacing == 'compact' ? 'space-y-2' : 'space-y-3' }}">
                             {% for task in groupedTasks.overdue.tasks %}
@@ -49,12 +49,12 @@
                 {# Today's tasks #}
                 {% if groupedTasks.today is defined and groupedTasks.today.tasks|length > 0 %}
                     <div class="mb-8">
-                        <h2 class="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                        <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4 flex items-center gap-2">
                             <svg class="w-5 h-5 text-teal-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
                             </svg>
                             Due Today
-                            <span class="text-sm font-normal text-gray-500">({{ groupedTasks.today.tasks|length }})</span>
+                            <span class="text-sm font-normal text-gray-500 dark:text-gray-400">({{ groupedTasks.today.tasks|length }})</span>
                         </h2>
                         <div class="{{ taskSpacing == 'compact' ? 'space-y-2' : 'space-y-3' }}">
                             {% for task in groupedTasks.today.tasks %}
@@ -74,12 +74,12 @@
                 {% endif %}
             {% else %}
                 {# Empty state #}
-                <div class="text-center py-12 bg-white rounded-lg shadow">
-                    <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div class="text-center py-12 bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-none ring-1 ring-gray-200/50 dark:ring-gray-700">
+                    <svg class="mx-auto h-12 w-12 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                     </svg>
-                    <h3 class="mt-2 text-sm font-semibold text-gray-900">All caught up!</h3>
-                    <p class="mt-1 text-sm text-gray-500">No tasks due today. Enjoy your day!</p>
+                    <h3 class="mt-2 text-sm font-semibold text-gray-900 dark:text-gray-100">All caught up!</h3>
+                    <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">No tasks due today. Enjoy your day!</p>
                 </div>
             {% endif %}
         </div>

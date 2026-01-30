@@ -10,10 +10,10 @@
         {# Page header #}
         <div class="sm:flex sm:items-center sm:justify-between">
             <div>
-                <h1 class="text-2xl font-bold leading-7 text-gray-900 sm:truncate sm:text-3xl sm:tracking-tight">
+                <h1 class="text-2xl font-bold leading-7 text-gray-900 dark:text-gray-100 sm:truncate sm:text-3xl sm:tracking-tight">
                     No Due Date
                 </h1>
-                <p class="mt-1 text-sm text-gray-500">
+                <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">
                     {% if tasks|length > 0 %}
                         {{ tasks|length }} task{% if tasks|length != 1 %}s{% endif %} without a due date
                     {% else %}
@@ -33,12 +33,12 @@
                 </div>
             {% else %}
                 {# Empty state #}
-                <div class="text-center py-12 bg-white rounded-lg shadow">
-                    <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div class="text-center py-12 bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-none ring-1 ring-gray-200/50 dark:ring-gray-700">
+                    <svg class="mx-auto h-12 w-12 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
                     </svg>
-                    <h3 class="mt-2 text-sm font-semibold text-gray-900">All tasks scheduled</h3>
-                    <p class="mt-1 text-sm text-gray-500">All your tasks have due dates assigned.</p>
+                    <h3 class="mt-2 text-sm font-semibold text-gray-900 dark:text-gray-100">All tasks scheduled</h3>
+                    <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">All your tasks have due dates assigned.</p>
                 </div>
             {% endif %}
         </div>
