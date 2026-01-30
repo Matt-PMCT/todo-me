@@ -356,6 +356,8 @@ function taskItem(taskId, initialStatus, initialPriority, initialDueDate, initia
         },
 
         async openProjectDropdown() {
+            this.priorityDropdownOpen = false;
+            this.dueDateDropdownOpen = false;
             this.projectDropdownOpen = true;
             await this.loadProjects();
         },

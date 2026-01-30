@@ -153,7 +153,7 @@ class CreateTaskRequestTest extends DtoTestCase
     {
         $dto = new CreateTaskRequest(
             title: 'Valid Title',
-            priority: 5,
+            priority: 6,
         );
 
         $violations = $this->validate($dto);

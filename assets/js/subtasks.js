@@ -33,14 +33,6 @@ document.addEventListener('alpine:init', () => {
             this.expanded = {};
         }
     });
-
-    // Global listener for toggle events
-    window.addEventListener('toggle-subtasks', (event) => {
-        const taskId = event.detail?.taskId;
-        if (taskId) {
-            Alpine.store('subtasks').toggle(taskId);
-        }
-    });
 });
 
 /**

@@ -38,7 +38,7 @@ class Task implements UserOwnedInterface
     ];
 
     public const PRIORITY_MIN = 0;
-    public const PRIORITY_MAX = 4;
+    public const PRIORITY_MAX = 5;
     public const PRIORITY_DEFAULT = 2;
 
     public const OVERDUE_SEVERITY_LOW = 'low';

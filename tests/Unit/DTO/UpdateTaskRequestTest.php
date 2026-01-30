@@ -107,7 +107,7 @@ class UpdateTaskRequestTest extends DtoTestCase
 
     public function testPriorityAboveMaxViolation(): void
     {
-        $dto = new UpdateTaskRequest(priority: 5);
+        $dto = new UpdateTaskRequest(priority: 6);
 
         $violations = $this->validate($dto);
 

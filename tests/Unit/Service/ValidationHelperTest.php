@@ -145,7 +145,7 @@ class ValidationHelperTest extends UnitTestCase
     {
         return [
             'negative' => [-1],
-            'too_high' => [5],
+            'too_high' => [6],
             'much_too_high' => [100],
         ];
     }
