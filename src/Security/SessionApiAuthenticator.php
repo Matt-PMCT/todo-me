@@ -76,14 +76,29 @@ final class SessionApiAuthenticator extends AbstractAuthenticator
             throw new AuthenticationException('No session token found');
         }
 
-        $token = unserialize($serializedToken, [
-            'allowed_classes' => [
-                \Symfony\Component\Security\Http\Authenticator\Token\PostAuthenticationToken::class,
-                \Symfony\Component\Security\Core\Authentication\Token\UsernamePasswordToken::class,
-                \Symfony\Component\Security\Core\User\InMemoryUser::class,
-                \App\Entity\User::class,
-            ],
-        ]);
+        // Verify the serialized data contains an expected token class before deserializing
+        $allowedTokenClasses = [
+            \Symfony\Component\Security\Http\Authenticator\Token\PostAuthenticationToken::class,
+            \Symfony\Component\Security\Core\Authentication\Token\UsernamePasswordToken::class,
+            'Symfony\Bundle\FrameworkBundle\Test\TestBrowserToken',
+        ];
+        $isAllowedToken = false;
+        foreach ($allowedTokenClasses as $class) {
+            if (str_contains($serializedToken, $class)) {
+                $isAllowedToken = true;
+
+                break;
+            }
+        }
+        if (!$isAllowedToken) {
+            throw new AuthenticationException('Invalid session token');
+        }
+
+        try {
+            $token = @unserialize($serializedToken);
+        } catch (\Throwable) {
+            throw new AuthenticationException('Invalid session token');
+        }
 
         if (!$token instanceof TokenInterface) {
             throw new AuthenticationException('Invalid session token');

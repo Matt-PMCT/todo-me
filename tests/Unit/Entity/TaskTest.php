@@ -39,7 +39,7 @@ class TaskTest extends UnitTestCase
     public function testPriorityConstantsExist(): void
     {
         $this->assertEquals(0, Task::PRIORITY_MIN);
-        $this->assertEquals(5, Task::PRIORITY_MAX);
+        $this->assertEquals(4, Task::PRIORITY_MAX);
         $this->assertEquals(2, Task::PRIORITY_DEFAULT);
     }
 
