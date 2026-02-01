@@ -48,9 +48,7 @@ class PushNotifications {
      */
     async getVapidKey() {
         try {
-            const response = await fetch(window.apiUrl('/api/v1/push/vapid-key'), {
-                credentials: 'same-origin'
-            });
+            const response = await window.api.get('/api/v1/push/vapid-key');
 
             if (!response.ok) {
                 throw new Error('Failed to get VAPID key');

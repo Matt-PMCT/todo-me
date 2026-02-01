@@ -37,11 +37,11 @@ class PriorityParserServiceTest extends TestCase
     public static function validPriorityProvider(): array
     {
         return [
-            'p0 highest priority' => ['p0', 0],
-            'p1 priority' => ['p1', 1],
+            'p1 highest priority' => ['p1', 1],
             'p2 priority' => ['p2', 2],
             'p3 default priority' => ['p3', 3],
-            'p4 lowest priority' => ['p4', 4],
+            'p4 priority' => ['p4', 4],
+            'p5 lowest priority' => ['p5', 5],
         ];
     }
 
@@ -64,9 +64,9 @@ class PriorityParserServiceTest extends TestCase
         return [
             'uppercase P1' => ['P1', 1],
             'uppercase P2' => ['P2', 2],
-            'uppercase P0' => ['P0', 0],
             'uppercase P3' => ['P3', 3],
             'uppercase P4' => ['P4', 4],
+            'uppercase P5' => ['P5', 5],
         ];
     }
 
@@ -87,10 +87,10 @@ class PriorityParserServiceTest extends TestCase
     public static function invalidPriorityProvider(): array
     {
         return [
-            'p5 too high' => ['p5', 5],
+            'p0 too low' => ['p0', 0],
+            'p6 too high' => ['p6', 6],
             'p10 way too high' => ['p10', 10],
             'p99 very high' => ['p99', 99],
-            'P6 uppercase too high' => ['P6', 6],
         ];
     }
 
@@ -244,20 +244,20 @@ class PriorityParserServiceTest extends TestCase
 
     public function testParsePriorityAtStartOfString(): void
     {
-        $result = $this->parser->parse('p0 urgent task');
+        $result = $this->parser->parse('p1 urgent task');
 
         $this->assertNotNull($result);
-        $this->assertEquals(0, $result->priority);
+        $this->assertEquals(1, $result->priority);
         $this->assertEquals(0, $result->startPosition);
         $this->assertEquals(2, $result->endPosition);
     }
 
     public function testParsePriorityAtEndOfString(): void
     {
-        $result = $this->parser->parse('urgent task p0');
+        $result = $this->parser->parse('urgent task p5');
 
         $this->assertNotNull($result);
-        $this->assertEquals(0, $result->priority);
+        $this->assertEquals(5, $result->priority);
         $this->assertEquals(12, $result->startPosition);
         $this->assertEquals(14, $result->endPosition);
     }

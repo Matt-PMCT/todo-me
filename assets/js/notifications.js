@@ -46,12 +46,7 @@ class NotificationManager {
      */
     async fetchUnreadCount() {
         try {
-            const response = await fetch(window.apiUrl('/api/v1/notifications/unread-count'), {
-                credentials: 'same-origin',
-                headers: {
-                    'Accept': 'application/json'
-                }
-            });
+            const response = await window.api.get('/api/v1/notifications/unread-count');
 
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
@@ -88,12 +83,7 @@ class NotificationManager {
         }
 
         try {
-            const response = await fetch(window.apiUrl(`/api/v1/notifications?${params}`), {
-                credentials: 'same-origin',
-                headers: {
-                    'Accept': 'application/json'
-                }
-            });
+            const response = await window.api.get(`/api/v1/notifications?${params}`);
 
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);

@@ -29,7 +29,7 @@ function searchComponent() {
             this.open = true;
 
             try {
-                const response = await fetch(window.apiUrl(`/api/v1/search?q=${encodeURIComponent(this.query)}&highlight=true&limit=5`));
+                const response = await window.api.get(`/api/v1/search?q=${encodeURIComponent(this.query)}&highlight=true&limit=5`);
                 if (response.ok) {
                     const data = await response.json();
                     if (data.success) {

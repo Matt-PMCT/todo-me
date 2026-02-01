@@ -27,7 +27,7 @@ final readonly class TaskParseResult
      * @param string|null             $dueTime    The parsed time portion (e.g., "14:00")
      * @param Project|null            $project    The matched project entity
      * @param Tag[]                   $tags       Array of matched/created Tag entities
-     * @param int|null                $priority   The parsed priority (0-4)
+     * @param int|null                $priority   The parsed priority (1-5)
      * @param ParseHighlight[]        $highlights Array of highlights showing parsed portions
      * @param string[]                $warnings   Array of warning messages for issues
      */
@@ -51,7 +51,7 @@ final readonly class TaskParseResult
      * @param string|null             $dueTime    The parsed time portion
      * @param Project|null            $project    The matched project entity
      * @param Tag[]                   $tags       Array of matched/created Tag entities
-     * @param int|null                $priority   The parsed priority (0-4)
+     * @param int|null                $priority   The parsed priority (1-5)
      * @param ParseHighlight[]        $highlights Array of highlights showing parsed portions
      * @param string[]                $warnings   Array of warning messages for issues
      */

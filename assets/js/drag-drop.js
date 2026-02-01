@@ -104,9 +104,9 @@ window.projectDragDrop = {
         // Call API to move project
         try {
             const response = await window.api.post(`/api/v1/projects/${this.draggedProject.id}/move`, {
-                    parentId: newParentId,
-                    position: newPosition
-                });
+                parentId: newParentId,
+                position: newPosition
+            });
 
             if (response.ok) {
                 // Refresh the tree
@@ -190,9 +190,9 @@ window.projectReorder = {
     async reorderProjects(parentId, projectIds) {
         try {
             const response = await window.api.post('/api/v1/projects/reorder', {
-                    parentId: parentId,
-                    projectIds: projectIds
-                });
+                parentId: parentId,
+                projectIds: projectIds
+            });
 
             return response.ok;
         } catch (error) {

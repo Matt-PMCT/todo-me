@@ -188,7 +188,7 @@ class ValidationEdgeCasesTest extends ApiTestCase
             '/api/v1/tasks',
             [
                 'title' => 'Valid Title',
-                'priority' => 5,
+                'priority' => 6,
             ]
         );
 
@@ -218,9 +218,9 @@ class ValidationEdgeCasesTest extends ApiTestCase
     public static function validPrioritiesProvider(): array
     {
         return [
-            'min priority' => [0],
-            'mid priority' => [2],
-            'max priority' => [4],
+            'min priority' => [1],
+            'mid priority' => [3],
+            'max priority' => [5],
         ];
     }
 

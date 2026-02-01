@@ -37,9 +37,9 @@ class Task implements UserOwnedInterface
         self::STATUS_COMPLETED,
     ];
 
-    public const PRIORITY_MIN = 0;
-    public const PRIORITY_MAX = 4;
-    public const PRIORITY_DEFAULT = 2;
+    public const PRIORITY_MIN = 1;
+    public const PRIORITY_MAX = 5;
+    public const PRIORITY_DEFAULT = 3;
 
     public const OVERDUE_SEVERITY_LOW = 'low';
     public const OVERDUE_SEVERITY_MEDIUM = 'medium';

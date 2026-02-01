@@ -22,7 +22,7 @@ final class ParseResponse
      * @param bool                                                                                                      $hasTime    Whether the parsed date includes a time component
      * @param array{id: string, name: string, fullPath: string, color: string}|null                                     $project
      * @param array<array{id: string, name: string, color: string}>                                                     $tags
-     * @param int|null                                                                                                  $priority   Priority 0-4 or null
+     * @param int|null                                                                                                  $priority   Priority 1-5 or null
      * @param array<array{type: string, text: string, startPosition: int, endPosition: int, value: mixed, valid: bool}> $highlights
      * @param string[]                                                                                                  $warnings
      */

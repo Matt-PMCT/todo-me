@@ -58,7 +58,7 @@ export function subtaskComponent(taskId) {
 
             this.loading = true;
             try {
-                const response = await fetch(window.apiUrl(`/api/v1/tasks/${this.taskId}/subtasks`));
+                const response = await window.api.get(`/api/v1/tasks/${this.taskId}/subtasks`);
                 const data = await response.json();
                 if (data.success && data.data?.subtasks) {
                     this.subtasks = data.data.subtasks;

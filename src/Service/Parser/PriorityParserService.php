@@ -8,16 +8,16 @@ use App\ValueObject\PriorityParseResult;
 
 class PriorityParserService
 {
-    private const int MAX_VALID_PRIORITY = 4;
+    private const int MAX_VALID_PRIORITY = 5;
 
     /**
      * Parse a priority from the input string.
      *
-     * Looks for patterns like "p0", "p1", "P2", etc. with word boundaries.
+     * Looks for patterns like "p1", "p2", "P3", etc. with word boundaries.
      * Returns the FIRST priority found.
      *
-     * Valid priorities: p0 (highest) through p4 (lowest)
-     * Invalid priorities (p5, p10, etc.): returns result with valid: false
+     * Valid priorities: p1 (highest) through p5 (lowest)
+     * Invalid priorities (p0, p6, p10, etc.): returns result with valid: false
      *
      * @param string $input The text to parse
      *
@@ -36,7 +36,7 @@ class PriorityParserService
         $endPosition = $startPosition + strlen($fullMatch);
         $priorityValue = (int) $matches[1][0];
 
-        $valid = $priorityValue <= self::MAX_VALID_PRIORITY;
+        $valid = $priorityValue >= 1 && $priorityValue <= self::MAX_VALID_PRIORITY;
 
         return PriorityParseResult::create(
             priority: $priorityValue,

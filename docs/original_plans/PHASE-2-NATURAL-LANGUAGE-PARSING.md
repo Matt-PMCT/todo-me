@@ -357,7 +357,7 @@ tests/Unit/Parser/
 ## Sub-Phase 2.4: Priority Parsing
 
 ### Objective
-Implement priority detection using p0-p4 syntax.
+Implement priority detection using p1-p5 syntax.
 
 ### Tasks
 
@@ -369,7 +369,7 @@ Implement priority detection using p0-p4 syntax.
   - parse(string $input): ?PriorityParseResult
   
   PriorityParseResult:
-  - priority: int (0-4)
+  - priority: int (1-5)
   - originalText: string
   - startPosition: int
   - endPosition: int
@@ -377,14 +377,14 @@ Implement priority detection using p0-p4 syntax.
 
 - [ ] **2.4.2** Implement priority detection
   ```php
-  Pattern: /\bp([0-4])\b/i
+  Pattern: /\bp([1-5])\b/i
   
   Mapping:
-  - p0 → 0 (None)
-  - p1 → 1 (Low)
-  - p2 → 2 (Medium)
-  - p3 → 3 (High)
-  - p4 → 4 (Urgent)
+  - p1 → 1 (Highest)
+  - p2 → 2 (High)
+  - p3 → 3 (Medium)
+  - p4 → 4 (Low)
+  - p5 → 5 (Lowest)
   
   Case-insensitive: p3, P3, p3 all valid
   ```
@@ -399,7 +399,7 @@ Implement priority detection using p0-p4 syntax.
   ```
 
 ### Completion Criteria
-- [ ] p0-p4 patterns recognized
+- [ ] p1-p5 patterns recognized
 - [ ] Invalid priorities ignored with warning
 - [ ] Position tracking accurate
 - [ ] Only one priority per input
@@ -498,7 +498,7 @@ Create a unified parser that combines all parsing services with clear multi-matc
   
   Invalid priority:
   - "Task p7" → priority = null, "p7" stays in title
-  - Warning: "Invalid priority 'p7' (must be p0-p4)"
+  - Warning: "Invalid priority 'p7' (must be p1-p5)"
   - Other parsing continues normally
   
   COMBINED EXAMPLE:
@@ -511,7 +511,7 @@ Create a unified parser that combines all parsing services with clear multi-matc
   - priority: null (p7 invalid)
   - warnings: [
       "Project 'nonexistent' not found",
-      "Invalid priority 'p7' (must be p0-p4)"
+      "Invalid priority 'p7' (must be p1-p5)"
     ]
   
   CRITICAL: The task is still created with partial data.
@@ -605,7 +605,7 @@ Create a unified parser that combines all parsing services with clear multi-matc
       ],
       "warnings": [
         "Project 'fake' not found",
-        "Invalid priority 'p7' (must be p0-p4)"
+        "Invalid priority 'p7' (must be p1-p5)"
       ]
     }
   }
@@ -930,7 +930,7 @@ Create comprehensive test coverage for all parsing logic.
   // tests/Unit/Parser/PriorityParserServiceTest.php
   
   Test cases:
-  - Each priority level (p0-p4)
+  - Each priority level (p1-p5)
   - Case insensitive (P3, p3)
   - Invalid priorities (p5, p10)
   - No priority
@@ -998,7 +998,7 @@ At the end of Phase 2, the following should be complete:
 - [ ] Dates without times default to NULL due_time
 - [ ] Project hashtag detection with nested support
 - [ ] Tag detection with auto-creation
-- [ ] Priority p0-p4 parsing
+- [ ] Priority p1-p5 parsing
 
 ### Combined Parser
 - [ ] Combined parser extracts all metadata

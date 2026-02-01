@@ -89,7 +89,7 @@ completed_at    TIMESTAMP
 
 -- Constraints
 CONSTRAINT valid_status CHECK (status IN ('pending', 'in_progress', 'completed'))
-CONSTRAINT valid_priority CHECK (priority BETWEEN 0 AND 4)
+CONSTRAINT valid_priority CHECK (priority BETWEEN 1 AND 5)
 CONSTRAINT valid_recurrence_type CHECK (recurrence_type IS NULL OR recurrence_type IN ('absolute', 'relative'))
 -- Application-level enforcement: task.user_id must equal project.user_id when project_id is not null
 

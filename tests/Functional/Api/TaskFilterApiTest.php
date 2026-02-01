@@ -89,11 +89,11 @@ class TaskFilterApiTest extends ApiTestCase
     {
         $user = $this->createUser('filter-priority-range@example.com', 'Password123');
 
-        $this->createTask($user, 'Priority 0 Task', null, Task::STATUS_PENDING, 0);
         $this->createTask($user, 'Priority 1 Task', null, Task::STATUS_PENDING, 1);
         $this->createTask($user, 'Priority 2 Task', null, Task::STATUS_PENDING, 2);
         $this->createTask($user, 'Priority 3 Task', null, Task::STATUS_PENDING, 3);
         $this->createTask($user, 'Priority 4 Task', null, Task::STATUS_PENDING, 4);
+        $this->createTask($user, 'Priority 5 Task', null, Task::STATUS_PENDING, 5);
 
         $response = $this->authenticatedApiRequest(
             $user,

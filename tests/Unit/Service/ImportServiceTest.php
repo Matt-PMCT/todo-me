@@ -258,9 +258,9 @@ class ImportServiceTest extends UnitTestCase
     {
         $data = [
             'tasks' => [
-                ['title' => 'Priority 0', 'priority' => 0],
-                ['title' => 'Priority 2', 'priority' => 2],
-                ['title' => 'Priority 4', 'priority' => 4],
+                ['title' => 'Priority 1', 'priority' => 1],
+                ['title' => 'Priority 3', 'priority' => 3],
+                ['title' => 'Priority 5', 'priority' => 5],
             ],
         ];
 
@@ -277,9 +277,9 @@ class ImportServiceTest extends UnitTestCase
         $this->importService->importJson($this->user, $data);
 
         $this->assertCount(3, $persistedTasks);
-        $this->assertEquals(0, $persistedTasks[0]->getPriority());
-        $this->assertEquals(2, $persistedTasks[1]->getPriority());
-        $this->assertEquals(4, $persistedTasks[2]->getPriority());
+        $this->assertEquals(1, $persistedTasks[0]->getPriority());
+        $this->assertEquals(3, $persistedTasks[1]->getPriority());
+        $this->assertEquals(5, $persistedTasks[2]->getPriority());
     }
 
     // ========================================
@@ -360,9 +360,9 @@ class ImportServiceTest extends UnitTestCase
         $this->importService->importTodoist($this->user, $data);
 
         $this->assertCount(2, $persistedTasks);
-        // Todoist: 1 -> our 0, 4 -> our 3
-        $this->assertEquals(0, $persistedTasks[0]->getPriority());
-        $this->assertEquals(3, $persistedTasks[1]->getPriority());
+        // Todoist: 1 -> our 1, 4 -> our 4
+        $this->assertEquals(1, $persistedTasks[0]->getPriority());
+        $this->assertEquals(4, $persistedTasks[1]->getPriority());
     }
 
     public function testImportTodoistMapsCheckedToCompleted(): void

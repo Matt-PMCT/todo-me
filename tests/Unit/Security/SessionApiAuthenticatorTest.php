@@ -324,21 +324,9 @@ class SessionApiAuthenticatorTest extends UnitTestCase
         $this->authenticator->authenticate($request);
     }
 
-    public function testAuthenticateThrowsWhenUserIdentifierIsEmpty(): void
+    public function testAuthenticateThrowsForDisallowedRootClass(): void
     {
-        // Manually craft a serialized token string with empty user identifier
-        // by serializing a real token and then corrupting the data
-        $request = $this->createApiRequestWithSession('/api/v1/tasks', 'GET', 'O:8:"stdClass":0:{}');
-
-        $this->expectException(AuthenticationException::class);
-        $this->expectExceptionMessage('Invalid session token');
-
-        $this->authenticator->authenticate($request);
-    }
-
-    public function testAuthenticateThrowsForUnknownTokenClass(): void
-    {
-        // Serialize an object of a class not in the allowed_classes list
+        // Serialize an object of a class not in the allowed root class list
         $serialized = serialize(new \stdClass());
         $request = $this->createApiRequestWithSession('/api/v1/tasks', 'GET', $serialized);
 

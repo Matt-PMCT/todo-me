@@ -164,7 +164,7 @@ Create the database schema with all core tables and constraints.
   
   Constraints:
   - status IN ('pending', 'in_progress', 'completed')
-  - priority BETWEEN 0 AND 4
+  - priority BETWEEN 1 AND 5
   - recurrence_type IN ('absolute', 'relative') OR NULL
   ```
 

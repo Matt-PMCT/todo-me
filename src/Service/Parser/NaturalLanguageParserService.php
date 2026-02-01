@@ -157,7 +157,7 @@ class NaturalLanguageParserService
             $spansToRemove[] = [$priorityResult->startPosition, $priorityResult->endPosition];
 
             if (!$priorityResult->valid) {
-                $warnings[] = 'Invalid priority: "'.$priorityResult->originalText.'" (valid: p0-p4)';
+                $warnings[] = 'Invalid priority: "'.$priorityResult->originalText.'" (valid: p1-p5)';
             }
 
             // Check for additional priorities and warn

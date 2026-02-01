@@ -451,7 +451,7 @@ final class ImportService
             $task->setStatus($status);
         }
 
-        // Priority (default: 2)
+        // Priority (default: 3)
         $priority = $data['priority'] ?? Task::PRIORITY_DEFAULT;
         if (is_int($priority) && $priority >= Task::PRIORITY_MIN && $priority <= Task::PRIORITY_MAX) {
             $task->setPriority($priority);
@@ -649,13 +649,12 @@ final class ImportService
             $task->setStatus(Task::STATUS_COMPLETED);
         }
 
-        // Priority - Todoist uses 1-4 where 4 is highest (opposite of our 0-4)
+        // Priority - Todoist uses 1-4 where 4 is highest
         // Todoist: 1=lowest, 4=highest
-        // Our system: 0=lowest, 4=highest
+        // Our system: 1=highest, 5=lowest
         $todoistPriority = $item['priority'] ?? 1;
         if (is_int($todoistPriority)) {
-            // Map: Todoist 4->4, 3->3, 2->2, 1->1 (actually same in latest Todoist API)
-            $priority = min(max($todoistPriority - 1, Task::PRIORITY_MIN), Task::PRIORITY_MAX);
+            $priority = min(max($todoistPriority, Task::PRIORITY_MIN), Task::PRIORITY_MAX);
             $task->setPriority($priority);
         }
 
@@ -729,7 +728,7 @@ final class ImportService
             }
         }
 
-        // Priority (default: 2)
+        // Priority (default: 3)
         if (isset($data['priority']) && trim($data['priority']) !== '') {
             $priority = (int) trim($data['priority']);
             if ($priority >= Task::PRIORITY_MIN && $priority <= Task::PRIORITY_MAX) {

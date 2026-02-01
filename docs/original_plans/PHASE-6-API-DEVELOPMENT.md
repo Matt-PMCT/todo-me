@@ -89,7 +89,7 @@ STANDARD ERROR CODES (as implemented):
 - RATE_LIMIT_EXCEEDED: 429 - Rate limit exceeded
 - PERMISSION_DENIED: 403 - Permission denied
 - INVALID_STATUS: 422 - Invalid status value
-- INVALID_PRIORITY: 422 - Invalid priority value (not 0-4)
+- INVALID_PRIORITY: 422 - Invalid priority value (not 1-5)
 - INVALID_RECURRENCE: 422 - Invalid recurrence pattern
 - BATCH_SIZE_LIMIT_EXCEEDED: 400 - Too many batch operations
 ```

@@ -625,7 +625,7 @@ class TaskApiTest extends ApiTestCase
             $user,
             'PUT',
             '/api/v1/tasks/'.$task->getId(),
-            ['priority' => 5]  // 5 is invalid since range is now 0-4
+            ['priority' => 6]  // 6 is invalid since range is 1-5
         );
 
         $this->assertResponseStatusCode(Response::HTTP_UNPROCESSABLE_ENTITY, $response);

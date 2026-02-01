@@ -330,22 +330,23 @@ class NaturalLanguageParserServiceTest extends UnitTestCase
         $this->assertStringContainsString('Multiple priorities found', $result->warnings[0]);
     }
 
-    public function testParsePriorityP0(): void
+    public function testParsePriorityP0IsInvalid(): void
     {
         $user = $this->createUserWithId();
 
         $result = $this->parser->parse('Critical bug p0', $user);
 
-        $this->assertEquals(0, $result->priority);
+        $this->assertNull($result->priority);
+        $this->assertTrue($result->hasWarnings());
     }
 
-    public function testParsePriorityP4(): void
+    public function testParsePriorityP5(): void
     {
         $user = $this->createUserWithId();
 
-        $result = $this->parser->parse('Low priority task p4', $user);
+        $result = $this->parser->parse('Low priority task p5', $user);
 
-        $this->assertEquals(4, $result->priority);
+        $this->assertEquals(5, $result->priority);
     }
 
     // ========================================

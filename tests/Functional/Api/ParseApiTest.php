@@ -184,7 +184,7 @@ class ParseApiTest extends ApiTestCase
             $user,
             'POST',
             '/api/v1/parse',
-            ['input' => 'Urgent task p0']
+            ['input' => 'Urgent task p1']
         );
 
         $this->assertResponseStatusCode(Response::HTTP_OK, $response);
@@ -195,7 +195,7 @@ class ParseApiTest extends ApiTestCase
         $this->assertNull($data['due_date']);
         $this->assertNull($data['project']);
         $this->assertEmpty($data['tags']);
-        $this->assertEquals(0, $data['priority']);
+        $this->assertEquals(1, $data['priority']);
         $this->assertCount(1, $data['highlights']);
         $this->assertEquals('priority', $data['highlights'][0]['type']);
         $this->assertTrue($data['highlights'][0]['valid']);
@@ -548,8 +548,8 @@ class ParseApiTest extends ApiTestCase
     {
         $user = $this->createUser('parse-priorities@example.com', 'Password123');
 
-        // Test all valid priorities (p0 through p4)
-        for ($priority = 0; $priority <= 4; $priority++) {
+        // Test all valid priorities (p1 through p5)
+        for ($priority = 1; $priority <= 5; $priority++) {
             $response = $this->authenticatedApiRequest(
                 $user,
                 'POST',
