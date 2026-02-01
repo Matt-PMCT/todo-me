@@ -88,8 +88,17 @@ security:
         - { path: ^/login$, roles: PUBLIC_ACCESS }
         - { path: ^/register$, roles: PUBLIC_ACCESS }
 
-        # Protected web pages - task management requires login
+        # Protected web pages - require login (redirects to login form)
         - { path: ^/tasks, roles: ROLE_USER }
+        - { path: ^/today$, roles: ROLE_USER }
+        - { path: ^/upcoming$, roles: ROLE_USER }
+        - { path: ^/overdue$, roles: ROLE_USER }
+        - { path: ^/no-date$, roles: ROLE_USER }
+        - { path: ^/completed$, roles: ROLE_USER }
+        - { path: ^/tags, roles: ROLE_USER }
+        - { path: ^/notifications, roles: ROLE_USER }
+        - { path: ^/settings, roles: ROLE_USER }
+        - { path: ^/projects, roles: ROLE_USER }
 
 when@test:
     security:

@@ -219,8 +219,8 @@ function notificationsPage() {
                     // Update the notification element's background
                     const element = document.getElementById(`notification-${notificationId}`);
                     if (element) {
-                        element.classList.remove('bg-teal-50');
-                        element.classList.add('bg-white');
+                        element.classList.remove('bg-teal-50', 'dark:bg-teal-900/30');
+                        element.classList.add('bg-white', 'dark:bg-gray-800');
                     }
                 }
             } catch (error) {

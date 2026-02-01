@@ -293,7 +293,7 @@ class TaskRepository extends ServiceEntityRepository
             return [];
         }
 
-        return $this->createQueryBuilder('t')
+        $tasks = $this->createQueryBuilder('t')
             ->select('t', 'p', 'tags')
             ->leftJoin('t.project', 'p')
             ->leftJoin('t.tags', 'tags')
@@ -301,6 +301,20 @@ class TaskRepository extends ServiceEntityRepository
             ->setParameter('ids', $ids)
             ->getQuery()
             ->getResult();
+
+        // Reorder to match rank ordering from native query
+        $tasksById = [];
+        foreach ($tasks as $task) {
+            $tasksById[$task->getId()] = $task;
+        }
+        $ordered = [];
+        foreach ($ids as $id) {
+            if (isset($tasksById[$id])) {
+                $ordered[] = $tasksById[$id];
+            }
+        }
+
+        return $ordered;
     }
 
     /**

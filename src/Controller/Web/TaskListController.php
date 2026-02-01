@@ -53,7 +53,7 @@ class TaskListController extends AbstractController
             'status' => $status ?: null,
             'priority' => $priority ? (int) $priority : null,
             'projectId' => $projectId ?: null,
-            'isRecurring' => $isRecurring !== null && $isRecurring !== '' ? (bool) (int) $isRecurring : null,
+            'isRecurring' => $isRecurring !== null && $isRecurring !== '' ? filter_var($isRecurring, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) : null,
         ];
 
         // Get tasks with filters

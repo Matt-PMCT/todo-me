@@ -10,6 +10,7 @@ use App\Service\ProjectUndoService;
 use App\Service\ResponseFormatter;
 use App\Service\TaskUndoService;
 use App\Service\UndoService;
+use App\Service\ValidationHelper;
 use OpenApi\Attributes as OA;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -30,6 +31,7 @@ final class UndoController extends AbstractController
         private readonly TaskUndoService $taskUndoService,
         private readonly ProjectUndoService $projectUndoService,
         private readonly ResponseFormatter $responseFormatter,
+        private readonly ValidationHelper $validationHelper,
     ) {
     }
 
@@ -62,7 +64,7 @@ final class UndoController extends AbstractController
         /** @var User $user */
         $user = $this->getUser();
 
-        $data = json_decode($request->getContent(), true);
+        $data = $this->validationHelper->decodeJsonBody($request);
         $token = $data['token'] ?? null;
 
         if (empty($token)) {
