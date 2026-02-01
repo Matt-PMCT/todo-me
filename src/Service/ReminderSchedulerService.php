@@ -54,7 +54,6 @@ final class ReminderSchedulerService
     public function processDueTodayNotifications(): int
     {
         $count = 0;
-        $today = new \DateTimeImmutable('today');
 
         // Get all users with tasks due today
         $tasks = $this->findTasksDueToday();

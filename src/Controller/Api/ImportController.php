@@ -8,6 +8,7 @@ use App\Entity\User;
 use App\Service\ImportService;
 use App\Service\ResponseFormatter;
 use OpenApi\Attributes as OA;
+use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -31,6 +32,7 @@ final class ImportController extends AbstractController
     public function __construct(
         private readonly ImportService $importService,
         private readonly ResponseFormatter $responseFormatter,
+        private readonly LoggerInterface $logger,
     ) {
     }
 
@@ -158,8 +160,10 @@ final class ImportController extends AbstractController
                 'stats' => $stats,
             ]);
         } catch (\Exception $e) {
+            $this->logger->error('JSON import failed', ['exception' => $e]);
+
             return $this->responseFormatter->error(
-                'Import failed: '.$e->getMessage(),
+                'Import failed',
                 'IMPORT_FAILED',
                 Response::HTTP_BAD_REQUEST
             );
@@ -297,8 +301,10 @@ final class ImportController extends AbstractController
                 'stats' => $stats,
             ]);
         } catch (\Exception $e) {
+            $this->logger->error('Todoist import failed', ['exception' => $e]);
+
             return $this->responseFormatter->error(
-                'Import failed: '.$e->getMessage(),
+                'Import failed',
                 'IMPORT_FAILED',
                 Response::HTTP_BAD_REQUEST
             );
@@ -380,8 +386,10 @@ final class ImportController extends AbstractController
                 'stats' => $stats,
             ]);
         } catch (\Exception $e) {
+            $this->logger->error('CSV import failed', ['exception' => $e]);
+
             return $this->responseFormatter->error(
-                'Import failed: '.$e->getMessage(),
+                'Import failed',
                 'IMPORT_FAILED',
                 Response::HTTP_BAD_REQUEST
             );

@@ -82,7 +82,7 @@ class Project implements UserOwnedInterface
     /**
      * @var Collection<int, Task>
      */
-    #[ORM\OneToMany(targetEntity: Task::class, mappedBy: 'project', orphanRemoval: true, cascade: ['persist', 'remove'])]
+    #[ORM\OneToMany(targetEntity: Task::class, mappedBy: 'project', cascade: ['persist', 'remove'])]
     private Collection $tasks;
 
     public function __construct()
@@ -212,7 +212,7 @@ class Project implements UserOwnedInterface
 
     public function setColor(string $color): static
     {
-        $this->color = $color;
+        $this->color = strtoupper($color);
 
         return $this;
     }

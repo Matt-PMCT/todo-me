@@ -181,6 +181,10 @@ final class NotificationService
             default => null,
         };
 
+        if ($settingKey === null) {
+            return;
+        }
+
         // Dispatch email notification if enabled
         if ($owner->isNotificationEnabled($settingKey, 'email')) {
             $this->messageBus->dispatch(new SendEmailNotification(
