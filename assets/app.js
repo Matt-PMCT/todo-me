@@ -11,6 +11,8 @@ import './styles/app.css';
 // These use 'alpine:init' event which must be set up before start()
 import './js/toast.js';
 import './js/subtasks.js';
+import './js/project-tree.js';
+import './js/keyboard-shortcuts.js';
 
 // Initialize Alpine stores before starting
 Alpine.store('sidebar', {
@@ -25,10 +27,8 @@ window.Alpine = Alpine;
 Alpine.start();
 
 // Import other modules that don't need alpine:init
-import './js/project-tree.js';
 import './js/drag-drop.js';
 import './js/search.js';
-import './js/keyboard-shortcuts.js';
 import './js/swipe-gestures.js';
 
 console.log('This log comes from assets/app.js - welcome to AssetMapper!');

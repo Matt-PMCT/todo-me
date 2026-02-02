@@ -55,6 +55,7 @@ services:
 
     App\EventSubscriber\ApiRateLimitSubscriber:
         arguments:
+            $apiLimiter: '@limiter.api'
             $environment: '%kernel.environment%'
 
     # Auth controller with login and registration rate limiters
@@ -63,6 +64,17 @@ services:
             $loginLimiter: '@limiter.login'
             $loginIpLimiter: '@limiter.login_ip'
             $registrationLimiter: '@limiter.registration'
+
+    # Web security controller with rate limiters
+    App\Controller\Web\SecurityController:
+        arguments:
+            $registrationLimiter: '@limiter.registration'
+            $passwordResetLimiter: '@limiter.login_ip'
+
+    # 2FA controller with recovery rate limiter
+    App\Controller\Api\TwoFactorController:
+        arguments:
+            $twoFactorRecoveryLimiter: '@limiter.two_factor_recovery'
 
     # User service with API token TTL configuration
     App\Service\UserService:

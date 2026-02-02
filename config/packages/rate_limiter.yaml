@@ -31,6 +31,13 @@ framework:
             limit: 10
             interval: '1 hour'
 
+        # 2FA recovery rate limiter: 5 attempts per 15 minutes
+        # Prevents email flooding and token brute-forcing
+        two_factor_recovery:
+            policy: 'sliding_window'
+            limit: 5
+            interval: '15 minutes'
+
 when@test:
     framework:
         rate_limiter:
@@ -53,6 +60,11 @@ when@test:
                 interval: '1 minute'
                 cache_pool: rate_limiter.cache
             registration:
+                policy: 'sliding_window'
+                limit: 100
+                interval: '1 minute'
+                cache_pool: rate_limiter.cache
+            two_factor_recovery:
                 policy: 'sliding_window'
                 limit: 100
                 interval: '1 minute'

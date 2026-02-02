@@ -12,6 +12,7 @@ use App\Service\UserService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\RateLimiter\RateLimiterFactory;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Authentication\AuthenticationUtils;
 use Symfony\Component\Security\Http\Authentication\UserAuthenticatorInterface;
@@ -27,6 +28,8 @@ class SecurityController extends AbstractController
         private readonly PasswordResetService $passwordResetService,
         private readonly EmailVerificationService $emailVerificationService,
         private readonly PasswordPolicyValidator $passwordPolicyValidator,
+        private readonly RateLimiterFactory $registrationLimiter,
+        private readonly RateLimiterFactory $passwordResetLimiter,
     ) {
     }
 
@@ -62,6 +65,14 @@ class SecurityController extends AbstractController
         }
 
         if ($request->isMethod('POST')) {
+            $limiter = $this->registrationLimiter->create($request->getClientIp() ?? 'unknown');
+            if (!$limiter->consume(1)->isAccepted()) {
+                return $this->render('security/register.html.twig', [
+                    'errors' => ['Too many registration attempts. Please try again later.'],
+                    'requirements' => $this->passwordPolicyValidator->getRequirements(),
+                ]);
+            }
+
             $email = trim((string) $request->request->get('email', ''));
             $password = (string) $request->request->get('password', '');
             $passwordConfirm = (string) $request->request->get('password_confirm', '');
@@ -141,6 +152,14 @@ class SecurityController extends AbstractController
     public function forgotPassword(Request $request): Response
     {
         if ($request->isMethod('POST')) {
+            $limiter = $this->passwordResetLimiter->create($request->getClientIp() ?? 'unknown');
+            if (!$limiter->consume(1)->isAccepted()) {
+                return $this->render('security/forgot-password.html.twig', [
+                    'errors' => ['Too many password reset attempts. Please try again later.'],
+                    'email' => $request->request->get('email', ''),
+                ]);
+            }
+
             $token = $request->request->get('_csrf_token');
             if (!$this->isCsrfTokenValid('forgot_password', $token)) {
                 return $this->render('security/forgot-password.html.twig', [

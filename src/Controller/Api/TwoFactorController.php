@@ -18,6 +18,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\RateLimiter\RateLimiterFactory;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
@@ -32,6 +33,7 @@ final class TwoFactorController extends AbstractController
         private readonly ResponseFormatter $responseFormatter,
         private readonly ValidationHelper $validationHelper,
         private readonly ValidatorInterface $validator,
+        private readonly RateLimiterFactory $twoFactorRecoveryLimiter,
     ) {
     }
 
@@ -352,6 +354,15 @@ final class TwoFactorController extends AbstractController
             );
         }
 
+        $limiter = $this->twoFactorRecoveryLimiter->create($email);
+        if (!$limiter->consume(1)->isAccepted()) {
+            return $this->responseFormatter->error(
+                'Too many recovery attempts. Please try again later.',
+                'RATE_LIMITED',
+                Response::HTTP_TOO_MANY_REQUESTS
+            );
+        }
+
         // Always succeeds to prevent user enumeration
         $this->twoFactorRecoveryService->requestRecovery($email);
 
@@ -388,6 +399,15 @@ final class TwoFactorController extends AbstractController
     )]
     public function recoveryComplete(Request $request): JsonResponse
     {
+        $limiter = $this->twoFactorRecoveryLimiter->create($request->getClientIp() ?? 'unknown');
+        if (!$limiter->consume(1)->isAccepted()) {
+            return $this->responseFormatter->error(
+                'Too many recovery attempts. Please try again later.',
+                'RATE_LIMITED',
+                Response::HTTP_TOO_MANY_REQUESTS
+            );
+        }
+
         $data = $this->validationHelper->decodeJsonBody($request);
         $token = (string) ($data['token'] ?? '');
 

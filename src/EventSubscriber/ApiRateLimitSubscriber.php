@@ -30,8 +30,7 @@ final class ApiRateLimitSubscriber implements EventSubscriberInterface
     private const HEADER_RETRY_AFTER = 'Retry-After';
 
     public function __construct(
-        private readonly RateLimiterFactory $anonymousApiLimiter,
-        private readonly RateLimiterFactory $authenticatedApiLimiter,
+        private readonly RateLimiterFactory $apiLimiter,
         private readonly ResponseFormatter $responseFormatter,
         private readonly string $environment,
     ) {
@@ -67,13 +66,8 @@ final class ApiRateLimitSubscriber implements EventSubscriberInterface
         // Determine the identifier for rate limiting
         $identifier = $this->getIdentifier($request);
 
-        // Determine if request is authenticated (has valid API token)
-        $isAuthenticated = $this->isAuthenticated($request);
-
-        // Get the appropriate limiter
-        $limiter = $isAuthenticated
-            ? $this->authenticatedApiLimiter->create($identifier)
-            : $this->anonymousApiLimiter->create($identifier);
+        // Get the limiter for this identifier
+        $limiter = $this->apiLimiter->create($identifier);
 
         // Consume a token
         $rateLimit = $limiter->consume(1);
@@ -152,28 +146,5 @@ final class ApiRateLimitSubscriber implements EventSubscriberInterface
         $ip = $request->getClientIp() ?? 'unknown';
 
         return 'ip_'.$ip;
-    }
-
-    /**
-     * Determines if the request is authenticated.
-     */
-    private function isAuthenticated(\Symfony\Component\HttpFoundation\Request $request): bool
-    {
-        // Check for Bearer token
-        $authHeader = $request->headers->get('Authorization');
-        if ($authHeader !== null && str_starts_with($authHeader, 'Bearer ')) {
-            $token = substr($authHeader, 7);
-            if (!empty($token)) {
-                return true;
-            }
-        }
-
-        // Check for API key
-        $apiKey = $request->headers->get('X-API-Key');
-        if ($apiKey !== null && !empty($apiKey)) {
-            return true;
-        }
-
-        return false;
     }
 }
