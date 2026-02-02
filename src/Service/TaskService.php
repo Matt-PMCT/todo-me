@@ -598,7 +598,7 @@ final class TaskService
         $nextTask->setDescription($completedTask->getDescription());
         $nextTask->setStatus(Task::STATUS_PENDING);
         $nextTask->setPriority($completedTask->getPriority());
-        $nextTask->setDueDate(\DateTimeImmutable::createFromFormat('Y-m-d', $nextDueDate->format('Y-m-d'))->setTime(0, 0, 0));
+        $nextTask->setDueDate($nextDueDate->setTime(0, 0, 0));
         $nextTask->setProject($completedTask->getProject());
 
         // Copy tags

@@ -78,7 +78,7 @@ final class TaskGroupingService
             }
 
             // Normalize to date only for comparison
-            $dueDateOnly = \DateTimeImmutable::createFromFormat('Y-m-d', $dueDate->format('Y-m-d'))->setTime(0, 0, 0);
+            $dueDateOnly = $dueDate->setTime(0, 0, 0);
 
             if ($dueDateOnly < $today) {
                 $groups[self::GROUP_OVERDUE][] = $task;

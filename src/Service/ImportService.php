@@ -258,7 +258,7 @@ final class ImportService
 
         // Parse headers from first line
         $headers = $stream->fgetcsv(',', '"', '');
-        if ($headers === false || $headers === [null]) {
+        if ($headers === false || $headers === null || $headers === [null]) {
             return $stats;
         }
 
@@ -274,7 +274,7 @@ final class ImportService
 
             while (!$stream->eof()) {
                 $row = $stream->fgetcsv(',', '"', '');
-                if ($row === false || $row === [null]) {
+                if ($row === false || $row === null || $row === [null]) {
                     continue;
                 }
 

@@ -257,10 +257,19 @@ class TaskOverdueTest extends UnitTestCase
     {
         $task = new Task();
         $task->setTitle('Test Task');
-        $task->setDueDate(new \DateTimeImmutable('today'));
-        // Set due time to 1 hour ago
-        $pastTime = (new \DateTimeImmutable())->modify('-1 hour');
-        $task->setDueTime($pastTime);
+
+        $now = new \DateTimeImmutable();
+        $currentHour = (int) $now->format('H');
+
+        if ($currentHour === 0) {
+            // Between 00:00-00:59: use yesterday with a late time to guarantee overdue
+            $task->setDueDate(new \DateTimeImmutable('yesterday'));
+            $task->setDueTime((new \DateTimeImmutable())->setTime(23, 0));
+        } else {
+            // Any other hour: use today with 00:00 which is always in the past
+            $task->setDueDate(new \DateTimeImmutable('today'));
+            $task->setDueTime((new \DateTimeImmutable())->setTime(0, 0));
+        }
 
         $this->assertTrue($task->isOverdue());
     }
