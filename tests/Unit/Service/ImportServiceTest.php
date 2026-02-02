@@ -598,6 +598,31 @@ class ImportServiceTest extends UnitTestCase
         $this->assertEquals(1, $stats['tasks']);
     }
 
+    public function testImportCsvHandlesMultiLineQuotedValues(): void
+    {
+        $csvContent = "title,description,status\n"
+            ."\"Task 1\",\"Line one\nLine two\nLine three\",pending\n"
+            .'Task 2,Simple description,completed';
+
+        $this->taskRepository->method('getMaxPosition')->willReturn(0);
+
+        $persistedTasks = [];
+        $this->entityManager->method('persist')
+            ->willReturnCallback(function ($entity) use (&$persistedTasks) {
+                if ($entity instanceof Task) {
+                    $persistedTasks[] = $entity;
+                }
+            });
+
+        $stats = $this->importService->importCsv($this->user, $csvContent);
+
+        $this->assertEquals(2, $stats['tasks']);
+        $this->assertCount(2, $persistedTasks);
+        $this->assertEquals('Task 1', $persistedTasks[0]->getTitle());
+        $this->assertEquals("Line one\nLine two\nLine three", $persistedTasks[0]->getDescription());
+        $this->assertEquals('Task 2', $persistedTasks[1]->getTitle());
+    }
+
     // ========================================
     // Error Handling Tests
     // ========================================

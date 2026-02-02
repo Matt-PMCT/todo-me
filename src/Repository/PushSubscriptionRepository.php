@@ -80,8 +80,7 @@ class PushSubscriptionRepository extends ServiceEntityRepository
 
         return $this->createQueryBuilder('s')
             ->delete()
-            ->where('s.lastUsedAt IS NOT NULL')
-            ->andWhere('s.lastUsedAt < :cutoff')
+            ->where('(s.lastUsedAt IS NOT NULL AND s.lastUsedAt < :cutoff) OR (s.lastUsedAt IS NULL AND s.createdAt < :cutoff)')
             ->setParameter('cutoff', $cutoff)
             ->getQuery()
             ->execute();

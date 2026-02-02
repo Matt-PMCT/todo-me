@@ -61,6 +61,7 @@ services:
     App\Controller\Api\AuthController:
         arguments:
             $loginLimiter: '@limiter.login'
+            $loginIpLimiter: '@limiter.login_ip'
             $registrationLimiter: '@limiter.registration'
 
     # User service with API token TTL configuration

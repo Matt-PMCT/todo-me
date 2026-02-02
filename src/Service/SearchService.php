@@ -52,28 +52,13 @@ final class SearchService
 
         // Search tasks
         if ($searchType === SearchRequest::TYPE_ALL || $searchType === SearchRequest::TYPE_TASKS) {
+            $totalTasks = $this->taskRepository->searchCount($user, $request->query);
+            $offset = $searchType === SearchRequest::TYPE_ALL ? 0 : ($request->page - 1) * $limit;
+
             if ($useHighlights) {
-                $taskResults = $this->taskRepository->searchWithHighlights($user, $request->query);
-                $totalTasks = count($taskResults);
-
-                // Apply pagination for tasks in type=all mode by taking proportional share
-                if ($searchType === SearchRequest::TYPE_ALL) {
-                    $tasksWithHighlights = array_slice($taskResults, 0, $limit);
-                } else {
-                    // For type=tasks, apply proper pagination
-                    $offset = ($request->page - 1) * $limit;
-                    $tasksWithHighlights = array_slice($taskResults, $offset, $limit);
-                }
+                $tasksWithHighlights = $this->taskRepository->searchWithHighlights($user, $request->query, $limit, $offset);
             } else {
-                $taskResults = $this->taskRepository->search($user, $request->query);
-                $totalTasks = count($taskResults);
-
-                if ($searchType === SearchRequest::TYPE_ALL) {
-                    $tasks = array_slice($taskResults, 0, $limit);
-                } else {
-                    $offset = ($request->page - 1) * $limit;
-                    $tasks = array_slice($taskResults, $offset, $limit);
-                }
+                $tasks = $this->taskRepository->search($user, $request->query, $limit, $offset);
             }
         }
 

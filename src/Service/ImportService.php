@@ -247,21 +247,23 @@ final class ImportService
     {
         $stats = ['tasks' => 0, 'projects' => 0, 'tags' => 0];
 
-        $lines = str_getcsv($csvContent, "\n", '"', '');
-        if (empty($lines)) {
+        if (trim($csvContent) === '') {
             return $stats;
         }
+
+        $stream = new \SplTempFileObject();
+        $stream->fwrite($csvContent);
+        $stream->rewind();
+        $stream->setFlags(\SplFileObject::READ_CSV | \SplFileObject::SKIP_EMPTY | \SplFileObject::READ_AHEAD);
 
         // Parse headers from first line
-        $headerLine = array_shift($lines);
-        if ($headerLine === null || trim($headerLine) === '') {
+        $headers = $stream->fgetcsv(',', '"', '');
+        if ($headers === false || $headers === [null]) {
             return $stats;
         }
 
-        $headers = str_getcsv($headerLine, ',', '"', '');
-
         // Normalize headers
-        $headers = array_map(fn ($h) => strtolower(trim($h)), $headers);
+        $headers = array_map(fn ($h) => strtolower(trim((string) $h)), $headers);
 
         $this->entityManager->beginTransaction();
 
@@ -270,12 +272,11 @@ final class ImportService
             $projectCache = []; // name => project
             $tagCache = []; // name => tag
 
-            foreach ($lines as $line) {
-                if (empty(trim($line))) {
+            while (!$stream->eof()) {
+                $row = $stream->fgetcsv(',', '"', '');
+                if ($row === false || $row === [null]) {
                     continue;
                 }
-
-                $row = str_getcsv($line, ',', '"', '');
 
                 // Skip if row doesn't have enough columns
                 if (count($row) < count($headers)) {
@@ -283,7 +284,7 @@ final class ImportService
                     $row = array_pad($row, count($headers), '');
                 }
 
-                $data = array_combine($headers, $row);
+                $data = array_combine($headers, array_slice($row, 0, count($headers)));
                 if ($data === false) {
                     continue;
                 }

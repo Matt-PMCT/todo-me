@@ -354,7 +354,7 @@ function dataManager() {
                         throw new Error('Unknown import format');
                 }
 
-                const response = await fetch(endpoint, {
+                const response = await fetch(window.apiUrl(endpoint), {
                     method: 'POST',
                     headers: {
                         'Content-Type': contentType,

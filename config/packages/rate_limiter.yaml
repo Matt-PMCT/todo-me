@@ -10,6 +10,13 @@ framework:
             limit: 5
             interval: '1 minute'
 
+        # Login IP rate limiter: 20 attempts per 5 minutes per IP
+        # Prevents distributed brute force from a single IP across multiple accounts
+        login_ip:
+            policy: 'sliding_window'
+            limit: 20
+            interval: '5 minutes'
+
         # API rate limiter: 1000 requests per hour
         # General rate limiting for API endpoints
         api:
@@ -31,6 +38,11 @@ when@test:
             # Rate limit tests use dedicated test helpers to exhaust limits
             # Each test clears the cache in setUp for isolation
             login:
+                policy: 'sliding_window'
+                limit: 100
+                interval: '1 minute'
+                cache_pool: rate_limiter.cache
+            login_ip:
                 policy: 'sliding_window'
                 limit: 100
                 interval: '1 minute'

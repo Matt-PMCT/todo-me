@@ -265,11 +265,32 @@ class TaskRepository extends ServiceEntityRepository
     }
 
     /**
+     * Count full-text search results.
+     */
+    public function searchCount(User $owner, string $query): int
+    {
+        $conn = $this->getEntityManager()->getConnection();
+
+        $sql = '
+            SELECT COUNT(*)
+            FROM tasks t
+            WHERE t.owner_id = :owner_id
+            AND t.search_vector @@ plainto_tsquery(:locale, :query)
+        ';
+
+        return (int) $conn->executeQuery($sql, [
+            'owner_id' => $owner->getId(),
+            'query' => $query,
+            'locale' => $this->searchLocale,
+        ])->fetchOne();
+    }
+
+    /**
      * Full-text search using PostgreSQL tsvector
      *
      * @return Task[]
      */
-    public function search(User $owner, string $query): array
+    public function search(User $owner, string $query, int $limit = 20, int $offset = 0): array
     {
         $conn = $this->getEntityManager()->getConnection();
 
@@ -279,12 +300,15 @@ class TaskRepository extends ServiceEntityRepository
             WHERE t.owner_id = :owner_id
             AND t.search_vector @@ plainto_tsquery(:locale, :query)
             ORDER BY ts_rank(t.search_vector, plainto_tsquery(:locale, :query)) DESC
+            LIMIT :limit OFFSET :offset
         ';
 
         $result = $conn->executeQuery($sql, [
             'owner_id' => $owner->getId(),
             'query' => $query,
             'locale' => $this->searchLocale,
+            'limit' => $limit,
+            'offset' => $offset,
         ]);
 
         $ids = array_column($result->fetchAllAssociative(), 'id');
@@ -322,7 +346,7 @@ class TaskRepository extends ServiceEntityRepository
      *
      * @return array<array{task: Task, rank: float, titleHighlight: string|null, descriptionHighlight: string|null}>
      */
-    public function searchWithHighlights(User $owner, string $query, int $limit = 20): array
+    public function searchWithHighlights(User $owner, string $query, int $limit = 20, int $offset = 0): array
     {
         $conn = $this->getEntityManager()->getConnection();
 
@@ -336,7 +360,7 @@ class TaskRepository extends ServiceEntityRepository
             WHERE t.owner_id = :owner_id
             AND t.search_vector @@ plainto_tsquery(:locale, :query)
             ORDER BY rank DESC
-            LIMIT :limit
+            LIMIT :limit OFFSET :offset
         ";
 
         $result = $conn->executeQuery($sql, [
@@ -344,6 +368,7 @@ class TaskRepository extends ServiceEntityRepository
             'query' => $query,
             'locale' => $this->searchLocale,
             'limit' => $limit,
+            'offset' => $offset,
         ]);
 
         $rows = $result->fetchAllAssociative();

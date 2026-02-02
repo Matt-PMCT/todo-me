@@ -45,6 +45,7 @@ final class AuthController extends AbstractController
         private readonly ValidatorInterface $validator,
         private readonly ApiLogger $apiLogger,
         private readonly RateLimiterFactory $loginLimiter,
+        private readonly RateLimiterFactory $loginIpLimiter,
         private readonly RateLimiterFactory $registrationLimiter,
         private readonly ValidationHelper $validationHelper,
         private readonly PasswordResetService $passwordResetService,
@@ -252,12 +253,16 @@ final class AuthController extends AbstractController
             );
         }
 
-        // Rate limiting: 5 attempts per minute per email
-        $limiter = $this->loginLimiter->create($loginRequest->email);
-        $limit = $limiter->consume(1);
+        // Rate limiting: per-email and per-IP
+        $emailLimiter = $this->loginLimiter->create($loginRequest->email);
+        $ipLimiter = $this->loginIpLimiter->create($request->getClientIp() ?? 'unknown');
+        $emailLimit = $emailLimiter->consume(1);
+        $ipLimit = $ipLimiter->consume(1);
 
-        if (!$limit->isAccepted()) {
-            $retryAfter = $limit->getRetryAfter();
+        if (!$emailLimit->isAccepted() || !$ipLimit->isAccepted()) {
+            $retryAfter = !$emailLimit->isAccepted()
+                ? $emailLimit->getRetryAfter()
+                : $ipLimit->getRetryAfter();
 
             $this->apiLogger->logWarning('Login rate limit exceeded', [
                 'email_hash' => ApiLogger::hashEmail($loginRequest->email),
