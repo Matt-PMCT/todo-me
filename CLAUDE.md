@@ -16,6 +16,14 @@ docker compose -f docker/docker-compose.yml up -d           # Start services
 docker compose -f docker/docker-compose.yml exec php bash   # Enter PHP container
 composer install                                             # Install deps (in container)
 php bin/console cache:clear                                  # Clear cache (in container)
+php bin/console asset-map:compile --env=prod                 # Compile assets (REQUIRED for production)
+```
+
+### Production Deployment
+**CRITICAL:** Always use the deploy script or include `asset-map:compile`. Skipping asset compilation after adding/changing JS files breaks the entire frontend (Alpine.js won't load).
+```bash
+# Preferred: use deploy script on production server
+cd ~/todo-me && git pull && ./scripts/deploy/update-web.sh --quick
 ```
 
 ### Testing

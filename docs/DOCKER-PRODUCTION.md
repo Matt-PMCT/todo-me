@@ -87,6 +87,21 @@ docker inspect --format='{{.State.Health.Status}}' todo-redis
 docker-compose exec php php bin/console doctrine:migrations:migrate --no-interaction
 ```
 
+### 5. Compile Assets
+
+**CRITICAL:** This step is mandatory after any deployment. The app uses Symfony AssetMapper with ES modules. Skipping this after adding or changing JS files will cause the entire frontend to break (Alpine.js won't initialize).
+
+```bash
+docker-compose exec php php bin/console asset-map:compile --env=prod
+```
+
+### 6. Clear and Warm Cache
+
+```bash
+docker-compose exec php php bin/console cache:clear --env=prod
+docker-compose exec php php bin/console cache:warmup --env=prod
+```
+
 ## Resource Limits
 
 Production configuration includes resource limits to prevent runaway containers:
