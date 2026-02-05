@@ -18,10 +18,12 @@ use App\Exception\ProjectMoveToDescendantException;
 use App\Exception\ProjectParentNotFoundException;
 use App\Interface\ActivityLogServiceInterface;
 use App\Interface\OwnershipCheckerInterface;
+use App\Interface\SyncServiceInterface;
 use App\Repository\ProjectRepository;
 use App\Transformer\ProjectTreeTransformer;
 use App\ValueObject\UndoToken;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\HttpFoundation\RequestStack;
 
 /**
  * Service for managing Project entities.
@@ -38,7 +40,14 @@ final class ProjectService
         private readonly ProjectCacheService $projectCacheService,
         private readonly ProjectTreeTransformer $projectTreeTransformer,
         private readonly ActivityLogServiceInterface $activityLogService,
+        private readonly SyncServiceInterface $syncService,
+        private readonly RequestStack $requestStack,
     ) {
+    }
+
+    private function getOriginTabId(): ?string
+    {
+        return $this->requestStack->getCurrentRequest()?->headers->get('X-Tab-Id');
     }
 
     /**
@@ -122,6 +131,8 @@ final class ProjectService
 
         // Invalidate cache
         $this->projectCacheService->invalidate($user->getId() ?? '');
+
+        $this->syncService->recordChange($user, 'project', 'created', $project->getId(), $this->getOriginTabId());
 
         return $project;
     }
@@ -211,6 +222,8 @@ final class ProjectService
         // Invalidate cache
         $this->projectCacheService->invalidate($ownerId);
 
+        $this->syncService->recordChange($user, 'project', 'updated', $projectId, $this->getOriginTabId());
+
         return [
             'project' => $project,
             'undoToken' => $undoToken,
@@ -249,6 +262,8 @@ final class ProjectService
         // Invalidate cache
         $this->projectCacheService->invalidate($ownerId);
 
+        $this->syncService->recordChange($owner, 'project', 'deleted', $projectId, $this->getOriginTabId());
+
         return $undoToken;
     }
 
@@ -275,6 +290,8 @@ final class ProjectService
 
         // Invalidate cache
         $this->projectCacheService->invalidate($ownerId);
+
+        $this->syncService->recordChange($project->getOwner(), 'project', 'updated', $project->getId(), $this->getOriginTabId());
 
         return [
             'project' => $project,
@@ -303,6 +320,8 @@ final class ProjectService
 
         // Invalidate cache
         $this->projectCacheService->invalidate($ownerId);
+
+        $this->syncService->recordChange($project->getOwner(), 'project', 'updated', $project->getId(), $this->getOriginTabId());
 
         return [
             'project' => $project,
@@ -470,6 +489,8 @@ final class ProjectService
 
         // Invalidate cache
         $this->projectCacheService->invalidate($ownerId);
+
+        $this->syncService->recordChange($user, 'project', 'updated', $project->getId(), $this->getOriginTabId());
 
         return [
             'project' => $project,

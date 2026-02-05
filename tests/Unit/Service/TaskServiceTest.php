@@ -11,6 +11,7 @@ use App\Exception\EntityNotFoundException;
 use App\Exception\ForbiddenException;
 use App\Interface\ActivityLogServiceInterface;
 use App\Interface\OwnershipCheckerInterface;
+use App\Interface\SyncServiceInterface;
 use App\Interface\TaskStateServiceInterface;
 use App\Interface\TaskUndoServiceInterface;
 use App\Repository\ProjectRepository;
@@ -25,6 +26,7 @@ use App\Tests\Unit\UnitTestCase;
 use App\ValueObject\UndoToken;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\MockObject\MockObject;
+use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Validator\Validation;
 
 /**
@@ -48,6 +50,7 @@ class TaskServiceTest extends UnitTestCase
     private RecurrenceRuleParser $recurrenceRuleParser;
     private NextDateCalculator $nextDateCalculator;
     private ActivityLogServiceInterface&MockObject $activityLogService;
+    private SyncServiceInterface&MockObject $syncService;
     private TaskService $taskService;
 
     protected function setUp(): void
@@ -84,6 +87,9 @@ class TaskServiceTest extends UnitTestCase
         // Activity log service mock
         $this->activityLogService = $this->createMock(ActivityLogServiceInterface::class);
 
+        // Sync service mock
+        $this->syncService = $this->createMock(SyncServiceInterface::class);
+
         $this->taskService = new TaskService(
             $this->taskRepository,
             $this->projectRepository,
@@ -97,6 +103,8 @@ class TaskServiceTest extends UnitTestCase
             $this->recurrenceRuleParser,
             $this->nextDateCalculator,
             $this->activityLogService,
+            $this->syncService,
+            new RequestStack(),
         );
     }
 

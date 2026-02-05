@@ -145,6 +145,14 @@ All API endpoints return:
 - Login: 5 attempts/min
 - Test env has 100× higher limits
 
+### Real-Time Sync (Polling)
+- SyncService tracks mutations in Redis (version counter + change log per user)
+- Client polls `GET /api/v1/sync/poll?lastVersion=N` at a user-configurable interval (default: 30s)
+- User can configure polling interval in Settings (10s, 15s, 30s, 60s, or disabled)
+- Origin tab filtering via X-Tab-Id header prevents double updates
+- Visibility API pauses polling on hidden tabs
+- Changes applied to DOM via Alpine.js reactive data updates
+
 ### Database Schema
 - All entities use UUID primary keys
 - Task has full-text search vector

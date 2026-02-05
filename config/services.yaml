@@ -106,6 +106,10 @@ services:
     App\Interface\ApiTokenServiceInterface:
         alias: App\Service\ApiTokenService
 
+    # Alias for SyncServiceInterface to enable autowiring
+    App\Interface\SyncServiceInterface:
+        alias: App\Service\SyncService
+
     # Issue #55: APP_SECRET validator
     App\EventListener\AppSecretValidator:
         arguments:

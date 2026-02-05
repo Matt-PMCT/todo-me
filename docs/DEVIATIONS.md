@@ -200,3 +200,21 @@ Overdue tasks include a `severity` field based on how overdue they are:
 | 8+ days | `high` |
 
 This enables UI differentiation (e.g., color coding) based on urgency.
+
+## 9. Polling-Based Sync (not WebSocket/SSE)
+
+**Standard Convention:** Real-time sync typically uses WebSockets, Server-Sent Events (SSE), or a dedicated push service like Mercure.
+
+**Our Choice:** User-configurable polling (default 30s) with Redis-backed change tracking.
+
+**Reasons:**
+1. **No additional infrastructure:** Uses the existing Redis instance; no new services to deploy or maintain
+2. **Simplicity:** Polling is straightforward to implement, debug, and monitor
+3. **Acceptable latency:** 30-second default latency is reasonable for a personal todo app
+4. **User control:** Users can tune the interval (10s, 15s, 30s, 60s) or disable sync entirely in Settings
+5. **Efficient:** Redis version check is O(1); no-change responses are lightweight (~100-200 bytes)
+
+**Trade-offs:**
+- Higher latency than push-based approaches (seconds vs milliseconds)
+- Slightly more server load from periodic requests (mitigated by Visibility API pausing on hidden tabs)
+- Accepted as worthwhile for the simplicity and zero-infrastructure benefits

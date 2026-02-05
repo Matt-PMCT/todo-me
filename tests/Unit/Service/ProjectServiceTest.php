@@ -16,6 +16,7 @@ use App\Exception\InvalidUndoTokenException;
 use App\Exception\ProjectMoveToDescendantException;
 use App\Interface\ActivityLogServiceInterface;
 use App\Interface\OwnershipCheckerInterface;
+use App\Interface\SyncServiceInterface;
 use App\Repository\ProjectRepository;
 use App\Service\ProjectCacheService;
 use App\Service\ProjectService;
@@ -30,6 +31,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\MockObject\MockObject;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Cache\Adapter\ArrayAdapter;
+use Symfony\Component\HttpFoundation\RequestStack;
 
 class ProjectServiceTest extends UnitTestCase
 {
@@ -44,6 +46,7 @@ class ProjectServiceTest extends UnitTestCase
     private ProjectCacheService $projectCacheService;
     private ProjectTreeTransformer $projectTreeTransformer;
     private ActivityLogServiceInterface&MockObject $activityLogService;
+    private SyncServiceInterface&MockObject $syncService;
     private ProjectService $projectService;
 
     protected function setUp(): void
@@ -78,6 +81,9 @@ class ProjectServiceTest extends UnitTestCase
         // Activity log service mock
         $this->activityLogService = $this->createMock(ActivityLogServiceInterface::class);
 
+        // Sync service mock
+        $this->syncService = $this->createMock(SyncServiceInterface::class);
+
         $this->projectService = new ProjectService(
             $this->projectRepository,
             $this->entityManager,
@@ -88,6 +94,8 @@ class ProjectServiceTest extends UnitTestCase
             $this->projectCacheService,
             $this->projectTreeTransformer,
             $this->activityLogService,
+            $this->syncService,
+            new RequestStack(),
         );
     }
 

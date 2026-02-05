@@ -10,8 +10,10 @@ use App\Entity\Tag;
 use App\Entity\User;
 use App\Exception\EntityNotFoundException;
 use App\Exception\ValidationException;
+use App\Interface\SyncServiceInterface;
 use App\Repository\TagRepository;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\HttpFoundation\RequestStack;
 
 /**
  * Service for tag-related operations.
@@ -22,7 +24,14 @@ class TagService
         private readonly TagRepository $tagRepository,
         private readonly EntityManagerInterface $entityManager,
         private readonly ValidationHelper $validationHelper,
+        private readonly SyncServiceInterface $syncService,
+        private readonly RequestStack $requestStack,
     ) {
+    }
+
+    private function getOriginTabId(): ?string
+    {
+        return $this->requestStack->getCurrentRequest()?->headers->get('X-Tab-Id');
     }
 
     /**
@@ -54,6 +63,8 @@ class TagService
 
         $this->entityManager->persist($tag);
         $this->entityManager->flush();
+
+        $this->syncService->recordChange($user, 'tag', 'created', $tag->getId(), $this->getOriginTabId());
 
         return [
             'tag' => $tag,
@@ -128,6 +139,8 @@ class TagService
         $this->entityManager->persist($tag);
         $this->entityManager->flush();
 
+        $this->syncService->recordChange($user, 'tag', 'created', $tag->getId(), $this->getOriginTabId());
+
         return $tag;
     }
 
@@ -168,6 +181,8 @@ class TagService
 
         $this->entityManager->flush();
 
+        $this->syncService->recordChange($owner, 'tag', 'updated', $tag->getId(), $this->getOriginTabId());
+
         return $tag;
     }
 
@@ -180,8 +195,15 @@ class TagService
      */
     public function delete(Tag $tag): void
     {
+        $owner = $tag->getOwner();
+        $tagId = $tag->getId();
+
         // Doctrine will handle removing the tag from all tasks via the many-to-many relationship
         $this->entityManager->remove($tag);
         $this->entityManager->flush();
+
+        if ($owner !== null && $tagId !== null) {
+            $this->syncService->recordChange($owner, 'tag', 'deleted', $tagId, $this->getOriginTabId());
+        }
     }
 }

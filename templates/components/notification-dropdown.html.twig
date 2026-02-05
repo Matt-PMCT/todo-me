@@ -144,10 +144,17 @@ function notificationDropdown() {
             // Initial fetch
             this.fetchUnreadCount();
 
-            // Poll for unread count every 60 seconds
+            // Poll for unread count every 5 minutes (real-time sync handles the gap)
             this.pollInterval = setInterval(() => {
                 this.fetchUnreadCount();
-            }, 60000);
+            }, 300000);
+
+            // Listen for sync events to refresh notification count
+            window.addEventListener('task-sync', (e) => {
+                if (['created', 'updated'].includes(e.detail?.action)) {
+                    this.fetchUnreadCount();
+                }
+            });
         },
 
         destroy() {

@@ -31,6 +31,11 @@ final class UserSettingsRequest
      */
     public const VALID_THEMES = ['light', 'dark', 'system'];
 
+    /**
+     * Valid sync polling interval choices (in seconds, 0 = disabled).
+     */
+    public const VALID_SYNC_INTERVALS = [0, 10, 15, 30, 60];
+
     public function __construct(
         #[Assert\Timezone(message: 'Invalid timezone')]
         public readonly ?string $timezone = null,
@@ -42,6 +47,8 @@ final class UserSettingsRequest
         public readonly ?string $taskSpacing = null,
         #[Assert\Choice(choices: self::VALID_THEMES, message: 'Invalid theme. Must be light, dark, or system')]
         public readonly ?string $theme = null,
+        #[Assert\Choice(choices: self::VALID_SYNC_INTERVALS, message: 'Invalid sync interval. Must be 0, 10, 15, 30, or 60')]
+        public readonly ?int $syncPollingInterval = null,
     ) {
     }
 
@@ -58,6 +65,7 @@ final class UserSettingsRequest
             startOfWeek: isset($data['startOfWeek']) ? (int) $data['startOfWeek'] : null,
             taskSpacing: isset($data['taskSpacing']) ? (string) $data['taskSpacing'] : null,
             theme: isset($data['theme']) ? (string) $data['theme'] : null,
+            syncPollingInterval: isset($data['syncPollingInterval']) ? (int) $data['syncPollingInterval'] : null,
         );
     }
 
@@ -90,6 +98,11 @@ final class UserSettingsRequest
         // Theme preference
         if ($this->theme !== null) {
             $settings['theme'] = $this->theme;
+        }
+
+        // Sync polling interval
+        if ($this->syncPollingInterval !== null) {
+            $settings['sync_polling_interval'] = $this->syncPollingInterval;
         }
 
         return $settings;

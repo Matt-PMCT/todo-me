@@ -13,6 +13,7 @@ import './js/toast.js';
 import './js/subtasks.js';
 import './js/project-tree.js';
 import './js/keyboard-shortcuts.js';
+import './js/realtime-sync.js';
 
 // Initialize Alpine stores before starting
 Alpine.store('sidebar', {

@@ -17,6 +17,7 @@ use App\Exception\InvalidRecurrenceException;
 use App\Exception\ValidationException;
 use App\Interface\ActivityLogServiceInterface;
 use App\Interface\OwnershipCheckerInterface;
+use App\Interface\SyncServiceInterface;
 use App\Interface\TaskStateServiceInterface;
 use App\Interface\TaskUndoServiceInterface;
 use App\Repository\ProjectRepository;
@@ -27,6 +28,7 @@ use App\Service\Recurrence\NextDateCalculator;
 use App\Service\Recurrence\RecurrenceRuleParser;
 use App\ValueObject\UndoToken;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\HttpFoundation\RequestStack;
 
 /**
  * Service for task-related operations.
@@ -49,7 +51,14 @@ final class TaskService
         private readonly RecurrenceRuleParser $recurrenceRuleParser,
         private readonly NextDateCalculator $nextDateCalculator,
         private readonly ActivityLogServiceInterface $activityLogService,
+        private readonly SyncServiceInterface $syncService,
+        private readonly RequestStack $requestStack,
     ) {
+    }
+
+    private function getOriginTabId(): ?string
+    {
+        return $this->requestStack->getCurrentRequest()?->headers->get('X-Tab-Id');
     }
 
     /**
@@ -149,6 +158,8 @@ final class TaskService
 
         $this->entityManager->flush();
 
+        $this->syncService->recordChange($user, 'task', 'created', $task->getId(), $this->getOriginTabId());
+
         return $task;
     }
 
@@ -224,6 +235,8 @@ final class TaskService
 
         $this->entityManager->flush();
 
+        $this->syncService->recordChange($user, 'task', 'created', $task->getId(), $this->getOriginTabId());
+
         return new TaskCreationResult(
             task: $task,
             parseResult: $parseResult,
@@ -264,6 +277,8 @@ final class TaskService
 
         $task->setDueDate($date);
         $this->entityManager->flush();
+
+        $this->syncService->recordChange($user, 'task', 'updated', $task->getId(), $this->getOriginTabId());
 
         // Create undo token
         $undoToken = $this->taskUndoService->createUpdateUndoToken($task, $previousState);
@@ -445,6 +460,8 @@ final class TaskService
 
         $this->entityManager->flush();
 
+        $this->syncService->recordChange($task->getOwner(), 'task', 'updated', $task->getId(), $this->getOriginTabId());
+
         // Create undo token
         $undoToken = $this->taskUndoService->createUpdateUndoToken($task, $previousState);
 
@@ -477,6 +494,8 @@ final class TaskService
         // Remove the task
         $this->entityManager->remove($task);
         $this->entityManager->flush();
+
+        $this->syncService->recordChange($owner, 'task', 'deleted', $taskId, $this->getOriginTabId());
 
         return $undoToken;
     }
@@ -513,6 +532,8 @@ final class TaskService
         }
 
         $this->entityManager->flush();
+
+        $this->syncService->recordChange($task->getOwner(), 'task', 'updated', $task->getId(), $this->getOriginTabId());
 
         // Handle recurring task completion
         $nextTask = null;
@@ -555,6 +576,8 @@ final class TaskService
         $task->setIsRecurring(false);
 
         $this->entityManager->flush();
+
+        $this->syncService->recordChange($task->getOwner(), 'task', 'updated', $task->getId(), $this->getOriginTabId());
 
         // Create undo token
         $undoToken = $this->taskUndoService->createUpdateUndoToken($task, $previousState);
@@ -623,6 +646,8 @@ final class TaskService
 
         $this->entityManager->persist($nextTask);
         $this->entityManager->flush();
+
+        $this->syncService->recordChange($completedTask->getOwner(), 'task', 'created', $nextTask->getId(), $this->getOriginTabId());
 
         return $nextTask;
     }

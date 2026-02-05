@@ -33,6 +33,9 @@
             return document.querySelector('meta[name="csrf-token"]')?.content || '';
         };
 
+        // Unique tab ID for sync origin tracking
+        window.TAB_ID = crypto.randomUUID();
+
         // Issue #46: Routes for Alpine.js dynamic links (respects app base path)
         window.routes = {
             taskList: '{{ path('app_task_list') }}'
@@ -49,6 +52,9 @@
                 if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(method)) {
                     headers['X-CSRF-Token'] = window.getCsrfToken();
                 }
+
+                // Add tab ID for sync origin tracking
+                headers['X-Tab-Id'] = window.TAB_ID;
 
                 // Add Content-Type for requests with body
                 if (options.body && !headers['Content-Type']) {
@@ -71,7 +77,8 @@
         };
     </script>
 </head>
-<body class="h-full bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
+<body class="h-full bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100"
+      {% if app.user %}data-sync-version="{{ sync_version }}" data-sync-interval="{{ sync_interval }}" data-user-authenticated="1"{% endif %}>
     <div class="min-h-full">
         <!-- Navigation -->
         <nav class="bg-teal-600 dark:bg-gray-800 dark:border-b dark:border-gray-700" x-data="{ mobileMenuOpen: false, userMenuOpen: false }" @closeAll.window="userMenuOpen = false; mobileMenuOpen = false">

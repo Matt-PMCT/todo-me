@@ -426,7 +426,18 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
             'start_of_week' => 0,
             'task_spacing' => 'comfortable',
             'theme' => 'system',
+            'sync_polling_interval' => 30,
         ], $this->settings);
+    }
+
+    /**
+     * Get the sync polling interval in seconds.
+     *
+     * @return int Polling interval (0 = disabled, 10/15/30/60 seconds)
+     */
+    public function getSyncPollingInterval(): int
+    {
+        return $this->settings['sync_polling_interval'] ?? 30;
     }
 
     /**

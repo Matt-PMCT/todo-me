@@ -466,4 +466,103 @@ class RedisService
             return [];
         }
     }
+
+    /**
+     * Push a value to the end of a list.
+     *
+     * @param string $key   The list key
+     * @param string $value The value to push
+     */
+    public function listPush(string $key, string $value): int
+    {
+        try {
+            $client = $this->getClient();
+            if ($client === null) {
+                return 0;
+            }
+
+            $result = $client->rpush($key, [$value]);
+            $this->logger->debug('Redis RPUSH', ['key' => $key, 'length' => $result]);
+
+            return (int) $result;
+        } catch (\Throwable $e) {
+            $this->logger->error('Redis RPUSH failed', [
+                'key' => $key,
+                'error' => $e->getMessage(),
+            ]);
+
+            return 0;
+        }
+    }
+
+    /**
+     * Trim a list to the specified range.
+     *
+     * @param string $key   The list key
+     * @param int    $start Start index (0-based, negative counts from end)
+     * @param int    $stop  Stop index (inclusive, negative counts from end)
+     */
+    public function listTrim(string $key, int $start, int $stop): bool
+    {
+        try {
+            $client = $this->getClient();
+            if ($client === null) {
+                return false;
+            }
+
+            $result = $client->ltrim($key, $start, $stop);
+            $success = $result !== null && (string) $result === 'OK';
+            $this->logger->debug('Redis LTRIM', [
+                'key' => $key,
+                'start' => $start,
+                'stop' => $stop,
+                'success' => $success,
+            ]);
+
+            return $success;
+        } catch (\Throwable $e) {
+            $this->logger->error('Redis LTRIM failed', [
+                'key' => $key,
+                'error' => $e->getMessage(),
+            ]);
+
+            return false;
+        }
+    }
+
+    /**
+     * Get a range of elements from a list.
+     *
+     * @param string $key   The list key
+     * @param int    $start Start index (0-based, negative counts from end)
+     * @param int    $stop  Stop index (inclusive, negative counts from end)
+     *
+     * @return string[] The list elements
+     */
+    public function listRange(string $key, int $start, int $stop): array
+    {
+        try {
+            $client = $this->getClient();
+            if ($client === null) {
+                return [];
+            }
+
+            $result = $client->lrange($key, $start, $stop);
+            $this->logger->debug('Redis LRANGE', [
+                'key' => $key,
+                'start' => $start,
+                'stop' => $stop,
+                'count' => count($result),
+            ]);
+
+            return is_array($result) ? $result : [];
+        } catch (\Throwable $e) {
+            $this->logger->error('Redis LRANGE failed', [
+                'key' => $key,
+                'error' => $e->getMessage(),
+            ]);
+
+            return [];
+        }
+    }
 }
