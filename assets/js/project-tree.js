@@ -207,11 +207,10 @@ document.addEventListener('alpine:init', () => {
         async refreshTree() {
             this.loading = true;
             try {
-                const url = new URL(this.apiBaseUrl, window.location.origin);
-                url.searchParams.set('include_archived', this.showArchived);
-                url.searchParams.set('include_task_counts', 'true');
-
-                const response = await fetch(url.toString());
+                const params = new URLSearchParams();
+                params.set('include_archived', this.showArchived);
+                params.set('include_task_counts', 'true');
+                const response = await window.api.get('/api/v1/projects/tree?' + params.toString());
                 if (response.ok) {
                     const data = await response.json();
                     this.tree = data.data?.projects || [];

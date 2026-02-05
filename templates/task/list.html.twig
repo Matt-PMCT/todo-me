@@ -239,6 +239,7 @@ function taskItem(taskId, initialStatus, initialPriority, initialDueDate, initia
         dueTime: initialDueTime || '',
         projectId: initialProjectId || '',
         projectName: initialProjectName || '',
+        statusDropdownOpen: false,
         priorityDropdownOpen: false,
         dueDateDropdownOpen: false,
         projectDropdownOpen: false,
@@ -348,7 +349,7 @@ function taskItem(taskId, initialStatus, initialPriority, initialDueDate, initia
                 const response = await window.api.get('/api/v1/projects');
                 const data = await response.json();
                 if (data.success && data.data) {
-                    this.projects = data.data;
+                    this.projects = data.data.items || [];
                     this.projectsLoaded = true;
                 }
             } catch (error) {
@@ -357,6 +358,7 @@ function taskItem(taskId, initialStatus, initialPriority, initialDueDate, initia
         },
 
         async openProjectDropdown() {
+            this.statusDropdownOpen = false;
             this.priorityDropdownOpen = false;
             this.dueDateDropdownOpen = false;
             this.actionsMenuOpen = false;

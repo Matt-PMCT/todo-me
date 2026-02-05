@@ -59,7 +59,7 @@ class TagController extends AbstractController
         }
 
         // Get sidebar data
-        $sidebarProjects = $this->projectService->getTree($user);
+        $sidebarProjects = $this->projectService->getTree($user, false, true);
         $sidebarTags = $this->tagRepository->findRecentlyUsedByOwner($user, 10);
         $sidebarTagsTotal = $this->tagRepository->countByOwner($user);
 

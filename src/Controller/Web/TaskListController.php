@@ -92,7 +92,7 @@ class TaskListController extends AbstractController
         }
 
         // Get sidebar data
-        $sidebarProjects = $this->projectService->getTree($user);
+        $sidebarProjects = $this->projectService->getTree($user, false, true);
         // Issue #68: Limit sidebar tags to 10 most recently used
         $sidebarTags = $this->tagRepository->findRecentlyUsedByOwner($user, 10);
         $sidebarTagsTotal = $this->tagRepository->countByOwner($user);

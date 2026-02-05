@@ -146,7 +146,7 @@ class TaskViewController extends AbstractController
     private function getSidebarData(User $user): array
     {
         return [
-            'sidebar_projects' => $this->projectService->getTree($user),
+            'sidebar_projects' => $this->projectService->getTree($user, false, true),
             'sidebar_tags' => $this->tagRepository->findRecentlyUsedByOwner($user, 10),
             'sidebar_tags_total' => $this->tagRepository->countByOwner($user),
         ];
