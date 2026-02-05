@@ -226,8 +226,7 @@ document.addEventListener('alpine:init', () => {
          * Add a subproject
          */
         addSubproject(parentId) {
-            // Redirect to create project with parent pre-filled
-            window.location.href = window.apiUrl(`/projects/new?parent=${parentId}`);
+            this.$dispatch('open-project-create-modal', { parentId });
         },
 
         /**

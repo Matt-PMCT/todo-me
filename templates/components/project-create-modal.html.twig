@@ -2,9 +2,9 @@
 {# Modal dialog for creating a new project #}
 
 <div x-data="projectCreateModal({ projects: {{ sidebar_projects|default([])|json_encode }} })"
-     @open-project-create-modal.window="open = true"
-     @closeAll.window="open = false"
-     @keydown.escape.window="open = false">
+     @open-project-create-modal.window="parentId = $event.detail?.parentId || ''; open = true"
+     @closeAll.window="open = false; parentId = ''"
+     @keydown.escape.window="open = false; parentId = ''">
 
     {# Modal #}
     <div x-show="open"
@@ -95,6 +95,7 @@
                         </label>
                         <select id="project-parent"
                                 name="parentId"
+                                x-model="parentId"
                                 class="mt-1 block w-full rounded-md border-0 py-1.5 text-gray-900 dark:text-gray-100 dark:bg-gray-700 shadow-sm ring-1 ring-inset ring-gray-300 dark:ring-gray-600 focus:ring-2 focus:ring-inset focus:ring-teal-600 dark:focus:ring-teal-400 sm:text-sm sm:leading-6">
                             <option value="">No parent (root project)</option>
                             <template x-for="project in flattenedProjects" :key="project.id">
@@ -151,6 +152,7 @@
 document.addEventListener('alpine:init', () => {
     Alpine.data('projectCreateModal', ({ projects }) => ({
         open: false,
+        parentId: '',
         selectedColor: '#6366f1',
         presetColors: ['#6366f1', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4'],
 
