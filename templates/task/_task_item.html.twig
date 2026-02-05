@@ -43,6 +43,8 @@
                     <button type="button"
                             @click.stop="statusDropdownOpen = !statusDropdownOpen; priorityDropdownOpen = false; dueDateDropdownOpen = false; projectDropdownOpen = false; actionsMenuOpen = false"
                             :disabled="isUpdating"
+                            aria-haspopup="true"
+                            :aria-expanded="statusDropdownOpen"
                             class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium cursor-pointer hover:ring-2 hover:ring-offset-1 dark:hover:ring-offset-gray-800 transition-shadow"
                             :class="{
                                 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300 hover:ring-yellow-300 dark:hover:ring-yellow-700': status === 'pending',
@@ -57,6 +59,8 @@
                     <div x-show="statusDropdownOpen"
                          x-cloak
                          @click.away="statusDropdownOpen = false"
+                         @keydown.escape.stop="statusDropdownOpen = false"
+                         role="menu"
                          x-transition:enter="transition ease-out duration-100"
                          x-transition:enter-start="transform opacity-0 scale-95"
                          x-transition:enter-end="transform opacity-100 scale-100"
@@ -85,6 +89,8 @@
                     <button type="button"
                             @click.stop="priorityDropdownOpen = !priorityDropdownOpen; statusDropdownOpen = false; dueDateDropdownOpen = false; projectDropdownOpen = false; actionsMenuOpen = false"
                             :disabled="isUpdating"
+                            aria-haspopup="true"
+                            :aria-expanded="priorityDropdownOpen"
                             class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium cursor-pointer hover:ring-2 hover:ring-offset-1 dark:hover:ring-offset-gray-800 transition-shadow"
                             :class="{
                                 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300 hover:ring-red-300 dark:hover:ring-red-700': priority === 1,
@@ -101,6 +107,8 @@
                     <div x-show="priorityDropdownOpen"
                          x-cloak
                          @click.away="priorityDropdownOpen = false"
+                         @keydown.escape.stop="priorityDropdownOpen = false"
+                         role="menu"
                          x-transition:enter="transition ease-out duration-100"
                          x-transition:enter-start="transform opacity-0 scale-95"
                          x-transition:enter-end="transform opacity-100 scale-100"
@@ -137,6 +145,8 @@
                     <button type="button"
                             @click.stop="dueDateDropdownOpen = !dueDateDropdownOpen; statusDropdownOpen = false; priorityDropdownOpen = false; projectDropdownOpen = false; actionsMenuOpen = false"
                             :disabled="isUpdating"
+                            aria-haspopup="true"
+                            :aria-expanded="dueDateDropdownOpen"
                             class="inline-flex items-center gap-1 text-xs cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 rounded px-1.5 py-0.5 -mx-1.5 transition-colors"
                             :class="dueDate && new Date(dueDate + 'T23:59:59') < new Date() && status !== 'completed' ? 'text-red-600 dark:text-red-400' : 'text-gray-500 dark:text-gray-400'"
                             :title="dueDate ? 'Due: ' + dueDate + ' - Click to change' : 'Set due date'">
@@ -163,6 +173,8 @@
                     <div x-show="dueDateDropdownOpen"
                          x-cloak
                          @click.away="dueDateDropdownOpen = false"
+                         @keydown.escape.stop="dueDateDropdownOpen = false"
+                         role="menu"
                          x-transition:enter="transition ease-out duration-100"
                          x-transition:enter-start="transform opacity-0 scale-95"
                          x-transition:enter-end="transform opacity-100 scale-100"
@@ -227,6 +239,8 @@
                     <button type="button"
                             @click.stop="openProjectDropdown()"
                             :disabled="isUpdating"
+                            aria-haspopup="true"
+                            :aria-expanded="projectDropdownOpen"
                             class="inline-flex items-center gap-1 text-xs rounded-full px-2 py-0.5 cursor-pointer transition-colors"
                             :class="projectId ? 'text-teal-600 dark:text-teal-400 bg-teal-50 dark:bg-teal-900/30 hover:bg-teal-100 dark:hover:bg-teal-900/50' : 'text-gray-400 dark:text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700'"
                             :title="projectId ? 'Project: ' + projectName + ' - Click to change' : 'Set project'">
@@ -240,6 +254,8 @@
                     <div x-show="projectDropdownOpen"
                          x-cloak
                          @click.away="projectDropdownOpen = false"
+                         @keydown.escape.stop="projectDropdownOpen = false"
+                         role="menu"
                          x-transition:enter="transition ease-out duration-100"
                          x-transition:enter-start="transform opacity-0 scale-95"
                          x-transition:enter-end="transform opacity-100 scale-100"
@@ -429,7 +445,7 @@
         {# Actions dropdown #}
         <div class="flex-shrink-0 ml-4">
             <div class="relative">
-                <button @click="actionsMenuOpen = !actionsMenuOpen; statusDropdownOpen = false; priorityDropdownOpen = false; dueDateDropdownOpen = false; projectDropdownOpen = false" type="button" class="min-h-11 min-w-11 sm:min-h-0 sm:min-w-0 inline-flex items-center justify-center rounded-md bg-white dark:bg-gray-800 px-2 py-1 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800">
+                <button @click="actionsMenuOpen = !actionsMenuOpen; statusDropdownOpen = false; priorityDropdownOpen = false; dueDateDropdownOpen = false; projectDropdownOpen = false" type="button" aria-haspopup="true" :aria-expanded="actionsMenuOpen" class="min-h-11 min-w-11 sm:min-h-0 sm:min-w-0 inline-flex items-center justify-center rounded-md bg-white dark:bg-gray-800 px-2 py-1 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800">
                     <span class="sr-only">Open task menu</span>
                     <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                         <path d="M10 3a1.5 1.5 0 110 3 1.5 1.5 0 010-3zM10 8.5a1.5 1.5 0 110 3 1.5 1.5 0 010-3zM11.5 15.5a1.5 1.5 0 10-3 0 1.5 1.5 0 003 0z" />
@@ -439,6 +455,8 @@
                 <div x-show="actionsMenuOpen"
                      x-cloak
                      @click.away="actionsMenuOpen = false"
+                     @keydown.escape.stop="actionsMenuOpen = false"
+                     role="menu"
                      x-transition:enter="transition ease-out duration-100"
                      x-transition:enter-start="transform opacity-0 scale-95"
                      x-transition:enter-end="transform opacity-100 scale-100"

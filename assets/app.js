@@ -14,6 +14,7 @@ import './js/subtasks.js';
 import './js/project-tree.js';
 import './js/keyboard-shortcuts.js';
 import './js/realtime-sync.js';
+import './js/task-item.js';
 
 // Initialize Alpine stores before starting
 Alpine.store('sidebar', {
