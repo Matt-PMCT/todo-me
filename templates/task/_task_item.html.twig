@@ -21,8 +21,8 @@
                         :class="status === 'completed'
                             ? 'bg-green-500 hover:bg-green-600'
                             : status === 'in_progress'
-                                ? 'border-2 border-blue-500 bg-blue-50 hover:border-green-500 hover:bg-green-50'
-                                : 'border-2 border-gray-300 hover:border-green-500 hover:bg-green-50'"
+                                ? 'border-2 border-blue-500 bg-blue-50 dark:bg-blue-900/30 hover:border-green-500 hover:bg-green-50 dark:hover:bg-green-900/30'
+                                : 'border-2 border-gray-300 dark:border-gray-600 hover:border-green-500 hover:bg-green-50 dark:hover:bg-green-900/30'"
                         :title="status === 'completed' ? 'Mark as pending' : 'Mark as completed'">
                     <svg x-show="status === 'completed'" class="w-4 h-4 sm:w-3 sm:h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
