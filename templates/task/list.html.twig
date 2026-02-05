@@ -231,6 +231,7 @@ function taskItem(taskId, initialStatus, initialPriority, initialDueDate, initia
         status: initialStatus,
         isUpdating: false,
         showDeleteModal: false,
+        actionsMenuOpen: false,
 
         // Issue #61: Inline editing state
         priority: initialPriority,
@@ -358,6 +359,7 @@ function taskItem(taskId, initialStatus, initialPriority, initialDueDate, initia
         async openProjectDropdown() {
             this.priorityDropdownOpen = false;
             this.dueDateDropdownOpen = false;
+            this.actionsMenuOpen = false;
             this.projectDropdownOpen = true;
             await this.loadProjects();
         },
