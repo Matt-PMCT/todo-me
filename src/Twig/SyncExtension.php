@@ -16,7 +16,7 @@ use Twig\Extension\GlobalsInterface;
  * Makes `sync_version` and `sync_interval` available in all templates
  * for authenticated users.
  */
-class SyncExtension extends AbstractExtension implements GlobalsInterface
+final class SyncExtension extends AbstractExtension implements GlobalsInterface
 {
     public function __construct(
         private readonly SyncServiceInterface $syncService,

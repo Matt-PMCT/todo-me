@@ -494,6 +494,10 @@ class ProjectServiceTest extends UnitTestCase
         $this->entityManager->expects($this->once())
             ->method('flush');
 
+        $this->syncService->expects($this->once())
+            ->method('recordChange')
+            ->with($user, 'project', 'updated', 'project-123', null);
+
         $result = $this->projectService->undoArchive($user, $undoToken->token);
 
         $this->assertFalse($result->isArchived());
@@ -576,6 +580,10 @@ class ProjectServiceTest extends UnitTestCase
         $this->entityManager->expects($this->once())
             ->method('flush');
 
+        $this->syncService->expects($this->once())
+            ->method('recordChange')
+            ->with($user, 'project', 'created', 'project-123', null);
+
         $result = $this->projectService->undoDelete($user, $undoToken->token);
 
         $this->assertFalse($result->isDeleted());
@@ -651,6 +659,10 @@ class ProjectServiceTest extends UnitTestCase
         $this->entityManager->expects($this->once())
             ->method('flush');
 
+        $this->syncService->expects($this->once())
+            ->method('recordChange')
+            ->with($user, 'project', 'updated', 'project-123', null);
+
         $result = $this->projectService->undoUpdate($user, $undoToken->token);
 
         $this->assertEquals('Previous Name', $result->getName());
@@ -713,6 +725,10 @@ class ProjectServiceTest extends UnitTestCase
 
         $this->entityManager->method('flush');
 
+        $this->syncService->expects($this->once())
+            ->method('recordChange')
+            ->with($user, 'project', 'updated', 'project-123', null);
+
         $result = $this->projectService->undo($user, $undoToken->token);
 
         $this->assertArrayHasKey('project', $result);
@@ -747,6 +763,10 @@ class ProjectServiceTest extends UnitTestCase
             ->willReturn($project);
 
         $this->entityManager->method('flush');
+
+        $this->syncService->expects($this->once())
+            ->method('recordChange')
+            ->with($user, 'project', 'updated', 'project-123', null);
 
         $result = $this->projectService->undo($user, $undoToken->token);
 
@@ -790,6 +810,10 @@ class ProjectServiceTest extends UnitTestCase
             ->willReturn($project);
 
         $this->entityManager->method('flush');
+
+        $this->syncService->expects($this->once())
+            ->method('recordChange')
+            ->with($user, 'project', 'created', 'project-123', null);
 
         $result = $this->projectService->undo($user, $undoToken->token);
 
@@ -996,6 +1020,10 @@ class ProjectServiceTest extends UnitTestCase
         $this->entityManager->method('flush');
         $this->projectRepository->method('normalizePositions');
 
+        $this->syncService->expects($this->once())
+            ->method('recordChange')
+            ->with($user, 'project', 'updated', 'project-123', null);
+
         $result = $this->projectService->reorder($project, 5);
 
         $this->assertArrayHasKey('project', $result);
@@ -1058,6 +1086,10 @@ class ProjectServiceTest extends UnitTestCase
             ->method('flush');
         $this->entityManager->expects($this->once())
             ->method('commit');
+
+        $this->syncService->expects($this->once())
+            ->method('recordChange')
+            ->with($user, 'project', 'updated', 'project-3', null);
 
         $this->projectService->batchReorder($user, null, $projectIds);
 

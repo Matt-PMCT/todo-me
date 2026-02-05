@@ -484,6 +484,10 @@ class TaskServiceTest extends UnitTestCase
             ->with($user, 'undo-token')
             ->willReturn($restoredTask);
 
+        $this->syncService->expects($this->once())
+            ->method('recordChange')
+            ->with($user, 'task', 'created', 'task-123', null);
+
         $result = $this->taskService->undoDelete($user, 'undo-token');
 
         $this->assertSame($restoredTask, $result);
@@ -498,6 +502,10 @@ class TaskServiceTest extends UnitTestCase
             ->method('undoUpdate')
             ->with($user, 'undo-token')
             ->willReturn($restoredTask);
+
+        $this->syncService->expects($this->once())
+            ->method('recordChange')
+            ->with($user, 'task', 'updated', 'task-123', null);
 
         $result = $this->taskService->undoUpdate($user, 'undo-token');
 
@@ -514,9 +522,43 @@ class TaskServiceTest extends UnitTestCase
             ->with($user, 'undo-token')
             ->willReturn($restoredTask);
 
+        $this->syncService->expects($this->once())
+            ->method('recordChange')
+            ->with($user, 'task', 'updated', 'task-123', null);
+
         $result = $this->taskService->undo($user, 'undo-token');
 
         $this->assertSame($restoredTask, $result);
+    }
+
+    // ========================================
+    // Reorder Tests
+    // ========================================
+
+    public function testReorderRecordsSyncChange(): void
+    {
+        $user = $this->createUserWithId();
+        $taskIds = ['task-1', 'task-2', 'task-3'];
+
+        $this->taskRepository->method('reorderTasks');
+
+        $this->syncService->expects($this->once())
+            ->method('recordChange')
+            ->with($user, 'task', 'updated', 'task-1', null);
+
+        $this->taskService->reorder($user, $taskIds);
+    }
+
+    public function testReorderWithEmptyArrayDoesNotRecordSyncChange(): void
+    {
+        $user = $this->createUserWithId();
+
+        $this->taskRepository->method('reorderTasks');
+
+        $this->syncService->expects($this->never())
+            ->method('recordChange');
+
+        $this->taskService->reorder($user, []);
     }
 
     // ========================================

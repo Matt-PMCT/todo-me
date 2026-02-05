@@ -10,6 +10,7 @@ use App\DTO\ProjectSettingsRequest;
 use App\DTO\UpdateProjectRequest;
 use App\Entity\Project;
 use App\Entity\User;
+use App\Enum\UndoAction;
 use App\Exception\BatchSizeLimitExceededException;
 use App\Exception\EntityNotFoundException;
 use App\Exception\InvalidStateException;
@@ -341,7 +342,10 @@ final class ProjectService
      */
     public function undoArchive(User $user, string $token): Project
     {
-        return $this->projectUndoService->undoArchive($user, $token);
+        $project = $this->projectUndoService->undoArchive($user, $token);
+        $this->syncService->recordChange($user, 'project', 'updated', $project->getId(), $this->getOriginTabId());
+
+        return $project;
     }
 
     /**
@@ -359,7 +363,10 @@ final class ProjectService
      */
     public function undoDelete(User $user, string $token): Project
     {
-        return $this->projectUndoService->undoDelete($user, $token);
+        $project = $this->projectUndoService->undoDelete($user, $token);
+        $this->syncService->recordChange($user, 'project', 'created', $project->getId(), $this->getOriginTabId());
+
+        return $project;
     }
 
     /**
@@ -374,7 +381,10 @@ final class ProjectService
      */
     public function undoUpdate(User $user, string $token): Project
     {
-        return $this->projectUndoService->undoUpdate($user, $token);
+        $project = $this->projectUndoService->undoUpdate($user, $token);
+        $this->syncService->recordChange($user, 'project', 'updated', $project->getId(), $this->getOriginTabId());
+
+        return $project;
     }
 
     /**
@@ -393,7 +403,11 @@ final class ProjectService
      */
     public function undo(User $user, string $token): array
     {
-        return $this->projectUndoService->undo($user, $token);
+        $result = $this->projectUndoService->undo($user, $token);
+        $syncAction = $result['action'] === UndoAction::DELETE->value ? 'created' : 'updated';
+        $this->syncService->recordChange($user, 'project', $syncAction, $result['project']->getId(), $this->getOriginTabId());
+
+        return $result;
     }
 
     /**
@@ -524,6 +538,8 @@ final class ProjectService
         // Invalidate cache
         $this->projectCacheService->invalidate($ownerId);
 
+        $this->syncService->recordChange($user, 'project', 'updated', $project->getId(), $this->getOriginTabId());
+
         return [
             'project' => $project,
             'undoToken' => $undoToken,
@@ -587,6 +603,10 @@ final class ProjectService
 
         // Invalidate cache
         $this->projectCacheService->invalidate($ownerId);
+
+        if (count($projectIds) > 0) {
+            $this->syncService->recordChange($user, 'project', 'updated', $projectIds[0], $this->getOriginTabId());
+        }
     }
 
     /**

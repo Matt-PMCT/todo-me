@@ -661,6 +661,9 @@ final class TaskService
     public function reorder(User $user, array $taskIds): void
     {
         $this->taskRepository->reorderTasks($user, $taskIds);
+        if (count($taskIds) > 0) {
+            $this->syncService->recordChange($user, 'task', 'updated', $taskIds[0], $this->getOriginTabId());
+        }
     }
 
     /**
@@ -676,7 +679,10 @@ final class TaskService
      */
     public function undo(User $user, string $token): Task
     {
-        return $this->taskUndoService->undo($user, $token);
+        $task = $this->taskUndoService->undo($user, $token);
+        $this->syncService->recordChange($user, 'task', 'updated', $task->getId(), $this->getOriginTabId());
+
+        return $task;
     }
 
     /**
@@ -691,7 +697,10 @@ final class TaskService
      */
     public function undoDelete(User $user, string $token): Task
     {
-        return $this->taskUndoService->undoDelete($user, $token);
+        $task = $this->taskUndoService->undoDelete($user, $token);
+        $this->syncService->recordChange($user, 'task', 'created', $task->getId(), $this->getOriginTabId());
+
+        return $task;
     }
 
     /**
@@ -707,7 +716,10 @@ final class TaskService
      */
     public function undoUpdate(User $user, string $token): Task
     {
-        return $this->taskUndoService->undoUpdate($user, $token);
+        $task = $this->taskUndoService->undoUpdate($user, $token);
+        $this->syncService->recordChange($user, 'task', 'updated', $task->getId(), $this->getOriginTabId());
+
+        return $task;
     }
 
     /**

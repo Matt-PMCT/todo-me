@@ -121,7 +121,7 @@ document.addEventListener('alpine:init', () => {
 
         handleTaskChange(action, entityId) {
             if (action === 'deleted') {
-                const el = document.querySelector(`[data-task-id="${entityId}"]`);
+                const el = document.querySelector(`[data-task-id="${CSS.escape(entityId)}"]`);
                 if (el) {
                     el.style.transition = 'opacity 0.3s, transform 0.3s';
                     el.style.opacity = '0';
