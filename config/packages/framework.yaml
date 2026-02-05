@@ -16,6 +16,7 @@ framework:
         cookie_secure: auto
         cookie_samesite: strict
         storage_factory_id: session.storage.factory.native
+        gc_maxlifetime: 172800  # Match remember-me lifetime (48 hours)
 
     #esi: true
     #fragments: true
@@ -41,6 +42,9 @@ when@test:
 
 when@prod:
     framework:
+        session:
+            gc_maxlifetime: 172800  # Match remember-me lifetime (48 hours)
+
         # Asset configuration for production
         # X-Forwarded-Prefix header from reverse proxy automatically handles path prefix
         # No explicit base_path needed - Request::getBasePath() includes the prefix

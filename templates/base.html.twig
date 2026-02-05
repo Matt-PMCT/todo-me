@@ -15,6 +15,13 @@
                 document.documentElement.classList.add('dark');
             }
         })();
+
+        // Reload when restored from bfcache to ensure fresh CSRF token
+        window.addEventListener('pageshow', function(event) {
+            if (event.persisted) {
+                window.location.reload();
+            }
+        });
     </script>
 
     <!-- Tailwind CSS (compiled locally) -->
@@ -66,6 +73,13 @@
                     headers,
                     credentials: 'same-origin'  // Send session cookie
                 });
+
+                // Detect expired sessions on state-changing requests
+                if (response.status === 401 && ['POST', 'PUT', 'PATCH', 'DELETE'].includes(method)) {
+                    if (window.showToast) {
+                        window.showToast('Your session has expired. Please reload the page.', 'error');
+                    }
+                }
 
                 return response;
             },
