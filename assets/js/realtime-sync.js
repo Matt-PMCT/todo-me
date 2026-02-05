@@ -83,6 +83,13 @@ document.addEventListener('alpine:init', () => {
                 this.consecutiveFailures = 0;
                 this.interval = this.baseInterval;
 
+                if (data.version < this.version) {
+                    // Server version reset (Redis restart). Reset and reload.
+                    this.version = data.version;
+                    this.debouncedReload();
+                    return;
+                }
+
                 if (data.version > this.version) {
                     this.version = data.version;
                     this.processChanges(data.changes || []);

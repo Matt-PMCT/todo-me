@@ -157,4 +157,41 @@ class SyncApiTest extends ApiTestCase
         $this->assertEmpty($data['changes']);
         $this->assertSame($currentVersion, $data['version']);
     }
+
+    public function testPollClampsNegativeLastVersion(): void
+    {
+        $user = $this->createUser('sync-neg@example.com', 'Password123');
+
+        $response = $this->authenticatedApiRequest(
+            $user,
+            'GET',
+            '/api/v1/sync/poll?lastVersion=-5'
+        );
+
+        $this->assertResponseStatusCode(Response::HTTP_OK, $response);
+
+        $data = $this->getResponseData($response);
+        $this->assertArrayHasKey('version', $data);
+        $this->assertArrayHasKey('changes', $data);
+    }
+
+    public function testPollTruncatesLongTabId(): void
+    {
+        $user = $this->createUser('sync-longtab@example.com', 'Password123');
+
+        $longTabId = str_repeat('a', 200);
+
+        $response = $this->authenticatedApiRequest(
+            $user,
+            'GET',
+            '/api/v1/sync/poll?lastVersion=0',
+            null,
+            ['X-Tab-Id' => $longTabId]
+        );
+
+        $this->assertResponseStatusCode(Response::HTTP_OK, $response);
+
+        $data = $this->getResponseData($response);
+        $this->assertArrayHasKey('version', $data);
+    }
 }

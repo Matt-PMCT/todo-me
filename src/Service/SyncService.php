@@ -43,6 +43,9 @@ final class SyncService implements SyncServiceInterface
         // Increment version
         $version = $this->redisService->increment($versionKey);
 
+        // Set TTL on version key (expires with changes list during inactivity)
+        $this->redisService->expire($versionKey, self::CHANGES_TTL);
+
         // Build change entry
         $change = [
             'version' => $version,

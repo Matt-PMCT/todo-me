@@ -70,8 +70,11 @@ final class SyncController extends AbstractController
             );
         }
 
-        $lastVersionInt = (int) $lastVersion;
+        $lastVersionInt = max(0, (int) $lastVersion);
         $originTabId = $request->headers->get('X-Tab-Id');
+        if ($originTabId !== null && strlen($originTabId) > 64) {
+            $originTabId = substr($originTabId, 0, 64);
+        }
 
         $result = $this->syncService->getChangesSince($user, $lastVersionInt);
 

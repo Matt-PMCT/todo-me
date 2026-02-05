@@ -50,11 +50,21 @@ class SyncServiceTest extends UnitTestCase
             ->method('listTrim')
             ->with('sync:changes:user-abc', -100, -1);
 
-        $this->redisService->expects($this->once())
+        $expireCalls = [];
+        $this->redisService->expects($this->exactly(2))
             ->method('expire')
-            ->with('sync:changes:user-abc', 300);
+            ->willReturnCallback(function (string $key, int $ttl) use (&$expireCalls): bool {
+                $expireCalls[] = [$key, $ttl];
+
+                return true;
+            });
 
         $this->syncService->recordChange($user, 'task', 'created', 'task-123', 'tab-1');
+
+        $this->assertSame([
+            ['sync:version:user-abc', 300],
+            ['sync:changes:user-abc', 300],
+        ], $expireCalls);
     }
 
     public function testRecordChangeWithNullTabId(): void
@@ -182,5 +192,33 @@ class SyncServiceTest extends UnitTestCase
 
         $version = $this->syncService->getCurrentVersion($user);
         $this->assertSame(0, $version);
+    }
+
+    public function testRecordChangeSetsVersionKeyTtl(): void
+    {
+        $user = $this->createUserWithId('user-ttl');
+
+        $this->redisService->method('increment')
+            ->willReturn(5);
+
+        $this->redisService->method('listPush');
+        $this->redisService->method('listTrim');
+
+        $expiredKeys = [];
+        $this->redisService->expects($this->exactly(2))
+            ->method('expire')
+            ->willReturnCallback(function (string $key, int $ttl) use (&$expiredKeys): bool {
+                $expiredKeys[$key] = $ttl;
+
+                return true;
+            });
+
+        $this->syncService->recordChange($user, 'task', 'updated', 'task-456', 'tab-x');
+
+        // Both version and changes keys get the same TTL
+        $this->assertArrayHasKey('sync:version:user-ttl', $expiredKeys);
+        $this->assertArrayHasKey('sync:changes:user-ttl', $expiredKeys);
+        $this->assertSame(300, $expiredKeys['sync:version:user-ttl']);
+        $this->assertSame(300, $expiredKeys['sync:changes:user-ttl']);
     }
 }

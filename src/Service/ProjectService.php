@@ -48,7 +48,12 @@ final class ProjectService
 
     private function getOriginTabId(): ?string
     {
-        return $this->requestStack->getCurrentRequest()?->headers->get('X-Tab-Id');
+        $tabId = $this->requestStack->getCurrentRequest()?->headers->get('X-Tab-Id');
+        if ($tabId !== null && strlen($tabId) > 64) {
+            $tabId = substr($tabId, 0, 64);
+        }
+
+        return $tabId;
     }
 
     /**
