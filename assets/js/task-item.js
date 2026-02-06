@@ -3,7 +3,7 @@
  * Used by _task_item.html.twig across all view pages (list, today, upcoming, etc.).
  */
 document.addEventListener('alpine:init', () => {
-    window.taskItem = function (taskId, initialStatus, initialPriority, initialDueDate, initialDueTime, initialProjectId, initialProjectName) {
+    window.taskItem = function (taskId, initialStatus, initialPriority, initialDueDate, initialDueTime, initialProjectId, initialProjectName, initialProjectColor) {
         return {
             taskId: taskId,
             status: initialStatus,
@@ -16,6 +16,7 @@ document.addEventListener('alpine:init', () => {
             dueTime: initialDueTime || '',
             projectId: initialProjectId || '',
             projectName: initialProjectName || '',
+            projectColor: initialProjectColor || '',
             statusDropdownOpen: false,
             priorityDropdownOpen: false,
             dueDateDropdownOpen: false,
@@ -114,14 +115,25 @@ document.addEventListener('alpine:init', () => {
                 }
             },
 
+            flattenTree(nodes, depth = 0) {
+                const result = [];
+                for (const node of (nodes || [])) {
+                    result.push({ id: node.id, name: node.name, color: node.color || '', depth });
+                    if (node.children && node.children.length > 0) {
+                        result.push(...this.flattenTree(node.children, depth + 1));
+                    }
+                }
+                return result;
+            },
+
             async loadProjects() {
                 if (this.projectsLoaded) return;
 
                 try {
-                    const response = await window.api.get('/api/v1/projects');
+                    const response = await window.api.get('/api/v1/projects/tree');
                     const data = await response.json();
                     if (data.success && data.data) {
-                        this.projects = data.data.items || [];
+                        this.projects = this.flattenTree(data.data);
                         this.projectsLoaded = true;
                     }
                 } catch (error) {
@@ -138,7 +150,7 @@ document.addEventListener('alpine:init', () => {
                 await this.loadProjects();
             },
 
-            async setProject(newProjectId, newProjectName) {
+            async setProject(newProjectId, newProjectName, newProjectColor) {
                 if (this.isUpdating) {
                     this.projectDropdownOpen = false;
                     return;
@@ -154,6 +166,7 @@ document.addEventListener('alpine:init', () => {
                     if (data.success) {
                         this.projectId = newProjectId || '';
                         this.projectName = newProjectName || '';
+                        this.projectColor = newProjectColor || '';
                     } else {
                         console.error('Failed to update project:', data.error);
                     }

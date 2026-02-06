@@ -1,6 +1,6 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}My Tasks - {{ app_name }}{% endblock %}
+{% block title %}{% if selected_project is defined and selected_project %}{{ selected_project.name }} - {% endif %}My Tasks - {{ app_name }}{% endblock %}
 
 {% block use_sidebar %}true{% endblock %}
 
@@ -11,8 +11,13 @@
         {# Page header - Issue #63: inline task count to save mobile vertical space #}
         <div class="sm:flex sm:items-center sm:justify-between">
             <div>
-                <h1 class="text-2xl font-bold leading-7 text-gray-900 dark:text-gray-100 sm:truncate sm:text-3xl sm:tracking-tight">
-                    My Tasks
+                <h1 class="text-2xl font-bold leading-7 text-gray-900 dark:text-gray-100 sm:truncate sm:text-3xl sm:tracking-tight flex items-center gap-2">
+                    {% if selected_project is defined and selected_project %}
+                        <span class="inline-block w-4 h-4 rounded-full flex-shrink-0" style="background-color: {{ selected_project.color ?? '#6366f1' }}"></span>
+                        {{ selected_project.name }}
+                    {% else %}
+                        My Tasks
+                    {% endif %}
                     <span class="text-sm font-normal text-gray-500 dark:text-gray-400 ml-2">({{ tasks|length }})</span>
                 </h1>
             </div>

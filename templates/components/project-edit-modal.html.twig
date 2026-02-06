@@ -119,11 +119,11 @@
                                        id="project-edit-color"
                                        x-model="form.color"
                                        class="h-8 w-8 rounded cursor-pointer border-0 p-0">
-                                <div class="flex gap-2">
+                                <div class="flex flex-wrap gap-2">
                                     <template x-for="color in presetColors" :key="color">
                                         <button type="button"
                                                 @click="form.color = color"
-                                                :class="{ 'ring-2 ring-offset-2 ring-teal-500': form.color === color }"
+                                                :class="{ 'ring-2 ring-offset-2 ring-teal-500 dark:ring-offset-gray-800': form.color === color }"
                                                 :style="'background-color: ' + color"
                                                 class="h-6 w-6 rounded-full cursor-pointer border border-gray-200 dark:border-gray-600">
                                             <span class="sr-only" x-text="'Select color ' + color"></span>
@@ -163,7 +163,7 @@ document.addEventListener('alpine:init', () => {
         saving: false,
         error: null,
         projectId: null,
-        presetColors: ['#6366f1', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4'],
+        presetColors: ['#6366f1', '#ec4899', '#10b981', '#f97316', '#f59e0b', '#14b8a6', '#ef4444', '#3b82f6', '#8b5cf6', '#84cc16', '#06b6d4', '#a855f7'],
         form: {
             name: '',
             description: '',

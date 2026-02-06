@@ -111,18 +111,69 @@
                         </div>
                     </div>
 
-                    {# Project #}
-                    <div>
-                        <label for="edit-project" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Project</label>
-                        <select id="edit-project"
-                                x-model="form.projectId"
-                                @change="form.clearProject = ($event.target.value === '')"
-                                class="mt-1 block w-full rounded-md border-0 py-2 pl-3 pr-10 text-gray-900 dark:text-gray-100 dark:bg-gray-700 ring-1 ring-inset ring-gray-300 dark:ring-gray-600 focus:ring-2 focus:ring-teal-600 dark:focus:ring-teal-400 sm:text-sm sm:leading-6">
-                            <option value="">No Project</option>
-                            <template x-for="project in projects" :key="project.id">
-                                <option :value="project.id" x-text="project.name"></option>
+                    {# Project - Custom dropdown with color dots + hierarchy #}
+                    <div class="relative">
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Project</label>
+                        <button type="button"
+                                @click="projectDropdownOpen = !projectDropdownOpen"
+                                class="mt-1 relative w-full rounded-md border-0 bg-white dark:bg-gray-700 py-2 pl-3 pr-10 text-left text-gray-900 dark:text-gray-100 shadow-sm ring-1 ring-inset ring-gray-300 dark:ring-gray-600 focus:ring-2 focus:ring-inset focus:ring-teal-600 dark:focus:ring-teal-400 sm:text-sm sm:leading-6 cursor-pointer">
+                            <span class="flex items-center gap-2">
+                                <template x-if="selectedProject">
+                                    <span class="w-3 h-3 rounded-full flex-shrink-0" :style="'background-color: ' + (selectedProject.color || '#808080')"></span>
+                                </template>
+                                <span x-text="selectedProject ? selectedProject.name : 'No Project'" :class="!selectedProject ? 'text-gray-500 dark:text-gray-400' : ''"></span>
+                            </span>
+                            <span class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
+                                <svg class="h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clip-rule="evenodd" />
+                                </svg>
+                            </span>
+                        </button>
+
+                        {# Dropdown panel #}
+                        <div x-show="projectDropdownOpen"
+                             x-cloak
+                             @click.away="projectDropdownOpen = false"
+                             @keydown.escape.stop="projectDropdownOpen = false"
+                             x-transition:enter="transition ease-out duration-100"
+                             x-transition:enter-start="transform opacity-0 scale-95"
+                             x-transition:enter-end="transform opacity-100 scale-100"
+                             x-transition:leave="transition ease-in duration-75"
+                             x-transition:leave-start="transform opacity-100 scale-100"
+                             x-transition:leave-end="transform opacity-0 scale-95"
+                             class="absolute z-20 mt-1 w-full rounded-md bg-white dark:bg-gray-800 shadow-lg ring-1 ring-black ring-opacity-5 dark:ring-gray-700 py-1 max-h-64 overflow-y-auto">
+                            {# No Project option #}
+                            <button type="button"
+                                    @click="form.projectId = ''; form.clearProject = true; projectDropdownOpen = false"
+                                    class="flex w-full items-center gap-2 px-3 py-1.5 text-sm hover:bg-gray-100 dark:hover:bg-gray-700"
+                                    :class="!form.projectId ? 'bg-gray-100 dark:bg-gray-600' : ''">
+                                <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                </svg>
+                                <span class="text-gray-500 dark:text-gray-400">No Project</span>
+                            </button>
+
+                            <div class="border-t dark:border-gray-700 my-1"></div>
+
+                            {# Project list with colors + hierarchy #}
+                            <template x-for="proj in flattenedProjects" :key="proj.id">
+                                <button type="button"
+                                        @click="form.projectId = proj.id; form.clearProject = false; projectDropdownOpen = false"
+                                        class="flex w-full items-center gap-2 py-1.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                                        :class="form.projectId === proj.id ? 'bg-gray-100 dark:bg-gray-600' : ''"
+                                        :style="'padding-left: ' + (12 + (proj.depth || 0) * 16) + 'px; padding-right: 12px'">
+                                    <span class="w-3 h-3 rounded-full flex-shrink-0" :style="'background-color: ' + (proj.color || '#808080')"></span>
+                                    <span x-text="proj.name"></span>
+                                </button>
                             </template>
-                        </select>
+
+                            {# Empty state #}
+                            <template x-if="flattenedProjects.length === 0">
+                                <div class="px-3 py-2 text-sm text-gray-500 dark:text-gray-400">
+                                    No projects available
+                                </div>
+                            </template>
+                        </div>
                     </div>
 
                     {# Due Date and Time row #}
@@ -183,6 +234,7 @@ function taskEditModal() {
         isSaving: false,
         errorMessage: '',
         taskId: null,
+        projectDropdownOpen: false,
         form: {
             title: '',
             description: '',
@@ -197,17 +249,37 @@ function taskEditModal() {
         },
         projects: [],
 
+        get flattenedProjects() {
+            const result = [];
+            const flatten = (nodes, depth = 0) => {
+                for (const node of (nodes || [])) {
+                    result.push({ id: node.id, name: node.name, color: node.color || '', depth });
+                    if (node.children && node.children.length > 0) {
+                        flatten(node.children, depth + 1);
+                    }
+                }
+            };
+            flatten(this.projects);
+            return result;
+        },
+
+        get selectedProject() {
+            if (!this.form.projectId) return null;
+            return this.flattenedProjects.find(p => p.id === this.form.projectId) || null;
+        },
+
         async openModal(taskId) {
             this.taskId = taskId;
             this.isOpen = true;
             this.isLoading = true;
             this.errorMessage = '';
+            this.projectDropdownOpen = false;
 
             try {
-                // Fetch task data and projects in parallel
+                // Fetch task data and projects tree in parallel
                 const [taskResponse, projectsResponse] = await Promise.all([
                     window.api.get('/api/v1/tasks/' + taskId),
-                    window.api.get('/api/v1/projects')
+                    window.api.get('/api/v1/projects/tree')
                 ]);
 
                 if (!taskResponse.ok) {
@@ -230,11 +302,11 @@ function taskEditModal() {
                     this.form.clearDueTime = false;
                 }
 
-                // Load projects list
+                // Load projects tree
                 if (projectsResponse.ok) {
                     const projectsResult = await projectsResponse.json();
                     if (projectsResult.success && projectsResult.data) {
-                        this.projects = projectsResult.data.items || [];
+                        this.projects = projectsResult.data;
                     }
                 }
             } catch (error) {
@@ -249,6 +321,7 @@ function taskEditModal() {
             this.isOpen = false;
             this.taskId = null;
             this.errorMessage = '';
+            this.projectDropdownOpen = false;
             this.form = {
                 title: '',
                 description: '',

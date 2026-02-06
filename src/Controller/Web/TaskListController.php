@@ -70,6 +70,17 @@ class TaskListController extends AbstractController
         // Get user's projects for filter dropdown
         $projects = $this->projectRepository->findByOwner($user);
 
+        $selectedProject = null;
+        if ($projectId) {
+            foreach ($projects as $project) {
+                if ((string) $project->getId() === $projectId) {
+                    $selectedProject = $project;
+
+                    break;
+                }
+            }
+        }
+
         // Check if grouping by project is requested
         $groupByProject = $request->query->getBoolean('groupByProject', false);
 
@@ -109,6 +120,7 @@ class TaskListController extends AbstractController
             'sidebar_tags' => $sidebarTags,
             'sidebar_tags_total' => $sidebarTagsTotal,
             'selected_project_id' => $projectId,
+            'selected_project' => $selectedProject,
         ]);
     }
 
