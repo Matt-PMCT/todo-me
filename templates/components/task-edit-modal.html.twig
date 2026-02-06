@@ -306,7 +306,7 @@ function taskEditModal() {
                 if (projectsResponse.ok) {
                     const projectsResult = await projectsResponse.json();
                     if (projectsResult.success && projectsResult.data) {
-                        this.projects = projectsResult.data;
+                        this.projects = projectsResult.data.projects;
                     }
                 }
             } catch (error) {

@@ -133,7 +133,7 @@ document.addEventListener('alpine:init', () => {
                     const response = await window.api.get('/api/v1/projects/tree');
                     const data = await response.json();
                     if (data.success && data.data) {
-                        this.projects = this.flattenTree(data.data);
+                        this.projects = this.flattenTree(data.data.projects);
                         this.projectsLoaded = true;
                     }
                 } catch (error) {

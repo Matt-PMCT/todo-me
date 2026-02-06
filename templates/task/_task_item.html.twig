@@ -5,7 +5,7 @@
      data-task-id="{{ task.id }}"
      class="bg-white dark:bg-gray-800 shadow dark:shadow-none ring-1 ring-gray-200/50 dark:ring-gray-700 rounded-lg {{ taskSpacing|default('comfortable') == 'compact' ? 'px-4 py-2' : 'p-4' }} hover:shadow-md dark:hover:ring-gray-600 transition-shadow duration-200 {% if overdueInfo is defined and overdueInfo.isOverdue %}{{ overdueInfo.borderClass }}{% elseif task.isOverdue %}border-l-4 border-l-red-500{% endif %}"
      :class="{ 'relative z-50': actionsMenuOpen || statusDropdownOpen || priorityDropdownOpen || dueDateDropdownOpen || projectDropdownOpen }"
-     x-data="taskItem('{{ task.id }}', '{{ task.status }}', {{ task.priority }}, '{{ task.dueDate ? task.dueDate|date('Y-m-d') : '' }}', '{{ task.dueTime ? task.dueTime|date('H:i') : '' }}', '{{ task.project ? task.project.id : '' }}', '{{ task.project ? task.project.name|e('js') : '' }}', '{{ task.project ? task.project.color|default('#6366f1') : '' }}')"
+     x-data="taskItem('{{ task.id }}', '{{ task.status }}', {{ task.priority }}, '{{ task.dueDate ? task.dueDate|date('Y-m-d') : '' }}', '{{ task.dueTime ? task.dueTime|date('H:i') : '' }}', '{{ task.project ? task.project.id : '' }}', '{{ task.project ? task.project.name|e('js') : '' }}', '{{ task.project ? task.project.color|default('#808080') : '' }}')"
      @closeAll.window="showDeleteModal = false; actionsMenuOpen = false; statusDropdownOpen = false; priorityDropdownOpen = false; dueDateDropdownOpen = false; projectDropdownOpen = false"
      @toggle-subtasks.window="if ($event.detail.taskId === '{{ task.id }}') { $store.subtasks?.toggle('{{ task.id }}') }"
      tabindex="-1">
@@ -283,7 +283,7 @@
                             <div>
                                 {# No project option #}
                                 <button type="button"
-                                        @click="setProject('', '')"
+                                        @click="setProject('', '', '')"
                                         class="flex w-full items-center gap-2 px-3 py-1.5 text-sm hover:bg-gray-100 dark:hover:bg-gray-700"
                                         :class="!projectId ? 'bg-gray-100 dark:bg-gray-600' : ''">
                                     <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
