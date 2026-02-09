@@ -10,8 +10,10 @@ RUN apt-get update && apt-get install -y \
     libpq-dev \
     libzip-dev \
     libicu-dev \
+    libfcgi-bin \
     zip \
     unzip \
+    procps \
     && rm -rf /var/lib/apt/lists/*
 
 # Install PHP extensions
@@ -56,6 +58,10 @@ RUN groupadd -g 1000 www \
 
 # Set permissions
 RUN chown -R www:www /var/www/html
+
+# Install health check script
+COPY healthcheck.sh /usr/local/bin/healthcheck.sh
+RUN chmod +x /usr/local/bin/healthcheck.sh
 
 # Expose port 9000 for PHP-FPM
 EXPOSE 9000
