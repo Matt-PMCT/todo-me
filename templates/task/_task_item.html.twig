@@ -45,11 +45,11 @@
                             :disabled="isUpdating"
                             aria-haspopup="true"
                             :aria-expanded="statusDropdownOpen"
-                            class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium cursor-pointer hover:ring-2 hover:ring-offset-1 dark:hover:ring-offset-gray-800 transition-shadow"
+                            class="items-center rounded-full px-2.5 py-0.5 text-xs font-medium cursor-pointer hover:ring-2 hover:ring-offset-1 dark:hover:ring-offset-gray-800 transition-shadow"
                             :class="{
-                                'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300 hover:ring-gray-300 dark:hover:ring-gray-600': status === 'pending',
-                                'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300 hover:ring-blue-300 dark:hover:ring-blue-700': status === 'in_progress',
-                                'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300 hover:ring-green-300 dark:hover:ring-green-700': status === 'completed'
+                                'hidden sm:inline-flex bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300 hover:ring-gray-300 dark:hover:ring-gray-600': status === 'pending',
+                                'inline-flex bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300 hover:ring-blue-300 dark:hover:ring-blue-700': status === 'in_progress',
+                                'inline-flex bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300 hover:ring-green-300 dark:hover:ring-green-700': status === 'completed'
                             }"
                             :title="'Status: ' + (status === 'pending' ? 'Pending' : status === 'in_progress' ? 'In Progress' : 'Completed') + ' - Click to change'"
                             x-text="status === 'pending' ? 'Pending' : status === 'in_progress' ? 'In Progress' : 'Completed'">
