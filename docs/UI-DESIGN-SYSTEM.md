@@ -52,7 +52,7 @@ Primary (Teal)
 
 ```
 Status Colors
-├── Pending:     yellow-400 (#FBBF24), yellow-100 bg, yellow-800 text
+├── Pending:     gray-400   (#9CA3AF), gray-100 bg, gray-800 text
 ├── In Progress: blue-400   (#60A5FA), blue-100 bg, blue-800 text
 ├── Completed:   green-400  (#4ADE80), green-100 bg, green-800 text
 └── Overdue:     red-500    (#EF4444), red-100 bg, red-800 text
@@ -117,7 +117,7 @@ Dark Mode Borders
 └── Focus:       teal-400 (#2DD4BF) - Focus rings
 
 Dark Mode Status Badges
-├── Pending:     yellow-900/30 bg, yellow-300 text
+├── Pending:     gray-700 bg, gray-300 text
 ├── In Progress: blue-900/30 bg, blue-300 text
 ├── Completed:   green-900/30 bg, green-300 text
 └── Overdue:     red-900/30 bg, red-300 text
@@ -1061,7 +1061,8 @@ Before shipping any UI component, verify:
 | gray-700 | #374151 | Secondary text |
 | gray-500 | #6B7280 | Muted text |
 | gray-50 | #F9FAFB | Page background |
-| yellow-400 | #FBBF24 | Pending, priority stars |
+| yellow-400 | #FBBF24 | Priority stars |
+| gray-400 | #9CA3AF | Pending status |
 | blue-400 | #60A5FA | In progress |
 | green-500 | #22C55E | Success, completed |
 | red-500 | #EF4444 | Error, overdue, delete |
@@ -1078,7 +1079,7 @@ Before shipping any UI component, verify:
 | gray-100 | #F3F4F6 | Primary text |
 | gray-300 | #D1D5DB | Secondary text |
 | gray-400 | #9CA3AF | Muted text |
-| yellow-300 | #FDE047 | Pending badge text |
+| gray-300 | #D1D5DB | Pending badge text |
 | blue-300 | #93C5FD | In progress badge text |
 | green-300 | #86EFAC | Completed badge text |
 | red-300 | #FCA5A5 | Error badge text |
