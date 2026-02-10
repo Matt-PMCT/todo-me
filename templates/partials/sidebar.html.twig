@@ -13,8 +13,9 @@
   - tags_total: int - Total number of user's tags (for "Manage Tags" link)
 #}
 
-{# Mobile backdrop overlay - Issue #63: Defensive check for sidebar store #}
-<div x-show="$store.sidebar?.open"
+{# Mobile backdrop overlay #}
+<div x-data
+     x-show="$store.sidebar?.open"
      x-cloak
      @click="$store.sidebar && ($store.sidebar.open = false)"
      x-transition:enter="transition ease-out duration-300"
@@ -26,15 +27,16 @@
      class="fixed inset-0 z-30 bg-gray-500/75 dark:bg-gray-900/80 md:hidden"
      aria-hidden="true"></div>
 
-{# Sidebar - Issue #63: Defensive check for sidebar store #}
-<aside class="fixed inset-y-0 left-0 z-40 w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 overflow-y-auto
+{# Sidebar — x-data required so Alpine processes :class, @keydown, etc. #}
+<aside x-data
+       class="fixed inset-y-0 left-0 z-40 w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 overflow-y-auto
               transform transition-transform duration-300 ease-in-out
               -translate-x-full
               md:relative md:translate-x-0 md:z-auto md:flex-shrink-0"
        :class="{ 'translate-x-0 md:translate-x-0': $store.sidebar?.open }"
        @keydown.escape.window="$store.sidebar && ($store.sidebar.open = false)">
 
-    {# Mobile close button - Issue #63: Defensive check for sidebar store #}
+    {# Mobile close button #}
     <div class="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700 md:hidden">
         <span class="text-sm font-semibold text-gray-900 dark:text-gray-100">Navigation</span>
         <button @click="$store.sidebar && ($store.sidebar.open = false)"
