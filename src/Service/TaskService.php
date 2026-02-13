@@ -140,6 +140,12 @@ final class TaskService
             }
 
             $task->setParentTask($parentTask);
+
+            // Inherit parent's project if subtask has no explicit project
+            if ($project === null && $parentTask->getProject() !== null) {
+                $task->setProject($parentTask->getProject());
+                $project = $parentTask->getProject();
+            }
         }
 
         // Set position to max + 1
@@ -405,6 +411,16 @@ final class TaskService
             $task->setProject($project);
         } elseif ($dto->clearProject) {
             $task->setProject(null);
+        }
+
+        // Cascade project changes to subtasks (only from parent tasks)
+        if (($dto->projectId !== null || $dto->clearProject) && $task->getParentTask() === null) {
+            foreach ($task->getSubtasks() as $subtask) {
+                if ($subtask->getProject() !== $task->getProject()) {
+                    $subtask->setProject($task->getProject());
+                    $this->syncService->recordChange($task->getOwner(), 'task', 'updated', $subtask->getId(), $this->getOriginTabId());
+                }
+            }
         }
 
         // Update tags

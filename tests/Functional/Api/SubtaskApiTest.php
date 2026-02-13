@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Tests\Functional\Api;
 
+use App\Entity\Project;
 use App\Entity\Task;
 use App\Tests\Functional\ApiTestCase;
 use Symfony\Component\HttpFoundation\Response;
@@ -369,5 +370,103 @@ class SubtaskApiTest extends ApiTestCase
         // Verify that at least some items have parentTaskId
         $subtasks = array_filter($data['items'], fn ($task) => isset($task['parentTaskId']));
         $this->assertCount(2, $subtasks);
+    }
+
+    // ========================================
+    // Subtask Project Inheritance Tests (Issue #112)
+    // ========================================
+
+    public function testSubtaskInheritsParentProject(): void
+    {
+        $user = $this->createUser('subtask-inherit-project@example.com', 'Password123');
+        $project = $this->createProject($user, 'Test Project');
+        $parentTask = $this->createTask($user, 'Parent Task', project: $project);
+
+        // Create subtask without specifying a project
+        $response = $this->authenticatedApiRequest(
+            $user,
+            'POST',
+            '/api/v1/tasks/'.$parentTask->getId().'/subtasks',
+            ['title' => 'Subtask inherits project']
+        );
+
+        $this->assertResponseStatusCode(Response::HTTP_CREATED, $response);
+
+        $data = $this->getResponseData($response);
+
+        $this->assertNotNull($data['project']);
+        $this->assertEquals($project->getId(), $data['project']['id']);
+    }
+
+    public function testProjectChangeCascadesToSubtasks(): void
+    {
+        $user = $this->createUser('subtask-cascade-project@example.com', 'Password123');
+        $projectA = $this->createProject($user, 'Project A');
+        $projectB = $this->createProject($user, 'Project B');
+        $parentTask = $this->createTask($user, 'Parent Task', project: $projectA);
+
+        // Create subtask (inherits project A)
+        $subtaskResponse = $this->authenticatedApiRequest(
+            $user,
+            'POST',
+            '/api/v1/tasks/'.$parentTask->getId().'/subtasks',
+            ['title' => 'Subtask 1']
+        );
+        $subtaskId = $this->getResponseData($subtaskResponse)['id'];
+
+        // Change parent's project to B
+        $this->authenticatedApiRequest(
+            $user,
+            'PATCH',
+            '/api/v1/tasks/'.$parentTask->getId(),
+            ['projectId' => $projectB->getId()]
+        );
+
+        // Verify subtask now has project B
+        $response = $this->authenticatedApiRequest(
+            $user,
+            'GET',
+            '/api/v1/tasks/'.$subtaskId
+        );
+
+        $this->assertResponseStatusCode(Response::HTTP_OK, $response);
+        $data = $this->getResponseData($response);
+        $this->assertNotNull($data['project']);
+        $this->assertEquals($projectB->getId(), $data['project']['id']);
+    }
+
+    public function testClearProjectCascadesToSubtasks(): void
+    {
+        $user = $this->createUser('subtask-clear-project@example.com', 'Password123');
+        $project = $this->createProject($user, 'Test Project');
+        $parentTask = $this->createTask($user, 'Parent Task', project: $project);
+
+        // Create subtask (inherits project)
+        $subtaskResponse = $this->authenticatedApiRequest(
+            $user,
+            'POST',
+            '/api/v1/tasks/'.$parentTask->getId().'/subtasks',
+            ['title' => 'Subtask 1']
+        );
+        $subtaskId = $this->getResponseData($subtaskResponse)['id'];
+
+        // Clear parent's project
+        $this->authenticatedApiRequest(
+            $user,
+            'PATCH',
+            '/api/v1/tasks/'.$parentTask->getId(),
+            ['clearProject' => true]
+        );
+
+        // Verify subtask also has no project
+        $response = $this->authenticatedApiRequest(
+            $user,
+            'GET',
+            '/api/v1/tasks/'.$subtaskId
+        );
+
+        $this->assertResponseStatusCode(Response::HTTP_OK, $response);
+        $data = $this->getResponseData($response);
+        $this->assertNull($data['project']);
     }
 }

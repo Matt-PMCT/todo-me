@@ -126,6 +126,9 @@ class TaskRepository extends ServiceEntityRepository
                 ->setParameter('search', $searchTerm);
         }
 
+        // Exclude subtasks from top-level views
+        $qb->andWhere('t.parentTask IS NULL');
+
         // Make sure we get distinct results when joining tags
         $qb->distinct();
 
@@ -225,6 +228,8 @@ class TaskRepository extends ServiceEntityRepository
             ->setParameter('today', new \DateTimeImmutable('today'))
             ->setParameter('completed', Task::STATUS_COMPLETED);
 
+        $qb->andWhere('t.parentTask IS NULL');
+
         if ($sortRequest !== null) {
             $this->applySorting($qb, $sortRequest);
         } else {
@@ -255,6 +260,7 @@ class TaskRepository extends ServiceEntityRepository
             ->andWhere('t.dueDate >= :today')
             ->andWhere('t.dueDate <= :endDate')
             ->andWhere('t.status != :completed')
+            ->andWhere('t.parentTask IS NULL')
             ->setParameter('owner', $owner)
             ->setParameter('today', $today)
             ->setParameter('endDate', $endDate)
@@ -758,6 +764,7 @@ class TaskRepository extends ServiceEntityRepository
             ->where('t.owner = :owner')
             ->andWhere('t.dueDate <= :endOfToday')
             ->andWhere('t.status != :completed')
+            ->andWhere('t.parentTask IS NULL')
             ->setParameter('owner', $owner)
             ->setParameter('endOfToday', $endOfToday)
             ->setParameter('completed', Task::STATUS_COMPLETED);
@@ -795,6 +802,7 @@ class TaskRepository extends ServiceEntityRepository
             ->andWhere('t.dueDate >= :tomorrow')
             ->andWhere('t.dueDate <= :endDate')
             ->andWhere('t.status != :completed')
+            ->andWhere('t.parentTask IS NULL')
             ->setParameter('owner', $owner)
             ->setParameter('tomorrow', $tomorrow)
             ->setParameter('endDate', $endDate)
@@ -828,6 +836,7 @@ class TaskRepository extends ServiceEntityRepository
             ->where('t.owner = :owner')
             ->andWhere('t.dueDate IS NULL')
             ->andWhere('t.status != :completed')
+            ->andWhere('t.parentTask IS NULL')
             ->setParameter('owner', $owner)
             ->setParameter('completed', Task::STATUS_COMPLETED);
 
@@ -859,6 +868,7 @@ class TaskRepository extends ServiceEntityRepository
         $qb = $this->createQueryBuilder('t')
             ->where('t.owner = :owner')
             ->andWhere('t.status = :completed')
+            ->andWhere('t.parentTask IS NULL')
             ->setParameter('owner', $owner)
             ->setParameter('completed', Task::STATUS_COMPLETED);
 
