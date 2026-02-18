@@ -455,4 +455,41 @@ class UserTest extends UnitTestCase
 
         $this->assertCount(0, $user->getTags());
     }
+
+    // ========================================
+    // Default Sort Preset Tests
+    // ========================================
+
+    public function testGetDefaultSortPresetReturnsDefaultValue(): void
+    {
+        $user = new User();
+
+        $this->assertEquals('due_date_priority', $user->getDefaultSortPreset());
+    }
+
+    public function testGetDefaultSortPresetReturnsCustomValue(): void
+    {
+        $user = new User();
+        $user->setSettings(['default_sort_preset' => 'priority_due_date']);
+
+        $this->assertEquals('priority_due_date', $user->getDefaultSortPreset());
+    }
+
+    public function testGetSettingsWithDefaultsIncludesDefaultSortPreset(): void
+    {
+        $user = new User();
+        $settings = $user->getSettingsWithDefaults();
+
+        $this->assertArrayHasKey('default_sort_preset', $settings);
+        $this->assertEquals('due_date_priority', $settings['default_sort_preset']);
+    }
+
+    public function testGetSettingsWithDefaultsRespectsCustomSortPreset(): void
+    {
+        $user = new User();
+        $user->setSettings(['default_sort_preset' => 'title_az']);
+        $settings = $user->getSettingsWithDefaults();
+
+        $this->assertEquals('title_az', $settings['default_sort_preset']);
+    }
 }

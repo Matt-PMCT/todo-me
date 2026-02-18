@@ -416,6 +416,14 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     }
 
     /**
+     * Get the user's default sort preset for the task list.
+     */
+    public function getDefaultSortPreset(): string
+    {
+        return $this->settings['default_sort_preset'] ?? 'due_date_priority';
+    }
+
+    /**
      * @return array<string, mixed>
      */
     public function getSettingsWithDefaults(): array
@@ -427,6 +435,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
             'task_spacing' => 'comfortable',
             'theme' => 'system',
             'sync_polling_interval' => 30,
+            'default_sort_preset' => 'due_date_priority',
         ], $this->settings);
     }
 

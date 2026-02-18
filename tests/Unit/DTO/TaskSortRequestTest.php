@@ -268,4 +268,161 @@ class TaskSortRequestTest extends TestCase
         $this->assertEquals('position', $dto->field);
         $this->assertEquals('ASC', $dto->direction);
     }
+
+    // ========================================
+    // Preset Tests
+    // ========================================
+
+    public function testFromPresetReturnsDueDatePriorityFields(): void
+    {
+        $dto = TaskSortRequest::fromPreset('due_date_priority');
+
+        $this->assertEquals('due_date', $dto->field);
+        $this->assertEquals('ASC', $dto->direction);
+        $this->assertNotNull($dto->secondarySorts);
+        $this->assertEquals([['priority', 'DESC']], $dto->secondarySorts);
+        $this->assertEquals('due_date_priority', $dto->getPresetKey());
+    }
+
+    public function testFromPresetReturnsPriorityDueDateFields(): void
+    {
+        $dto = TaskSortRequest::fromPreset('priority_due_date');
+
+        $this->assertEquals('priority', $dto->field);
+        $this->assertEquals('DESC', $dto->direction);
+        $this->assertNotNull($dto->secondarySorts);
+        $this->assertEquals([['due_date', 'ASC']], $dto->secondarySorts);
+        $this->assertEquals('priority_due_date', $dto->getPresetKey());
+    }
+
+    public function testFromPresetReturnsCreatedNewestFields(): void
+    {
+        $dto = TaskSortRequest::fromPreset('created_newest');
+
+        $this->assertEquals('created_at', $dto->field);
+        $this->assertEquals('DESC', $dto->direction);
+        $this->assertNull($dto->secondarySorts);
+    }
+
+    public function testFromPresetReturnsPositionFields(): void
+    {
+        $dto = TaskSortRequest::fromPreset('position');
+
+        $this->assertEquals('position', $dto->field);
+        $this->assertEquals('ASC', $dto->direction);
+        $this->assertNotNull($dto->secondarySorts);
+        $this->assertEquals([['priority', 'DESC']], $dto->secondarySorts);
+    }
+
+    public function testFromPresetFallsBackToDefaultForInvalidKey(): void
+    {
+        $dto = TaskSortRequest::fromPreset('invalid_preset');
+
+        $this->assertEquals('due_date', $dto->field);
+        $this->assertEquals('ASC', $dto->direction);
+        $this->assertEquals('due_date_priority', $dto->getPresetKey());
+    }
+
+    public function testGetPresetLabelReturnsCorrectLabel(): void
+    {
+        $dto = TaskSortRequest::fromPreset('title_az');
+
+        $this->assertEquals('Title A-Z', $dto->getPresetLabel());
+    }
+
+    public function testGetPresetKeysReturnsAllPresets(): void
+    {
+        $keys = TaskSortRequest::getPresetKeys();
+
+        $this->assertContains('due_date_priority', $keys);
+        $this->assertContains('priority_due_date', $keys);
+        $this->assertContains('created_newest', $keys);
+        $this->assertContains('created_oldest', $keys);
+        $this->assertContains('updated_recent', $keys);
+        $this->assertContains('title_az', $keys);
+        $this->assertContains('position', $keys);
+        $this->assertCount(7, $keys);
+    }
+
+    // ========================================
+    // fromRequestWithDefaults Tests
+    // ========================================
+
+    public function testFromRequestWithDefaultsUsesUrlParam(): void
+    {
+        $request = new Request(['sort' => 'priority_due_date']);
+        $dto = TaskSortRequest::fromRequestWithDefaults($request, 'due_date_priority');
+
+        $this->assertEquals('priority', $dto->field);
+        $this->assertEquals('DESC', $dto->direction);
+        $this->assertEquals('priority_due_date', $dto->getPresetKey());
+    }
+
+    public function testFromRequestWithDefaultsFallsBackToUserDefault(): void
+    {
+        $request = new Request([]);
+        $dto = TaskSortRequest::fromRequestWithDefaults($request, 'title_az');
+
+        $this->assertEquals('title', $dto->field);
+        $this->assertEquals('ASC', $dto->direction);
+        $this->assertEquals('title_az', $dto->getPresetKey());
+    }
+
+    public function testFromRequestWithDefaultsFallsBackToSystemDefault(): void
+    {
+        $request = new Request([]);
+        $dto = TaskSortRequest::fromRequestWithDefaults($request);
+
+        $this->assertEquals('due_date', $dto->field);
+        $this->assertEquals('ASC', $dto->direction);
+        $this->assertEquals('due_date_priority', $dto->getPresetKey());
+    }
+
+    public function testFromRequestWithDefaultsIgnoresInvalidUrlParam(): void
+    {
+        $request = new Request(['sort' => 'invalid_preset']);
+        $dto = TaskSortRequest::fromRequestWithDefaults($request, 'created_newest');
+
+        // Falls back to user default when URL param is invalid
+        $this->assertEquals('created_at', $dto->field);
+        $this->assertEquals('DESC', $dto->direction);
+        $this->assertEquals('created_newest', $dto->getPresetKey());
+    }
+
+    public function testFromRequestWithDefaultsFallsBackForInvalidUserDefault(): void
+    {
+        $request = new Request([]);
+        $dto = TaskSortRequest::fromRequestWithDefaults($request, 'nonexistent');
+
+        // Falls back to system default
+        $this->assertEquals('due_date', $dto->field);
+        $this->assertEquals('ASC', $dto->direction);
+        $this->assertEquals('due_date_priority', $dto->getPresetKey());
+    }
+
+    // ========================================
+    // Static Helper Tests
+    // ========================================
+
+    public function testFieldToDqlReturnsCorrectMapping(): void
+    {
+        $this->assertEquals('t.dueDate', TaskSortRequest::fieldToDql('due_date'));
+        $this->assertEquals('t.priority', TaskSortRequest::fieldToDql('priority'));
+        $this->assertEquals('t.position', TaskSortRequest::fieldToDql('position'));
+    }
+
+    public function testIsFieldNullsLastReturnsTrueForDueDate(): void
+    {
+        $this->assertTrue(TaskSortRequest::isFieldNullsLast('due_date'));
+    }
+
+    public function testIsFieldNullsLastReturnsTrueForCompletedAt(): void
+    {
+        $this->assertTrue(TaskSortRequest::isFieldNullsLast('completed_at'));
+    }
+
+    public function testIsFieldNullsLastReturnsFalseForPriority(): void
+    {
+        $this->assertFalse(TaskSortRequest::isFieldNullsLast('priority'));
+    }
 }

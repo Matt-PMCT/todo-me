@@ -36,6 +36,19 @@ final class UserSettingsRequest
      */
     public const VALID_SYNC_INTERVALS = [0, 10, 15, 30, 60];
 
+    /**
+     * Valid sort preset choices.
+     */
+    public const VALID_SORT_PRESETS = [
+        'due_date_priority',
+        'priority_due_date',
+        'created_newest',
+        'created_oldest',
+        'updated_recent',
+        'title_az',
+        'position',
+    ];
+
     public function __construct(
         #[Assert\Timezone(message: 'Invalid timezone')]
         public readonly ?string $timezone = null,
@@ -49,6 +62,8 @@ final class UserSettingsRequest
         public readonly ?string $theme = null,
         #[Assert\Choice(choices: self::VALID_SYNC_INTERVALS, message: 'Invalid sync interval. Must be 0, 10, 15, 30, or 60')]
         public readonly ?int $syncPollingInterval = null,
+        #[Assert\Choice(choices: self::VALID_SORT_PRESETS, message: 'Invalid sort preset')]
+        public readonly ?string $defaultSortPreset = null,
     ) {
     }
 
@@ -66,6 +81,7 @@ final class UserSettingsRequest
             taskSpacing: isset($data['taskSpacing']) ? (string) $data['taskSpacing'] : null,
             theme: isset($data['theme']) ? (string) $data['theme'] : null,
             syncPollingInterval: isset($data['syncPollingInterval']) ? (int) $data['syncPollingInterval'] : null,
+            defaultSortPreset: isset($data['defaultSortPreset']) ? (string) $data['defaultSortPreset'] : null,
         );
     }
 
@@ -103,6 +119,11 @@ final class UserSettingsRequest
         // Sync polling interval
         if ($this->syncPollingInterval !== null) {
             $settings['sync_polling_interval'] = $this->syncPollingInterval;
+        }
+
+        // Default sort preset
+        if ($this->defaultSortPreset !== null) {
+            $settings['default_sort_preset'] = $this->defaultSortPreset;
         }
 
         return $settings;

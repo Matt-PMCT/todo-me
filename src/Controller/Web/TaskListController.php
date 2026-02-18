@@ -6,6 +6,7 @@ namespace App\Controller\Web;
 
 use App\DTO\CreateProjectRequest;
 use App\DTO\CreateTaskRequest;
+use App\DTO\TaskSortRequest;
 use App\Entity\Project;
 use App\Entity\User;
 use App\Repository\ProjectRepository;
@@ -56,8 +57,14 @@ class TaskListController extends AbstractController
             'isRecurring' => $isRecurring !== null && $isRecurring !== '' ? filter_var($isRecurring, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) : null,
         ];
 
-        // Get tasks with filters
-        $queryBuilder = $this->taskRepository->createFilteredQueryBuilder($user, $filters);
+        // Build sort request: URL param > user's default preset > system default
+        $sortRequest = TaskSortRequest::fromRequestWithDefaults(
+            $request,
+            $user->getDefaultSortPreset(),
+        );
+
+        // Get tasks with filters and sorting
+        $queryBuilder = $this->taskRepository->createFilteredQueryBuilder($user, $filters, $sortRequest);
 
         // Issue #39: Hide completed tasks by default unless explicitly shown or status filter is set
         if (!$showCompleted && $status !== 'completed') {
@@ -112,6 +119,7 @@ class TaskListController extends AbstractController
             'tasks' => $tasks,
             'projects' => $projects,
             'currentFilters' => $filters,
+            'currentSortPreset' => $sortRequest->getPresetKey(),
             'groupByProject' => $groupByProject,
             'groupedTasks' => $groupedTasks,
             'showCompleted' => $showCompleted,

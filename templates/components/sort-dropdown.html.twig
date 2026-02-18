@@ -1,16 +1,31 @@
-{# Sort dropdown component #}
-{# Expects: currentSort (string), currentDirection (string, 'ASC' or 'DESC') #}
+{# Sort dropdown component - preset-based compound sorting #}
+{# Expects: currentSortPreset (string, preset key) #}
 
-{% set currentSort = currentSort|default('position') %}
-{% set currentDirection = currentDirection|default('ASC') %}
+{% set currentSortPreset = currentSortPreset|default('due_date_priority') %}
+
+{% set presets = {
+    'due_date_priority': 'Due Date + Priority',
+    'priority_due_date': 'Priority + Due Date',
+    'created_newest': 'Newest First',
+    'created_oldest': 'Oldest First',
+    'updated_recent': 'Recently Updated',
+    'title_az': 'Title A-Z',
+    'position': 'Manual (Position)'
+} %}
 
 <div class="relative" x-data="{ open: false }">
-    <button @click="open = !open" type="button" class="min-h-11 sm:min-h-0 inline-flex items-center gap-2 rounded-md bg-white px-3 py-2 text-sm font-medium text-gray-700 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <button @click="open = !open"
+            :aria-expanded="open.toString()"
+            aria-haspopup="true"
+            type="button"
+            class="min-h-11 sm:min-h-0 inline-flex items-center gap-1.5 rounded-md bg-white dark:bg-gray-700 px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 shadow-sm ring-1 ring-inset ring-gray-300 dark:ring-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600">
+        <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4h13M3 8h9m-9 4h6m4 0l4-4m0 0l4 4m-4-4v12"></path>
         </svg>
-        Sort by: {{ currentSort|replace({'_': ' '})|capitalize }}
-        {% if currentDirection == 'DESC' %}(Desc){% endif %}
+        <span class="hidden sm:inline truncate max-w-[120px]">{{ presets[currentSortPreset]|default('Sort') }}</span>
+        <svg class="w-4 h-4 flex-shrink-0 transition-transform" :class="{ 'rotate-180': open }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+        </svg>
     </button>
 
     <div x-show="open"
@@ -22,37 +37,24 @@
          x-transition:leave="transition ease-in duration-75"
          x-transition:leave-start="transform opacity-100 scale-100"
          x-transition:leave-end="transform opacity-0 scale-95"
-         class="absolute right-0 z-10 mt-2 w-48 origin-top-right rounded-md bg-white py-1 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
+         role="menu"
+         class="absolute left-0 sm:left-auto sm:right-0 z-10 mt-2 w-56 origin-top-left sm:origin-top-right rounded-md bg-white dark:bg-gray-800 py-1 shadow-lg ring-1 ring-black/5 dark:ring-gray-700 focus:outline-none">
 
-        {% set sortOptions = {
-            'position': 'Position',
-            'due_date': 'Due Date',
-            'priority': 'Priority',
-            'created_at': 'Created',
-            'updated_at': 'Updated',
-            'title': 'Title'
-        } %}
-
-        {% for value, label in sortOptions %}
-            {% set isActive = currentSort == value %}
-            {% set newDirection = (isActive and currentDirection == 'ASC') ? 'DESC' : 'ASC' %}
-            {% set params = app.request.query.all|merge({'sort': value, 'direction': newDirection}) %}
+        {% for key, label in presets %}
+            {% set isActive = currentSortPreset == key %}
+            {# Preserve existing query params, replace sort #}
+            {% set params = app.request.query.all|merge({'sort': key}) %}
 
             <a href="{{ path(app.request.attributes.get('_route'), params) }}"
-               class="block px-4 py-2 text-sm {% if isActive %}bg-gray-100 text-teal-600{% else %}text-gray-700 hover:bg-gray-50{% endif %}">
-                {{ label }}
+               role="menuitem"
+               class="flex items-center justify-between px-4 py-3 sm:py-2 text-sm
+                      {% if isActive %}bg-gray-100 dark:bg-gray-700 text-teal-600 dark:text-teal-400 font-medium
+                      {% else %}text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700{% endif %}">
+                <span>{{ label }}</span>
                 {% if isActive %}
-                    <span class="float-right">
-                        {% if currentDirection == 'ASC' %}
-                            <svg class="w-4 h-4 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path>
-                            </svg>
-                        {% else %}
-                            <svg class="w-4 h-4 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-                            </svg>
-                        {% endif %}
-                    </span>
+                    <svg class="w-4 h-4 flex-shrink-0 text-teal-600 dark:text-teal-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                    </svg>
                 {% endif %}
             </a>
         {% endfor %}

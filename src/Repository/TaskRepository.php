@@ -67,17 +67,17 @@ class TaskRepository extends ServiceEntityRepository
      *     tagIds?: string[]
      * } $filters
      */
-    public function createFilteredQueryBuilder(User $owner, array $filters = []): QueryBuilder
+    public function createFilteredQueryBuilder(User $owner, array $filters = [], ?TaskSortRequest $sortRequest = null): QueryBuilder
     {
         $qb = $this->createQueryBuilder('t')
             ->select('t', 'p', 'tag')
             ->leftJoin('t.project', 'p')
             ->leftJoin('t.tags', 'tag')
             ->where('t.owner = :owner')
-            ->setParameter('owner', $owner)
-            ->orderBy('t.position', 'ASC')
-            ->addOrderBy('t.priority', 'DESC')
-            ->addOrderBy('t.createdAt', 'DESC');
+            ->setParameter('owner', $owner);
+
+        // Apply sorting: use provided sort request, or system default (due_date + priority)
+        $this->applySorting($qb, $sortRequest ?? TaskSortRequest::fromPreset(TaskSortRequest::DEFAULT_PRESET));
 
         // Apply status filter
         if (isset($filters['status']) && $filters['status'] !== '') {
@@ -149,9 +149,9 @@ class TaskRepository extends ServiceEntityRepository
      *     tagIds?: string[]
      * } $filters
      */
-    public function findByOwnerPaginatedQueryBuilder(User $owner, array $filters = []): QueryBuilder
+    public function findByOwnerPaginatedQueryBuilder(User $owner, array $filters = [], ?TaskSortRequest $sortRequest = null): QueryBuilder
     {
-        return $this->createFilteredQueryBuilder($owner, $filters);
+        return $this->createFilteredQueryBuilder($owner, $filters, $sortRequest);
     }
 
     /**
@@ -737,19 +737,39 @@ class TaskRepository extends ServiceEntityRepository
     }
 
     /**
-     * Applies sorting to the query builder.
+     * Applies sorting to the query builder, including compound sorts from presets.
      */
     private function applySorting(QueryBuilder $qb, TaskSortRequest $sortRequest): void
     {
-        $dqlField = $sortRequest->getDqlField();
+        // Track nulls-last counter for unique aliases
+        $nullsLastIndex = 0;
 
-        if ($sortRequest->isNullsLastField()) {
-            // For nulls-last fields (like due_date), add special handling
-            $qb->addSelect("CASE WHEN {$dqlField} IS NULL THEN 1 ELSE 0 END AS HIDDEN nulls_last")
-                ->addOrderBy('nulls_last', 'ASC')
-                ->addOrderBy($dqlField, $sortRequest->direction);
+        // Apply primary sort
+        $this->applySortField($qb, $sortRequest->field, $sortRequest->direction, $nullsLastIndex);
+
+        // Apply secondary sorts from preset
+        if ($sortRequest->secondarySorts !== null) {
+            foreach ($sortRequest->secondarySorts as [$field, $direction]) {
+                $this->applySortField($qb, $field, $direction, $nullsLastIndex);
+            }
+        }
+    }
+
+    /**
+     * Applies a single sort field to the query builder with nulls-last handling.
+     */
+    private function applySortField(QueryBuilder $qb, string $field, string $direction, int &$nullsLastIndex): void
+    {
+        $dqlField = TaskSortRequest::fieldToDql($field);
+
+        if (TaskSortRequest::isFieldNullsLast($field)) {
+            $alias = 'nulls_last_'.$nullsLastIndex;
+            $qb->addSelect("CASE WHEN {$dqlField} IS NULL THEN 1 ELSE 0 END AS HIDDEN {$alias}")
+                ->addOrderBy($alias, 'ASC')
+                ->addOrderBy($dqlField, $direction);
+            ++$nullsLastIndex;
         } else {
-            $qb->addOrderBy($dqlField, $sortRequest->direction);
+            $qb->addOrderBy($dqlField, $direction);
         }
     }
 

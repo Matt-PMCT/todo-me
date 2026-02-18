@@ -282,4 +282,101 @@ class UserSettingsApiTest extends ApiTestCase
             $this->assertResponseStatusCode(Response::HTTP_OK, $response);
         }
     }
+
+    // ========================================
+    // Default Sort Preset Tests
+    // ========================================
+
+    public function testGetSettingsIncludesDefaultSortPresetDefault(): void
+    {
+        $user = $this->createUser('settings-sortdefault@example.com', 'Password123');
+
+        $response = $this->authenticatedApiRequest(
+            $user,
+            'GET',
+            '/api/v1/users/me/settings'
+        );
+
+        $this->assertResponseStatusCode(Response::HTTP_OK, $response);
+
+        $data = $this->getResponseData($response);
+
+        $this->assertArrayHasKey('default_sort_preset', $data['settings']);
+        $this->assertEquals('due_date_priority', $data['settings']['default_sort_preset']);
+    }
+
+    public function testUpdateSettingsDefaultSortPreset(): void
+    {
+        $user = $this->createUser('settings-sortpreset@example.com', 'Password123');
+
+        $response = $this->authenticatedApiRequest(
+            $user,
+            'PATCH',
+            '/api/v1/users/me/settings',
+            ['defaultSortPreset' => 'priority_due_date']
+        );
+
+        $this->assertResponseStatusCode(Response::HTTP_OK, $response);
+
+        $data = $this->getResponseData($response);
+
+        $this->assertEquals('priority_due_date', $data['settings']['default_sort_preset']);
+    }
+
+    public function testUpdateSettingsDefaultSortPresetPersists(): void
+    {
+        $user = $this->createUser('settings-sortpersist@example.com', 'Password123');
+
+        $this->authenticatedApiRequest(
+            $user,
+            'PATCH',
+            '/api/v1/users/me/settings',
+            ['defaultSortPreset' => 'title_az']
+        );
+
+        $response = $this->authenticatedApiRequest(
+            $user,
+            'GET',
+            '/api/v1/users/me/settings'
+        );
+
+        $this->assertResponseStatusCode(Response::HTTP_OK, $response);
+
+        $data = $this->getResponseData($response);
+
+        $this->assertEquals('title_az', $data['settings']['default_sort_preset']);
+    }
+
+    public function testUpdateSettingsInvalidDefaultSortPreset(): void
+    {
+        $user = $this->createUser('settings-invalidsort@example.com', 'Password123');
+
+        $response = $this->authenticatedApiRequest(
+            $user,
+            'PATCH',
+            '/api/v1/users/me/settings',
+            ['defaultSortPreset' => 'nonexistent_preset']
+        );
+
+        $this->assertResponseStatusCode(Response::HTTP_UNPROCESSABLE_ENTITY, $response);
+        $this->assertErrorCode($response, 'VALIDATION_ERROR');
+    }
+
+    public function testAllValidSortPresets(): void
+    {
+        $user = $this->createUser('settings-allsorts@example.com', 'Password123');
+
+        $presets = ['due_date_priority', 'priority_due_date', 'created_newest', 'created_oldest', 'updated_recent', 'title_az', 'position'];
+
+        foreach ($presets as $preset) {
+            $response = $this->authenticatedApiRequest(
+                $user,
+                'PATCH',
+                '/api/v1/users/me/settings',
+                ['defaultSortPreset' => $preset]
+            );
+
+            $this->assertResponseStatusCode(Response::HTTP_OK, $response, "Sort preset {$preset} should be valid");
+        }
+    }
 }
