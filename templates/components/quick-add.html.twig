@@ -381,6 +381,16 @@ function quickAdd() {
             const cursorPos = input.selectionStart;
             const textBeforeCursor = this.inputText.substring(0, cursorPos);
 
+            // Check for quoted project autocomplete (#"...)
+            const quotedProjectMatch = textBeforeCursor.match(/#"([^"]*)$/);
+            if (quotedProjectMatch) {
+                this.autocompleteType = 'project';
+                this.autocompleteQuery = quotedProjectMatch[1];
+                this.autocompleteStartPos = cursorPos - quotedProjectMatch[0].length;
+                this.fetchAutocomplete();
+                return;
+            }
+
             // Check for project autocomplete (#)
             const projectMatch = textBeforeCursor.match(/#([a-zA-Z0-9_/-]*)$/);
             if (projectMatch) {
@@ -452,8 +462,13 @@ function quickAdd() {
         },
 
         insertAutocompleteItem(item) {
-            const prefix = this.autocompleteType === 'project' ? '#' : '@';
-            const insertText = prefix + (item.fullPath || item.name);
+            let insertText;
+            if (this.autocompleteType === 'project') {
+                const path = item.fullPath || item.name;
+                insertText = /\s/.test(path) ? '#"' + path + '"' : '#' + path;
+            } else {
+                insertText = '@' + item.name;
+            }
 
             // Replace the partial text with the full item
             const before = this.inputText.substring(0, this.autocompleteStartPos);

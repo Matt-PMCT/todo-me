@@ -159,6 +159,96 @@ class ProjectParserServiceTest extends UnitTestCase
     }
 
     // ========================================
+    // Quoted Project Parsing Tests (spaces)
+    // ========================================
+
+    public function testParseQuotedProjectWithSpaces(): void
+    {
+        $project = $this->createProjectWithId('project-123', $this->user, 'Sub Project');
+
+        $this->projectRepository->expects($this->once())
+            ->method('findByPathInsensitive')
+            ->with($this->user, 'Work/Sub Project')
+            ->willReturn($project);
+
+        $result = $this->parser->parse('Task #"Work/Sub Project" today', $this->user);
+
+        $this->assertTrue($result->found);
+        $this->assertSame($project, $result->project);
+        $this->assertEquals('Work/Sub Project', $result->matchedName);
+    }
+
+    public function testParseQuotedSimpleNameWithSpace(): void
+    {
+        $project = $this->createProjectWithId('project-123', $this->user, 'My Project');
+
+        $this->projectRepository->expects($this->once())
+            ->method('findByNameInsensitive')
+            ->with($this->user, 'My Project')
+            ->willReturn($project);
+
+        $result = $this->parser->parse('#"My Project" task', $this->user);
+
+        $this->assertTrue($result->found);
+        $this->assertEquals('My Project', $result->matchedName);
+    }
+
+    public function testParseQuotedPositionTracking(): void
+    {
+        $this->projectRepository->method('findByNameInsensitive')->willReturn(null);
+
+        $result = $this->parser->parse('Do #"My Project" now', $this->user);
+
+        $this->assertEquals(3, $result->startPosition);
+        $this->assertEquals(16, $result->endPosition); // #"My Project" = 13 chars
+    }
+
+    public function testParseQuotedProjectNotFound(): void
+    {
+        $this->projectRepository->expects($this->once())
+            ->method('findByNameInsensitive')
+            ->with($this->user, 'No Such Project')
+            ->willReturn(null);
+
+        $result = $this->parser->parse('#"No Such Project" task', $this->user);
+
+        $this->assertFalse($result->found);
+        $this->assertNull($result->project);
+        $this->assertEquals('No Such Project', $result->matchedName);
+    }
+
+    public function testParseUnquotedStillWorks(): void
+    {
+        $project = $this->createProjectWithId('project-123', $this->user, 'work');
+
+        $this->projectRepository->expects($this->once())
+            ->method('findByNameInsensitive')
+            ->with($this->user, 'work')
+            ->willReturn($project);
+
+        $result = $this->parser->parse('Task #work today', $this->user);
+
+        $this->assertTrue($result->found);
+        $this->assertEquals('work', $result->matchedName);
+    }
+
+    public function testParseUnclosedQuoteReturnsNull(): void
+    {
+        $result = $this->parser->parse('Task #"unclosed quote', $this->user);
+
+        $this->assertNull($result);
+    }
+
+    public function testGetMatchedTextReturnsQuotedForm(): void
+    {
+        $this->projectRepository->method('findByPathInsensitive')->willReturn(null);
+
+        $result = $this->parser->parse('Check #"Work/Sub Project" status', $this->user);
+
+        $this->assertEquals('#"Work/Sub Project"', $result->getMatchedText());
+    }
+
+    // ========================================
     // Case Insensitivity Tests
     // ========================================
 

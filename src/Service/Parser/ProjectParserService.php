@@ -15,16 +15,19 @@ use App\ValueObject\ProjectParseResult;
  * Supports:
  * - Simple project names: #work, #personal
  * - Nested project paths: #work/meetings, #work/reports/q1
+ * - Quoted paths with spaces: #"Work/Sub Project"
  * - Case-insensitive matching
  */
 final class ProjectParserService
 {
     /**
      * Pattern to match project hashtags.
-     * Supports alphanumeric names with underscores and hyphens,
-     * and nested paths separated by forward slashes.
+     * Supports:
+     * - Quoted form: #"path with spaces" (group 1)
+     * - Unquoted form: alphanumeric names with underscores, hyphens,
+     *   and nested paths separated by forward slashes (group 2)
      */
-    private const PATTERN = '/#([a-zA-Z0-9_-]+(?:\/[a-zA-Z0-9_-]+)*)/';
+    private const PATTERN = '/#"([^"]+)"|#([a-zA-Z0-9_-]+(?:\/[a-zA-Z0-9_-]+)*)/';
 
     public function __construct(
         private readonly ProjectRepository $projectRepository,
@@ -52,12 +55,19 @@ final class ProjectParserService
             return null;
         }
 
-        // $matches[0] is the full match (including #)
-        // $matches[1] is the captured group (without #)
+        // $matches[0] is the full match (including # and optional quotes)
+        // $matches[1] is the quoted capture group (without # and quotes)
+        // $matches[2] is the unquoted capture group (without #)
         $fullMatch = $matches[0][0];
-        $projectPath = $matches[1][0];
         $startPosition = (int) $matches[0][1];
         $endPosition = $startPosition + strlen($fullMatch);
+
+        // Determine which capture group matched
+        if (isset($matches[1]) && $matches[1][1] !== -1) {
+            $projectPath = $matches[1][0];
+        } else {
+            $projectPath = $matches[2][0];
+        }
 
         // Try to find the project
         $project = $this->findProject($user, $projectPath);
