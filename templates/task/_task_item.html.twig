@@ -155,15 +155,19 @@
                         </svg>
                         <template x-if="dueDate">
                             <span>
-                                <span x-text="new Date(dueDate + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })"></span>
-                                <template x-if="dueTime">
-                                    <span x-text="' at ' + new Date('2000-01-01T' + dueTime).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })"></span>
+                                <template x-if="!(dueDate === new Date().toISOString().slice(0, 10) && !(new Date(dueDate + 'T23:59:59') < new Date()) && status !== 'completed')">
+                                    <span>
+                                        <span x-text="new Date(dueDate + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })"></span>
+                                        <template x-if="dueTime">
+                                            <span x-text="' at ' + new Date('2000-01-01T' + dueTime).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })"></span>
+                                        </template>
+                                        <template x-if="dueDate && new Date(dueDate + 'T23:59:59') < new Date() && status !== 'completed'">
+                                            <span class="font-medium">(Overdue)</span>
+                                        </template>
+                                    </span>
                                 </template>
-                                <template x-if="dueDate && new Date(dueDate + 'T23:59:59') < new Date() && status !== 'completed'">
-                                    <span class="font-medium">(Overdue)</span>
-                                </template>
-                                <template x-if="dueDate && dueDate === new Date().toISOString().slice(0, 10) && !(new Date(dueDate + 'T23:59:59') < new Date()) && status !== 'completed'">
-                                    <span class="font-medium text-yellow-600 dark:text-yellow-500">(Due Today)</span>
+                                <template x-if="dueDate === new Date().toISOString().slice(0, 10) && !(new Date(dueDate + 'T23:59:59') < new Date()) && status !== 'completed'">
+                                    <span class="font-medium text-yellow-600 dark:text-yellow-500">Due Today<template x-if="dueTime"><span class="font-normal" x-text="' at ' + new Date('2000-01-01T' + dueTime).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })"></span></template></span>
                                 </template>
                             </span>
                         </template>
