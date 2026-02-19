@@ -3,7 +3,7 @@
 
 <div data-task-item
      data-task-id="{{ task.id }}"
-     class="bg-white dark:bg-gray-800 shadow dark:shadow-none ring-1 ring-gray-200/50 dark:ring-gray-700 rounded-lg {{ taskSpacing|default('comfortable') == 'compact' ? 'px-4 py-2' : 'p-4' }} hover:shadow-md dark:hover:ring-gray-600 transition-shadow duration-200 {% if overdueInfo is defined and overdueInfo.isOverdue %}{{ overdueInfo.borderClass }}{% elseif task.isOverdue %}border-l-4 border-l-red-500{% endif %}"
+     class="bg-white dark:bg-gray-800 shadow dark:shadow-none ring-1 ring-gray-200/50 dark:ring-gray-700 rounded-lg {{ taskSpacing|default('comfortable') == 'compact' ? 'px-4 py-2' : 'p-4' }} hover:shadow-md dark:hover:ring-gray-600 transition-shadow duration-200 {% if overdueInfo is defined and overdueInfo.isOverdue %}{{ overdueInfo.borderClass }}{% elseif task.isOverdue %}border-l-4 border-l-red-500{% elseif task.dueDate and not task.isCompleted and task.dueDate|date('Y-m-d') == 'now'|date('Y-m-d') %}border-l-4 border-l-yellow-500{% endif %}"
      :class="{ 'relative z-50': actionsMenuOpen || statusDropdownOpen || priorityDropdownOpen || dueDateDropdownOpen || projectDropdownOpen }"
      x-data="taskItem('{{ task.id }}', '{{ task.status }}', {{ task.priority }}, '{{ task.dueDate ? task.dueDate|date('Y-m-d') : '' }}', '{{ task.dueTime ? task.dueTime|date('H:i') : '' }}', '{{ task.project ? task.project.id : '' }}', '{{ task.project ? task.project.name|e('js') : '' }}', '{{ task.project ? task.project.color|default('#808080') : '' }}')"
      @closeAll.window="showDeleteModal = false; actionsMenuOpen = false; statusDropdownOpen = false; priorityDropdownOpen = false; dueDateDropdownOpen = false; projectDropdownOpen = false"
@@ -148,7 +148,7 @@
                             aria-haspopup="true"
                             :aria-expanded="dueDateDropdownOpen"
                             class="inline-flex items-center gap-1 text-xs cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 rounded px-1.5 py-0.5 -mx-1.5 transition-colors"
-                            :class="dueDate && new Date(dueDate + 'T23:59:59') < new Date() && status !== 'completed' ? 'text-red-600 dark:text-red-400' : 'text-gray-500 dark:text-gray-400'"
+                            :class="dueDate && new Date(dueDate + 'T23:59:59') < new Date() && status !== 'completed' ? 'text-red-600 dark:text-red-400' : (dueDate === new Date().toISOString().slice(0, 10) && status !== 'completed' ? 'text-yellow-600 dark:text-yellow-500' : 'text-gray-500 dark:text-gray-400')"
                             :title="dueDate ? 'Due: ' + dueDate + ' - Click to change' : 'Set due date'">
                         <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
@@ -161,6 +161,9 @@
                                 </template>
                                 <template x-if="dueDate && new Date(dueDate + 'T23:59:59') < new Date() && status !== 'completed'">
                                     <span class="font-medium">(Overdue)</span>
+                                </template>
+                                <template x-if="dueDate && dueDate === new Date().toISOString().slice(0, 10) && !(new Date(dueDate + 'T23:59:59') < new Date()) && status !== 'completed'">
+                                    <span class="font-medium text-yellow-600 dark:text-yellow-500">(Due Today)</span>
                                 </template>
                             </span>
                         </template>
