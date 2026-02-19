@@ -55,9 +55,9 @@
         </a>
 
         {# Task Count Badge #}
-        <span x-show="project.taskCount > 0"
+        <span x-show="project.pendingTaskCount > 0"
               class="px-1.5 py-0.5 text-xs rounded-full bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 mr-2"
-              x-text="project.taskCount">
+              x-text="project.pendingTaskCount">
         </span>
 
         {# Actions Menu #}
