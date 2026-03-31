@@ -2,7 +2,9 @@
 
 An [MCP](https://modelcontextprotocol.io) server that exposes the Todo-Me REST API as tools for AI assistants (Claude Desktop, Claude Code, claude.ai, ChatGPT, and any MCP-compatible client).
 
-## Tools
+## Tools (16)
+
+### Core
 
 | Tool | Description |
 |------|-------------|
@@ -13,6 +15,20 @@ An [MCP](https://modelcontextprotocol.io) server that exposes the Todo-Me REST A
 | `complete_todo` | Mark a task as completed |
 | `delete_todo` | Delete a task (60s undo window) |
 | `list_tags` | List available tags for use with task creation/updates |
+
+### Extended
+
+| Tool | Description |
+|------|-------------|
+| `undo` | Undo a previous operation using a token from update/complete/delete/reschedule |
+| `get_today` | Get tasks due today and any overdue tasks |
+| `get_overdue` | Get overdue tasks (past due, not completed) |
+| `get_upcoming` | Get tasks due within the next N days (default 7, max 90) |
+| `search` | Global full-text search across tasks, projects, and tags |
+| `list_projects` | List projects with task counts (for discovering project IDs) |
+| `reschedule_todo` | Reschedule a task using natural language ("next Monday") or ISO date |
+| `list_subtasks` | Get subtasks of a parent task |
+| `create_subtask` | Create a subtask under a parent task (max 1 level nesting) |
 
 ## Setup
 

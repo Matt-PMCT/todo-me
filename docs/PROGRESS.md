@@ -21,6 +21,7 @@ This document tracks the completion status of all implementation phases for the 
 | 13 | API Tokens & Sessions | Complete | Token management, activity logging |
 | 14 | Production Readiness | Complete | CI/CD, monitoring, deployment |
 | 15 | Real-Time Sync | Complete | Polling-based cross-device sync with configurable interval |
+| 16 | MCP Server | Complete | 16 MCP tools, stdio + HTTP transports, Docker deployment |
 
 ## Feature Reference
 

@@ -112,6 +112,7 @@ Production configuration includes resource limits to prevent runaway containers:
 | Nginx | 1 core | 256MB | 128MB |
 | PostgreSQL | 2 cores | 1GB | 512MB |
 | Redis | 1 core | 512MB | 256MB |
+| MCP | 1 core | 256MB | 128MB |
 
 Adjust these values based on your server capacity and expected load.
 
@@ -137,6 +138,12 @@ All services have health checks configured:
 ### Nginx
 - HTTP check on `/health` endpoint
 - Interval: 30 seconds
+
+### MCP Server
+- HTTP check on `http://localhost:8000/health`
+- Interval: 30 seconds
+- Retries: 3
+- Requires `docker/.env.mcp` with `TODO_API_KEY` (see `docker/.env.mcp.example`)
 
 ## Secrets Management
 

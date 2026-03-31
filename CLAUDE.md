@@ -8,6 +8,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **Tech Stack:** PHP 8.4-FPM, Symfony 7.0, Doctrine ORM 3.0, PostgreSQL 15, Redis 7, Twig + Alpine.js + Tailwind CSS
 
+**MCP Server:** Python 3.12 + FastMCP in `mcp-server/` — 16 tools exposing the REST API to AI assistants via [Model Context Protocol](https://modelcontextprotocol.io). See `mcp-server/README.md` for setup and `docs/MCP-SERVER-ARCHITECTURE.md` for architecture.
+
 ## Commands
 
 ### Docker & Setup
@@ -60,6 +62,12 @@ cat var/test-results.txt
 vendor/bin/phpunit --testdox-text var/test-results.txt --log-junit var/test-results.xml
 ```
 **IMPORTANT:** Never run the full test suite without `--testdox-text var/test-results.txt` or similar file output. Terminal output can be truncated and you'll lose important failure information.
+
+### MCP Server Tests
+```bash
+cd mcp-server
+.venv/bin/python -m pytest tests/ -v    # Run all MCP tests (from host)
+```
 
 ### Database
 ```bash

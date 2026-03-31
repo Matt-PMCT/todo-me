@@ -16,6 +16,7 @@ A self-hosted task management application with REST API and web UI, built with S
 - **Batch Operations**: Perform bulk updates on multiple tasks
 - **Undo Support**: Undo task updates and deletions within 60 seconds
 - **REST API**: Complete API for integration with external tools and AI agents
+- **MCP Server**: AI assistant integration via [Model Context Protocol](https://modelcontextprotocol.io) (Claude, ChatGPT, etc.)
 - **Web UI**: Clean, responsive interface built with Alpine.js and Tailwind CSS
 
 ## Tech Stack
@@ -27,6 +28,7 @@ A self-hosted task management application with REST API and web UI, built with S
 | Cache | Redis 7 |
 | Web Server | Nginx 1.24 |
 | Frontend | Twig, Alpine.js, Tailwind CSS |
+| MCP Server | Python 3.12, FastMCP, httpx |
 | Containerization | Docker, Docker Compose |
 
 ## Quick Start
@@ -156,6 +158,33 @@ All API endpoints return a consistent JSON structure:
 | `/api/v1/batch` | POST | Batch operations |
 | `/api/v1/parse` | POST | Parse natural language |
 
+## MCP Server (AI Assistant Integration)
+
+The MCP server lets AI assistants manage your tasks directly. It exposes 16 tools covering task CRUD, smart views, search, projects, subtasks, rescheduling, and undo.
+
+### Quick Setup (Claude Desktop / Claude Code)
+
+1. Install: `cd mcp-server && pip install -e .`
+2. Create an API token in Settings > API Tokens
+3. Add to your MCP client config:
+
+```json
+{
+  "mcpServers": {
+    "todo-me": {
+      "command": "python",
+      "args": ["-m", "todo_me_mcp"],
+      "env": {
+        "TODO_API_URL": "https://your-instance.com/todo-me",
+        "TODO_API_KEY": "tm_your_token_here"
+      }
+    }
+  }
+}
+```
+
+For Docker deployment (remote transport) and full tool documentation, see [mcp-server/README.md](mcp-server/README.md) and [docs/MCP-SERVER-ARCHITECTURE.md](docs/MCP-SERVER-ARCHITECTURE.md).
+
 ## Project Structure
 
 ```
@@ -167,6 +196,9 @@ todo-me/
 │   ├── nginx/             # Nginx config
 │   └── php/               # PHP-FPM config
 ├── docs/                  # Documentation
+├── mcp-server/            # MCP server (Python)
+│   ├── todo_me_mcp/       # Server source code
+│   └── tests/             # MCP tool tests
 ├── migrations/            # Database migrations
 ├── public/                # Web root
 ├── src/
