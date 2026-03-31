@@ -245,3 +245,253 @@ async def list_tags(
     if search is not None:
         params["search"] = search
     return await api.get("/api/v1/tags", params=params)
+
+
+# ---------------------------------------------------------------------------
+# Undo
+# ---------------------------------------------------------------------------
+
+
+@mcp.tool()
+async def undo(token: str) -> dict:
+    """Undo a previous operation using an undo token.
+
+    Undo tokens are returned by update_todo, complete_todo, delete_todo,
+    and reschedule_todo. They are single-use and expire after 60 seconds.
+
+    Args:
+        token: The undo token from a previous operation.
+
+    Returns:
+        Dict with entityType, entityId, message, and restored entity summary.
+    """
+    return await api.post("/api/v1/undo", json={"token": token})
+
+
+# ---------------------------------------------------------------------------
+# Smart views
+# ---------------------------------------------------------------------------
+
+
+@mcp.tool()
+async def get_today(
+    sort: str | None = None,
+    direction: str | None = None,
+    page: int = 1,
+    limit: int = 20,
+) -> dict:
+    """Get tasks due today and any overdue tasks.
+
+    This is the daily view — tasks that need attention right now.
+    Combines tasks due today with any that are past due.
+
+    Args:
+        sort: Sort field — "due_date", "priority", "created_at", "updated_at",
+              "completed_at", "title", or "position".
+        direction: Sort direction — "asc" or "desc".
+        page: Page number (default 1).
+        limit: Results per page (default 20, max 100).
+
+    Returns:
+        Dict with 'items' (list of tasks) and 'meta' (pagination info).
+    """
+    params: dict = {"page": page, "limit": limit}
+    if sort is not None:
+        params["sort"] = sort
+    if direction is not None:
+        params["direction"] = direction
+    return await api.get("/api/v1/tasks/today", params=params)
+
+
+@mcp.tool()
+async def get_overdue(
+    sort: str | None = None,
+    direction: str | None = None,
+    page: int = 1,
+    limit: int = 20,
+) -> dict:
+    """Get overdue tasks (past due date, not yet completed).
+
+    Args:
+        sort: Sort field — "due_date", "priority", "created_at", "updated_at",
+              "completed_at", "title", or "position".
+        direction: Sort direction — "asc" or "desc".
+        page: Page number (default 1).
+        limit: Results per page (default 20, max 100).
+
+    Returns:
+        Dict with 'items' (list of tasks) and 'meta' (pagination info).
+    """
+    params: dict = {"page": page, "limit": limit}
+    if sort is not None:
+        params["sort"] = sort
+    if direction is not None:
+        params["direction"] = direction
+    return await api.get("/api/v1/tasks/overdue", params=params)
+
+
+@mcp.tool()
+async def get_upcoming(
+    days: int = 7,
+    sort: str | None = None,
+    direction: str | None = None,
+    page: int = 1,
+    limit: int = 20,
+) -> dict:
+    """Get tasks due within the next N days.
+
+    Useful for planning ahead. Does not include overdue tasks — use
+    get_today or get_overdue for those.
+
+    Args:
+        days: Number of days to look ahead (1-90, default 7).
+        sort: Sort field — "due_date", "priority", "created_at", "updated_at",
+              "completed_at", "title", or "position".
+        direction: Sort direction — "asc" or "desc".
+        page: Page number (default 1).
+        limit: Results per page (default 20, max 100).
+
+    Returns:
+        Dict with 'items' (list of tasks) and 'meta' (pagination info).
+    """
+    params: dict = {"days": days, "page": page, "limit": limit}
+    if sort is not None:
+        params["sort"] = sort
+    if direction is not None:
+        params["direction"] = direction
+    return await api.get("/api/v1/tasks/upcoming", params=params)
+
+
+# ---------------------------------------------------------------------------
+# Discovery
+# ---------------------------------------------------------------------------
+
+
+@mcp.tool()
+async def search(
+    q: str,
+    type: str | None = None,
+    page: int = 1,
+    limit: int = 20,
+) -> dict:
+    """Search across tasks, projects, and tags.
+
+    Uses full-text search for tasks and partial matching for projects/tags.
+    This is distinct from the search filter on list_todos — this searches
+    across all entity types simultaneously.
+
+    Args:
+        q: Search query (minimum 2 characters).
+        type: Limit to entity type — "all", "tasks", "projects", or "tags"
+              (default "all").
+        page: Page number (default 1).
+        limit: Results per page (default 20, max 100).
+
+    Returns:
+        Dict with search results grouped by type, plus pagination meta.
+    """
+    params: dict = {"q": q, "page": page, "limit": limit}
+    if type is not None:
+        params["type"] = type
+    return await api.get("/api/v1/search", params=params)
+
+
+@mcp.tool()
+async def list_projects(
+    include_archived: bool = False,
+    page: int = 1,
+    limit: int = 20,
+) -> dict:
+    """List projects with task counts.
+
+    Useful for discovering project IDs when creating or updating tasks.
+
+    Args:
+        include_archived: Include archived projects (default False).
+        page: Page number (default 1).
+        limit: Results per page (default 20, max 100).
+
+    Returns:
+        Dict with 'items' (list of projects with task counts) and 'meta'
+        (pagination info).
+    """
+    params: dict = {"page": page, "limit": limit}
+    if include_archived:
+        params["include_archived"] = "true"
+    return await api.get("/api/v1/projects", params=params)
+
+
+# ---------------------------------------------------------------------------
+# Subtasks
+# ---------------------------------------------------------------------------
+
+
+@mcp.tool()
+async def list_subtasks(task_id: str) -> dict:
+    """Get subtasks of a parent task.
+
+    Args:
+        task_id: The UUID of the parent task.
+
+    Returns:
+        Dict with 'tasks' (list of subtasks), 'total' count, and
+        'completedCount'.
+    """
+    return await api.get(f"/api/v1/tasks/{task_id}/subtasks")
+
+
+@mcp.tool()
+async def create_subtask(
+    parent_task_id: str,
+    title: str,
+    description: str | None = None,
+    priority: int | None = None,
+    due_date: str | None = None,
+) -> dict:
+    """Create a subtask under a parent task.
+
+    Subtasks support one level of nesting only — you cannot create a subtask
+    of a subtask. Subtasks inherit the parent's project automatically.
+
+    Args:
+        parent_task_id: The UUID of the parent task.
+        title: The subtask title.
+        description: Optional longer description.
+        priority: Priority level 1-5 (1 = lowest, 5 = urgent).
+        due_date: ISO-8601 date string (e.g. "2026-04-15").
+
+    Returns:
+        The created subtask object.
+    """
+    body: dict = {"title": title}
+    if description is not None:
+        body["description"] = description
+    if priority is not None:
+        body["priority"] = priority
+    if due_date is not None:
+        body["dueDate"] = due_date
+    return await api.post(f"/api/v1/tasks/{parent_task_id}/subtasks", json=body)
+
+
+# ---------------------------------------------------------------------------
+# Rescheduling
+# ---------------------------------------------------------------------------
+
+
+@mcp.tool()
+async def reschedule_todo(task_id: str, due_date: str) -> dict:
+    """Reschedule a task using natural language or an ISO date.
+
+    Accepts natural language like "next Monday", "in 3 days", "end of month",
+    or ISO-8601 dates like "2026-04-15".
+
+    Args:
+        task_id: The UUID of the task to reschedule.
+        due_date: New due date — natural language expression or ISO-8601 date.
+
+    Returns:
+        The updated task object. Includes an undoToken for reversal (60s TTL).
+    """
+    return await api.patch(
+        f"/api/v1/tasks/{task_id}/reschedule", json={"due_date": due_date}
+    )
