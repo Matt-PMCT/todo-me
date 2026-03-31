@@ -35,6 +35,7 @@
 
 # Docker environment with credentials
 docker/.env.docker
+docker/.env.mcp
 
 # IDE
 /.idea/
