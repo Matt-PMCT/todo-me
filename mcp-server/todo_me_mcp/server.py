@@ -6,9 +6,9 @@ from starlette.responses import JSONResponse
 from starlette.routing import Route
 
 from .api_client import TodoApiClient
-from .config import TODO_API_KEY, TODO_API_URL
+from .config import MCP_HOST, MCP_PORT, TODO_API_KEY, TODO_API_URL
 
-mcp = FastMCP("todo-me")
+mcp = FastMCP("todo-me", host=MCP_HOST, port=MCP_PORT)
 
 api = TodoApiClient(base_url=TODO_API_URL, api_key=TODO_API_KEY)
 

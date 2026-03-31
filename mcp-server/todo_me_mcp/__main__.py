@@ -2,7 +2,7 @@
 
 import sys
 
-from .config import MCP_HOST, MCP_PORT, MCP_TRANSPORT, TODO_API_KEY
+from .config import MCP_TRANSPORT, TODO_API_KEY
 
 if not TODO_API_KEY:
     print(
@@ -13,7 +13,4 @@ if not TODO_API_KEY:
 
 from .server import mcp  # noqa: E402 — import after validation
 
-if MCP_TRANSPORT == "http":
-    mcp.run(transport="streamable-http", host=MCP_HOST, port=MCP_PORT)
-else:
-    mcp.run(transport="stdio")
+mcp.run(transport="streamable-http" if MCP_TRANSPORT == "http" else "stdio")
