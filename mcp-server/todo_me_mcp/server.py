@@ -1,6 +1,9 @@
 """FastMCP server with Todo-Me tools."""
 
 from mcp.server.fastmcp import FastMCP
+from starlette.requests import Request
+from starlette.responses import JSONResponse
+from starlette.routing import Route
 
 from .api_client import TodoApiClient
 from .config import TODO_API_KEY, TODO_API_URL
@@ -8,6 +11,18 @@ from .config import TODO_API_KEY, TODO_API_URL
 mcp = FastMCP("todo-me")
 
 api = TodoApiClient(base_url=TODO_API_URL, api_key=TODO_API_KEY)
+
+
+# ---------------------------------------------------------------------------
+# Health check (for Docker healthcheck / monitoring)
+# ---------------------------------------------------------------------------
+
+
+async def _health(request: Request) -> JSONResponse:
+    return JSONResponse({"status": "ok"})
+
+
+mcp._custom_starlette_routes = [Route("/health", endpoint=_health)]
 
 
 # ---------------------------------------------------------------------------
@@ -118,7 +133,7 @@ async def create_todo(
                                  to extract due date, priority, tags, etc.
 
     Returns:
-        The created task object. Includes an undoToken for reversal (60s TTL).
+        The created task object.
     """
     body: dict = {"title": title}
     if description is not None:
@@ -228,5 +243,5 @@ async def list_tags(
     """
     params: dict = {"page": page, "limit": limit}
     if search is not None:
-        params["name"] = search
+        params["search"] = search
     return await api.get("/api/v1/tags", params=params)

@@ -197,4 +197,4 @@ class TestListTags:
         mock_api.get.return_value = {"items": [{"name": "groceries"}]}
         await server.list_tags(search="groc")
         call_params = mock_api.get.call_args[1]["params"]
-        assert call_params["name"] == "groc"
+        assert call_params["search"] == "groc"
