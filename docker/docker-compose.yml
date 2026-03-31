@@ -66,6 +66,30 @@ services:
       timeout: 5s
       retries: 5
 
+  mcp:
+    build:
+      context: ../mcp-server
+      dockerfile: Dockerfile
+    container_name: todo-mcp
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8084:8000"
+    environment:
+      - TODO_API_URL=http://web:80
+      - TODO_API_KEY=${MCP_API_KEY:-}
+      - MCP_TRANSPORT=http
+      - MCP_HOST=0.0.0.0
+      - MCP_PORT=8000
+    networks:
+      - todo-network
+    depends_on:
+      - web
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
 networks:
   todo-network:
     driver: bridge
