@@ -220,12 +220,15 @@ class TaskRepository extends ServiceEntityRepository
      */
     public function createOverdueQueryBuilder(User $owner, ?TaskSortRequest $sortRequest = null): QueryBuilder
     {
+        // Issue #123: Use owner's timezone for date boundary
+        $timezone = new \DateTimeZone($owner->getTimezone());
+
         $qb = $this->createQueryBuilder('t')
             ->where('t.owner = :owner')
             ->andWhere('t.dueDate < :today')
             ->andWhere('t.status != :completed')
             ->setParameter('owner', $owner)
-            ->setParameter('today', new \DateTimeImmutable('today'))
+            ->setParameter('today', new \DateTimeImmutable('today', $timezone))
             ->setParameter('completed', Task::STATUS_COMPLETED);
 
         $qb->andWhere('t.parentTask IS NULL');
@@ -252,7 +255,9 @@ class TaskRepository extends ServiceEntityRepository
      */
     public function findDueSoonByOwner(User $owner, int $days = 7): array
     {
-        $today = new \DateTimeImmutable('today');
+        // Issue #123: Use owner's timezone for date boundary
+        $timezone = new \DateTimeZone($owner->getTimezone());
+        $today = new \DateTimeImmutable('today', $timezone);
         $endDate = $today->modify("+{$days} days");
 
         return $this->createQueryBuilder('t')
@@ -778,7 +783,9 @@ class TaskRepository extends ServiceEntityRepository
      */
     public function createTodayTasksQueryBuilder(User $owner, ?TaskSortRequest $sortRequest = null): QueryBuilder
     {
-        $endOfToday = new \DateTimeImmutable('today 23:59:59');
+        // Issue #123: Use owner's timezone for date boundary
+        $timezone = new \DateTimeZone($owner->getTimezone());
+        $endOfToday = new \DateTimeImmutable('today 23:59:59', $timezone);
 
         $qb = $this->createQueryBuilder('t')
             ->where('t.owner = :owner')
@@ -814,8 +821,10 @@ class TaskRepository extends ServiceEntityRepository
      */
     public function createUpcomingTasksQueryBuilder(User $owner, int $days = 7, ?TaskSortRequest $sortRequest = null): QueryBuilder
     {
-        $tomorrow = new \DateTimeImmutable('tomorrow');
-        $endDate = (new \DateTimeImmutable('today'))->modify("+{$days} days")->setTime(23, 59, 59);
+        // Issue #123: Use owner's timezone for date boundary
+        $timezone = new \DateTimeZone($owner->getTimezone());
+        $tomorrow = new \DateTimeImmutable('tomorrow', $timezone);
+        $endDate = (new \DateTimeImmutable('today', $timezone))->modify("+{$days} days")->setTime(23, 59, 59);
 
         $qb = $this->createQueryBuilder('t')
             ->where('t.owner = :owner')

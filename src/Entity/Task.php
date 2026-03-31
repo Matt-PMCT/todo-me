@@ -345,8 +345,10 @@ class Task implements UserOwnedInterface
             return false;
         }
 
-        $now = new \DateTimeImmutable();
-        $today = new \DateTimeImmutable('today');
+        // Issue #123: Use owner's timezone for date boundary calculations
+        $timezone = new \DateTimeZone($this->getOwner()?->getTimezone() ?? 'UTC');
+        $now = new \DateTimeImmutable('now', $timezone);
+        $today = new \DateTimeImmutable('today', $timezone);
 
         // Past date = overdue
         if ($this->dueDate < $today) {
@@ -379,7 +381,9 @@ class Task implements UserOwnedInterface
             return null;
         }
 
-        $today = new \DateTimeImmutable('today');
+        // Issue #123: Use owner's timezone for date boundary calculations
+        $timezone = new \DateTimeZone($this->getOwner()?->getTimezone() ?? 'UTC');
+        $today = new \DateTimeImmutable('today', $timezone);
 
         if ($this->dueDate >= $today) {
             return null;

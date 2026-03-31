@@ -47,15 +47,21 @@ final class TaskGroupingService
     ];
 
     /**
-     * Groups tasks by time period relative to today.
+     * Groups tasks by time period relative to today in the user's timezone.
      *
-     * @param Task[] $tasks
+     * @param Task[]                  $tasks
+     * @param \DateTimeImmutable|null $referenceTime Optional reference time (for testing); defaults to now
      *
      * @return array<string, array{label: string, tasks: Task[]}>
      */
-    public function groupByTimePeriod(array $tasks, User $user): array
+    public function groupByTimePeriod(array $tasks, User $user, ?\DateTimeImmutable $referenceTime = null): array
     {
-        $today = new \DateTimeImmutable('today');
+        // Issue #123: Use user's timezone for date boundary calculations
+        $timezone = new \DateTimeZone($user->getTimezone());
+        $now = $referenceTime !== null
+            ? $referenceTime->setTimezone($timezone)
+            : new \DateTimeImmutable('now', $timezone);
+        $today = $now->setTime(0, 0, 0);
         $tomorrow = $today->modify('+1 day');
 
         [$thisWeekStart, $thisWeekEnd] = $this->getWeekBoundaries($today, $user->getStartOfWeek());

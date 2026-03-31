@@ -117,6 +117,68 @@ class TaskGroupingServiceTest extends UnitTestCase
     }
 
     // ========================================
+    // groupByTimePeriod Tests - Timezone
+    // ========================================
+
+    /**
+     * @covers \App\Service\TaskGroupingService::groupByTimePeriod
+     * Summary: Reproduces Issue #123 - Due dates use wrong timezone.
+     *
+     * Bug: Tasks due tomorrow appear as "Due Today" because groupByTimePeriod
+     *      uses UTC to determine "today" instead of the user's configured timezone.
+     * Expected: A task due on March 5 should be "Tomorrow" for a Pacific user
+     *           at 16:49 Pacific on March 4 (00:49 UTC March 5).
+     */
+    public function testIssue123GroupByTimePeriodUsesUserTimezoneNotUtc(): void
+    {
+        // ARRANGE: Simulate 16:49 Pacific on March 4 = 00:49 UTC on March 5
+        $referenceTime = new \DateTimeImmutable('2026-03-05 00:49:00', new \DateTimeZone('UTC'));
+
+        // User is in Pacific timezone (UTC-8 in standard, UTC-7 in DST)
+        // March 4 at 16:49 Pacific = March 5 00:49 UTC
+        $this->user->setSettings(['timezone' => 'America/Los_Angeles']);
+
+        // Task due March 5 — tomorrow for Pacific user, but "today" in UTC
+        $task = $this->createTaskWithId('task-1', $this->user);
+        $task->setDueDate(new \DateTimeImmutable('2026-03-05'));
+
+        // ACT
+        $groups = $this->service->groupByTimePeriod([$task], $this->user, $referenceTime);
+
+        // ASSERT: Should be "Tomorrow" in Pacific time, not "Today"
+        $this->assertArrayHasKey(TaskGroupingService::GROUP_TOMORROW, $groups);
+        $this->assertArrayNotHasKey(TaskGroupingService::GROUP_TODAY, $groups);
+        $this->assertCount(1, $groups[TaskGroupingService::GROUP_TOMORROW]['tasks']);
+    }
+
+    /**
+     * @covers \App\Service\TaskGroupingService::groupByTimePeriod
+     * Summary: Verifies that overdue detection respects user timezone.
+     *
+     * A task due March 4 at 23:30 UTC on March 4 is NOT overdue for a UTC user
+     * but IS overdue for a Kiritimati (UTC+14) user where it's already March 5.
+     */
+    public function testIssue123GroupByTimePeriodOverdueRespectsTimezone(): void
+    {
+        // ARRANGE: 23:30 UTC March 4 = 13:30 March 5 in Kiritimati (UTC+14)
+        $referenceTime = new \DateTimeImmutable('2026-03-04 23:30:00', new \DateTimeZone('UTC'));
+
+        // User in UTC+14 timezone — it's already March 5 for them
+        $this->user->setSettings(['timezone' => 'Pacific/Kiritimati']);
+
+        // Task due March 4 — today for UTC, but yesterday (overdue) for Kiritimati
+        $task = $this->createTaskWithId('task-1', $this->user);
+        $task->setDueDate(new \DateTimeImmutable('2026-03-04'));
+
+        // ACT
+        $groups = $this->service->groupByTimePeriod([$task], $this->user, $referenceTime);
+
+        // ASSERT: Should be overdue for Kiritimati user
+        $this->assertArrayHasKey(TaskGroupingService::GROUP_OVERDUE, $groups);
+        $this->assertArrayNotHasKey(TaskGroupingService::GROUP_TODAY, $groups);
+    }
+
+    // ========================================
     // groupByTimePeriod Tests - User Settings
     // ========================================
 
