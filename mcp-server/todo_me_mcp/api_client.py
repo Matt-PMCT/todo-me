@@ -21,40 +21,28 @@ class TodoApiClient:
 
     def __init__(self, base_url: str, api_key: str):
         self._base_url = base_url.rstrip("/")
-        self._api_key = api_key
+        self._client = httpx.AsyncClient(
+            headers={"Authorization": f"Bearer {api_key}"},
+            timeout=30.0,
+        )
 
     def _url(self, path: str) -> str:
         return f"{self._base_url}{path}"
 
-    def _headers(self) -> dict[str, str]:
-        return {"Authorization": f"Bearer {self._api_key}"}
-
     async def get(self, path: str, params: dict | None = None) -> dict:
-        async with httpx.AsyncClient() as client:
-            response = await client.get(
-                self._url(path), headers=self._headers(), params=params
-            )
+        response = await self._client.get(self._url(path), params=params)
         return self._handle_response(response)
 
     async def post(self, path: str, json: dict | None = None, params: dict | None = None) -> dict:
-        async with httpx.AsyncClient() as client:
-            response = await client.post(
-                self._url(path), headers=self._headers(), json=json, params=params
-            )
+        response = await self._client.post(self._url(path), json=json, params=params)
         return self._handle_response(response)
 
     async def patch(self, path: str, json: dict | None = None) -> dict:
-        async with httpx.AsyncClient() as client:
-            response = await client.patch(
-                self._url(path), headers=self._headers(), json=json
-            )
+        response = await self._client.patch(self._url(path), json=json)
         return self._handle_response(response)
 
     async def delete(self, path: str) -> dict:
-        async with httpx.AsyncClient() as client:
-            response = await client.delete(
-                self._url(path), headers=self._headers()
-            )
+        response = await self._client.delete(self._url(path))
         return self._handle_response(response)
 
     # ------------------------------------------------------------------

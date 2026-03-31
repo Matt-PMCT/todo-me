@@ -148,5 +148,8 @@ class TestErrorHandling:
 class TestHeaders:
     def test_authorization_header(self):
         client = TodoApiClient("http://test", "tm_abc123")
-        headers = client._headers()
-        assert headers["Authorization"] == "Bearer tm_abc123"
+        assert client._client.headers["Authorization"] == "Bearer tm_abc123"
+
+    def test_timeout_is_set(self):
+        client = TodoApiClient("http://test", "tk")
+        assert client._client.timeout.connect == 30.0
