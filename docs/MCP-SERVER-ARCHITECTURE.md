@@ -241,8 +241,7 @@ async def list_todos(
     with total, page, limit, totalPages).
     """
     params = {k: v for k, v in locals().items() if v is not None}
-    response = await api_client.get("/api/v1/tasks", params=params)
-    return response["data"]
+    return await api.get("/api/v1/tasks", params=params)
 ```
 
 ## 5. Authentication Flow

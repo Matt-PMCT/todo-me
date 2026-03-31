@@ -482,7 +482,7 @@ async def create_subtask(
 async def reschedule_todo(task_id: str, due_date: str) -> dict:
     """Reschedule a task using natural language or an ISO date.
 
-    Accepts natural language like "next Monday", "in 3 days", "end of month",
+    Accepts natural language like "next Monday", "in 3 days", "tomorrow",
     or ISO-8601 dates like "2026-04-15".
 
     Args:
