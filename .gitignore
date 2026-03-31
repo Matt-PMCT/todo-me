@@ -101,3 +101,12 @@ docs/adminkit-pro-3-4-0/
 /.php-cs-fixer.php
 /.php-cs-fixer.cache
 ###< friendsofphp/php-cs-fixer ###
+
+###> mcp-server ###
+mcp-server/.venv/
+mcp-server/__pycache__/
+mcp-server/**/__pycache__/
+mcp-server/*.egg-info/
+mcp-server/**/*.egg-info/
+mcp-server/.pytest_cache/
+###< mcp-server ###
