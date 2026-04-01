@@ -30,46 +30,39 @@ An [MCP](https://modelcontextprotocol.io) server that exposes the Todo-Me REST A
 | `list_subtasks` | Get subtasks of a parent task |
 | `create_subtask` | Create a subtask under a parent task (max 1 level nesting) |
 
-## Setup
+## Quick Start (Local Install)
 
-### Prerequisites
+The `mcp-server/` folder is **self-contained** — you only need this folder, not the full Todo-Me application. Copy or clone it to any machine with Python 3.12+.
 
-- Python 3.12+
-- A Todo-Me API token (create one in Settings > API Tokens in the Todo-Me web UI)
-
-### Install
+### 1. Copy and install
 
 ```bash
-cd mcp-server
-pip install -e .
+# Copy just the mcp-server folder to your machine
+cp -r mcp-server /path/to/your/mcp-server
+cd /path/to/your/mcp-server
+
+# Create a virtual environment and install
+python3 -m venv .venv
+.venv/bin/pip install -e .
 ```
 
-### Configure
+### 2. Get an API token
 
-Copy `.env.example` to `.env` and set your values:
+Create one in **Settings > API Tokens** in the Todo-Me web UI. Tokens start with `tm_`.
 
-```bash
-cp .env.example .env
-```
+### 3. Configure your AI client
 
-Required variables:
+The examples below use the full path to the venv Python so the client can find the package. Adjust `/path/to/your/mcp-server` to wherever you copied the folder.
 
-| Variable | Description |
-|----------|-------------|
-| `TODO_API_URL` | Base URL to your Todo-Me instance (e.g., `https://pmct.work/todo-me`) |
-| `TODO_API_KEY` | Your named API token (starts with `tm_`) |
+#### Claude Desktop / CoWork
 
-## Usage
-
-### Claude Desktop
-
-Add to your Claude Desktop config (`~/Library/Application Support/Claude/claude_desktop_config.json` on macOS):
+Add to your Claude Desktop config (`~/Library/Application Support/Claude/claude_desktop_config.json` on macOS, `%APPDATA%\Claude\claude_desktop_config.json` on Windows):
 
 ```json
 {
   "mcpServers": {
     "todo-me": {
-      "command": "python",
+      "command": "/path/to/your/mcp-server/.venv/bin/python",
       "args": ["-m", "todo_me_mcp"],
       "env": {
         "TODO_API_URL": "https://pmct.work/todo-me",
@@ -80,15 +73,22 @@ Add to your Claude Desktop config (`~/Library/Application Support/Claude/claude_
 }
 ```
 
-### Claude Code
+#### Claude Code
 
-Add to your project's `.mcp.json` or `~/.claude/settings.json`:
+```bash
+claude mcp add --transport stdio --scope user \
+  --env TODO_API_URL=https://pmct.work/todo-me \
+  --env TODO_API_KEY=tm_your_token_here \
+  todo-me -- /path/to/your/mcp-server/.venv/bin/python -m todo_me_mcp
+```
+
+Or add to your project's `.mcp.json`:
 
 ```json
 {
   "mcpServers": {
     "todo-me": {
-      "command": "python",
+      "command": "/path/to/your/mcp-server/.venv/bin/python",
       "args": ["-m", "todo_me_mcp"],
       "env": {
         "TODO_API_URL": "https://pmct.work/todo-me",
@@ -101,7 +101,7 @@ Add to your project's `.mcp.json` or `~/.claude/settings.json`:
 
 ### Docker (Remote Transport)
 
-For remote access (e.g., claude.ai custom connectors), run with Docker:
+For remote access (e.g., claude.ai custom connectors), run with Docker on the server:
 
 ```bash
 docker compose -f docker/docker-compose.yml up mcp -d
