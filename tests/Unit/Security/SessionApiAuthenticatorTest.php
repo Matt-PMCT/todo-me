@@ -10,6 +10,7 @@ use PHPUnit\Framework\MockObject\MockObject;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Session\Session;
 use Symfony\Component\HttpFoundation\Session\Storage\MockArraySessionStorage;
+use Symfony\Component\Security\Core\Authentication\Token\RememberMeToken;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 use Symfony\Component\Security\Core\Exception\AuthenticationException;
 use Symfony\Component\Security\Csrf\CsrfToken;
@@ -143,6 +144,22 @@ class SessionApiAuthenticatorTest extends UnitTestCase
     public function testAuthenticateSucceedsForHeadRequestWithoutCsrfToken(): void
     {
         $request = $this->createApiRequestWithSession('/api/v1/tasks', 'HEAD', $this->createSerializedToken('user@example.com'));
+
+        $passport = $this->authenticator->authenticate($request);
+
+        $this->assertInstanceOf(SelfValidatingPassport::class, $passport);
+        $userBadge = $passport->getBadge(UserBadge::class);
+        $this->assertInstanceOf(UserBadge::class, $userBadge);
+        $this->assertSame('user@example.com', $userBadge->getUserIdentifier());
+    }
+
+    public function testAuthenticateSucceedsForRememberMeToken(): void
+    {
+        $request = $this->createApiRequestWithSession(
+            '/api/v1/tasks',
+            'GET',
+            $this->createSerializedRememberMeToken('user@example.com')
+        );
 
         $passport = $this->authenticator->authenticate($request);
 
@@ -402,5 +419,16 @@ class SessionApiAuthenticatorTest extends UnitTestCase
             'main',
             ['ROLE_USER']
         ));
+    }
+
+    /**
+     * Creates a serialized RememberMeToken with the given user identifier.
+     */
+    private function createSerializedRememberMeToken(string $userIdentifier = 'user@example.com'): string
+    {
+        $user = new \Symfony\Component\Security\Core\User\InMemoryUser($userIdentifier, null, ['ROLE_USER']);
+        $token = new RememberMeToken($user, 'main');
+
+        return serialize($token);
     }
 }

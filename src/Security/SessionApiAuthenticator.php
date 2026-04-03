@@ -85,6 +85,7 @@ final class SessionApiAuthenticator extends AbstractAuthenticator
         $allowedTokenClasses = [
             \Symfony\Component\Security\Http\Authenticator\Token\PostAuthenticationToken::class,
             \Symfony\Component\Security\Core\Authentication\Token\UsernamePasswordToken::class,
+            \Symfony\Component\Security\Core\Authentication\Token\RememberMeToken::class,
             'Symfony\Bundle\FrameworkBundle\Test\TestBrowserToken',
         ];
 
