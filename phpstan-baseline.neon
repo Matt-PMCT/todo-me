@@ -931,6 +931,18 @@ parameters:
 			path: src/Service/Parser/NaturalLanguageParserService.php
 
 		-
+			message: '#^Offset 1 on array\{array\{non\-empty\-string, int\<\-1, max\>\}, array\{'''', int\<\-1, max\>\}, array\{non\-empty\-string, int\<\-1, max\>\}\}\|array\{array\{non\-empty\-string, int\<\-1, max\>\}, array\{non\-empty\-string, int\<\-1, max\>\}\} in isset\(\) always exists and is not nullable\.$#'
+			identifier: isset.offset
+			count: 1
+			path: src/Service/Parser/ProjectParserService.php
+
+		-
+			message: '#^Offset 2 might not exist on array\{array\{non\-empty\-string, int\<\-1, max\>\}, array\{'''', int\<\-1, max\>\}, array\{non\-empty\-string, int\<\-1, max\>\}\}\|array\{array\{non\-empty\-string, int\<\-1, max\>\}, array\{non\-empty\-string, int\<\-1, max\>\}\}\.$#'
+			identifier: offsetAccess.notFound
+			count: 1
+			path: src/Service/Parser/ProjectParserService.php
+
+		-
 			message: '#^Method App\\Service\\ProjectCacheService\:\:get\(\) return type has no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
 			count: 1
@@ -1503,7 +1515,7 @@ parameters:
 		-
 			message: '#^Method App\\Tests\\Functional\\ApiTestCase\:\:assertResponseStatusCode\(\) invoked with 3 parameters, 2 required\.$#'
 			identifier: arguments.count
-			count: 1
+			count: 2
 			path: tests/Functional/Api/UserSettingsApiTest.php
 
 		-
@@ -2181,19 +2193,19 @@ parameters:
 		-
 			message: '#^Cannot access property \$endPosition on App\\ValueObject\\ProjectParseResult\|null\.$#'
 			identifier: property.nonObject
-			count: 6
+			count: 7
 			path: tests/Unit/Parser/ProjectParserServiceTest.php
 
 		-
 			message: '#^Cannot access property \$found on App\\ValueObject\\ProjectParseResult\|null\.$#'
 			identifier: property.nonObject
-			count: 14
+			count: 18
 			path: tests/Unit/Parser/ProjectParserServiceTest.php
 
 		-
 			message: '#^Cannot access property \$matchedName on App\\ValueObject\\ProjectParseResult\|null\.$#'
 			identifier: property.nonObject
-			count: 18
+			count: 22
 			path: tests/Unit/Parser/ProjectParserServiceTest.php
 
 		-
@@ -2205,13 +2217,13 @@ parameters:
 		-
 			message: '#^Cannot access property \$project on App\\ValueObject\\ProjectParseResult\|null\.$#'
 			identifier: property.nonObject
-			count: 2
+			count: 4
 			path: tests/Unit/Parser/ProjectParserServiceTest.php
 
 		-
 			message: '#^Cannot access property \$startPosition on App\\ValueObject\\ProjectParseResult\|null\.$#'
 			identifier: property.nonObject
-			count: 8
+			count: 9
 			path: tests/Unit/Parser/ProjectParserServiceTest.php
 
 		-
@@ -2223,7 +2235,7 @@ parameters:
 		-
 			message: '#^Cannot call method getMatchedText\(\) on App\\ValueObject\\ProjectParseResult\|null\.$#'
 			identifier: method.nonObject
-			count: 1
+			count: 2
 			path: tests/Unit/Parser/ProjectParserServiceTest.php
 
 		-
