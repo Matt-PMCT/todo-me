@@ -4,6 +4,7 @@ services:
       context: ./php
       dockerfile: Dockerfile
     container_name: todo-php
+    restart: unless-stopped
     volumes:
       - ../:/var/www/html
     depends_on:
@@ -19,6 +20,7 @@ services:
   web:
     image: nginx:1.24-alpine
     container_name: todo-nginx
+    restart: unless-stopped
     ports:
       - "8083:80"
     volumes:
@@ -32,6 +34,7 @@ services:
   db:
     image: postgres:15-alpine
     container_name: todo-postgres
+    restart: unless-stopped
     env_file:
       - .env.docker
     environment:
@@ -53,6 +56,7 @@ services:
   redis:
     image: redis:7-alpine
     container_name: todo-redis
+    restart: unless-stopped
     command: redis-server --appendonly yes
     volumes:
       - redis_data:/data
