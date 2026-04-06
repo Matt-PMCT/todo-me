@@ -76,25 +76,25 @@ php bin/console doctrine:migrations:generate   # Create new migration
 php bin/console doctrine:migrations:migrate prev  # Revert last migration
 ```
 
-### Code Style (CRITICAL - CI WILL FAIL WITHOUT THIS)
+### Code Style & Static Analysis (CRITICAL - CI WILL FAIL WITHOUT THIS)
 
-**IMPORTANT:** Before committing ANY PHP code changes, you MUST run PHP-CS-Fixer to auto-fix code style. The GitHub CI runs `composer cs-check` which will fail if code style is not correct.
+**IMPORTANT:** Before committing ANY PHP code changes, you MUST run PHP-CS-Fixer and PHPStan. The GitHub CI runs `composer lint` (which runs both `composer cs-check` and `composer phpstan`) and will fail if either has errors.
 
 ```bash
-# ALWAYS run this before committing PHP changes:
+# ALWAYS run these before committing PHP changes:
 docker compose -f docker/docker-compose.yml exec php composer cs-fix
+docker compose -f docker/docker-compose.yml exec php composer phpstan
 
-# To check without fixing (what CI runs):
-docker compose -f docker/docker-compose.yml exec php composer cs-check
+# Or run both checks at once (what CI runs):
+docker compose -f docker/docker-compose.yml exec php composer lint
 ```
 
-Common issues PHP-CS-Fixer fixes automatically:
-- Import statement ordering (must be alphabetical)
-- String concatenation spacing (`. ` → `.`)
-- Trailing commas in multi-line arrays
-- Blank line requirements between class members
+**PHPStan Baseline:** This project uses a PHPStan baseline (`phpstan-baseline.neon`) to track known errors. If you add or modify test files that access nullable return types without null checks (common in test assertions), you must regenerate the baseline:
+```bash
+docker compose -f docker/docker-compose.yml exec php php vendor/bin/phpstan analyse --memory-limit=512M --generate-baseline phpstan-baseline.neon
+```
 
-**Workflow:** Write code → Run `composer cs-fix` → Run tests → Commit
+**Workflow:** Write code → Run `composer cs-fix` → Run `composer phpstan` → Run tests → Commit
 
 ## Architecture
 
