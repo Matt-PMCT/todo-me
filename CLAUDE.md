@@ -33,6 +33,12 @@ cd ~/todo-me && ./scripts/deploy/update-web.sh
 ```
 Set `APP_URL` in the server environment to have the script print your real URL at the end.
 
+**Image freshness & rollback:** every deploy runs `scripts/image-status.sh`: it saves the running image IDs to `backups/images-before-<timestamp>.txt` (rollback: `docker tag <image-id> <image-name>`, then `up -d --no-build`; don't `docker image prune` until the release is verified) and warns when any image is older than `STALE_DAYS` (default 30) — a `--quick` deploy never rebuilds, so act on that warning with a full deploy. Optional weekly notification (cron mails any output; no output = fresh):
+```bash
+0 8 * * 1 cd ~/todo-me && ./scripts/image-status.sh --check --quiet
+```
+The script only reports; it never deploys.
+
 ### Testing
 
 **IMPORTANT:** Tests MUST be run inside the Docker PHP container. The database and Redis services are only accessible from within the Docker network.
