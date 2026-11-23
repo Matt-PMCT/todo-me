@@ -102,6 +102,9 @@ jobs:
           exit-code: '1'
           format: table
           trivyignores: .trivyignore
+          # gosu (bundled in the official postgres image) only drops privileges at container
+          # start and does no networking, so its Go stdlib TLS/x509/net CVEs are unreachable.
+          skip-files: usr/local/bin/gosu
 
   scan-pulled-images:
     runs-on: ubuntu-latest
@@ -124,3 +127,6 @@ jobs:
           exit-code: '1'
           format: table
           trivyignores: .trivyignore
+          # gosu (bundled in the official postgres image) only drops privileges at container
+          # start and does no networking, so its Go stdlib TLS/x509/net CVEs are unreachable.
+          skip-files: usr/local/bin/gosu
