@@ -202,7 +202,13 @@ if $COMPOSE_CMD exec -T php test -f /usr/local/etc/php-fpm.d/zz-www-user.conf; t
     EXEC_USER=www
     # Idempotent self-heal for existing servers: earlier deploys ran as root and left root-owned files
     log "Ensuring var/ and build output are owned by the PHP-FPM user..."
-    $COMPOSE_CMD exec -T -u root php sh -c 'mkdir -p var/cache var/log; for d in var vendor public/assets public/build; do [ -e "$d" ] && chown -R www:www "$d"; done; true'
+    # The php service runs with cap_drop ALL (no CAP_CHOWN), so repair ownership in a one-shot
+    # container that gets CHOWN only for this step. Only mis-owned files are touched, so this is a
+    # silent no-op once everything belongs to www.
+    if ! $COMPOSE_CMD run --rm --no-deps -T -u root --cap-add CHOWN --entrypoint sh php -c \
+        'rc=0; for d in var vendor public/assets public/build; do [ -e "$d" ] || continue; find "$d" ! -user www -exec chown www:www {} + || rc=1; done; exit $rc'; then
+        warning "Could not fix file ownership of var/, vendor/ or public/ - composer or cache steps may fail. Fix on the host: sudo chown -R $(id -un):$(id -gn) var vendor public/assets public/build"
+    fi
 else
     EXEC_USER=root
     warning "PHP image predates the www worker user; run a full deploy (no --quick) to rebuild it"
