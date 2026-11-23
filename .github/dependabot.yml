@@ -1,0 +1,71 @@
+# Dependabot: weekly update PRs, gated by CI (ci.yml) and security.yml. Never auto-merged.
+# Image tags in docker/docker-compose.yml intentionally float (nginx:stable-alpine, redis:7-alpine,
+# postgres:15-alpine): full deploys pull fresh patches and the weekly Trivy scan flags drift.
+version: 2
+
+updates:
+  - package-ecosystem: composer
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    labels: [dependencies, Infrastructure]
+    groups:
+      symfony:
+        patterns: ['symfony/*']
+        update-types: [minor, patch]
+      doctrine:
+        patterns: ['doctrine/*']
+        update-types: [minor, patch]
+      dev-tools:
+        dependency-type: development
+        update-types: [minor, patch]
+
+  - package-ecosystem: pip
+    directory: /mcp-server
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    labels: [dependencies, Infrastructure]
+    groups:
+      mcp-server-python:
+        update-types: [minor, patch]
+    ignore:
+      # mcp 2.x renames FastMCP -> MCPServer; needs a deliberate migration
+      - dependency-name: mcp
+        update-types: ['version-update:semver-major']
+
+  - package-ecosystem: docker
+    directories: [/docker/php, /mcp-server]
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    labels: [dependencies, Infrastructure]
+
+  - package-ecosystem: docker-compose
+    directory: /docker
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    labels: [dependencies, Infrastructure]
+    ignore:
+      # Major database/cache upgrades are migrations, never drive-by bumps
+      - dependency-name: postgres
+        update-types: ['version-update:semver-major']
+      - dependency-name: redis
+        update-types: ['version-update:semver-major']
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    labels: [dependencies, Infrastructure]
+    groups:
+      actions:
+        update-types: [minor, patch]
