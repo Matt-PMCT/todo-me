@@ -25,12 +25,11 @@ php bin/console asset-map:compile --env=prod                 # Compile assets (R
 **CRITICAL:** Always use the deploy script or include `asset-map:compile`. Skipping asset compilation after adding/changing JS files breaks the entire frontend (Alpine.js won't load).
 ```bash
 # Preferred: use deploy script on production server
-cd ~/todo-me && git pull && ./scripts/deploy/update-web.sh --quick   # code-only deploy
-
-# Full deploy (no --quick): backs up, pulls fresh base images, rebuilds. Use monthly for
-# security patches, or whenever Dockerfiles / image tags change.
-cd ~/todo-me && ./scripts/deploy/update-web.sh
+cd ~/todo-me && git pull && ./scripts/deploy/update-web.sh            # fast deploy (default)
+./scripts/deploy/update-web.sh --full                                   # force full rebuild now
+./scripts/deploy/update-web.sh --quick                                  # code-only: no build, no restarts
 ```
+**Deploy modes:** the default uses the Docker layer cache (about a second when nothing in the Dockerfiles/build context changed, seconds for an MCP code change; a cold rebuild takes ~2+ minutes) and only recreates containers whose image/config changed; `composer install` runs only when `composer.json/lock` changed, `vendor/` is missing, or there were no new commits. It becomes a **full rebuild automatically** (`pull` + `build --pull --no-cache`) when the last full rebuild (recorded in `backups/.last-full-build`) is older than `FULL_REBUILD_DAYS` (default 14) or missing, so OS security fixes in cached layers are never more than that old. Run `--full` immediately after a security advisory or a red weekly security scan. `--quick` is for pure PHP/Twig/JS changes (the project is bind-mounted, no image needed).
 Set `APP_URL` in the server environment to have the script print your real URL at the end.
 
 **Fresh server / file ownership:** the project is bind-mounted into the PHP container and PHP-FPM workers run as the `www` user, whose uid/gid is baked in at build time (`WWW_UID`/`WWW_GID`, default 1000; `update-web.sh` sets them to the deploy user's uid/gid). Always deploy as the same non-root user that owns the checkout. `update-web.sh` creates `var/cache` and `var/log` and repairs ownership of `var/`, `vendor/` and build output on every run (idempotent), so a fresh clone works without manual `chown`. A 500 with "Permission denied" for `var/log` means the workers' uid doesn't match the owner of `var/`: run a full deploy. If you expose the MCP server remotely, the host reverse proxy also needs the `/todo-me/mcp/` location block from `docs/MCP-SERVER-ARCHITECTURE.md` (section 6).

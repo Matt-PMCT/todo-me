@@ -5,19 +5,27 @@
 # Updates the production web application with the latest code.
 # Run this script from the ~/todo-me directory on the production server.
 #
-# Usage: ./scripts/deploy/update-web.sh [--no-backup] [--quick]
+# Usage: ./scripts/deploy/update-web.sh [--no-backup] [--quick | --full]
+#
+# Deploy modes:
+#   (default)    Fast deploy: builds with the Docker layer cache (seconds when nothing in the
+#                Dockerfiles/build context changed) and only recreates containers whose image or
+#                config changed. Automatically becomes a full rebuild when the last full rebuild
+#                is older than FULL_REBUILD_DAYS (default 14) or has never been recorded, so OS
+#                security patches in the base images and apt layers are still picked up.
+#   --full       Force a full rebuild now: pulls fresh base images and builds with --no-cache.
+#   --quick      Code-only deploy: skip the build and container restarts entirely.
 #
 # Options:
 #   --no-backup  Skip creating a backup before update
-#   --quick      Code-only deploy: skip rebuild, just update code and clear cache
-#                (no flag = full deploy: pulls fresh base images and rebuilds)
 #
 # Before changing anything it records the running image IDs to backups/images-before-*.txt
 # (rollback info) and warns if any image is older than STALE_DAYS (default 30).
 #
 # Environment:
-#   APP_URL      Public URL shown in the final "Verify at" message
-#                (default: http://localhost:8083/)
+#   APP_URL             Public URL shown in the final "Verify at" message
+#                       (default: http://localhost:8083/)
+#   FULL_REBUILD_DAYS   Max age of the last full rebuild before one is forced (default: 14)
 #
 
 set -e
@@ -38,6 +46,7 @@ NC='\033[0m' # No Color
 # Parse arguments
 SKIP_BACKUP=false
 QUICK_UPDATE=false
+FORCE_FULL=false
 while [[ $# -gt 0 ]]; do
     case $1 in
         --no-backup)
@@ -48,12 +57,21 @@ while [[ $# -gt 0 ]]; do
             QUICK_UPDATE=true
             shift
             ;;
+        --full)
+            FORCE_FULL=true
+            shift
+            ;;
         *)
             echo -e "${RED}Unknown option: $1${NC}"
             exit 1
             ;;
     esac
 done
+
+if [ "$QUICK_UPDATE" = true ] && [ "$FORCE_FULL" = true ]; then
+    echo -e "${RED}--quick and --full cannot be combined${NC}"
+    exit 1
+fi
 
 log() {
     echo -e "${BLUE}[$(date '+%Y-%m-%d %H:%M:%S')]${NC} $1"
@@ -99,7 +117,7 @@ IMAGE_RECORD="$PROJECT_DIR/backups/images-before-$(date +%Y%m%d_%H%M%S).txt"
 bash "$SCRIPT_DIR/../image-status.sh" --record "$IMAGE_RECORD" || warning "Could not record current image IDs"
 if ! bash "$SCRIPT_DIR/../image-status.sh" --check; then
     if [ "$QUICK_UPDATE" = true ]; then
-        warning "Images are stale and --quick skips the rebuild. Consider a full deploy (no --quick)."
+        warning "Images are stale and --quick skips the rebuild. Consider a deploy without --quick (or --full)."
     fi
 fi
 
@@ -156,22 +174,60 @@ fi
 # Change to docker directory for compose commands
 cd "$DOCKER_DIR"
 
-# Step 3: Rebuild containers (unless quick update)
-if [ "$QUICK_UPDATE" = false ]; then
-    log "Pulling latest base images..."
-    $COMPOSE_CMD pull web db redis
+# Step 3: Decide how to build. A full (no-cache, freshly pulled) rebuild is the only way to pick up
+# OS package fixes baked into cached layers, so it happens on request (--full) or automatically
+# once the last one is older than FULL_REBUILD_DAYS. Everything else uses the Docker layer cache,
+# which is itself the change detector (Dockerfile, build context, build args).
+FULL_REBUILD_DAYS="${FULL_REBUILD_DAYS:-14}"
+FULL_BUILD_STAMP="$PROJECT_DIR/backups/.last-full-build"
 
-    log "Rebuilding Docker containers..."
-    $COMPOSE_CMD build --pull --no-cache
+choose_build_mode() {
+    if [ "$QUICK_UPDATE" = true ]; then
+        BUILD_MODE=quick
+        BUILD_REASON="--quick requested"
+    elif [ "$FORCE_FULL" = true ]; then
+        BUILD_MODE=full
+        BUILD_REASON="--full requested"
+    elif ! LAST_FULL=$(cat "$FULL_BUILD_STAMP" 2>/dev/null) || ! [[ "$LAST_FULL" =~ ^[0-9]+$ ]]; then
+        BUILD_MODE=full
+        BUILD_REASON="no record of a previous full rebuild"
+    elif [ $(( ($(date +%s) - LAST_FULL) / 86400 )) -ge "$FULL_REBUILD_DAYS" ]; then
+        BUILD_MODE=full
+        BUILD_REASON="last full rebuild was $(( ($(date +%s) - LAST_FULL) / 86400 )) days ago (limit: $FULL_REBUILD_DAYS)"
+    else
+        BUILD_MODE=fast
+        BUILD_REASON="last full rebuild was $(( ($(date +%s) - LAST_FULL) / 86400 )) days ago (limit: $FULL_REBUILD_DAYS)"
+    fi
+}
+choose_build_mode
 
-    log "Restarting containers..."
+# Step 3: Build and (re)start containers
+if [ "$BUILD_MODE" = quick ]; then
+    log "Quick update mode - skipping container rebuild"
+    if [ "$WEB_BIND_CHANGED" = true ]; then
+        log "Applying the new web port binding..."
+        $COMPOSE_CMD up -d web
+    fi
+else
+    if [ "$BUILD_MODE" = full ]; then
+        log "Full rebuild ($BUILD_REASON): pulling fresh base images and building without cache..."
+        $COMPOSE_CMD pull web db redis
+        $COMPOSE_CMD build --pull --no-cache
+    else
+        log "Fast deploy ($BUILD_REASON): building with the layer cache..."
+        $COMPOSE_CMD build
+    fi
+
+    log "Starting containers (only those whose image or config changed are recreated)..."
     $COMPOSE_CMD up -d
+
+    if [ "$BUILD_MODE" = full ]; then
+        date +%s > "$FULL_BUILD_STAMP"
+        sleep 5
+    fi
 
     # Wait for containers to be healthy
     log "Waiting for containers to be healthy..."
-    sleep 5
-
-    # Check health status
     RETRIES=30
     while [ $RETRIES -gt 0 ]; do
         PHP_HEALTH=$(docker inspect --format='{{.State.Health.Status}}' todo-php 2>/dev/null || echo "unknown")
@@ -186,12 +242,6 @@ if [ "$QUICK_UPDATE" = false ]; then
 
     if [ "$PHP_HEALTH" != "healthy" ]; then
         warning "PHP container health check timed out, continuing anyway"
-    fi
-else
-    log "Quick update mode - skipping container rebuild"
-    if [ "$WEB_BIND_CHANGED" = true ]; then
-        log "Applying the new web port binding..."
-        $COMPOSE_CMD up -d web
     fi
 fi
 
@@ -215,10 +265,22 @@ else
 fi
 APP_EXEC="$COMPOSE_CMD exec -T -u $EXEC_USER php"
 
-# Step 4: Run composer install (in case dependencies changed)
-if [ "$QUICK_UPDATE" = false ]; then
+# Step 4: Run composer install only when needed: dependency files changed, vendor/ is missing,
+# a full rebuild just happened, or there were no new commits (re-run after a failed deploy).
+NEED_COMPOSER=false
+if [ "$BUILD_MODE" = full ] || [ ! -f "$PROJECT_DIR/vendor/autoload.php" ]; then
+    NEED_COMPOSER=true
+elif git diff --name-only "$BEFORE_HASH" "$AFTER_HASH" | grep -qE '^composer\.(json|lock)$'; then
+    NEED_COMPOSER=true
+elif [ "$BEFORE_HASH" = "$AFTER_HASH" ] && [ "$BUILD_MODE" != quick ]; then
+    NEED_COMPOSER=true
+fi
+
+if [ "$NEED_COMPOSER" = true ]; then
     log "Installing/updating dependencies..."
     $APP_EXEC composer install --no-dev --optimize-autoloader --no-interaction
+else
+    log "Dependencies unchanged - skipping composer install"
 fi
 
 # Step 5: Run database migrations
@@ -249,8 +311,8 @@ else
     warning "Could not verify application health via HTTP"
 fi
 
-# Confirm image freshness after the deploy
-if [ "$QUICK_UPDATE" = false ]; then
+# Confirm image freshness after a full rebuild
+if [ "$BUILD_MODE" = full ]; then
     bash "$SCRIPT_DIR/../image-status.sh" --check || warning "Some images are still older than expected"
 fi
 
