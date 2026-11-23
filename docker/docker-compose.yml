@@ -11,6 +11,12 @@ services:
     restart: unless-stopped
     security_opt:
       - no-new-privileges:true
+    # Capabilities: drop everything, add back only what is needed (php-fpm master (root) drops workers to the www user).
+    cap_drop:
+      - ALL
+    cap_add:
+      - SETUID
+      - SETGID
     volumes:
       - ../:/var/www/html
     depends_on:
@@ -29,6 +35,13 @@ services:
     restart: unless-stopped
     security_opt:
       - no-new-privileges:true
+    # Capabilities: drop everything, add back only what is needed (nginx master chowns its temp dirs and drops workers to the nginx user).
+    cap_drop:
+      - ALL
+    cap_add:
+      - CHOWN
+      - SETUID
+      - SETGID
     ports:
       # WEB_BIND comes from docker/.env (chosen on first deploy by scripts/deploy/update-web.sh):
       # 127.0.0.1 = only a reverse proxy on this host can reach the app, 0.0.0.0 = whole LAN.
@@ -47,6 +60,15 @@ services:
     restart: unless-stopped
     security_opt:
       - no-new-privileges:true
+    # Capabilities: drop everything, add back only what is needed (entrypoint repairs ownership/permissions of the data dir (restored or bind-mounted volumes), then drops to postgres. SETUID/SETGID/DAC_OVERRIDE are required even on a fresh volume).
+    cap_drop:
+      - ALL
+    cap_add:
+      - CHOWN
+      - DAC_OVERRIDE
+      - FOWNER
+      - SETUID
+      - SETGID
     env_file:
       - .env.docker
     environment:
@@ -71,6 +93,14 @@ services:
     restart: unless-stopped
     security_opt:
       - no-new-privileges:true
+    # Capabilities: drop everything, add back only what is needed (entrypoint repairs ownership of /data, then drops to redis. SETUID/SETGID are required even on a fresh volume).
+    cap_drop:
+      - ALL
+    cap_add:
+      - CHOWN
+      - DAC_OVERRIDE
+      - SETUID
+      - SETGID
     command: redis-server --appendonly yes
     volumes:
       - redis_data:/data
@@ -92,6 +122,9 @@ services:
     restart: unless-stopped
     security_opt:
       - no-new-privileges:true
+    # Capabilities: drop everything, add back only what is needed (runs as a non-root user and needs no capabilities).
+    cap_drop:
+      - ALL
     ports:
       - "127.0.0.1:8084:8000"
     env_file:
