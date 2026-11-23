@@ -12,6 +12,9 @@
 #   --quick      Code-only deploy: skip rebuild, just update code and clear cache
 #                (no flag = full deploy: pulls fresh base images and rebuilds)
 #
+# Before changing anything it records the running image IDs to backups/images-before-*.txt
+# (rollback info) and warns if any image is older than STALE_DAYS (default 30).
+#
 # Environment:
 #   APP_URL      Public URL shown in the final "Verify at" message
 #                (default: http://localhost:8083/)
@@ -88,6 +91,16 @@ if [ "$SKIP_BACKUP" = false ]; then
     fi
 else
     log "Skipping backup (--no-backup flag set)"
+fi
+
+# Record running image IDs (for rollback) and warn about stale images
+mkdir -p "$PROJECT_DIR/backups"
+IMAGE_RECORD="$PROJECT_DIR/backups/images-before-$(date +%Y%m%d_%H%M%S).txt"
+bash "$SCRIPT_DIR/../image-status.sh" --record "$IMAGE_RECORD" || warning "Could not record current image IDs"
+if ! bash "$SCRIPT_DIR/../image-status.sh" --check; then
+    if [ "$QUICK_UPDATE" = true ]; then
+        warning "Images are stale and --quick skips the rebuild. Consider a full deploy (no --quick)."
+    fi
 fi
 
 # Step 2: Pull latest code
@@ -180,6 +193,11 @@ if curl -sf "$HEALTH_URL" > /dev/null 2>&1; then
     success "Application is responding"
 else
     warning "Could not verify application health via HTTP"
+fi
+
+# Confirm image freshness after the deploy
+if [ "$QUICK_UPDATE" = false ]; then
+    bash "$SCRIPT_DIR/../image-status.sh" --check || warning "Some images are still older than expected"
 fi
 
 # Show container status
