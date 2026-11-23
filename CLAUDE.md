@@ -25,8 +25,13 @@ php bin/console asset-map:compile --env=prod                 # Compile assets (R
 **CRITICAL:** Always use the deploy script or include `asset-map:compile`. Skipping asset compilation after adding/changing JS files breaks the entire frontend (Alpine.js won't load).
 ```bash
 # Preferred: use deploy script on production server
-cd ~/todo-me && git pull && ./scripts/deploy/update-web.sh --quick
+cd ~/todo-me && git pull && ./scripts/deploy/update-web.sh --quick   # code-only deploy
+
+# Full deploy (no --quick): backs up, pulls fresh base images, rebuilds. Use monthly for
+# security patches, or whenever Dockerfiles / image tags change.
+cd ~/todo-me && ./scripts/deploy/update-web.sh
 ```
+Set `APP_URL` in the server environment to have the script print your real URL at the end.
 
 ### Testing
 
