@@ -157,12 +157,6 @@ parameters:
 			path: src/Controller/Api/UserController.php
 
 		-
-			message: '#^Using nullsafe method call on non\-nullable type DateTimeImmutable\. Use \-\> instead\.$#'
-			identifier: nullsafe.neverNull
-			count: 2
-			path: src/Controller/Api/UserController.php
-
-		-
 			message: '#^Parameter \#1 \$email of method App\\Service\\PasswordResetService\:\:requestReset\(\) expects string, float\|int\<min, \-1\>\|int\<1, max\>\|string\|true given\.$#'
 			identifier: argument.type
 			count: 1
@@ -185,12 +179,6 @@ parameters:
 			identifier: argument.type
 			count: 2
 			path: src/Controller/Web/SecurityController.php
-
-		-
-			message: '#^Expression on left side of \?\? is not nullable\.$#'
-			identifier: nullCoalesce.expr
-			count: 1
-			path: src/Controller/Web/TaskListController.php
 
 		-
 			message: '#^Method App\\Controller\\Web\\TaskListController\:\:buildProjectPath\(\) should return array\<array\{id\: string, name\: string\}\> but returns non\-empty\-list\<array\{id\: string\|null, name\: string\}\>\.$#'
@@ -417,7 +405,7 @@ parameters:
 		-
 			message: '#^Method App\\Interface\\ActivityLogServiceInterface\:\:getActivity\(\) return type has no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
-			count: 2
+			count: 1
 			path: src/Interface/ActivityLogServiceInterface.php
 
 		-
@@ -723,7 +711,7 @@ parameters:
 		-
 			message: '#^Method App\\Service\\ActivityLogService\:\:getActivity\(\) return type has no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
-			count: 2
+			count: 1
 			path: src/Service/ActivityLogService.php
 
 		-
@@ -847,6 +835,12 @@ parameters:
 			path: src/Service/ImportService.php
 
 		-
+			message: '#^Strict comparison using \=\=\= between array and null will always evaluate to false\.$#'
+			identifier: identical.alwaysFalse
+			count: 2
+			path: src/Service/ImportService.php
+
+		-
 			message: '#^Method App\\Service\\NotificationService\:\:notifySystem\(\) has parameter \$data with no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
 			count: 1
@@ -931,13 +925,13 @@ parameters:
 			path: src/Service/Parser/NaturalLanguageParserService.php
 
 		-
-			message: '#^Offset 1 on array\{array\{non\-empty\-string, int\<\-1, max\>\}, array\{'''', int\<\-1, max\>\}, array\{non\-empty\-string, int\<\-1, max\>\}\}\|array\{array\{non\-empty\-string, int\<\-1, max\>\}, array\{non\-empty\-string, int\<\-1, max\>\}\} in isset\(\) always exists and is not nullable\.$#'
+			message: '#^Offset 1 on array\{array\{non\-falsy\-string, int\<\-1, max\>\}, array\{'''', int\<\-1, max\>\}, array\{non\-empty\-string, int\<\-1, max\>\}\}\|array\{array\{non\-falsy\-string, int\<\-1, max\>\}, array\{non\-empty\-string, int\<\-1, max\>\}\} in isset\(\) always exists and is not nullable\.$#'
 			identifier: isset.offset
 			count: 1
 			path: src/Service/Parser/ProjectParserService.php
 
 		-
-			message: '#^Offset 2 might not exist on array\{array\{non\-empty\-string, int\<\-1, max\>\}, array\{'''', int\<\-1, max\>\}, array\{non\-empty\-string, int\<\-1, max\>\}\}\|array\{array\{non\-empty\-string, int\<\-1, max\>\}, array\{non\-empty\-string, int\<\-1, max\>\}\}\.$#'
+			message: '#^Offset 2 might not exist on array\{array\{non\-falsy\-string, int\<\-1, max\>\}, array\{'''', \-1\}, array\{non\-empty\-string, int\<\-1, max\>\}\}\|array\{array\{non\-falsy\-string, int\<\-1, max\>\}, array\{non\-empty\-string, \-1\}\}\.$#'
 			identifier: offsetAccess.notFound
 			count: 1
 			path: src/Service/Parser/ProjectParserService.php
@@ -1099,15 +1093,9 @@ parameters:
 			path: src/Service/SavedFilterService.php
 
 		-
-			message: '#^Negated boolean expression is always true\.$#'
-			identifier: booleanNot.alwaysTrue
-			count: 1
-			path: src/Service/SessionService.php
-
-		-
-			message: '#^Right side of && is always false\.$#'
-			identifier: booleanAnd.rightAlwaysFalse
-			count: 1
+			message: '#^Call to function str_contains\(\) with non\-falsy\-string and ''mobile'' will always evaluate to false\.$#'
+			identifier: function.impossibleType
+			count: 2
 			path: src/Service/SessionService.php
 
 		-
