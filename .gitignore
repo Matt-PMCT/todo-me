@@ -34,6 +34,7 @@
 .env.dev
 
 # Docker environment with credentials
+docker/.env
 docker/.env.docker
 docker/.env.mcp
 

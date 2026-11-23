@@ -12,6 +12,10 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 RUN pip install --no-cache-dir .
 
+# Run as an unprivileged user (the app writes nothing to disk)
+RUN useradd --system --no-create-home --uid 10001 mcp
+USER mcp
+
 ENV MCP_TRANSPORT=http
 ENV MCP_HOST=0.0.0.0
 ENV MCP_PORT=8000

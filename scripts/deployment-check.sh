@@ -50,6 +50,12 @@ check_docker() {
         return
     fi
     success "Docker Compose is available"
+
+    if grep -q '^WEB_BIND=' docker/.env 2>/dev/null; then
+        success "Web port exposure chosen ($(grep '^WEB_BIND=' docker/.env))"
+    else
+        warning "WEB_BIND not set in docker/.env: port 8083 is exposed on all interfaces (run scripts/deploy/update-web.sh interactively to choose)"
+    fi
 }
 
 # Check environment file

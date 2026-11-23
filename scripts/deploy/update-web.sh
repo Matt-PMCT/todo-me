@@ -131,6 +131,28 @@ if [ "$WWW_UID" -eq 0 ]; then
 fi
 mkdir -p "$PROJECT_DIR/var/cache" "$PROJECT_DIR/var/log"
 
+# Web port exposure is chosen once per server and remembered in docker/.env (read by Compose as
+# WEB_BIND). 127.0.0.1 = only a reverse proxy on this host can reach the app; 0.0.0.0 = whole LAN.
+# Existing servers are never changed silently: without a TTY we only print a notice.
+WEB_BIND_CHANGED=false
+if ! grep -q '^WEB_BIND=' "$PROJECT_DIR/docker/.env" 2>/dev/null; then
+    if [ -t 0 ]; then
+        echo ""
+        echo "Port 8083 (web) can be reachable from the whole network, or only from this machine"
+        echo "(use 'local' when a reverse proxy such as nginx/Cloudflare runs on this host)."
+        read -r -p "Expose port 8083 to [local/all]? (default: local) " WEB_BIND_CHOICE
+        case "$WEB_BIND_CHOICE" in
+            all|a|A) WEB_BIND_VALUE=0.0.0.0 ;;
+            *) WEB_BIND_VALUE=127.0.0.1 ;;
+        esac
+        echo "WEB_BIND=$WEB_BIND_VALUE" >> "$PROJECT_DIR/docker/.env"
+        WEB_BIND_CHANGED=true
+        log "Saved WEB_BIND=$WEB_BIND_VALUE to docker/.env (edit that file to change it later)"
+    else
+        warning "WEB_BIND is not set in docker/.env, so port 8083 stays exposed on all interfaces. Run this script interactively once to choose."
+    fi
+fi
+
 # Change to docker directory for compose commands
 cd "$DOCKER_DIR"
 
@@ -167,6 +189,10 @@ if [ "$QUICK_UPDATE" = false ]; then
     fi
 else
     log "Quick update mode - skipping container rebuild"
+    if [ "$WEB_BIND_CHANGED" = true ]; then
+        log "Applying the new web port binding..."
+        $COMPOSE_CMD up -d web
+    fi
 fi
 
 # Run app commands as the same user as the PHP-FPM workers so generated files (cache, logs) are
