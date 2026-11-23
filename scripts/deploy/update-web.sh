@@ -82,9 +82,9 @@ echo ""
 if [ "$SKIP_BACKUP" = false ]; then
     log "Creating backup..."
     if [ -f "$SCRIPT_DIR/../backup.sh" ]; then
-        bash "$SCRIPT_DIR/../backup.sh" --quick || warning "Backup failed, continuing anyway"
+        bash "$SCRIPT_DIR/../backup.sh" || error "Backup failed - aborting deploy (re-run with --no-backup to skip)"
     else
-        warning "Backup script not found, skipping"
+        error "Backup script not found - aborting deploy (re-run with --no-backup to skip)"
     fi
 else
     log "Skipping backup (--no-backup flag set)"

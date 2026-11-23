@@ -7,7 +7,7 @@
 #
 # Usage: ./scripts/backup.sh [backup_dir]
 
-set -e
+set -eo pipefail
 
 # Configuration
 BACKUP_DIR="${1:-./backups}"
@@ -34,7 +34,7 @@ backup_postgres() {
 
     POSTGRES_BACKUP="$BACKUP_DIR/postgres_${TIMESTAMP}.sql.gz"
 
-    if $DOCKER_COMPOSE exec -T db pg_dump -U todo_user todo_db | gzip > "$POSTGRES_BACKUP"; then
+    if $DOCKER_COMPOSE exec -T db sh -c 'pg_dump -U "$POSTGRES_USER" "$POSTGRES_DB"' | gzip > "$POSTGRES_BACKUP"; then
         echo -e "${GREEN}PostgreSQL backup created:${NC} $POSTGRES_BACKUP"
         ls -lh "$POSTGRES_BACKUP"
     else

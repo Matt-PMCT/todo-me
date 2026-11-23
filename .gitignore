@@ -109,3 +109,6 @@ mcp-server/*.egg-info/
 mcp-server/**/*.egg-info/
 mcp-server/.pytest_cache/
 ###< mcp-server ###
+
+# Database/Redis backups created by scripts/backup.sh
+/backups/
