@@ -41,7 +41,7 @@ RUN { \
 } > /usr/local/etc/php/conf.d/opcache-recommended.ini
 
 # Install Composer
-COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
 # Install Tailwind CSS standalone CLI
 ARG TAILWIND_VERSION=v3.4.17

@@ -71,6 +71,9 @@ vendor/bin/phpunit --testdox-text var/test-results.txt --log-junit var/test-resu
 ### Security Scanning (CI)
 `.github/workflows/security.yml` runs on PRs touching dependencies/Docker files and weekly (Mon 06:00 UTC): `composer audit --locked`, `pip-audit` for `mcp-server`, and Trivy scans of the built PHP/MCP images and the nginx/redis/postgres images from `docker/docker-compose.yml` (HIGH/CRITICAL with a fix available). To resolve a finding: upgrade the dependency, or rebuild with `build --pull`, first; only then add the CVE to `.trivyignore` with a justification and expiry date comment.
 
+### Dependabot
+`.github/dependabot.yml` opens weekly PRs for Composer, pip (`mcp-server`), Docker base images, compose images and GitHub Actions. Never auto-merge: merge one group at a time after CI and the security workflow are green, and do a full deploy (`./scripts/deploy/update-web.sh`, no `--quick`) after Composer or Docker updates. Compose image tags intentionally float (`nginx:stable-alpine`, `redis:7-alpine`, `postgres:15-alpine`); major bumps (Postgres, Redis, `mcp` 2.x, PHP) need a deliberate plan and are not drive-by merges.
+
 ### MCP Server Tests
 ```bash
 cd mcp-server
