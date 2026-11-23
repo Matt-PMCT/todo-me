@@ -11,7 +11,7 @@
         "ext-iconv": "*",
         "ext-pdo_pgsql": "*",
         "ext-redis": "*",
-        "doctrine/doctrine-bundle": "^2.11",
+        "doctrine/doctrine-bundle": "^3.4",
         "doctrine/doctrine-migrations-bundle": "^3.3",
         "doctrine/orm": "^3.0",
         "minishlink/web-push": "^10.0",
