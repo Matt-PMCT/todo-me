@@ -52,12 +52,15 @@ RUN curl -sLO https://github.com/tailwindlabs/tailwindcss/releases/download/${TA
 # Set working directory
 WORKDIR /var/www/html
 
-# Create a non-root user
-RUN groupadd -g 1000 www \
-    && useradd -u 1000 -ms /bin/bash -g www www
+# Create the non-root user PHP-FPM workers run as. The project is bind-mounted from the host, so
+# its uid/gid must match the host user that owns the checkout (var/ must be writable by workers).
+ARG WWW_UID=1000
+ARG WWW_GID=1000
+RUN groupadd -g ${WWW_GID} www \
+    && useradd -u ${WWW_UID} -ms /bin/bash -g www www
 
-# Set permissions
-RUN chown -R www:www /var/www/html
+# Run workers as www (default pool user is www-data, uid 33)
+COPY www.conf /usr/local/etc/php-fpm.d/zz-www-user.conf
 
 # Install health check script
 COPY healthcheck.sh /usr/local/bin/healthcheck.sh

@@ -123,6 +123,14 @@ else
     echo ""
 fi
 
+# PHP-FPM workers run as the "www" user, whose uid/gid must match the host owner of this
+# checkout (the project is bind-mounted), otherwise workers cannot write var/log or var/cache.
+export WWW_UID="$(id -u)" WWW_GID="$(id -g)"
+if [ "$WWW_UID" -eq 0 ]; then
+    export WWW_UID=1000 WWW_GID=1000
+fi
+mkdir -p "$PROJECT_DIR/var/cache" "$PROJECT_DIR/var/log"
+
 # Change to docker directory for compose commands
 cd "$DOCKER_DIR"
 
@@ -161,27 +169,41 @@ else
     log "Quick update mode - skipping container rebuild"
 fi
 
+# Run app commands as the same user as the PHP-FPM workers so generated files (cache, logs) are
+# writable by them. Images built before the pool-user change still run workers as www-data, so
+# keep the legacy behaviour (root) until the next full deploy rebuilds the image.
+if $COMPOSE_CMD exec -T php test -f /usr/local/etc/php-fpm.d/zz-www-user.conf; then
+    EXEC_USER=www
+    # Idempotent self-heal for existing servers: earlier deploys ran as root and left root-owned files
+    log "Ensuring var/ and build output are owned by the PHP-FPM user..."
+    $COMPOSE_CMD exec -T -u root php sh -c 'mkdir -p var/cache var/log; for d in var vendor public/assets public/build; do [ -e "$d" ] && chown -R www:www "$d"; done; true'
+else
+    EXEC_USER=root
+    warning "PHP image predates the www worker user; run a full deploy (no --quick) to rebuild it"
+fi
+APP_EXEC="$COMPOSE_CMD exec -T -u $EXEC_USER php"
+
 # Step 4: Run composer install (in case dependencies changed)
 if [ "$QUICK_UPDATE" = false ]; then
     log "Installing/updating dependencies..."
-    $COMPOSE_CMD exec -T php composer install --no-dev --optimize-autoloader --no-interaction
+    $APP_EXEC composer install --no-dev --optimize-autoloader --no-interaction
 fi
 
 # Step 5: Run database migrations
 log "Running database migrations..."
-$COMPOSE_CMD exec -T php php bin/console doctrine:migrations:migrate --no-interaction --env=prod || warning "No migrations to run"
+$APP_EXEC php bin/console doctrine:migrations:migrate --no-interaction --env=prod || warning "No migrations to run"
 
 # Step 6: Compile assets
 log "Compiling asset map..."
-$COMPOSE_CMD exec -T php php bin/console asset-map:compile --env=prod
+$APP_EXEC php bin/console asset-map:compile --env=prod
 
 # Step 7: Clear cache
 log "Clearing production cache..."
-$COMPOSE_CMD exec -T php php bin/console cache:clear --env=prod
+$APP_EXEC php bin/console cache:clear --env=prod
 
 # Step 8: Warm up cache
 log "Warming up cache..."
-$COMPOSE_CMD exec -T php php bin/console cache:warmup --env=prod
+$APP_EXEC php bin/console cache:warmup --env=prod
 
 # Step 9: Health check
 log "Running health check..."

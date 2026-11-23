@@ -162,6 +162,11 @@ check_permissions() {
         else
             error "var/ directory is not writable"
         fi
+        if [ -d "var/log" ] && [ -w "var/log" ]; then
+            success "var/log directory is writable"
+        else
+            error "var/log is missing or not writable (PHP-FPM workers run as the 'www' user; see docs)"
+        fi
     fi
 
     # Check for sensitive files

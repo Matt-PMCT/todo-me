@@ -3,6 +3,10 @@ services:
     build:
       context: ./php
       dockerfile: Dockerfile
+      args:
+        # PHP-FPM workers must match the host owner of the bind-mounted project (var/ writes)
+        WWW_UID: ${WWW_UID:-1000}
+        WWW_GID: ${WWW_GID:-1000}
     container_name: todo-php
     restart: unless-stopped
     volumes:
