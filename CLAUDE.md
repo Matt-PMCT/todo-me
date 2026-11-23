@@ -68,6 +68,9 @@ vendor/bin/phpunit --testdox-text var/test-results.txt --log-junit var/test-resu
 ```
 **IMPORTANT:** Never run the full test suite without `--testdox-text var/test-results.txt` or similar file output. Terminal output can be truncated and you'll lose important failure information.
 
+### Security Scanning (CI)
+`.github/workflows/security.yml` runs on PRs touching dependencies/Docker files and weekly (Mon 06:00 UTC): `composer audit --locked`, `pip-audit` for `mcp-server`, and Trivy scans of the built PHP/MCP images and the nginx/redis/postgres images from `docker/docker-compose.yml` (HIGH/CRITICAL with a fix available). To resolve a finding: upgrade the dependency, or rebuild with `build --pull`, first; only then add the CVE to `.trivyignore` with a justification and expiry date comment.
+
 ### MCP Server Tests
 ```bash
 cd mcp-server

@@ -1,0 +1,126 @@
+name: Security
+
+# Dependency advisories and container image vulnerabilities.
+# Runs on relevant PRs/pushes and weekly, so new CVEs are caught even without commits.
+
+on:
+  schedule:
+    - cron: '0 6 * * 1' # Mondays 06:00 UTC
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'composer.json'
+      - 'composer.lock'
+      - 'docker/**'
+      - 'mcp-server/**'
+      - '.trivyignore'
+      - '.github/workflows/security.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'composer.json'
+      - 'composer.lock'
+      - 'docker/**'
+      - 'mcp-server/**'
+      - '.trivyignore'
+      - '.github/workflows/security.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  composer-audit:
+    runs-on: ubuntu-latest
+    # TODO(#129): remove continue-on-error once the first runs are triaged
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          tools: composer
+
+      - name: Audit locked dependencies
+        run: composer audit --locked
+
+  pip-audit:
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Audit MCP server dependencies
+        run: |
+          pip install pip-audit
+          pip-audit -r mcp-server/requirements.txt
+
+  discover-images:
+    runs-on: ubuntu-latest
+    outputs:
+      images: ${{ steps.list.outputs.images }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: List pulled images from docker-compose.yml
+        id: list
+        run: |
+          images=$(grep -E '^\s+image:' docker/docker-compose.yml | awk '{print $2}' | jq -R . | jq -sc .)
+          echo "images=$images" >> "$GITHUB_OUTPUT"
+          echo "Scanning: $images"
+
+  scan-built-images:
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: todo-php
+            context: docker/php
+          - name: todo-mcp
+            context: mcp-server
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build ${{ matrix.name }}
+        run: docker build -t ${{ matrix.name }}:scan ${{ matrix.context }}
+
+      - name: Scan ${{ matrix.name }}
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          image-ref: ${{ matrix.name }}:scan
+          severity: HIGH,CRITICAL
+          ignore-unfixed: true
+          vuln-type: os,library
+          exit-code: '1'
+          format: table
+          trivyignores: .trivyignore
+
+  scan-pulled-images:
+    runs-on: ubuntu-latest
+    needs: discover-images
+    continue-on-error: true
+    strategy:
+      fail-fast: false
+      matrix:
+        image: ${{ fromJSON(needs.discover-images.outputs.images) }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Scan ${{ matrix.image }}
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          image-ref: ${{ matrix.image }}
+          severity: HIGH,CRITICAL
+          ignore-unfixed: true
+          vuln-type: os,library
+          exit-code: '1'
+          format: table
+          trivyignores: .trivyignore
