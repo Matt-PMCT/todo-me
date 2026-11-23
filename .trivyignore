@@ -1,0 +1,8 @@
+# Trivy ignore list. One CVE id per line.
+# Every entry MUST have a comment above it: why it's safe to ignore and an expiry date to re-check.
+# Prefer fixing: upgrade the dependency or rebuild the image with `build --pull` first.
+
+# libxml2 HIGH, present in nginx:stable-alpine and postgres:*-alpine (Alpine 3.24). The fixed
+# package (2.13.9-r3) is not yet in the Alpine repos the official images are built from.
+# Neither image parses untrusted XML. Re-check when the upstream images rebuild.
+CVE-2026-86144 exp:2026-12-21

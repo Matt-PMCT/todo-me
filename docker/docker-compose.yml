@@ -18,7 +18,7 @@ services:
       - TRUSTED_PROXIES=127.0.0.1
 
   web:
-    image: nginx:1.28-alpine
+    image: nginx:stable-alpine
     container_name: todo-nginx
     restart: unless-stopped
     ports:
