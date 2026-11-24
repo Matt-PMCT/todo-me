@@ -1,8 +1,11 @@
 """Entry point for ``python -m todo_me_mcp``."""
 
+import logging
 import sys
 
-from .config import MCP_TRANSPORT, TODO_API_KEY
+from .config import MCP_LOG_LEVEL, MCP_TRANSPORT, TODO_API_KEY
+
+logging.basicConfig(level=MCP_LOG_LEVEL.upper(), stream=sys.stderr)
 
 if not TODO_API_KEY:
     print(

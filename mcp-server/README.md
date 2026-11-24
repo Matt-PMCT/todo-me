@@ -118,7 +118,19 @@ The server listens on `127.0.0.1:8084` behind the Nginx reverse proxy at `https:
 | `MCP_TRANSPORT` | `stdio` | Transport mode: `stdio` or `http` |
 | `MCP_HOST` | `127.0.0.1` | Bind address (http transport only) |
 | `MCP_PORT` | `8000` | Listen port (http transport only) |
-| `MCP_LOG_LEVEL` | `INFO` | Logging level |
+| `MCP_LOG_LEVEL` | `INFO` | Logging level (logs go to stderr; failed API calls log method, path, status and a body snippet) |
+
+## Troubleshooting
+
+Tool errors name the failure instead of surfacing raw exceptions:
+
+| Error | Likely cause |
+|-------|--------------|
+| `Todo-Me API error (HTTP 5xx)` | App, nginx or reverse proxy is down or restarting; check the server |
+| `Todo-Me API redirected (HTTP 3xx) to ...` | `TODO_API_URL` has the wrong scheme, host or path prefix |
+| `Todo-Me API returned a non-JSON response ...` | `TODO_API_URL` points at something other than the API (login page, proxy page) |
+| `GET /path timed out after 30s` | Slow endpoint or unreachable server |
+| `Could not reach the Todo-Me API at ...` | DNS, network or TLS failure |
 
 ## Development
 
