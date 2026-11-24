@@ -69,7 +69,7 @@ class ReminderTrackingServiceTest extends UnitTestCase
             ->method('set')
             ->with(
                 'reminder:task-123:due_soon',
-                $this->isType('string'),
+                $this->isString(),
                 604800 // 7 days
             );
 
@@ -138,7 +138,7 @@ class ReminderTrackingServiceTest extends UnitTestCase
             ->method('set')
             ->with(
                 "reminder:task-123:overdue:{$today}",
-                $this->isType('string'),
+                $this->isString(),
                 604800
             );
 

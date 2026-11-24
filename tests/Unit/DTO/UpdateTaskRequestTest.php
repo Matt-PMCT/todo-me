@@ -6,6 +6,7 @@ namespace App\Tests\Unit\DTO;
 
 use App\DTO\UpdateTaskRequest;
 use App\Entity\Task;
+use PHPUnit\Framework\Attributes\DataProvider;
 
 class UpdateTaskRequestTest extends DtoTestCase
 {
@@ -75,9 +76,7 @@ class UpdateTaskRequestTest extends DtoTestCase
         $this->assertHasViolation($violations, 'status');
     }
 
-    /**
-     * @dataProvider validStatusesProvider
-     */
+    #[DataProvider('validStatusesProvider')]
     public function testValidStatuses(string $status): void
     {
         $dto = new UpdateTaskRequest(status: $status);
@@ -114,9 +113,7 @@ class UpdateTaskRequestTest extends DtoTestCase
         $this->assertHasViolation($violations, 'priority');
     }
 
-    /**
-     * @dataProvider validPrioritiesProvider
-     */
+    #[DataProvider('validPrioritiesProvider')]
     public function testValidPriorities(int $priority): void
     {
         $dto = new UpdateTaskRequest(priority: $priority);

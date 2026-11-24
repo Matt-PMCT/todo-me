@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\Unit\DTO;
 
 use App\DTO\RegisterRequest;
+use PHPUnit\Framework\Attributes\DataProvider;
 
 class RegisterRequestTest extends DtoTestCase
 {
@@ -76,9 +77,7 @@ class RegisterRequestTest extends DtoTestCase
         $this->assertFalse($hasLengthViolation);
     }
 
-    /**
-     * @dataProvider validEmailsProvider
-     */
+    #[DataProvider('validEmailsProvider')]
     public function testValidEmails(string $email): void
     {
         $dto = new RegisterRequest(email: $email, password: 'password123');

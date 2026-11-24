@@ -6,6 +6,7 @@ namespace App\Tests\Unit\EventListener\ExceptionMapper\Symfony;
 
 use App\EventListener\ExceptionMapper\ExceptionMapping;
 use App\EventListener\ExceptionMapper\Symfony\HttpExceptionMapper;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
@@ -38,9 +39,7 @@ class HttpExceptionMapperTest extends TestCase
         $this->assertFalse($this->mapper->canHandle(new \RuntimeException()));
     }
 
-    /**
-     * @dataProvider httpExceptionProvider
-     */
+    #[DataProvider('httpExceptionProvider')]
     public function testMapReturnsCorrectErrorCodes(
         \Throwable $exception,
         string $expectedErrorCode,

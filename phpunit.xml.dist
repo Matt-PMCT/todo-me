@@ -6,7 +6,8 @@
          backupGlobals="false"
          colors="true"
          bootstrap="tests/bootstrap.php"
-         executionOrder="depends,defects"
+         executionOrder="defects"
+         resolveDependencies="true"
          beStrictAboutOutputDuringTests="true"
          failOnRisky="true"
          failOnWarning="true"
@@ -20,7 +21,7 @@
         <server name="APP_DEBUG" value="false" />
         <server name="SHELL_VERBOSITY" value="-1" />
         <server name="SYMFONY_PHPUNIT_REMOVE" value="" />
-        <server name="SYMFONY_PHPUNIT_VERSION" value="10.5" />
+        <server name="SYMFONY_PHPUNIT_VERSION" value="13.4" />
         <server name="KERNEL_CLASS" value="App\Kernel" />
     </php>
 
@@ -30,9 +31,6 @@
         </testsuite>
         <testsuite name="Functional">
             <directory>tests/Functional</directory>
-        </testsuite>
-        <testsuite name="All">
-            <directory>tests</directory>
         </testsuite>
     </testsuites>
 

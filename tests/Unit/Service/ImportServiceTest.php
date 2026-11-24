@@ -185,7 +185,7 @@ class ImportServiceTest extends UnitTestCase
             ],
         ];
 
-        $this->projectRepository->method('findByNameInsensitive')
+        $this->projectRepository->expects($this->any())->method('findByNameInsensitive')
             ->with($this->user, 'Existing')
             ->willReturn($existingProject);
 
@@ -212,7 +212,7 @@ class ImportServiceTest extends UnitTestCase
             ],
         ];
 
-        $this->tagRepository->method('findByNameInsensitive')
+        $this->tagRepository->expects($this->any())->method('findByNameInsensitive')
             ->with($this->user, 'existing')
             ->willReturn($existingTag);
 

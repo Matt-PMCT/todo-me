@@ -181,7 +181,7 @@ class SessionApiAuthenticatorTest extends UnitTestCase
             $this->createSerializedToken('user@example.com'),
             'valid-csrf-token'
         );
-        $this->csrfTokenManager->method('isTokenValid')
+        $this->csrfTokenManager->expects($this->any())->method('isTokenValid')
             ->with($this->callback(fn (CsrfToken $token) => $token->getId() === 'api' && $token->getValue() === 'valid-csrf-token'))
             ->willReturn(true);
 

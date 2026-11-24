@@ -197,7 +197,7 @@ class ProjectServiceTest extends UnitTestCase
                 UndoAction::UPDATE->value,
                 'project',
                 'project-123',
-                $this->isType('array')
+                $this->isArray()
             )
             ->willReturn($undoToken);
 
@@ -286,7 +286,7 @@ class ProjectServiceTest extends UnitTestCase
                 UndoAction::DELETE->value,
                 'project',
                 'project-123',
-                $this->isType('array')
+                $this->isArray()
             )
             ->willReturn($undoToken);
 
@@ -574,7 +574,7 @@ class ProjectServiceTest extends UnitTestCase
 
         $this->projectRepository->expects($this->once())
             ->method('findOneByOwnerAndId')
-            ->with($user, 'project-123', includeDeleted: true)
+            ->with($user, 'project-123', true)
             ->willReturn($project);
 
         $this->entityManager->expects($this->once())
@@ -806,7 +806,7 @@ class ProjectServiceTest extends UnitTestCase
 
         $this->projectRepository->expects($this->once())
             ->method('findOneByOwnerAndId')
-            ->with($user, 'project-123', includeDeleted: true)
+            ->with($user, 'project-123', true)
             ->willReturn($project);
 
         $this->entityManager->method('flush');
@@ -994,7 +994,7 @@ class ProjectServiceTest extends UnitTestCase
             ->with($user, 'child-456')
             ->willReturn($child);
 
-        $this->projectRepository->method('getDescendantIds')
+        $this->projectRepository->expects($this->any())->method('getDescendantIds')
             ->with($project)
             ->willReturn(['child-456']);
 
@@ -1195,7 +1195,7 @@ class ProjectServiceTest extends UnitTestCase
         $project2 = $this->createProjectWithId('project-2', $user, 'Another Root');
 
         // Cache is fresh (ArrayAdapter is empty), so repository will be called
-        $this->projectRepository->method('getTreeByUser')
+        $this->projectRepository->expects($this->any())->method('getTreeByUser')
             ->with($user, false)
             ->willReturn([$project1, $project2]);
 
@@ -1257,7 +1257,7 @@ class ProjectServiceTest extends UnitTestCase
         $child1->setParent($project);
         $child2->setParent($project);
 
-        $this->projectRepository->method('findAllDescendants')
+        $this->projectRepository->expects($this->any())->method('findAllDescendants')
             ->with($project)
             ->willReturn([$child1, $child2]);
 
@@ -1287,7 +1287,7 @@ class ProjectServiceTest extends UnitTestCase
         $this->projectRepository->method('findAllDescendants')
             ->willReturn([]);
 
-        $this->projectRepository->method('findChildrenByParent')
+        $this->projectRepository->expects($this->any())->method('findChildrenByParent')
             ->with($project, true)
             ->willReturn([$child]);
 
@@ -1319,7 +1319,7 @@ class ProjectServiceTest extends UnitTestCase
         $child2->setParent($project);
         $child2->setIsArchived(true);
 
-        $this->projectRepository->method('findAllDescendants')
+        $this->projectRepository->expects($this->any())->method('findAllDescendants')
             ->with($project)
             ->willReturn([$child1, $child2]);
 

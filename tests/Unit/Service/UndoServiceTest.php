@@ -44,7 +44,7 @@ class UndoServiceTest extends UnitTestCase
             ->method('setJson')
             ->with(
                 $this->stringContains("undo:{$userId}:"),
-                $this->isType('array'),
+                $this->isArray(),
                 $ttl
             )
             ->willReturn(true);

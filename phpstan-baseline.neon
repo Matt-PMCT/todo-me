@@ -2281,12 +2281,6 @@ parameters:
 			path: tests/Unit/Service/ProjectServiceTest.php
 
 		-
-			message: '#^Method PHPUnit\\Framework\\MockObject\\Builder\\InvocationMocker\:\:with\(\) invoked with named argument \$includeDeleted, but it''s not allowed because of @no\-named\-arguments\.$#'
-			identifier: argument.named
-			count: 2
-			path: tests/Unit/Service/ProjectServiceTest.php
-
-		-
 			message: '#^Parameter \#1 \$userId of method App\\Service\\ProjectCacheService\:\:set\(\) expects string, string\|null given\.$#'
 			identifier: argument.type
 			count: 1
