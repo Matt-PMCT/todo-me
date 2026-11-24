@@ -64,8 +64,9 @@ A self-hosted task management application with REST API and web UI, built with S
 
 5. **Install dependencies**
    ```bash
-   docker compose -f docker/docker-compose.yml exec php composer install
+   docker compose -f docker/docker-compose.yml exec -u 1000 -e HOME=/tmp php composer install
    ```
+   The container drops root's permission to write host-owned files, so write commands (`composer install/update`, `composer cs-fix`) run as your host user (`-u 1000`, use your own uid if it differs).
 
 6. **Run database migrations**
    ```bash

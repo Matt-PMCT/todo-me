@@ -21,6 +21,12 @@ php bin/console cache:clear                                  # Clear cache (in c
 php bin/console asset-map:compile --env=prod                 # Compile assets (REQUIRED for production)
 ```
 
+**Commands that write to the project (`composer install/update`, `composer cs-fix`, regenerating the PHPStan baseline, and phpunit with `--testdox-text`/`--log-junit` since they write into `var/`):** the `php` container runs as root with `cap_drop: [ALL]` (no `DAC_OVERRIDE`), so root cannot write files owned by the host user. Run write commands as the host user instead; read-only commands (phpunit, phpstan, `cs-check`, `lint`) work as-is:
+```bash
+docker compose -f docker/docker-compose.yml exec -u 1000 -e HOME=/tmp php composer install
+```
+Do not add `DAC_OVERRIDE` back to the container: it undoes the hardening.
+
 ### Production Deployment
 **CRITICAL:** Always use the deploy script or include `asset-map:compile`. Skipping asset compilation after adding/changing JS files breaks the entire frontend (Alpine.js won't load).
 ```bash
@@ -75,6 +81,8 @@ cat var/test-results.txt
 # For CI/CD pipelines, also generate JUnit XML
 vendor/bin/phpunit --testdox-text var/test-results.txt --log-junit var/test-results.xml
 ```
+From the host, the full-suite one-liner is `docker compose -f docker/docker-compose.yml exec -u 1000 -e HOME=/tmp php vendor/bin/phpunit --testdox-text var/test-results.txt` (the `-u 1000` form is required because the output file is written to `var/`).
+
 **IMPORTANT:** Never run the full test suite without `--testdox-text var/test-results.txt` or similar file output. Terminal output can be truncated and you'll lose important failure information.
 
 ### Security Scanning (CI)
@@ -102,7 +110,7 @@ php bin/console doctrine:migrations:migrate prev  # Revert last migration
 
 ```bash
 # ALWAYS run these before committing PHP changes:
-docker compose -f docker/docker-compose.yml exec php composer cs-fix
+docker compose -f docker/docker-compose.yml exec -u 1000 -e HOME=/tmp php composer cs-fix
 docker compose -f docker/docker-compose.yml exec php composer phpstan
 
 # Or run both checks at once (what CI runs):
@@ -111,7 +119,7 @@ docker compose -f docker/docker-compose.yml exec php composer lint
 
 **PHPStan Baseline:** This project uses a PHPStan baseline (`phpstan-baseline.neon`) to track known errors. If you add or modify test files that access nullable return types without null checks (common in test assertions), you must regenerate the baseline:
 ```bash
-docker compose -f docker/docker-compose.yml exec php php vendor/bin/phpstan analyse --memory-limit=512M --generate-baseline phpstan-baseline.neon
+docker compose -f docker/docker-compose.yml exec -u 1000 -e HOME=/tmp php php vendor/bin/phpstan analyse --memory-limit=512M --generate-baseline phpstan-baseline.neon
 ```
 
 **Workflow:** Write code → Run `composer cs-fix` → Run `composer phpstan` → Run tests → Commit

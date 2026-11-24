@@ -98,7 +98,7 @@ All 18 API controllers have OpenAPI attributes:
 
 Run the full test suite:
 ```bash
-docker compose -f docker/docker-compose.yml exec php vendor/bin/phpunit --testdox-text var/test-results.txt
+docker compose -f docker/docker-compose.yml exec -u 1000 -e HOME=/tmp php vendor/bin/phpunit --testdox-text var/test-results.txt
 ```
 
 Current test count: 4,474+ tests
