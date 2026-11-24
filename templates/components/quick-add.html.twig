@@ -1,7 +1,7 @@
 {# Quick Add Component - Natural language task entry with real-time parsing #}
 {# Uses session-based authentication via window.api #}
 
-<div class="relative isolate"
+<div class="relative" style="isolation: isolate"
      x-data="quickAdd()"
      @keydown.escape="clearInput()">
 
