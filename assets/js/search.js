@@ -67,14 +67,19 @@ function searchComponent() {
             const projectCount = this.results.projects.length;
 
             if (this.selectedIndex < taskCount) {
-                window.location.href = window.apiUrl('/tasks/' + this.results.tasks[this.selectedIndex].id);
+                this.selectTask(this.results.tasks[this.selectedIndex].id);
             } else if (this.selectedIndex < taskCount + projectCount) {
                 const projectIndex = this.selectedIndex - taskCount;
-                window.location.href = window.apiUrl('/projects/' + this.results.projects[projectIndex].id);
+                window.location.href = window.apiUrl('/tasks?projectId=' + this.results.projects[projectIndex].id);
             } else {
                 const tagIndex = this.selectedIndex - taskCount - projectCount;
                 window.location.href = window.apiUrl('/tasks?tagIds[]=' + this.results.tags[tagIndex].id);
             }
+        },
+
+        selectTask(taskId) {
+            window.dispatchEvent(new CustomEvent('open-edit-modal', { detail: { taskId } }));
+            this.close();
         },
 
         close() {
