@@ -25,7 +25,9 @@ use App\Service\ValidationHelper;
 use App\Tests\Unit\UnitTestCase;
 use App\ValueObject\UndoToken;
 use Doctrine\ORM\EntityManagerInterface;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\MockObject\Stub;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Validator\Validation;
 
@@ -36,20 +38,21 @@ use Symfony\Component\Validator\Validation;
  * dependencies (repositories, EntityManager) remain mocked. TaskStateService
  * and TaskUndoService are mocked as they have their own dedicated tests.
  */
+#[AllowMockObjectsWithoutExpectations]
 class TaskServiceTest extends UnitTestCase
 {
     private TaskRepository&MockObject $taskRepository;
     private ProjectRepository&MockObject $projectRepository;
-    private TagRepository&MockObject $tagRepository;
+    private TagRepository&Stub $tagRepository;
     private EntityManagerInterface&MockObject $entityManager;
     private ValidationHelper $validationHelper;
     private OwnershipCheckerInterface&MockObject $ownershipChecker;
-    private NaturalLanguageParserService&MockObject $naturalLanguageParser;
+    private NaturalLanguageParserService&Stub $naturalLanguageParser;
     private TaskStateServiceInterface&MockObject $taskStateService;
     private TaskUndoServiceInterface&MockObject $taskUndoService;
     private RecurrenceRuleParser $recurrenceRuleParser;
     private NextDateCalculator $nextDateCalculator;
-    private ActivityLogServiceInterface&MockObject $activityLogService;
+    private ActivityLogServiceInterface&Stub $activityLogService;
     private SyncServiceInterface&MockObject $syncService;
     private TaskService $taskService;
 
@@ -60,7 +63,7 @@ class TaskServiceTest extends UnitTestCase
         // Infrastructure mocks
         $this->taskRepository = $this->createMock(TaskRepository::class);
         $this->projectRepository = $this->createMock(ProjectRepository::class);
-        $this->tagRepository = $this->createMock(TagRepository::class);
+        $this->tagRepository = $this->createStub(TagRepository::class);
         $this->entityManager = $this->createMock(EntityManagerInterface::class);
 
         // Use REAL ValidationHelper with real Symfony Validator
@@ -74,7 +77,7 @@ class TaskServiceTest extends UnitTestCase
         $this->ownershipChecker = $this->createMock(OwnershipCheckerInterface::class);
 
         // NaturalLanguageParser has complex dependencies - keep mocked
-        $this->naturalLanguageParser = $this->createMock(NaturalLanguageParserService::class);
+        $this->naturalLanguageParser = $this->createStub(NaturalLanguageParserService::class);
 
         // Mock interfaces for final services (TaskStateService and TaskUndoService)
         $this->taskStateService = $this->createMock(TaskStateServiceInterface::class);
@@ -85,7 +88,7 @@ class TaskServiceTest extends UnitTestCase
         $this->nextDateCalculator = new NextDateCalculator();
 
         // Activity log service mock
-        $this->activityLogService = $this->createMock(ActivityLogServiceInterface::class);
+        $this->activityLogService = $this->createStub(ActivityLogServiceInterface::class);
 
         // Sync service mock
         $this->syncService = $this->createMock(SyncServiceInterface::class);

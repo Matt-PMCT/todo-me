@@ -7,8 +7,10 @@ namespace App\Tests\Unit\Service;
 use App\Service\RedisService;
 use App\Service\ReminderTrackingService;
 use App\Tests\Unit\UnitTestCase;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\MockObject\MockObject;
 
+#[AllowMockObjectsWithoutExpectations]
 class ReminderTrackingServiceTest extends UnitTestCase
 {
     private RedisService&MockObject $redisService;

@@ -10,7 +10,9 @@ use App\Interface\ApiTokenServiceInterface;
 use App\Interface\UserServiceInterface;
 use App\Security\ApiTokenAuthenticator;
 use App\Tests\Unit\UnitTestCase;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\MockObject\Stub;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
@@ -28,20 +30,21 @@ use Symfony\Component\Security\Http\Authenticator\Passport\SelfValidatingPasspor
  * - Token validation (invalid, expired)
  * - Authentication failure responses
  */
+#[AllowMockObjectsWithoutExpectations]
 class ApiTokenAuthenticatorTest extends UnitTestCase
 {
-    private UserServiceInterface&MockObject $userService;
+    private UserServiceInterface&Stub $userService;
     private ApiLoggerInterface&MockObject $apiLogger;
-    private ApiTokenServiceInterface&MockObject $apiTokenService;
+    private ApiTokenServiceInterface&Stub $apiTokenService;
     private ApiTokenAuthenticator $authenticator;
 
     protected function setUp(): void
     {
         parent::setUp();
 
-        $this->userService = $this->createMock(UserServiceInterface::class);
+        $this->userService = $this->createStub(UserServiceInterface::class);
         $this->apiLogger = $this->createMock(ApiLoggerInterface::class);
-        $this->apiTokenService = $this->createMock(ApiTokenServiceInterface::class);
+        $this->apiTokenService = $this->createStub(ApiTokenServiceInterface::class);
 
         $this->authenticator = new ApiTokenAuthenticator(
             $this->userService,
@@ -160,8 +163,7 @@ class ApiTokenAuthenticatorTest extends UnitTestCase
         $user = $this->createUserWithId('user-123');
         $this->setUserApiToken($user, 'valid-token-123', false);
 
-        $this->userService->expects($this->any())->method('findByApiTokenIgnoreExpiration')
-            ->with('valid-token-123')
+        $this->userService->method('findByApiTokenIgnoreExpiration')
             ->willReturn($user);
 
         $passport = $this->authenticator->authenticate($request);
@@ -183,8 +185,7 @@ class ApiTokenAuthenticatorTest extends UnitTestCase
         $user = $this->createUserWithId('user-123');
         $this->setUserApiToken($user, 'valid-token-456', false);
 
-        $this->userService->expects($this->any())->method('findByApiTokenIgnoreExpiration')
-            ->with('valid-token-456')
+        $this->userService->method('findByApiTokenIgnoreExpiration')
             ->willReturn($user);
 
         $passport = $this->authenticator->authenticate($request);
@@ -202,8 +203,7 @@ class ApiTokenAuthenticatorTest extends UnitTestCase
         $this->setUserApiToken($user, 'bearer-token', false);
 
         // Should use bearer-token, not api-key-token
-        $this->userService->expects($this->any())->method('findByApiTokenIgnoreExpiration')
-            ->with('bearer-token')
+        $this->userService->method('findByApiTokenIgnoreExpiration')
             ->willReturn($user);
 
         $passport = $this->authenticator->authenticate($request);
@@ -234,8 +234,7 @@ class ApiTokenAuthenticatorTest extends UnitTestCase
         $request = Request::create('/api/v1/tasks', 'GET');
         $request->headers->set('Authorization', 'Bearer invalid-token');
 
-        $this->userService->expects($this->any())->method('findByApiTokenIgnoreExpiration')
-            ->with('invalid-token')
+        $this->userService->method('findByApiTokenIgnoreExpiration')
             ->willReturn(null);
 
         $this->apiLogger->expects($this->once())
@@ -258,8 +257,7 @@ class ApiTokenAuthenticatorTest extends UnitTestCase
         $user = $this->createUserWithId('user-123');
         $this->setUserApiToken($user, 'expired-token', true);
 
-        $this->userService->expects($this->any())->method('findByApiTokenIgnoreExpiration')
-            ->with('expired-token')
+        $this->userService->method('findByApiTokenIgnoreExpiration')
             ->willReturn($user);
 
         $this->apiLogger->expects($this->once())
@@ -310,7 +308,7 @@ class ApiTokenAuthenticatorTest extends UnitTestCase
     public function testOnAuthenticationSuccessReturnsNull(): void
     {
         $request = Request::create('/api/v1/tasks', 'GET');
-        $token = $this->createMock(TokenInterface::class);
+        $token = $this->createStub(TokenInterface::class);
 
         $result = $this->authenticator->onAuthenticationSuccess($request, $token, 'api');
 

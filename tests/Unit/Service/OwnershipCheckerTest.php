@@ -10,7 +10,7 @@ use App\Exception\UnauthorizedException;
 use App\Interface\UserOwnedInterface;
 use App\Service\OwnershipChecker;
 use App\Tests\Unit\UnitTestCase;
-use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\MockObject\Stub;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\Security\Core\User\UserInterface;
 
@@ -24,14 +24,14 @@ use Symfony\Component\Security\Core\User\UserInterface;
  */
 class OwnershipCheckerTest extends UnitTestCase
 {
-    private Security&MockObject $security;
+    private Security&Stub $security;
     private OwnershipChecker $ownershipChecker;
 
     protected function setUp(): void
     {
         parent::setUp();
 
-        $this->security = $this->createMock(Security::class);
+        $this->security = $this->createStub(Security::class);
         $this->ownershipChecker = new OwnershipChecker($this->security);
     }
 
@@ -65,7 +65,7 @@ class OwnershipCheckerTest extends UnitTestCase
         $user = $this->createUserWithId('user-123');
 
         // Create entity with null owner using mock
-        $entity = $this->createMock(UserOwnedInterface::class);
+        $entity = $this->createStub(UserOwnedInterface::class);
         $entity->method('getOwner')->willReturn(null);
 
         $result = $this->ownershipChecker->isOwner($entity, $user);
@@ -130,7 +130,7 @@ class OwnershipCheckerTest extends UnitTestCase
     public function testEnsureAuthenticatedThrowsExceptionWhenNonUserPrincipal(): void
     {
         // Mock a generic UserInterface that is NOT our User entity
-        $nonUserPrincipal = $this->createMock(UserInterface::class);
+        $nonUserPrincipal = $this->createStub(UserInterface::class);
         $this->security->method('getUser')->willReturn($nonUserPrincipal);
 
         $this->expectException(UnauthorizedException::class);
@@ -164,7 +164,7 @@ class OwnershipCheckerTest extends UnitTestCase
 
     public function testGetCurrentUserReturnsNullForNonUserPrincipal(): void
     {
-        $nonUserPrincipal = $this->createMock(UserInterface::class);
+        $nonUserPrincipal = $this->createStub(UserInterface::class);
         $this->security->method('getUser')->willReturn($nonUserPrincipal);
 
         $result = $this->ownershipChecker->getCurrentUser();
@@ -247,7 +247,7 @@ class OwnershipCheckerTest extends UnitTestCase
         $currentUser = $this->createUserWithId('user-123');
 
         // Create entity with null owner using mock
-        $entity = $this->createMock(UserOwnedInterface::class);
+        $entity = $this->createStub(UserOwnedInterface::class);
         $entity->method('getOwner')->willReturn(null);
 
         $this->security->method('getUser')->willReturn($currentUser);

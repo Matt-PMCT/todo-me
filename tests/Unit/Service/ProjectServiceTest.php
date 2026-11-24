@@ -28,24 +28,27 @@ use App\Tests\Unit\UnitTestCase;
 use App\Transformer\ProjectTreeTransformer;
 use App\ValueObject\UndoToken;
 use Doctrine\ORM\EntityManagerInterface;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\MockObject\Stub;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Cache\Adapter\ArrayAdapter;
 use Symfony\Component\HttpFoundation\RequestStack;
 
+#[AllowMockObjectsWithoutExpectations]
 class ProjectServiceTest extends UnitTestCase
 {
     private ProjectRepository&MockObject $projectRepository;
     private EntityManagerInterface&MockObject $entityManager;
     private UndoService&MockObject $undoService;
     private ValidationHelper&MockObject $validationHelper;
-    private OwnershipCheckerInterface&MockObject $ownershipChecker;
+    private OwnershipCheckerInterface&Stub $ownershipChecker;
     private ArrayAdapter $cache;
     private ProjectStateService $projectStateService;
     private ProjectUndoService $projectUndoService;
     private ProjectCacheService $projectCacheService;
     private ProjectTreeTransformer $projectTreeTransformer;
-    private ActivityLogServiceInterface&MockObject $activityLogService;
+    private ActivityLogServiceInterface&Stub $activityLogService;
     private SyncServiceInterface&MockObject $syncService;
     private ProjectService $projectService;
 
@@ -57,12 +60,12 @@ class ProjectServiceTest extends UnitTestCase
         $this->entityManager = $this->createMock(EntityManagerInterface::class);
         $this->undoService = $this->createMock(UndoService::class);
         $this->validationHelper = $this->createMock(ValidationHelper::class);
-        $this->ownershipChecker = $this->createMock(OwnershipCheckerInterface::class);
+        $this->ownershipChecker = $this->createStub(OwnershipCheckerInterface::class);
 
         // Use actual services - ProjectStateService, ProjectUndoService, ProjectCacheService and ProjectTreeTransformer are final
         // Use ArrayAdapter which implements both CacheInterface and AdapterInterface
         $this->cache = new ArrayAdapter();
-        $logger = $this->createMock(LoggerInterface::class);
+        $logger = $this->createStub(LoggerInterface::class);
         $this->projectCacheService = new ProjectCacheService($this->cache, $logger);
         $this->projectTreeTransformer = new ProjectTreeTransformer();
 
@@ -79,7 +82,7 @@ class ProjectServiceTest extends UnitTestCase
         );
 
         // Activity log service mock
-        $this->activityLogService = $this->createMock(ActivityLogServiceInterface::class);
+        $this->activityLogService = $this->createStub(ActivityLogServiceInterface::class);
 
         // Sync service mock
         $this->syncService = $this->createMock(SyncServiceInterface::class);
@@ -994,7 +997,7 @@ class ProjectServiceTest extends UnitTestCase
             ->with($user, 'child-456')
             ->willReturn($child);
 
-        $this->projectRepository->expects($this->any())->method('getDescendantIds')
+        $this->projectRepository->expects($this->atLeastOnce())->method('getDescendantIds')
             ->with($project)
             ->willReturn(['child-456']);
 
@@ -1195,7 +1198,7 @@ class ProjectServiceTest extends UnitTestCase
         $project2 = $this->createProjectWithId('project-2', $user, 'Another Root');
 
         // Cache is fresh (ArrayAdapter is empty), so repository will be called
-        $this->projectRepository->expects($this->any())->method('getTreeByUser')
+        $this->projectRepository->expects($this->atLeastOnce())->method('getTreeByUser')
             ->with($user, false)
             ->willReturn([$project1, $project2]);
 
@@ -1257,7 +1260,7 @@ class ProjectServiceTest extends UnitTestCase
         $child1->setParent($project);
         $child2->setParent($project);
 
-        $this->projectRepository->expects($this->any())->method('findAllDescendants')
+        $this->projectRepository->expects($this->atLeastOnce())->method('findAllDescendants')
             ->with($project)
             ->willReturn([$child1, $child2]);
 
@@ -1287,7 +1290,7 @@ class ProjectServiceTest extends UnitTestCase
         $this->projectRepository->method('findAllDescendants')
             ->willReturn([]);
 
-        $this->projectRepository->expects($this->any())->method('findChildrenByParent')
+        $this->projectRepository->expects($this->atLeastOnce())->method('findChildrenByParent')
             ->with($project, true)
             ->willReturn([$child]);
 
@@ -1319,7 +1322,7 @@ class ProjectServiceTest extends UnitTestCase
         $child2->setParent($project);
         $child2->setIsArchived(true);
 
-        $this->projectRepository->expects($this->any())->method('findAllDescendants')
+        $this->projectRepository->expects($this->atLeastOnce())->method('findAllDescendants')
             ->with($project)
             ->willReturn([$child1, $child2]);
 

@@ -11,6 +11,8 @@
          beStrictAboutOutputDuringTests="true"
          failOnRisky="true"
          failOnWarning="true"
+         failOnNotice="true"
+         failOnDeprecation="true"
          displayDetailsOnTestsThatTriggerDeprecations="false"
 >
     <php>

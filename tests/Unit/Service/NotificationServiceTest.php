@@ -11,10 +11,12 @@ use App\Repository\NotificationRepository;
 use App\Service\NotificationService;
 use App\Tests\Unit\UnitTestCase;
 use Doctrine\ORM\EntityManagerInterface;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\MockObject\MockObject;
 use Symfony\Component\Messenger\Envelope;
 use Symfony\Component\Messenger\MessageBusInterface;
 
+#[AllowMockObjectsWithoutExpectations]
 class NotificationServiceTest extends UnitTestCase
 {
     private NotificationRepository&MockObject $notificationRepository;

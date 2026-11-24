@@ -7,18 +7,18 @@ namespace App\Tests\Unit\Service;
 use App\Repository\ProjectRepository;
 use App\Service\ProjectStateService;
 use App\Tests\Unit\UnitTestCase;
-use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\MockObject\Stub;
 use Psr\Log\LoggerInterface;
 
 class ProjectStateServiceTest extends UnitTestCase
 {
-    private ProjectRepository&MockObject $projectRepository;
+    private ProjectRepository&Stub $projectRepository;
     private ProjectStateService $service;
 
     protected function setUp(): void
     {
-        $this->projectRepository = $this->createMock(ProjectRepository::class);
-        $logger = $this->createMock(LoggerInterface::class);
+        $this->projectRepository = $this->createStub(ProjectRepository::class);
+        $logger = $this->createStub(LoggerInterface::class);
         $this->service = new ProjectStateService($this->projectRepository, $logger);
     }
 

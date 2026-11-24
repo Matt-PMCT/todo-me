@@ -45,14 +45,14 @@ class ExceptionMapperRegistryTest extends TestCase
         $exception = new \RuntimeException('Test error');
         $callOrder = [];
 
-        $mapper1 = $this->createMock(ExceptionMapperInterface::class);
+        $mapper1 = $this->createStub(ExceptionMapperInterface::class);
         $mapper1->method('canHandle')->willReturnCallback(function () use (&$callOrder) {
             $callOrder[] = 1;
 
             return false;
         });
 
-        $mapper2 = $this->createMock(ExceptionMapperInterface::class);
+        $mapper2 = $this->createStub(ExceptionMapperInterface::class);
         $mapper2->method('canHandle')->willReturnCallback(function () use (&$callOrder) {
             $callOrder[] = 2;
 
@@ -68,7 +68,7 @@ class ExceptionMapperRegistryTest extends TestCase
 
     private function createMockMapper(bool $canHandle, ?ExceptionMapping $mapping): ExceptionMapperInterface
     {
-        $mapper = $this->createMock(ExceptionMapperInterface::class);
+        $mapper = $this->createStub(ExceptionMapperInterface::class);
         $mapper->method('canHandle')->willReturn($canHandle);
 
         if ($mapping !== null) {

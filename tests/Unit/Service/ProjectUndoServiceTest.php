@@ -17,10 +17,12 @@ use App\Service\UndoService;
 use App\Tests\Unit\UnitTestCase;
 use App\ValueObject\UndoToken;
 use Doctrine\ORM\EntityManagerInterface;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\MockObject\MockObject;
 use Psr\Log\LoggerInterface;
 use Symfony\Contracts\Cache\CacheInterface;
 
+#[AllowMockObjectsWithoutExpectations]
 class ProjectUndoServiceTest extends UnitTestCase
 {
     private ProjectUndoService $service;
@@ -37,8 +39,8 @@ class ProjectUndoServiceTest extends UnitTestCase
         $this->entityManager = $this->createMock(EntityManagerInterface::class);
 
         // Use real instances for final classes
-        $logger = $this->createMock(LoggerInterface::class);
-        $cache = $this->createMock(CacheInterface::class);
+        $logger = $this->createStub(LoggerInterface::class);
+        $cache = $this->createStub(CacheInterface::class);
         $this->projectStateService = new ProjectStateService($this->projectRepository, $logger);
         $this->projectCacheService = new ProjectCacheService($cache, $logger);
 
@@ -628,8 +630,8 @@ class ProjectUndoServiceTest extends UnitTestCase
             ->method('consumeUndoToken')
             ->willReturn($undoToken);
 
-        $this->projectRepository
-            ->expects($this->any())->method('findOneByOwnerAndId')
+        $this->projectRepository->expects($this->atLeastOnce())
+            ->method('findOneByOwnerAndId')
             ->with($user, 'project-123', true)
             ->willReturn($project);
 

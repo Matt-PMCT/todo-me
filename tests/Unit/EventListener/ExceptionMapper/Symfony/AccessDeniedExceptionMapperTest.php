@@ -6,7 +6,7 @@ namespace App\Tests\Unit\EventListener\ExceptionMapper\Symfony;
 
 use App\EventListener\ExceptionMapper\ExceptionMapping;
 use App\EventListener\ExceptionMapper\Symfony\AccessDeniedExceptionMapper;
-use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\MockObject\Stub;
 use PHPUnit\Framework\TestCase;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\Security\Core\Exception\AccessDeniedException;
@@ -14,12 +14,12 @@ use Symfony\Component\Security\Core\User\UserInterface;
 
 class AccessDeniedExceptionMapperTest extends TestCase
 {
-    private Security&MockObject $security;
+    private Security&Stub $security;
     private AccessDeniedExceptionMapper $mapper;
 
     protected function setUp(): void
     {
-        $this->security = $this->createMock(Security::class);
+        $this->security = $this->createStub(Security::class);
         $this->mapper = new AccessDeniedExceptionMapper($this->security);
     }
 
@@ -64,7 +64,7 @@ class AccessDeniedExceptionMapperTest extends TestCase
 
     public function testMapReturns403ForAuthenticatedUser(): void
     {
-        $user = $this->createMock(UserInterface::class);
+        $user = $this->createStub(UserInterface::class);
         $this->security->method('getUser')->willReturn($user);
         $exception = new AccessDeniedException();
 

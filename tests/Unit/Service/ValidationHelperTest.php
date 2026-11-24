@@ -12,12 +12,14 @@ use App\Exception\InvalidStatusException;
 use App\Exception\ValidationException;
 use App\Service\ValidationHelper;
 use App\Tests\Unit\UnitTestCase;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
 use Symfony\Component\Validator\ConstraintViolation;
 use Symfony\Component\Validator\ConstraintViolationList;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
+#[AllowMockObjectsWithoutExpectations]
 class ValidationHelperTest extends UnitTestCase
 {
     private ValidatorInterface&MockObject $validator;

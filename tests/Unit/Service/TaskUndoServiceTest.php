@@ -17,8 +17,10 @@ use App\Service\UndoService;
 use App\Tests\Unit\UnitTestCase;
 use App\ValueObject\UndoToken;
 use Doctrine\ORM\EntityManagerInterface;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\MockObject\MockObject;
 
+#[AllowMockObjectsWithoutExpectations]
 class TaskUndoServiceTest extends UnitTestCase
 {
     private TaskUndoService $service;

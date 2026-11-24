@@ -10,8 +10,10 @@ use App\Service\Parser\TagParserService;
 use App\Service\TagService;
 use App\Tests\Unit\UnitTestCase;
 use App\ValueObject\TagParseResult;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\MockObject\MockObject;
 
+#[AllowMockObjectsWithoutExpectations]
 class TagParserServiceTest extends UnitTestCase
 {
     private TagService&MockObject $tagService;

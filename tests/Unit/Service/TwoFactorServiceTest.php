@@ -11,15 +11,18 @@ use App\Service\RedisService;
 use App\Service\TwoFactorService;
 use App\Tests\Unit\UnitTestCase;
 use Doctrine\ORM\EntityManagerInterface;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\MockObject\Stub;
 
+#[AllowMockObjectsWithoutExpectations]
 class TwoFactorServiceTest extends UnitTestCase
 {
     private TotpServiceInterface&MockObject $totpService;
     private BackupCodeServiceInterface&MockObject $backupCodeService;
     private RedisService&MockObject $redisService;
     private EntityManagerInterface&MockObject $entityManager;
-    private EncryptionServiceInterface&MockObject $encryptionService;
+    private EncryptionServiceInterface&Stub $encryptionService;
     private TwoFactorService $twoFactorService;
 
     protected function setUp(): void
@@ -30,7 +33,7 @@ class TwoFactorServiceTest extends UnitTestCase
         $this->backupCodeService = $this->createMock(BackupCodeServiceInterface::class);
         $this->redisService = $this->createMock(RedisService::class);
         $this->entityManager = $this->createMock(EntityManagerInterface::class);
-        $this->encryptionService = $this->createMock(EncryptionServiceInterface::class);
+        $this->encryptionService = $this->createStub(EncryptionServiceInterface::class);
 
         // By default, encryption service returns the input unchanged for simplicity
         $this->encryptionService->method('encrypt')->willReturnCallback(fn ($s) => 'enc:'.$s);

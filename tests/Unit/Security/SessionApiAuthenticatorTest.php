@@ -6,6 +6,7 @@ namespace App\Tests\Unit\Security;
 
 use App\Security\SessionApiAuthenticator;
 use App\Tests\Unit\UnitTestCase;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\MockObject\MockObject;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Session\Session;
@@ -29,6 +30,7 @@ use Symfony\Component\Security\Http\Authenticator\Token\PostAuthenticationToken;
  * - CSRF token validation for state-changing requests
  * - User identifier extraction from session token
  */
+#[AllowMockObjectsWithoutExpectations]
 class SessionApiAuthenticatorTest extends UnitTestCase
 {
     private CsrfTokenManagerInterface&MockObject $csrfTokenManager;
@@ -181,7 +183,7 @@ class SessionApiAuthenticatorTest extends UnitTestCase
             $this->createSerializedToken('user@example.com'),
             'valid-csrf-token'
         );
-        $this->csrfTokenManager->expects($this->any())->method('isTokenValid')
+        $this->csrfTokenManager->expects($this->atLeastOnce())->method('isTokenValid')
             ->with($this->callback(fn (CsrfToken $token) => $token->getId() === 'api' && $token->getValue() === 'valid-csrf-token'))
             ->willReturn(true);
 
@@ -360,7 +362,7 @@ class SessionApiAuthenticatorTest extends UnitTestCase
     public function testOnAuthenticationSuccessReturnsNull(): void
     {
         $request = Request::create('/api/v1/tasks', 'GET');
-        $token = $this->createMock(TokenInterface::class);
+        $token = $this->createStub(TokenInterface::class);
 
         $result = $this->authenticator->onAuthenticationSuccess($request, $token, 'api');
 

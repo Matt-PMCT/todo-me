@@ -21,7 +21,7 @@ final class TaskStatusResultTest extends TestCase
     {
         $this->user = new User();
 
-        $this->task = $this->createMock(Task::class);
+        $this->task = $this->createStub(Task::class);
         $this->task->method('getId')->willReturn('550e8400-e29b-41d4-a716-446655440000');
         $this->task->method('getOwner')->willReturn($this->user);
         $this->task->method('getTitle')->willReturn('Test task');
@@ -53,7 +53,7 @@ final class TaskStatusResultTest extends TestCase
 
     public function testConstructorWithNextTask(): void
     {
-        $nextTask = $this->createMock(Task::class);
+        $nextTask = $this->createStub(Task::class);
 
         $result = new TaskStatusResult($this->task, $nextTask);
 
@@ -77,7 +77,7 @@ final class TaskStatusResultTest extends TestCase
 
     public function testHasNextTaskReturnsTrueWhenNextTaskExists(): void
     {
-        $nextTask = $this->createMock(Task::class);
+        $nextTask = $this->createStub(Task::class);
 
         $result = new TaskStatusResult($this->task, $nextTask);
 
@@ -98,7 +98,7 @@ final class TaskStatusResultTest extends TestCase
 
     public function testToArrayWithNextTask(): void
     {
-        $nextTask = $this->createMock(Task::class);
+        $nextTask = $this->createStub(Task::class);
         $nextTask->method('getId')->willReturn('650e8400-e29b-41d4-a716-446655440001');
         $nextTask->method('getOwner')->willReturn($this->user);
         $nextTask->method('getTitle')->willReturn('Next recurring task');

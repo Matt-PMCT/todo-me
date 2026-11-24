@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\Unit\EventListener;
 
 use App\EventListener\AppSecretValidator;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
@@ -19,6 +20,7 @@ use Symfony\Component\HttpKernel\Event\RequestEvent;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
 use Symfony\Component\HttpKernel\KernelEvents;
 
+#[AllowMockObjectsWithoutExpectations]
 class AppSecretValidatorTest extends TestCase
 {
     private LoggerInterface&MockObject $logger;
@@ -35,7 +37,7 @@ class AppSecretValidatorTest extends TestCase
 
     private function createMainRequestEvent(): RequestEvent
     {
-        $kernel = $this->createMock(HttpKernelInterface::class);
+        $kernel = $this->createStub(HttpKernelInterface::class);
         $request = new Request();
 
         return new RequestEvent($kernel, $request, HttpKernelInterface::MAIN_REQUEST);
@@ -43,7 +45,7 @@ class AppSecretValidatorTest extends TestCase
 
     private function createSubRequestEvent(): RequestEvent
     {
-        $kernel = $this->createMock(HttpKernelInterface::class);
+        $kernel = $this->createStub(HttpKernelInterface::class);
         $request = new Request();
 
         return new RequestEvent($kernel, $request, HttpKernelInterface::SUB_REQUEST);
@@ -51,9 +53,9 @@ class AppSecretValidatorTest extends TestCase
 
     private function createConsoleCommandEvent(): ConsoleCommandEvent
     {
-        $command = $this->createMock(Command::class);
-        $input = $this->createMock(InputInterface::class);
-        $output = $this->createMock(OutputInterface::class);
+        $command = $this->createStub(Command::class);
+        $input = $this->createStub(InputInterface::class);
+        $output = $this->createStub(OutputInterface::class);
 
         return new ConsoleCommandEvent($command, $input, $output);
     }
