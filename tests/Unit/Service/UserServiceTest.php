@@ -427,7 +427,7 @@ class UserServiceTest extends UnitTestCase
         $user->setApiTokenExpiresAt(new \DateTimeImmutable('-1 hour'));
 
         // Service hashes token before querying repository
-        $this->userRepository->method('findByApiTokenHash')
+        $this->userRepository->expects($this->any())->method('findByApiTokenHash')
             ->with(hash('sha256', 'expired_token'))
             ->willReturn($user);
 
@@ -443,7 +443,7 @@ class UserServiceTest extends UnitTestCase
         $user->setApiTokenExpiresAt(new \DateTimeImmutable('+1 hour'));
 
         // Service hashes token before querying repository
-        $this->userRepository->method('findByApiTokenHash')
+        $this->userRepository->expects($this->any())->method('findByApiTokenHash')
             ->with(hash('sha256', 'valid_token'))
             ->willReturn($user);
 
@@ -459,7 +459,7 @@ class UserServiceTest extends UnitTestCase
         $user->setApiTokenExpiresAt(new \DateTimeImmutable('-1 hour'));
 
         // Service hashes token before querying repository
-        $this->userRepository->method('findByApiTokenHash')
+        $this->userRepository->expects($this->any())->method('findByApiTokenHash')
             ->with(hash('sha256', 'expired_token'))
             ->willReturn($user);
 

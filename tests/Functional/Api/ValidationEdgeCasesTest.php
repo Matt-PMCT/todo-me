@@ -6,6 +6,7 @@ namespace App\Tests\Functional\Api;
 
 use App\Entity\Task;
 use App\Tests\Functional\ApiTestCase;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
@@ -128,9 +129,7 @@ class ValidationEdgeCasesTest extends ApiTestCase
         $this->assertResponseStatusCode(Response::HTTP_UNPROCESSABLE_ENTITY, $response);
     }
 
-    /**
-     * @dataProvider validStatusesProvider
-     */
+    #[DataProvider('validStatusesProvider')]
     public function testCreateTaskWithValidStatus(string $status): void
     {
         $user = $this->createUser('test@example.com');
@@ -195,9 +194,7 @@ class ValidationEdgeCasesTest extends ApiTestCase
         $this->assertResponseStatusCode(Response::HTTP_UNPROCESSABLE_ENTITY, $response);
     }
 
-    /**
-     * @dataProvider validPrioritiesProvider
-     */
+    #[DataProvider('validPrioritiesProvider')]
     public function testCreateTaskWithValidPriority(int $priority): void
     {
         $user = $this->createUser('test@example.com');
@@ -245,9 +242,7 @@ class ValidationEdgeCasesTest extends ApiTestCase
         $this->assertResponseStatusCode(Response::HTTP_UNPROCESSABLE_ENTITY, $response);
     }
 
-    /**
-     * @dataProvider validDateFormatsProvider
-     */
+    #[DataProvider('validDateFormatsProvider')]
     public function testCreateTaskWithValidDateFormat(string $date): void
     {
         $user = $this->createUser('test@example.com');

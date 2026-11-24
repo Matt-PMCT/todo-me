@@ -7,6 +7,7 @@ namespace App\Tests\Unit\Parser;
 use App\Service\Parser\DateParserService;
 use App\Service\Parser\TimezoneHelper;
 use App\ValueObject\DateParseResult;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 
@@ -817,9 +818,7 @@ class DateParserServiceTest extends TestCase
     // All Month Names Tests
     // ========================================
 
-    /**
-     * @dataProvider monthNameProvider
-     */
+    #[DataProvider('monthNameProvider')]
     public function testAllMonthNames(string $month, int $expectedMonth): void
     {
         $result = $this->parser->parse("$month 15");
@@ -862,9 +861,7 @@ class DateParserServiceTest extends TestCase
     // All Day Names Tests
     // ========================================
 
-    /**
-     * @dataProvider dayNameProvider
-     */
+    #[DataProvider('dayNameProvider')]
     public function testAllDayNames(string $day): void
     {
         $result = $this->parser->parse($day);
@@ -900,9 +897,7 @@ class DateParserServiceTest extends TestCase
     // Ordinal Suffix Tests
     // ========================================
 
-    /**
-     * @dataProvider ordinalSuffixProvider
-     */
+    #[DataProvider('ordinalSuffixProvider')]
     public function testOrdinalSuffixes(string $input, int $expectedDay): void
     {
         $result = $this->parser->parse($input);

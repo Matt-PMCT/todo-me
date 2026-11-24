@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\Unit\DTO;
 
 use App\DTO\LoginRequest;
+use PHPUnit\Framework\Attributes\DataProvider;
 
 class LoginRequestTest extends DtoTestCase
 {
@@ -65,9 +66,7 @@ class LoginRequestTest extends DtoTestCase
         $this->assertHasViolation($violations, 'email');
     }
 
-    /**
-     * @dataProvider validEmailsProvider
-     */
+    #[DataProvider('validEmailsProvider')]
     public function testValidEmails(string $email): void
     {
         $dto = new LoginRequest(email: $email, password: 'password123');

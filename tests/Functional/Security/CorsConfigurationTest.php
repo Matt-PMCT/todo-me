@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\Functional\Security;
 
 use App\Tests\Functional\ApiTestCase;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
@@ -213,9 +214,7 @@ class CorsConfigurationTest extends ApiTestCase
         $this->assertTrue(true, 'Non-API path request completed');
     }
 
-    /**
-     * @dataProvider originTestCasesProvider
-     */
+    #[DataProvider('originTestCasesProvider')]
     public function testOriginMatchingPattern(string $origin, bool $shouldMatch): void
     {
         $this->client->request(

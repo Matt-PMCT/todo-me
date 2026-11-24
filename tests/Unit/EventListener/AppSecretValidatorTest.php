@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\Unit\EventListener;
 
 use App\EventListener\AppSecretValidator;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
@@ -187,9 +188,7 @@ class AppSecretValidatorTest extends TestCase
         $validator->onKernelRequest($event);
     }
 
-    /**
-     * @dataProvider knownInsecureSecretsProvider
-     */
+    #[DataProvider('knownInsecureSecretsProvider')]
     public function testAllKnownInsecureSecretsDetected(string $insecureSecret): void
     {
         $validator = $this->createValidator($insecureSecret, 'prod');

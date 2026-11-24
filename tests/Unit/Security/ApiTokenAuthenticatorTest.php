@@ -160,7 +160,7 @@ class ApiTokenAuthenticatorTest extends UnitTestCase
         $user = $this->createUserWithId('user-123');
         $this->setUserApiToken($user, 'valid-token-123', false);
 
-        $this->userService->method('findByApiTokenIgnoreExpiration')
+        $this->userService->expects($this->any())->method('findByApiTokenIgnoreExpiration')
             ->with('valid-token-123')
             ->willReturn($user);
 
@@ -183,7 +183,7 @@ class ApiTokenAuthenticatorTest extends UnitTestCase
         $user = $this->createUserWithId('user-123');
         $this->setUserApiToken($user, 'valid-token-456', false);
 
-        $this->userService->method('findByApiTokenIgnoreExpiration')
+        $this->userService->expects($this->any())->method('findByApiTokenIgnoreExpiration')
             ->with('valid-token-456')
             ->willReturn($user);
 
@@ -202,7 +202,7 @@ class ApiTokenAuthenticatorTest extends UnitTestCase
         $this->setUserApiToken($user, 'bearer-token', false);
 
         // Should use bearer-token, not api-key-token
-        $this->userService->method('findByApiTokenIgnoreExpiration')
+        $this->userService->expects($this->any())->method('findByApiTokenIgnoreExpiration')
             ->with('bearer-token')
             ->willReturn($user);
 
@@ -234,7 +234,7 @@ class ApiTokenAuthenticatorTest extends UnitTestCase
         $request = Request::create('/api/v1/tasks', 'GET');
         $request->headers->set('Authorization', 'Bearer invalid-token');
 
-        $this->userService->method('findByApiTokenIgnoreExpiration')
+        $this->userService->expects($this->any())->method('findByApiTokenIgnoreExpiration')
             ->with('invalid-token')
             ->willReturn(null);
 
@@ -258,7 +258,7 @@ class ApiTokenAuthenticatorTest extends UnitTestCase
         $user = $this->createUserWithId('user-123');
         $this->setUserApiToken($user, 'expired-token', true);
 
-        $this->userService->method('findByApiTokenIgnoreExpiration')
+        $this->userService->expects($this->any())->method('findByApiTokenIgnoreExpiration')
             ->with('expired-token')
             ->willReturn($user);
 

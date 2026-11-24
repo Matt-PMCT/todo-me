@@ -124,11 +124,11 @@ class SyncServiceTest extends UnitTestCase
     {
         $user = $this->createUserWithId('user-abc');
 
-        $this->redisService->method('get')
+        $this->redisService->expects($this->any())->method('get')
             ->with('sync:version:user-abc')
             ->willReturn('3');
 
-        $this->redisService->method('listRange')
+        $this->redisService->expects($this->any())->method('listRange')
             ->with('sync:changes:user-abc', 0, -1)
             ->willReturn([
                 json_encode(['version' => 1, 'entityType' => 'task', 'action' => 'created', 'entityId' => 'a']),
@@ -148,7 +148,7 @@ class SyncServiceTest extends UnitTestCase
     {
         $user = $this->createUserWithId('user-abc');
 
-        $this->redisService->method('get')
+        $this->redisService->expects($this->any())->method('get')
             ->with('sync:version:user-abc')
             ->willReturn('5');
 
@@ -162,7 +162,7 @@ class SyncServiceTest extends UnitTestCase
     {
         $user = $this->createUserWithId('user-abc');
 
-        $this->redisService->method('get')
+        $this->redisService->expects($this->any())->method('get')
             ->with('sync:version:user-abc')
             ->willReturn('3');
 

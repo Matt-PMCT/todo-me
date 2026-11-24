@@ -166,7 +166,7 @@ class NaturalLanguageParserServiceTest extends UnitTestCase
         $user = $this->createUserWithId();
         $project = $this->createProjectWithId('proj-1', $user, 'shopping');
 
-        $this->projectRepository->method('findByNameInsensitive')
+        $this->projectRepository->expects($this->any())->method('findByNameInsensitive')
             ->with($user, 'shopping')
             ->willReturn($project);
 
@@ -226,7 +226,7 @@ class NaturalLanguageParserServiceTest extends UnitTestCase
         $user = $this->createUserWithId();
         $project = $this->createProjectWithId('proj-1', $user, 'meetings');
 
-        $this->projectRepository->method('findByPathInsensitive')
+        $this->projectRepository->expects($this->any())->method('findByPathInsensitive')
             ->with($user, 'work/meetings')
             ->willReturn($project);
 

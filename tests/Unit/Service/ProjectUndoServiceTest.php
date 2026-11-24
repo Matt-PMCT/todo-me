@@ -117,7 +117,7 @@ class ProjectUndoServiceTest extends UnitTestCase
                 UndoAction::DELETE->value,
                 'project',
                 'project-123',
-                $this->isType('array')
+                $this->isArray()
             )
             ->willReturn($undoToken);
 
@@ -629,7 +629,7 @@ class ProjectUndoServiceTest extends UnitTestCase
             ->willReturn($undoToken);
 
         $this->projectRepository
-            ->method('findOneByOwnerAndId')
+            ->expects($this->any())->method('findOneByOwnerAndId')
             ->with($user, 'project-123', true)
             ->willReturn($project);
 

@@ -121,12 +121,12 @@ class TaskStateServiceTest extends UnitTestCase
         $tag->setOwner($user);
 
         $this->projectRepository
-            ->method('findOneByOwnerAndId')
+            ->expects($this->any())->method('findOneByOwnerAndId')
             ->with($user, 'project-123')
             ->willReturn($project);
 
         $this->tagRepository
-            ->method('findOneByOwnerAndId')
+            ->expects($this->any())->method('findOneByOwnerAndId')
             ->with($user, 'tag-1')
             ->willReturn($tag);
 
@@ -216,7 +216,7 @@ class TaskStateServiceTest extends UnitTestCase
         $task = $this->createTaskWithId('task-123', $user, 'Test Task');
 
         $this->projectRepository
-            ->method('findOneByOwnerAndId')
+            ->expects($this->any())->method('findOneByOwnerAndId')
             ->with($user, 'non-existent-project')
             ->willReturn(null);
 
