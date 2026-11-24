@@ -21,6 +21,12 @@ php bin/console cache:clear                                  # Clear cache (in c
 php bin/console asset-map:compile --env=prod                 # Compile assets (REQUIRED for production)
 ```
 
+**Commands that write to the project (`composer install/update`, `composer cs-fix`, regenerating the PHPStan baseline):** the `php` container runs as root with `cap_drop: [ALL]` (no `DAC_OVERRIDE`), so root cannot write files owned by the host user. Run write commands as the host user instead; read-only commands (phpunit, phpstan, `cs-check`, `lint`) work as-is:
+```bash
+docker compose -f docker/docker-compose.yml exec -u 1000 -e HOME=/tmp php composer install
+```
+Do not add `DAC_OVERRIDE` back to the container: it undoes the hardening.
+
 ### Production Deployment
 **CRITICAL:** Always use the deploy script or include `asset-map:compile`. Skipping asset compilation after adding/changing JS files breaks the entire frontend (Alpine.js won't load).
 ```bash
@@ -102,7 +108,7 @@ php bin/console doctrine:migrations:migrate prev  # Revert last migration
 
 ```bash
 # ALWAYS run these before committing PHP changes:
-docker compose -f docker/docker-compose.yml exec php composer cs-fix
+docker compose -f docker/docker-compose.yml exec -u 1000 -e HOME=/tmp php composer cs-fix
 docker compose -f docker/docker-compose.yml exec php composer phpstan
 
 # Or run both checks at once (what CI runs):
@@ -111,7 +117,7 @@ docker compose -f docker/docker-compose.yml exec php composer lint
 
 **PHPStan Baseline:** This project uses a PHPStan baseline (`phpstan-baseline.neon`) to track known errors. If you add or modify test files that access nullable return types without null checks (common in test assertions), you must regenerate the baseline:
 ```bash
-docker compose -f docker/docker-compose.yml exec php php vendor/bin/phpstan analyse --memory-limit=512M --generate-baseline phpstan-baseline.neon
+docker compose -f docker/docker-compose.yml exec -u 1000 -e HOME=/tmp php php vendor/bin/phpstan analyse --memory-limit=512M --generate-baseline phpstan-baseline.neon
 ```
 
 **Workflow:** Write code → Run `composer cs-fix` → Run `composer phpstan` → Run tests → Commit
