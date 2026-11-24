@@ -141,6 +141,95 @@ class TestErrorHandling:
 
 
 # ---------------------------------------------------------------------------
+# Non-JSON responses and transport failures (issue #127)
+# ---------------------------------------------------------------------------
+
+
+def _raw_response(status_code: int, text: str = "", **headers: str) -> httpx.Response:
+    return httpx.Response(
+        status_code=status_code,
+        text=text,
+        headers=headers,
+        request=httpx.Request("GET", "http://test/api/v1/tasks"),
+    )
+
+
+class TestNonJsonResponses:
+    def test_html_502_maps_to_api_error_without_leaking_body(self):
+        client = TodoApiClient("http://test", "tk")
+        resp = _raw_response(502, "<html>Bad Gateway secret-upstream</html>", **{"content-type": "text/html"})
+        with pytest.raises(ApiError, match=r"Todo-Me API error \(HTTP 502\)") as exc_info:
+            client._handle_response(resp)
+        assert exc_info.value.status_code == 502
+        assert "secret-upstream" not in str(exc_info.value)
+
+    def test_empty_200_body_raises_descriptive_error(self):
+        client = TodoApiClient("http://test", "tk")
+        resp = _raw_response(200, "", **{"content-type": "text/html"})
+        with pytest.raises(ApiError, match="non-JSON response \\(HTTP 200, text/html\\)"):
+            client._handle_response(resp)
+
+    def test_html_200_login_page_raises_descriptive_error(self):
+        client = TodoApiClient("http://test", "tk")
+        resp = _raw_response(200, "<html>Login</html>", **{"content-type": "text/html"})
+        with pytest.raises(ApiError, match="non-JSON response"):
+            client._handle_response(resp)
+
+    def test_redirect_reports_location(self):
+        client = TodoApiClient("http://test", "tk")
+        resp = _raw_response(302, "", location="https://example.com/login")
+        with pytest.raises(ApiError, match="redirected \\(HTTP 302\\) to https://example.com/login") as exc_info:
+            client._handle_response(resp)
+        assert exc_info.value.status_code == 302
+
+    def test_failure_is_logged_with_body_snippet(self, caplog):
+        client = TodoApiClient("http://test", "tk")
+        resp = _raw_response(503, "<html>maintenance</html>")
+        with caplog.at_level("ERROR"), pytest.raises(ApiError):
+            client._handle_response(resp)
+        assert "HTTP 503" in caplog.text
+        assert "maintenance" in caplog.text
+
+
+class TestTransportErrors:
+    @staticmethod
+    def _client_with(handler) -> TodoApiClient:
+        client = TodoApiClient("http://test", "tk")
+        client._client = httpx.AsyncClient(transport=httpx.MockTransport(handler), timeout=30.0)
+        return client
+
+    async def test_timeout_has_non_empty_message(self):
+        def handler(request: httpx.Request) -> httpx.Response:
+            raise httpx.ReadTimeout("", request=request)
+
+        client = self._client_with(handler)
+        with pytest.raises(ApiError, match="GET /api/v1/search timed out after 30s"):
+            await client.get("/api/v1/search")
+
+    async def test_connect_error_names_the_server(self):
+        def handler(request: httpx.Request) -> httpx.Response:
+            raise httpx.ConnectError("refused", request=request)
+
+        client = self._client_with(handler)
+        with pytest.raises(ApiError, match="Could not reach the Todo-Me API at http://test .*ConnectError"):
+            await client.get("/api/v1/tasks")
+
+    async def test_verbs_use_the_right_method(self):
+        seen: list[str] = []
+
+        def handler(request: httpx.Request) -> httpx.Response:
+            seen.append(request.method)
+            return httpx.Response(200, json={"success": True, "data": {"ok": True}})
+
+        client = self._client_with(handler)
+        await client.get("/x")
+        await client.post("/x", json={})
+        await client.patch("/x", json={})
+        await client.delete("/x")
+        assert seen == ["GET", "POST", "PATCH", "DELETE"]
+
+
+# ---------------------------------------------------------------------------
 # Headers
 # ---------------------------------------------------------------------------
 
