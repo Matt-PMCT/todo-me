@@ -1,6 +1,12 @@
 # Dependabot: weekly update PRs, gated by CI (ci.yml) and security.yml. Never auto-merged.
 # Image tags in docker/docker-compose.yml intentionally float (nginx:stable-alpine, redis:7-alpine,
 # postgres:15-alpine): full deploys pull fresh patches and the weekly Trivy scan flags drift.
+#
+# Policy: stay on supported LTS lines (Symfony 7.4 LTS, PHP 8.4, Python 3.12) and take every patch/minor
+# within them. Major/line jumps are deliberate projects, so they are ignored here rather than arriving
+# as weekly PRs: revisit PHP 8.5 and Symfony 8 / Python 3.13+ when 8.4 / 7.4 / 3.12 near end of life
+# (PHP 8.4 security support ends 2028-12; Symfony 7.4 LTS security ends 2029-11). Removing an ignore
+# rule below is how you start that migration. Ignored PRs are closed by Dependabot on its next run.
 version: 2
 
 updates:
@@ -21,6 +27,13 @@ updates:
       dev-tools:
         dependency-type: development
         update-types: [minor, patch]
+    ignore:
+      # Symfony 7.4 is the LTS line (composer.json pins extra.symfony.require 7.4.*); 8.x is a migration
+      - dependency-name: 'symfony/*'
+        update-types: ['version-update:semver-major']
+      # doctrine-bundle 3.x / ORM / DBAL majors need code changes alongside the Symfony 8 move
+      - dependency-name: 'doctrine/*'
+        update-types: ['version-update:semver-major']
 
   - package-ecosystem: pip
     directory: /mcp-server
@@ -44,6 +57,12 @@ updates:
       day: monday
     open-pull-requests-limit: 5
     labels: [dependencies, Infrastructure]
+    ignore:
+      # Stay on PHP 8.4 and Python 3.12 (both supported). Patch updates still arrive via rebuilds.
+      - dependency-name: php
+        update-types: ['version-update:semver-major', 'version-update:semver-minor']
+      - dependency-name: python
+        update-types: ['version-update:semver-major', 'version-update:semver-minor']
 
   - package-ecosystem: docker-compose
     directory: /docker
@@ -67,5 +86,6 @@ updates:
     open-pull-requests-limit: 5
     labels: [dependencies, Infrastructure]
     groups:
+      # Action majors are routine (runner/Node bumps), so group every update into one PR
       actions:
-        update-types: [minor, patch]
+        patterns: ['*']
