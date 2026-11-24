@@ -10,9 +10,11 @@ use App\Service\TokenGenerator;
 use App\Service\UserService;
 use App\Tests\Unit\UnitTestCase;
 use Doctrine\ORM\EntityManagerInterface;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\MockObject\MockObject;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
+#[AllowMockObjectsWithoutExpectations]
 class UserServiceTest extends UnitTestCase
 {
     private EntityManagerInterface&MockObject $entityManager;
@@ -427,7 +429,7 @@ class UserServiceTest extends UnitTestCase
         $user->setApiTokenExpiresAt(new \DateTimeImmutable('-1 hour'));
 
         // Service hashes token before querying repository
-        $this->userRepository->expects($this->any())->method('findByApiTokenHash')
+        $this->userRepository->expects($this->atLeastOnce())->method('findByApiTokenHash')
             ->with(hash('sha256', 'expired_token'))
             ->willReturn($user);
 
@@ -443,7 +445,7 @@ class UserServiceTest extends UnitTestCase
         $user->setApiTokenExpiresAt(new \DateTimeImmutable('+1 hour'));
 
         // Service hashes token before querying repository
-        $this->userRepository->expects($this->any())->method('findByApiTokenHash')
+        $this->userRepository->expects($this->atLeastOnce())->method('findByApiTokenHash')
             ->with(hash('sha256', 'valid_token'))
             ->willReturn($user);
 
@@ -459,7 +461,7 @@ class UserServiceTest extends UnitTestCase
         $user->setApiTokenExpiresAt(new \DateTimeImmutable('-1 hour'));
 
         // Service hashes token before querying repository
-        $this->userRepository->expects($this->any())->method('findByApiTokenHash')
+        $this->userRepository->expects($this->atLeastOnce())->method('findByApiTokenHash')
             ->with(hash('sha256', 'expired_token'))
             ->willReturn($user);
 

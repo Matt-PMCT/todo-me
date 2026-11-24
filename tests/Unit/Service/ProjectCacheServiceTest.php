@@ -19,7 +19,7 @@ class ProjectCacheServiceTest extends UnitTestCase
         parent::setUp();
 
         $this->cache = new ArrayAdapter();
-        $logger = $this->createMock(LoggerInterface::class);
+        $logger = $this->createStub(LoggerInterface::class);
         $this->service = new ProjectCacheService($this->cache, $logger);
     }
 

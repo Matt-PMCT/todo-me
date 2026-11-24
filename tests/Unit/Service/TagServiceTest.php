@@ -12,15 +12,18 @@ use App\Service\TagService;
 use App\Service\ValidationHelper;
 use App\Tests\Unit\UnitTestCase;
 use Doctrine\ORM\EntityManagerInterface;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\MockObject\Stub;
 use Symfony\Component\HttpFoundation\RequestStack;
 
+#[AllowMockObjectsWithoutExpectations]
 class TagServiceTest extends UnitTestCase
 {
     private TagRepository&MockObject $tagRepository;
     private EntityManagerInterface&MockObject $entityManager;
-    private ValidationHelper&MockObject $validationHelper;
-    private SyncServiceInterface&MockObject $syncService;
+    private ValidationHelper&Stub $validationHelper;
+    private SyncServiceInterface&Stub $syncService;
     private TagService $tagService;
     private User $user;
 
@@ -30,8 +33,8 @@ class TagServiceTest extends UnitTestCase
 
         $this->tagRepository = $this->createMock(TagRepository::class);
         $this->entityManager = $this->createMock(EntityManagerInterface::class);
-        $this->validationHelper = $this->createMock(ValidationHelper::class);
-        $this->syncService = $this->createMock(SyncServiceInterface::class);
+        $this->validationHelper = $this->createStub(ValidationHelper::class);
+        $this->syncService = $this->createStub(SyncServiceInterface::class);
         $this->tagService = new TagService(
             $this->tagRepository,
             $this->entityManager,

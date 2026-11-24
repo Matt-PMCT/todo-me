@@ -9,9 +9,11 @@ use App\Service\RedisService;
 use App\Service\UndoService;
 use App\Tests\Unit\UnitTestCase;
 use App\ValueObject\UndoToken;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\MockObject\MockObject;
 use Psr\Log\LoggerInterface;
 
+#[AllowMockObjectsWithoutExpectations]
 class UndoServiceTest extends UnitTestCase
 {
     private RedisService&MockObject $redisService;

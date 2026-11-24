@@ -7,7 +7,6 @@ namespace App\Tests\Unit;
 use App\Entity\Project;
 use App\Entity\Task;
 use App\Entity\User;
-use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 
 /**
@@ -79,20 +78,6 @@ abstract class UnitTestCase extends TestCase
     {
         $reflection = new \ReflectionProperty($entity, 'id');
         $reflection->setValue($entity, $id);
-    }
-
-    /**
-     * Creates a mock object for the given class.
-     *
-     * @template T of object
-     *
-     * @param class-string<T> $className
-     *
-     * @return T&MockObject
-     */
-    protected function createMockFor(string $className): MockObject
-    {
-        return $this->createMock($className);
     }
 
     /**

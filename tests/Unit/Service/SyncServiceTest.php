@@ -7,8 +7,10 @@ namespace App\Tests\Unit\Service;
 use App\Service\RedisService;
 use App\Service\SyncService;
 use App\Tests\Unit\UnitTestCase;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\MockObject\MockObject;
 
+#[AllowMockObjectsWithoutExpectations]
 class SyncServiceTest extends UnitTestCase
 {
     private RedisService&MockObject $redisService;
@@ -124,11 +126,11 @@ class SyncServiceTest extends UnitTestCase
     {
         $user = $this->createUserWithId('user-abc');
 
-        $this->redisService->expects($this->any())->method('get')
+        $this->redisService->expects($this->atLeastOnce())->method('get')
             ->with('sync:version:user-abc')
             ->willReturn('3');
 
-        $this->redisService->expects($this->any())->method('listRange')
+        $this->redisService->expects($this->atLeastOnce())->method('listRange')
             ->with('sync:changes:user-abc', 0, -1)
             ->willReturn([
                 json_encode(['version' => 1, 'entityType' => 'task', 'action' => 'created', 'entityId' => 'a']),
@@ -148,7 +150,7 @@ class SyncServiceTest extends UnitTestCase
     {
         $user = $this->createUserWithId('user-abc');
 
-        $this->redisService->expects($this->any())->method('get')
+        $this->redisService->expects($this->atLeastOnce())->method('get')
             ->with('sync:version:user-abc')
             ->willReturn('5');
 
@@ -162,7 +164,7 @@ class SyncServiceTest extends UnitTestCase
     {
         $user = $this->createUserWithId('user-abc');
 
-        $this->redisService->expects($this->any())->method('get')
+        $this->redisService->expects($this->atLeastOnce())->method('get')
             ->with('sync:version:user-abc')
             ->willReturn('3');
 

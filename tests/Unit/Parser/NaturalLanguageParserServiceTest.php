@@ -17,14 +17,17 @@ use App\Service\TagService;
 use App\Tests\Unit\UnitTestCase;
 use App\ValueObject\ParseHighlight;
 use App\ValueObject\TaskParseResult;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\MockObject\Stub;
 
+#[AllowMockObjectsWithoutExpectations]
 class NaturalLanguageParserServiceTest extends UnitTestCase
 {
     private ProjectRepository&MockObject $projectRepository;
-    private TagRepository&MockObject $tagRepository;
-    private TagService&MockObject $tagService;
-    private TimezoneHelper&MockObject $timezoneHelper;
+    private TagRepository&Stub $tagRepository;
+    private TagService&Stub $tagService;
+    private TimezoneHelper&Stub $timezoneHelper;
     private NaturalLanguageParserService $parser;
     private \DateTimeImmutable $fixedNow;
 
@@ -36,13 +39,13 @@ class NaturalLanguageParserServiceTest extends UnitTestCase
         $this->fixedNow = new \DateTimeImmutable('2026-01-23 00:00:00', new \DateTimeZone('UTC'));
 
         // Set up mocks
-        $this->timezoneHelper = $this->createMock(TimezoneHelper::class);
+        $this->timezoneHelper = $this->createStub(TimezoneHelper::class);
         $this->timezoneHelper->method('getStartOfDay')->willReturn($this->fixedNow);
         $this->timezoneHelper->method('getNow')->willReturn($this->fixedNow);
 
         $this->projectRepository = $this->createMock(ProjectRepository::class);
-        $this->tagRepository = $this->createMock(TagRepository::class);
-        $this->tagService = $this->createMock(TagService::class);
+        $this->tagRepository = $this->createStub(TagRepository::class);
+        $this->tagService = $this->createStub(TagService::class);
 
         // Create real parser services with mocked dependencies
         $dateParser = new DateParserService($this->timezoneHelper);
@@ -166,7 +169,7 @@ class NaturalLanguageParserServiceTest extends UnitTestCase
         $user = $this->createUserWithId();
         $project = $this->createProjectWithId('proj-1', $user, 'shopping');
 
-        $this->projectRepository->expects($this->any())->method('findByNameInsensitive')
+        $this->projectRepository->expects($this->atLeastOnce())->method('findByNameInsensitive')
             ->with($user, 'shopping')
             ->willReturn($project);
 
@@ -226,7 +229,7 @@ class NaturalLanguageParserServiceTest extends UnitTestCase
         $user = $this->createUserWithId();
         $project = $this->createProjectWithId('proj-1', $user, 'meetings');
 
-        $this->projectRepository->expects($this->any())->method('findByPathInsensitive')
+        $this->projectRepository->expects($this->atLeastOnce())->method('findByPathInsensitive')
             ->with($user, 'work/meetings')
             ->willReturn($project);
 

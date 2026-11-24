@@ -8,12 +8,12 @@ use App\Service\Parser\DateParserService;
 use App\Service\Parser\TimezoneHelper;
 use App\ValueObject\DateParseResult;
 use PHPUnit\Framework\Attributes\DataProvider;
-use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\MockObject\Stub;
 use PHPUnit\Framework\TestCase;
 
 class DateParserServiceTest extends TestCase
 {
-    private TimezoneHelper&MockObject $timezoneHelper;
+    private TimezoneHelper&Stub $timezoneHelper;
     private DateParserService $parser;
     private \DateTimeImmutable $fixedNow;
 
@@ -21,7 +21,7 @@ class DateParserServiceTest extends TestCase
     {
         parent::setUp();
 
-        $this->timezoneHelper = $this->createMock(TimezoneHelper::class);
+        $this->timezoneHelper = $this->createStub(TimezoneHelper::class);
         $this->parser = new DateParserService($this->timezoneHelper);
 
         // Fixed "now" for consistent testing: 2026-01-23 (Friday) at midnight UTC

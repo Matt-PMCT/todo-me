@@ -10,8 +10,10 @@ use App\Repository\ProjectRepository;
 use App\Service\Parser\ProjectParserService;
 use App\Tests\Unit\UnitTestCase;
 use App\ValueObject\ProjectParseResult;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\MockObject\MockObject;
 
+#[AllowMockObjectsWithoutExpectations]
 class ProjectParserServiceTest extends UnitTestCase
 {
     private ProjectRepository&MockObject $projectRepository;

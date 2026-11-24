@@ -10,8 +10,10 @@ use App\Repository\ProjectRepository;
 use App\Repository\TagRepository;
 use App\Service\TaskStateService;
 use App\Tests\Unit\UnitTestCase;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\MockObject\MockObject;
 
+#[AllowMockObjectsWithoutExpectations]
 class TaskStateServiceTest extends UnitTestCase
 {
     private TaskStateService $service;
@@ -120,13 +122,13 @@ class TaskStateServiceTest extends UnitTestCase
         $tag->setName('Test Tag');
         $tag->setOwner($user);
 
-        $this->projectRepository
-            ->expects($this->any())->method('findOneByOwnerAndId')
+        $this->projectRepository->expects($this->atLeastOnce())
+            ->method('findOneByOwnerAndId')
             ->with($user, 'project-123')
             ->willReturn($project);
 
-        $this->tagRepository
-            ->expects($this->any())->method('findOneByOwnerAndId')
+        $this->tagRepository->expects($this->atLeastOnce())
+            ->method('findOneByOwnerAndId')
             ->with($user, 'tag-1')
             ->willReturn($tag);
 
@@ -215,8 +217,8 @@ class TaskStateServiceTest extends UnitTestCase
         $user = $this->createUserWithId('user-123');
         $task = $this->createTaskWithId('task-123', $user, 'Test Task');
 
-        $this->projectRepository
-            ->expects($this->any())->method('findOneByOwnerAndId')
+        $this->projectRepository->expects($this->atLeastOnce())
+            ->method('findOneByOwnerAndId')
             ->with($user, 'non-existent-project')
             ->willReturn(null);
 

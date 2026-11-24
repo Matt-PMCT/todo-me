@@ -14,7 +14,9 @@ use App\Repository\TaskRepository;
 use App\Service\ImportService;
 use App\Tests\Unit\UnitTestCase;
 use Doctrine\ORM\EntityManagerInterface;
+use PHPUnit\Framework\Attributes\AllowMockObjectsWithoutExpectations;
 use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\MockObject\Stub;
 use Psr\Log\LoggerInterface;
 
 /**
@@ -27,13 +29,14 @@ use Psr\Log\LoggerInterface;
  * - Validation of import data
  * - Error handling for malformed data
  */
+#[AllowMockObjectsWithoutExpectations]
 class ImportServiceTest extends UnitTestCase
 {
     private EntityManagerInterface&MockObject $entityManager;
     private ProjectRepository&MockObject $projectRepository;
     private TagRepository&MockObject $tagRepository;
-    private TaskRepository&MockObject $taskRepository;
-    private LoggerInterface&MockObject $logger;
+    private TaskRepository&Stub $taskRepository;
+    private LoggerInterface&Stub $logger;
     private ImportService $importService;
     private User $user;
 
@@ -44,8 +47,8 @@ class ImportServiceTest extends UnitTestCase
         $this->entityManager = $this->createMock(EntityManagerInterface::class);
         $this->projectRepository = $this->createMock(ProjectRepository::class);
         $this->tagRepository = $this->createMock(TagRepository::class);
-        $this->taskRepository = $this->createMock(TaskRepository::class);
-        $this->logger = $this->createMock(LoggerInterface::class);
+        $this->taskRepository = $this->createStub(TaskRepository::class);
+        $this->logger = $this->createStub(LoggerInterface::class);
 
         $this->importService = new ImportService(
             $this->entityManager,
@@ -185,7 +188,7 @@ class ImportServiceTest extends UnitTestCase
             ],
         ];
 
-        $this->projectRepository->expects($this->any())->method('findByNameInsensitive')
+        $this->projectRepository->expects($this->atLeastOnce())->method('findByNameInsensitive')
             ->with($this->user, 'Existing')
             ->willReturn($existingProject);
 
@@ -212,7 +215,7 @@ class ImportServiceTest extends UnitTestCase
             ],
         ];
 
-        $this->tagRepository->expects($this->any())->method('findByNameInsensitive')
+        $this->tagRepository->expects($this->atLeastOnce())->method('findByNameInsensitive')
             ->with($this->user, 'existing')
             ->willReturn($existingTag);
 

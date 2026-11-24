@@ -6,7 +6,10 @@ namespace App\Tests\Unit\Entity;
 
 use App\Entity\Task;
 use App\Tests\Unit\UnitTestCase;
+use PHPUnit\Framework\Attributes\CoversMethod;
 
+#[CoversMethod(Task::class, 'isOverdue')]
+#[CoversMethod(Task::class, 'getOverdueDays')]
 class TaskOverdueTest extends UnitTestCase
 {
     // ========================================
@@ -243,7 +246,6 @@ class TaskOverdueTest extends UnitTestCase
     // ========================================
 
     /**
-     * @covers \App\Entity\Task::isOverdue
      * Summary: Verifies isOverdue uses owner timezone, not UTC.
      *
      * Bug: isOverdue() used new \DateTimeImmutable('today') without timezone,
@@ -262,7 +264,6 @@ class TaskOverdueTest extends UnitTestCase
     }
 
     /**
-     * @covers \App\Entity\Task::getOverdueDays
      * Summary: Verifies getOverdueDays uses owner timezone, not UTC.
      */
     public function testIssue123GetOverdueDaysUsesOwnerTimezone(): void
@@ -280,7 +281,6 @@ class TaskOverdueTest extends UnitTestCase
     }
 
     /**
-     * @covers \App\Entity\Task::isOverdue
      * Summary: Verifies isOverdue doesn't crash when task has no owner (falls back to UTC).
      */
     public function testIssue123IsOverdueWorksWithoutOwner(): void

@@ -9,7 +9,9 @@ use App\Entity\Task;
 use App\Entity\User;
 use App\Service\TaskGroupingService;
 use App\Tests\Unit\UnitTestCase;
+use PHPUnit\Framework\Attributes\CoversMethod;
 
+#[CoversMethod(TaskGroupingService::class, 'groupByTimePeriod')]
 class TaskGroupingServiceTest extends UnitTestCase
 {
     private TaskGroupingService $service;
@@ -121,7 +123,6 @@ class TaskGroupingServiceTest extends UnitTestCase
     // ========================================
 
     /**
-     * @covers \App\Service\TaskGroupingService::groupByTimePeriod
      * Summary: Reproduces Issue #123 - Due dates use wrong timezone.
      *
      * Bug: Tasks due tomorrow appear as "Due Today" because groupByTimePeriod
@@ -152,7 +153,6 @@ class TaskGroupingServiceTest extends UnitTestCase
     }
 
     /**
-     * @covers \App\Service\TaskGroupingService::groupByTimePeriod
      * Summary: Verifies that overdue detection respects user timezone.
      *
      * A task due March 4 at 23:30 UTC on March 4 is NOT overdue for a UTC user

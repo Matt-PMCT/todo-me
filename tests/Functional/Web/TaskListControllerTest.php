@@ -4,14 +4,17 @@ declare(strict_types=1);
 
 namespace App\Tests\Functional\Web;
 
+use App\Controller\Web\TaskListController;
 use App\Entity\Project;
 use App\Entity\Task;
 use App\Tests\Functional\ApiTestCase;
+use PHPUnit\Framework\Attributes\CoversMethod;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
  * Functional tests for TaskListController.
  */
+#[CoversMethod(TaskListController::class, 'list')]
 class TaskListControllerTest extends ApiTestCase
 {
     public function testTaskListRequiresAuthentication(): void
@@ -89,7 +92,6 @@ class TaskListControllerTest extends ApiTestCase
     }
 
     /**
-     * @covers \App\Controller\Web\TaskListController::list
      * Issue #46: Clicking project in sidebar returns 404.
      *
      * Bug: Project sidebar link uses 'project' parameter but controller expects 'projectId'.
