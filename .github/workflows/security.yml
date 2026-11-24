@@ -33,7 +33,7 @@ jobs:
   composer-audit:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
@@ -47,7 +47,7 @@ jobs:
   pip-audit:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - uses: actions/setup-python@v5
         with:
@@ -63,7 +63,7 @@ jobs:
     outputs:
       images: ${{ steps.list.outputs.images }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: List pulled images from docker-compose.yml
         id: list
@@ -83,7 +83,7 @@ jobs:
           - name: todo-mcp
             context: mcp-server
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Build ${{ matrix.name }}
         run: docker build -t ${{ matrix.name }}:scan ${{ matrix.context }}
@@ -110,7 +110,7 @@ jobs:
       matrix:
         image: ${{ fromJSON(needs.discover-images.outputs.images) }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Scan ${{ matrix.image }}
         uses: aquasecurity/trivy-action@v0.36.0
